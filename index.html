@@ -147,6 +147,16 @@
       .daytabs{flex-wrap:wrap;}
       .requests-strip{flex-wrap:wrap;}
     }
+
+    /* Toasts */
+    .toast-wrap{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:4000;display:flex;flex-direction:column;gap:10px;align-items:center;justify-content:center;pointer-events:none}
+    .toast{pointer-events:auto;background:var(--card);border:1px solid var(--border);color:var(--fg);padding:10px 14px;border-radius:12px;box-shadow:0 10px 28px rgba(0,0,0,.35);display:flex;align-items:center;gap:10px;opacity:0;transform:translateY(6px);transition:opacity .25s ease,transform .25s ease max-width:min(90vw,520px);text-align:center}
+    .toast.show{opacity:1;transform:translateY(0)}
+    .toast.success{border-color:rgba(34,197,94,.55);box-shadow:0 10px 24px rgba(34,197,94,.25)}
+    .toast.error{border-color:rgba(239,68,68,.55);box-shadow:0 10px 24px rgba(239,68,68,.25)}
+    .toast.info{border-color:var(--border)}
+    .toast .t-icon{font-size:16px;line-height:1}
+    .toast .t-msg{font-weight:800;font-size:13px}
 </style>
 </head>
 <body>
@@ -420,6 +430,27 @@
 'use strict';
 
 // ---------- Shortcuts ----------
+// ---------- Toasts ----------
+function toast(msg, kind, ms){
+  try{
+    var wrap = byId('toasts'); 
+    if(!wrap){ alert(String(msg)); return; }
+    kind = kind || 'info'; 
+    ms = Math.max(600, parseInt(ms||2000,10));
+    var el = document.createElement('div');
+    el.className = 'toast '+kind;
+    var icon = kind==='success'?'✔️':(kind==='error'?'⚠️':'ℹ️');
+    el.innerHTML = '<span class="t-icon">'+icon+'</span><span class="t-msg"></span>';
+    el.querySelector('.t-msg').textContent = String(msg);
+    wrap.appendChild(el);
+    requestAnimationFrame(function(){ el.classList.add('show'); });
+    setTimeout(function(){
+      el.classList.remove('show');
+      setTimeout(function(){ if(el && el.parentNode) el.parentNode.removeChild(el); }, 300);
+    }, ms);
+  }catch(e){ try{ alert(String(msg)); }catch(_){} }
+}
+
 var $ = function(s){ return document.querySelector(s); };
 var $$ = function(s){ return document.querySelectorAll(s); };
 var byId = function(id){ return document.getElementById(id); };
@@ -636,9 +667,9 @@ function init(){
   splashShow('Syncing…'); byId('splashSync').style.display='flex';
   pullData(true).then(function(){
     populateLoginSelects(); populateExistingStaff();
-    splashHide('Sync successful');
+    splashHide('Sync successful'); toast('Synced','success');
   }).catch(function(e){
-    var m=byId('loginMsg'); if(m) m.textContent='Startup sync failed: '+(e&&e.message?e.message:''); splashHide('Sync failed — offline mode available');
+    var m=byId('loginMsg'); if(m) m.textContent='Startup sync failed: '+(e&&e.message?e.message:''); splashHide('Sync failed — offline mode available'); toast('Startup sync failed — offline mode available','error',3500);
   }).finally(function(){
     if(!App.staff || Object.keys(App.staff).length===0){
       var a=uid(), b=uid(), c=uid();
@@ -664,20 +695,20 @@ function init(){
     App.settings.targetHeadcount=parseInt(byId('optTargetHeadcount').value||'0',10);
     App.settings.staffSeeOthers = (byId('optStaffSeeOthers').value==='true');
     document.querySelector('.appbar .title').textContent=App.settings.appTitle;
-    saveLocal(); startAutoSyncTimers(); renderPlanner(); alert('Saved.');
+    saveLocal(); startAutoSyncTimers(); renderPlanner(); toast('Settings saved','success');
   };
   byId('btnResetLocal').onclick = function(){ if(!isAdmin()) return alert('Admin only.'); if(confirm('Reset local cache?')){ localStorage.removeItem(App.cacheKey); location.reload(); } };
 
   byId('btnExportSettings').onclick=function(){ var data={settings:App.settings,staff:App.staff,availability:App.availability,weeks:App.weeks,absenceRequests:App.absenceRequests}; var a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'})); a.download='munchandcrun_export.json'; a.click(); };
   byId('btnImportSettings').onclick=function(){ byId('importSettingsInput').click(); };
-  byId('importSettingsInput').onchange=async function(e){ var f=e.target.files[0]; if(!f) return; try{ var d=JSON.parse(await f.text()); if(d.settings){ for(var k in d.settings){ App.settings[k]=d.settings[k]; } } App.staff=d.staff||App.staff; App.availability=d.availability||App.availability; App.weeks=d.weeks||App.weeks; App.absenceRequests=d.absenceRequests||App.absenceRequests; saveLocal(); populateLoginSelects(); populateExistingStaff(); renderAfterLogin(); startAutoSyncTimers(); alert('Imported. Use Push to sync.'); }catch(err){ alert('Invalid JSON'); } };
+  byId('importSettingsInput').onchange=async function(e){ var f=e.target.files[0]; if(!f) return; try{ var d=JSON.parse(await f.text()); if(d.settings){ for(var k in d.settings){ App.settings[k]=d.settings[k]; } } App.staff=d.staff||App.staff; App.availability=d.availability||App.availability; App.weeks=d.weeks||App.weeks; App.absenceRequests=d.absenceRequests||App.absenceRequests; saveLocal(); populateLoginSelects(); populateExistingStaff(); renderAfterLogin(); startAutoSyncTimers(); toast('Imported. Use Push to sync.','success'); }catch(err){ alert('Invalid JSON'); } };
 
   byId('btnLogin').onclick = login;
   var pwd=byId('loginPass'); if(pwd){ pwd.addEventListener('keydown',function(e){ if(e.key==='Enter'){ login(); } }); }
   byId('btnContinueOffline').onclick = function(){ var id=byId('loginStaffSelect').value; if(!id||!App.staff[id]){alert('Select a staff');return;} var s=App.staff[id]; App.currentUser={id:id, name:s.name, role:s.role||'staff', rate:s.rate||0}; enterApp(); startAutoSyncTimers(); };
 
-  byId('btnPull').onclick = function(){ pullData(false).then(function(){alert('Pulled latest.');}).catch(function(e){alert('Pull failed: '+e.message);}); };
-  byId('btnPush').onclick = function(){ if(!canEdit()) return alert('Only manager or admin can push.'); pushData().then(function(){alert('Pushed.');}).catch(function(e){alert('Push failed: '+e.message);}); };
+  byId('btnPull').onclick = function(){ pullData(false).then(function(){toast('Pulled latest','success');}).catch(function(e){toast('Pull failed: '+(e&&e.message?e.message:e),'error',3000);}); };
+  byId('btnPush').onclick = function(){ if(!canEdit()) return alert('Only manager or admin can push.'); pushData().then(function(){toast('Pushed','success');}).catch(function(e){toast('Push failed: '+(e&&e.message?e.message:e),'error',3000);}); };
   var pullTop=byId('btnPullTop'), pushTop=byId('btnPushTop');
   if(pullTop) pullTop.onclick=function(){ byId('btnPull').onclick(); };
   if(pushTop) pushTop.onclick=function(){ byId('btnPush').onclick(); };
@@ -686,7 +717,7 @@ function init(){
   byId('btnExportJSON').onclick=function(){ if(!isAdmin()) return alert('Admin only.'); var data={settings:App.settings,staff:App.staff,availability:App.availability,weeks:App.weeks,absenceRequests:App.absenceRequests}; var a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'})); a.download='munchandcrun_export.json'; a.click(); };
   byId('btnExportCSV').onclick=function(){ if(!isAdmin()) return alert('Admin only.'); exportPayrollCSV(); };
   byId('btnImportJSON').onclick=function(){ if(!isAdmin()) return alert('Admin only.'); byId('importJSONInput').click(); };
-  byId('importJSONInput').onchange=async function(e){ if(!isAdmin()) return; var f=e.target.files[0]; if(!f) return; try{ var d=JSON.parse(await f.text()); if(d.settings){ for(var k in d.settings){ App.settings[k]=d.settings[k]; } } App.staff=d.staff||App.staff; App.availability=d.availability||App.availability; App.weeks=d.weeks||App.weeks; App.absenceRequests=d.absenceRequests||App.absenceRequests; saveLocal(); populateLoginSelects(); populateExistingStaff(); renderAfterLogin(); startAutoSyncTimers(); alert('Imported. Use Push to sync.'); }catch(err){ alert('Invalid JSON'); } };
+  byId('importJSONInput').onchange=async function(e){ if(!isAdmin()) return; var f=e.target.files[0]; if(!f) return; try{ var d=JSON.parse(await f.text()); if(d.settings){ for(var k in d.settings){ App.settings[k]=d.settings[k]; } } App.staff=d.staff||App.staff; App.availability=d.availability||App.availability; App.weeks=d.weeks||App.weeks; App.absenceRequests=d.absenceRequests||App.absenceRequests; saveLocal(); populateLoginSelects(); populateExistingStaff(); renderAfterLogin(); startAutoSyncTimers(); toast('Imported. Use Push to sync.','success'); }catch(err){ alert('Invalid JSON'); } };
 
   byId('btnPrevWeek').onclick=function(){ shiftWeek(-1); };
   byId('btnNextWeek').onclick=function(){ shiftWeek(1); };
@@ -1296,7 +1327,7 @@ async function onSaveStaff(){
   var id = selectedId || uid();
   App.staff[id]={name:name,rate:rate,rateWeekend:rateWeekend,ratePenalty:ratePenalty,otMult:otMult,otWeekly:otWeekly,otDaily:otDaily,breakDefault:br,role:role,color:color,passHash:passHash};
   App.settings.recentColors=[color].concat((App.settings.recentColors||[]).filter(function(c){return c!==color;})).slice(0,12);
-  saveLocal(); populateLoginSelects(); populateExistingStaff(); alert('Saved staff.');
+  saveLocal(); populateLoginSelects(); populateExistingStaff(); toast('Saved staff','success');
 }
 function onDeleteStaff(){
   if(!isAdmin()) return alert('Admin only.');
@@ -1505,12 +1536,12 @@ function approveRequest(iso,sid,req){
   if(req.blocks && req.blocks.length){ day[sid]=day[sid]||{}; day[sid].blocks = (day[sid].blocks||[]).concat(req.blocks); }
   else { day[sid]={unavailable:true}; }
   if(App.absenceRequests && App.absenceRequests[iso]){ delete App.absenceRequests[iso][sid]; if(Object.keys(App.absenceRequests[iso]).length===0) delete App.absenceRequests[iso]; }
-  saveLocal(); renderPlanner(); renderAbsenceCalendar(); openRequestsModal();
+  saveLocal(); renderPlanner(); renderAbsenceCalendar(); toast('Approved','success'); openRequestsModal();
 }
 function rejectRequest(iso,sid){
   if(!canModerateAbsences()) return alert('Manager/Admin only.');
   if(App.absenceRequests && App.absenceRequests[iso]){ delete App.absenceRequests[iso][sid]; if(Object.keys(App.absenceRequests[iso]).length===0) delete App.absenceRequests[iso]; }
-  saveLocal(); openRequestsModal();
+  saveLocal(); toast('Rejected','info'); openRequestsModal();
 }
 function approveShiftChange(iso,key,req){
   if(!canModerateAbsences()) return alert('Manager/Admin only.');
@@ -1538,6 +1569,7 @@ function approveShiftChange(iso,key,req){
     renderMyShifts();
     renderPayroll();
     if(typeof updateRequestsBadge==='function') updateRequestsBadge();
+    toast('Applied','success');
     openRequestsModal();
   }catch(e){
     console.error('approveShiftChange error', e);
@@ -1578,7 +1610,7 @@ function updateRequestsBadge(){
     el.style.display = 'none';
   }
 }
-  saveLocal(); if(typeof updateRequestsBadge==='function') updateRequestsBadge(); openRequestsModal();
+  saveLocal(); if(typeof updateRequestsBadge==='function') updateRequestsBadge(); toast('Discarded','info'); openRequestsModal();
 }
 
 
@@ -1602,7 +1634,7 @@ function proposeAway(iso, staffId){
     dbPatch('/absenceRequests', payload).catch(function(e){ console.error('Push absenceRequests failed', e); });
   }catch(e){}
   if(typeof updateRequestsBadge==='function') updateRequestsBadge();
-  alert('Request sent.');
+  toast('Request sent','success');
 }
 function proposePartial(iso, staffId, start, end){
   ensureRequestsStore();
@@ -1621,7 +1653,7 @@ function proposePartial(iso, staffId, start, end){
     dbPatch('/absenceRequests', payload2).catch(function(e){ console.error('Push partial absenceRequests failed', e); });
   }catch(e){}
   if(typeof updateRequestsBadge==='function') updateRequestsBadge();
-  alert('Request sent.');
+  toast('Request sent','success');
 }
 function clearAway(iso, staffId){
   if(!canModerateAbsences()) return alert('Manager/Admin only to clear published away.');
@@ -1750,7 +1782,7 @@ function togglePublishWeek(){
   var next = !cur;
   App.settings.publishedWeeks[Planner.weekStartISO] = next;
   saveLocal();
-  alert(next?'Marked week as Published (staff cannot add new shifts)':'Unpublished week (editable).');
+  toast(next?'Marked week as Published (staff cannot add new shifts)':'Unpublished week (editable).','info');
   renderPlanner();
 }
 
@@ -1835,10 +1867,10 @@ window.proposeShiftEdit = async function(iso, staffId){
       await dbPatch('/shiftChangeRequests', payload);
     }catch(e){
       console.error('Failed to push shiftChangeRequests', e);
-      alert('Saved locally. Could not send to server.');
+      toast('Saved locally. Could not send to server.','error',3200);
     }
     if(typeof updateRequestsBadge==='function') updateRequestsBadge();
-    alert('Shift edit request sent.');
+    toast('Shift edit request sent','success');
   }catch(e){
     console.error('proposeShiftEdit error', e);
     alert('Could not create request: ' + e);
@@ -1846,6 +1878,8 @@ window.proposeShiftEdit = async function(iso, staffId){
 };
 
 })();</script>
+
+<div id="toasts" class="toast-wrap" aria-live="polite"></div>
 
 </body>
 </html>
