@@ -1,0 +1,1851 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1"/>
+  <title>Munch & C Run — Staff Scheduler (v14.23.3)</title>
+  <meta name="theme-color" content="#5A31F4"/>
+  <style>
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0;height:100%;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;background:var(--bg);color:var(--fg)}
+    :root{
+      --bg:#0d0f1a;--fg:#f9fbff;--card:#14182b;--muted:#8aa1b3;
+      --accent:#5A31F4;--accent2:#00D4FF;--accent3:#FF3D71;
+      --good:#22c55e;--warn:#f59e0b;--bad:#ef4444;
+      --grid:#0f1324;--staff:#0f1226;--alt:transparent;--chip:#ffffff55;--border:rgba(255,255,255,.15);
+      --rowH:38px;
+      --input-bg:#0f1324; --input-fg:#f9fbff; --input-border:rgba(255,255,255,.25);
+    }
+    [data-theme="light"]{
+      --bg:#f7f8fd;--fg:#0a0f1a;--card:#ffffff;--muted:#59677a;
+      --grid:#ffffff;--staff:#fafbff;--alt:transparent;--chip:#00000033;--border:rgba(0,0,0,.15);
+      --input-bg:#ffffff; --input-fg:#0a0f1a; --input-border:rgba(0,0,0,.15);
+    }
+    .appbar{position:sticky;top:0;z-index:200;display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;box-shadow:0 6px 18px rgba(0,0,0,.25)}
+    .title{font-weight:800;letter-spacing:.3px}
+    .tabs{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    .tabs button{border:none;padding:8px 12px;border-radius:999px;background:rgba(255,255,255,.16);color:#fff;font-weight:600;cursor:pointer}
+    .tabs button.active{background:#fff;color:#2c2c2c}
+    .btn-primary{background:linear-gradient(90deg,var(--accent3),var(--accent));border:none;color:#fff;padding:8px 12px;border-radius:10px;font-weight:800;cursor:pointer}
+    .btn-good{background:linear-gradient(90deg,var(--good),#3be38f);border:none;color:#04120d;padding:8px 12px;border-radius:10px;font-weight:800;cursor:pointer}
+    .btn-outline{background:transparent;border:1px solid var(--border);color:var(--fg);padding:8px 12px;border-radius:10px;cursor:pointer}
+    .requests-strip{display:flex;align-items:center;gap:8px;margin:4px 0 10px;}
+    .btn-requests{background:linear-gradient(90deg,#fb923c,#f97316);border:none;color:#fff;padding:6px 18px;border-radius:999px;font-weight:800;cursor:pointer;box-shadow:0 0 0 1px rgba(0,0,0,0.28),0 10px 22px rgba(0,0,0,0.55);letter-spacing:0.03em;text-transform:uppercase;font-size:12px;}
+    .btn-requests:hover{transform:translateY(-1px);box-shadow:0 0 0 1px rgba(0,0,0,0.25),0 12px 26px rgba(0,0,0,0.7);}
+    .req-badge{display:none;margin-left:6px;min-width:18px;padding:1px 6px;border-radius:999px;background:#111827;color:#f9fafb;font-size:11px;line-height:1.4;text-align:center;}
+    .requests-hint{font-size:11px;color:var(--muted);opacity:0.85;}
+    [data-theme="light"] .btn-outline{color:#0a0f1a}
+    .wrap{padding:16px;max-width:1200px;margin:0 auto}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;box-shadow:0 10px 28px rgba(0,0,0,.25)}
+    .muted{color:var(--muted);font-size:13px}
+    .pill{padding:6px 10px;background:#1b2140;border-radius:999px;color:#cdd6f4}
+    [data-theme="light"] .pill{background:#e9edff;color:#001927}
+    .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    .table{width:100%;border-collapse:collapse}
+    .table th,.table td{padding:10px 12px;border-bottom:1px dashed var(--border);text-align:left}
+    .table th{color:#b2c1ff;font-size:13px;text-transform:uppercase;letter-spacing:.04em}
+
+    .planner{overflow:hidden;border-radius:12px;border:1px solid var(--border)}
+    .grid{position:relative;width:100%;background:var(--grid);--colW:32px}
+    .grid .header{display:grid;position:sticky;top:0;z-index:20;background:var(--card)}
+    .grid .header div{padding:8px;border-right:1px dashed var(--border);font-size:12px;color:var(--fg);font-weight:700;letter-spacing:.02em;text-align:center;opacity:.9}
+    .grid .row{display:grid;align-items:center}
+    .grid .row .cell{border-right:1px dashed var(--border);border-bottom:1px dashed var(--border);height:var(--rowH);position:relative;z-index:1}
+    .grid .row .cell.alt{background:var(--alt)}
+    .grid .row .staffcell{position:sticky;left:0;background:var(--staff);z-index:6;padding:8px;display:flex;gap:6px;align-items:flex-start;border-right:1px solid var(--border);height:calc(var(--rowH) + 22px);flex-direction:column}
+    .mini-actions{display:flex;gap:6px;margin-top:4px;flex-wrap:wrap}
+    .mini-actions .btn-mini{font-size:11px;padding:2px 6px;border-radius:8px;border:1px solid var(--border);background:var(--card);cursor:pointer;user-select:none;color:var(--muted)}
+    .mini-actions .btn-mini.danger{background:linear-gradient(180deg, rgba(239,68,68,.25), rgba(239,68,68,.12));border-color:rgba(239,68,68,.5)}
+    .mini-actions .btn-mini.warn{background:linear-gradient(180deg, rgba(245,158,11,.25), rgba(245,158,11,.12));border-color:rgba(245,158,11,.5)}
+    .mini-actions .btn-mini.mute{background:linear-gradient(180deg, rgba(0,212,255,.25), rgba(0,212,255,.12));border-color:rgba(0,212,255,.5);opacity:1;color:var(--fg)}
+    .grid .row .staffcell .dot{width:10px;height:10px;border-radius:50%}
+    .grid .row .staffcell .badge{margin-left:auto;background:#1b2140;padding:4px 8px;border-radius:999px;font-size:12px;color:#c8d3ff;align-self:flex-end}
+    [data-theme="light"] .grid .row .staffcell .badge{background:#e9edff;color:#001927}
+    .rowwrap{position:relative;height:calc(var(--rowH) + 22px);z-index:2}
+    .shift{position:absolute;left:0;top:0;height:calc(100% - 4px);margin-top:2px;border-radius:10px;display:flex;align-items:center;padding:0 8px;gap:8px;font-weight:800;color:#0e1020;overflow:hidden;box-shadow:0 6px 14px rgba(0,0,0,.35);border:2px solid var(--chip);font-size:12px;z-index:3}
+    .shift .label{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .shift .hours{opacity:.95;text-shadow:0 1px 1px rgba(0,0,0,.35)}
+    .shift .breakpill{margin-left:auto; padding:2px 6px; border-radius:8px; background:rgba(0,0,0,.15); font-weight:900; font-size:11px; line-height:1; cursor:pointer; user-select:none}
+    [data-theme="light"] .shift .breakpill{background:rgba(255,255,255,.25)}
+    .away-band{position:absolute;top:2px;bottom:2px;border-radius:8px;border:2px dashed rgba(239,68,68,.55);background:repeating-linear-gradient(135deg, rgba(239,68,68,.22) 0 6px, transparent 6px 12px); pointer-events:none; z-index:2}
+    .away-chip{position:absolute;top:2px;left:2px;font-size:10px;font-weight:800;padding:2px 6px;border-radius:8px;background:rgba(239,68,68,.9);color:#fff; z-index:4}
+
+    .daytabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+    .daytabs button{border:none;padding:8px 10px;border-radius:10px;background:#1b2140;color:#fff;cursor:pointer}
+    .daytabs button.active{background:var(--accent2);color:#001927}
+
+    .print-header{display:none;font-weight:800;text-align:center;margin:8px 0;}
+
+    .coverage{display:flex;align-items:center;gap:8px;margin:10px 0}
+    .coverage .slot{height:18px;border-radius:6px;min-width:6px}
+
+    .legend{display:none}
+    .week-overview{display:grid;grid-template-columns:220px repeat(7,1fr);gap:8px;align-items:center}
+    .week-overview .wo-head{font-size:12px;color:var(--fg);opacity:.85;text-align:center}
+    .wo-title{font-weight:800;color:var(--fg);text-align:left}
+    .week-overview .wo-name{position:sticky;left:0;background:var(--staff);border:1px solid var(--border);padding:6px 8px;border-radius:8px;display:flex;align-items:center;gap:8px}
+    .week-overview .wo-cell{background:var(--grid);border:1px solid var(--border);border-radius:8px;min-height:28px;position:relative;overflow:hidden;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;padding:2px}
+    .wo-chip{display:inline-flex;align-items:center;justify-content:center;border-radius:6px;padding:2px 6px;margin:2px;font-size:12px;font-weight:800}
+
+    .availability{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+    .availability .day{display:flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;background:var(--card);border:1px solid var(--border);cursor:pointer;font-size:12px;color:var(--fg)}
+    .availability .day.off{background:linear-gradient(180deg, rgba(255,61,113,.35), rgba(255,61,113,.2));border-color: rgba(255,61,113,.5)}
+
+    .recent-colors .sw{width:26px;height:26px;border-radius:6px;border:2px solid var(--border);cursor:pointer}
+    .login:not(.show), .section:not(.show){display:none !important;} .login.show, .section.login,.section{display:none}
+    .show{display:block !important;}
+    .card input[type=text], .card input[type=password], .card input[type=number], .card select, .card input[type=time], .card textarea {
+      width:100%;background:var(--input-bg);color:var(--input-fg);border:1px solid var(--input-border);border-radius:10px;padding:8px 12px
+    }
+
+    /* Themes + Print styling */
+    .theme-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+    .theme-card{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px 12px;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.18)}
+    .theme-card .theme-swatch{width:42px;height:28px;border-radius:8px;border:2px solid var(--border)}
+    .theme-card.selected{outline:3px solid var(--accent2)}
+    .theme-card:hover{transform:translateY(-1px)}
+    .print-weeks{display:flex;flex-direction:column;gap:16px}
+    .print-week{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px}
+    .print-grid{display:grid;grid-template-columns:220px repeat(7,1fr);gap:8px;align-items:stretch}
+    .print-head{font-weight:800;text-align:center;color:var(--fg)}
+    .print-name{display:flex;align-items:center;gap:8px;background:var(--staff);border:1px solid var(--border);padding:6px 8px;border-radius:8px;position:sticky;left:0}
+    .print-cell{min-height:32px;background:var(--grid);border:1px solid var(--border);border-radius:8px;padding:4px;display:flex;align-items:center;flex-wrap:wrap;gap:4px;justify-content:center}
+    .print-chip{display:inline-flex;align-items:center;justify-content:center;border-radius:6px;padding:2px 6px;font-size:12px;font-weight:800}
+
+    /* Absences calendar */
+    .abs-cal{display:grid;grid-template-columns:repeat(7,1fr);gap:8px}
+    .abs-day{min-height:86px;border:1px solid var(--border);border-radius:8px;background:var(--grid);padding:6px;display:flex;flex-direction:column;gap:4px}
+    .abs-date{font-weight:800;font-size:12px;opacity:.85}
+    .abs-chip{display:inline-flex;align-items:center;justify-content:center;padding:2px 6px;border-radius:8px;font-size:11px;font-weight:800;margin:2px 2px 0 0}
+    .abs-chip.full{background:linear-gradient(180deg, rgba(239,68,68,.9), rgba(239,68,68,.7));color:#fff}
+    .abs-chip.block{background:linear-gradient(180deg, rgba(239,68,68,.25), rgba(239,68,68,.15));color:#ef4444;border:1px dashed rgba(239,68,68,.5)}
+
+    @media print{
+      .print-controls{display:none !important}
+      .print-header{display:block !important}
+      body{background:#fff;color:#000}
+      .appbar,.tabs,#loginSection,.toolbar{display:none !important}
+      .wrap{padding:0}
+      .print-week{background:#fff;border:1px solid #000}
+      .print-name{background:#fff;border-color:#000}
+      .print-cell{background:#fff;border-color:#000}
+      .print-head{color:#000}
+    }
+  
+.mini-actions .btn-mini.success{background:linear-gradient(180deg, rgba(16,185,129,.25), rgba(16,185,129,.12));border-color:rgba(16,185,129,.5);color:var(--fg)}
+
+    @media (max-width: 768px){
+      .wrap{padding:8px;max-width:none;margin:0;}
+      .appbar{flex-direction:column;align-items:flex-start;gap:8px;}
+      .tabs{flex-wrap:wrap;}
+      .grid-2{grid-template-columns:1fr;}
+      .planner{overflow-x:auto;}
+      .grid{min-width:720px;}
+      .table{font-size:12px;}
+      .table th,.table td{padding:6px 8px;}
+      .mini-actions .btn-mini{font-size:10px;padding:2px 4px;}
+      .daytabs{flex-wrap:wrap;}
+      .requests-strip{flex-wrap:wrap;}
+    }
+</style>
+</head>
+<body>
+  <div class="appbar">
+    <div class="title" id="appTitle">Munch & C Run — Staff Scheduler</div>
+    <div class="tabs">
+      <div id="userChip" class="pill" style="background:#ffffff22;color:#fff;font-weight:700;"></div>
+      <button id="tabMy" class="active">My Shifts</button>
+      <button id="tabPlanner">Planner</button>
+      <button id="tabPayroll">Payroll</button>
+      <button id="tabPrint">Print View</button>
+      <button id="tabAbsences">Absences</button>
+      <button id="tabSettings">Settings</button>
+      <button id="btnPullTop" class="btn-good">⬇ Pull</button>
+      <button id="btnPushTop" class="btn-primary">⬆ Push</button>
+      <button id="btnLogout" class="btn-outline">Logout</button>
+      <button id="btnTheme" class="btn-outline">Theme</button>
+    </div>
+  </div>
+
+  <div id="splashSync" style="position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.5);z-index:3000;opacity:0;transition:opacity .3s ease;pointer-events:none">
+    <div id="splashBox" style="background:var(--card);border:1px solid var(--border);color:var(--fg);padding:16px 20px;border-radius:12px;box-shadow:0 10px 28px rgba(0,0,0,.35);font-weight:800">Syncing…</div>
+  </div>
+
+  <div class="wrap">
+    <section id="loginSection" class="login show">
+      <div class="card">
+        <h3>Login</h3>
+        <div class="grid-2">
+          <div><label>Workspace ID</label><input id="wsIdInput" type="text" value="munchandcrun"></div>
+          <div><label>Staff</label><select id="loginStaffSelect"></select></div>
+        </div>
+        <div class="grid-2" style="margin-top:8px">
+          <div><label>Passcode</label><input id="loginPass" type="password" placeholder="PIN / passcode" data-enter-login="1"></div>
+          <div style="display:flex;align-items:flex-end;gap:8px;">
+            <button id="btnLogin" class="btn-primary">Login</button>
+            <button id="btnContinueOffline" class="btn-outline">Bypass sync & continue offline</button>
+          </div>
+        </div>
+        <div class="muted" id="loginMsg"></div>
+      </div>
+    </section>
+
+    <section id="mySection" class="section">
+      <div class="card">
+        <h3>My Shifts & Wages (This Week)</h3>
+        <div style="display:flex; gap:8px; align-items:center; margin-bottom:8px;"><span class="pill" id="myHours"></span></div>
+        <div class="grid-2">
+          <div><div id="myShiftsList" class="muted"></div></div>
+          <div>
+            <table class="table" id="myWageTable">
+              <thead><tr><th>Day</th><th>Hours</th><th>Break</th><th>Payable</th><th>OT</th><th>Pay</th></tr></thead>
+              <tbody></tbody>
+              <tfoot><tr><td><b>Total</b></td><td id="myTotalWork">0</td><td id="myTotalBreak">0</td><td id="myTotalPayable">0</td><td id="myTotalOT">0</td><td id="myTotalPay">$0.00</td></tr></tfoot>
+            </table>
+            <div class="muted">Break time is not counted towards pay. Overnight shifts count toward the day they start. Auto-break: 0m &lt;5h, 30m 5–9:59h, 60m ≥10h (unless overridden).</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="plannerSection" class="section">
+      <div class="card">
+        <div class="toolbar" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+          <button id="btnPrevWeek" class="btn-outline">← Prev week</button>
+          <div class="pill" id="weekLabel"></div>
+          <button id="btnNextWeek" class="btn-outline">Next week →</button>
+          <div style="flex:1"></div>
+          <button id="btnCopyDay" class="btn-outline">Copy Day →</button>
+          <button id="btnCopyWeek" class="btn-outline">Copy Week →</button>
+          <button id="btnRecurring" class="btn-outline">Add Recurring</button>
+          <button id="btnPublish" class="btn-outline">Toggle Publish</button>
+          <button id="btnPrint" class="btn-outline">Print (current)</button>
+          <button id="btnPrintView" class="btn-outline">Print View…</button>
+          </div>
+        <div id="legend" class="legend"></div>
+        <div id="weekOverview" class="week-overview" style="margin-bottom:10px;"></div>
+        <div class="requests-strip"><button id="btnRequests" class="btn-requests">View requests<span id="requestsCountBadge" class="req-badge">0</span></button><span class="requests-hint">Manager tools – pending leave & shift edits.</span></div>
+        <div id="availabilityBar" class="availability" style="margin:8px 0;"></div>
+        <div class="coverage" id="coverageBar"></div>
+        <div class="daytabs" id="dayTabs"></div>
+        <div id="plannerPrintHeader" class="print-header"></div>
+        <div class="planner"><div class="grid" id="plannerGrid"></div></div>
+      </div>
+    </section>
+
+    <section id="printSection" class="section">
+      <div class="card">
+        <h3>Print View (multi-week)</h3>
+        <div class="print-controls">
+          <label>Start Week Offset (0=this week)</label><input id="printStartOffset" type="number" min="0" step="1" value="0"/>
+          <label>Weeks to include</label><input id="printWeeksCount" type="number" min="1" max="4" step="1" value="2"/>
+          <button id="btnBuildPrint" class="btn-good">Build</button>
+          <button id="btnPrintNow" class="btn-primary">Print</button>
+          <button id="btnClosePrint" class="btn-outline">Close</button>
+        </div>
+        <div id="printContainer" class="print-weeks"></div>
+      </div>
+    </section>
+
+    <section id="absencesSection" class="section">
+      <div class="card">
+        <h3>Absences</h3>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px;">
+          <button id="absPrev" class="btn-outline">←</button>
+          <div id="absMonthLabel" class="pill"></div>
+          <button id="absNext" class="btn-outline">→</button>
+          <div style="flex:1"></div>
+          <label>Staff</label>
+          <select id="absStaffFilter"></select>
+        </div>
+        <div id="absCalGrid" class="abs-cal"></div>
+      </div>
+    </section>
+
+    <section id="payrollSection" class="section">
+      <div class="card">
+        <div class="toolbar" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+          <div class="pill" id="payrollWeekLabel"></div>
+          <button id="btnExportJSON" class="btn-outline">Export JSON</button>
+          <button id="btnExportCSV" class="btn-outline">Export CSV</button>
+          <input id="importJSONInput" type="file" accept="application/json" style="display:none"/>
+          <button id="btnImportJSON" class="btn-outline">Import JSON</button>
+          <button id="btnPull" class="btn-good">⬇ Pull</button>
+          <button id="btnPush" class="btn-primary">⬆ Push</button>
+        </div>
+        <table class="table" id="payrollTable">
+          <thead><tr><th>Staff</th><th>Rate</th><th>Work (hrs)</th><th>Break (hrs)</th><th>Payable (hrs)</th><th>OT (hrs)</th><th>Total Pay</th></tr></thead>
+          <tbody></tbody>
+          <tfoot><tr><td><b>All Staff</b></td><td></td><td id="allWork">0</td><td id="allBreak">0</td><td id="allPayable">0</td><td id="allOT">0</td><td id="allPay">$0.00</td></tr></tfoot>
+        </table>
+      </div>
+    </section>
+
+    <section id="settingsSection" class="section">
+      <div class="grid-2">
+        <div class="card">
+          <h3>Sync & Connection</h3>
+          <label>App Title</label><input id="appTitleInput" type="text" value="Munch & C Run — Staff Scheduler">
+          <label>Firebase Realtime Database URL</label><input id="dbUrlInput" type="text" value="https://munchandcrun.firebaseio.com">
+          <label>Workspace ID</label><input id="workspaceInput" type="text" value="munchandcrun">
+          <label>Auth token (optional)</label><input id="authTokenInput" type="text" placeholder="Firebase auth token if rules require it">
+          <div class="grid-2">
+            <div><label>Auto Pull (mins)</label><input id="autoPullMinsInput" type="number" min="0" step="1" value="0"></div>
+            <div><label>Auto Push (mins)</label><input id="autoPushMinsInput" type="number" min="0" step="1" value="0"></div>
+          </div>
+          <div style="height:8px"></div>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <button id="btnSaveSettings" class="btn-primary">Save</button>
+            <button id="btnResetLocal" class="btn-outline">Reset Local Cache</button>
+            <button id="btnExportSettings" class="btn-outline">Export Data</button>
+            <input id="importSettingsInput" type="file" accept="application/json" style="display:none"/>
+            <button id="btnImportSettings" class="btn-outline">Import Data</button>
+          </div>
+          <div class="muted">Syncs automatically on startup. Use global Push/Pull to force. Auto Pull/Push run when set & you’re logged in (Push requires manager/admin).</div>
+        </div>
+        <div class="card">
+          <h3>Staff</h3>
+          <div class="grid-2">
+            <div><label>Existing Staff</label><select id="existingStaffSelect"></select></div>
+            <div><label>Staff Name</label><input id="staffNameInput" type="text" placeholder="Full name"></div>
+          </div>
+          <div class="grid-2">
+            <div><label>Hourly Rate</label><input id="staffRateInput" type="number" min="0" step="0.01" value="25"></div>
+            <div><label>Weekend Rate</label><input id="staffWeekendRateInput" type="number" min="0" step="0.01" placeholder="(optional)"></div>
+          </div>
+          <div class="grid-2">
+            <div><label>Penalty Rate</label><input id="staffPenaltyRateInput" type="number" min="0" step="0.01" placeholder="(optional)"></div>
+            <div><label>OT Multiplier (x)</label><input id="staffOTMultInput" type="number" min="1" step="0.1" value="1.5"></div>
+          </div>
+          <div class="grid-2">
+            <div><label>OT Weekly Threshold (hrs)</label><input id="staffOTWeeklyInput" type="number" min="0" step="0.25" value="38"></div>
+            <div><label>OT Daily Threshold (hrs)</label><input id="staffOTDailyInput" type="number" min="0" step="0.25" value="8"></div>
+          </div>
+          <div class="grid-2">
+            <div><label>Break Default (mins)</label><input id="staffBreakInput" type="number" min="0" step="5" value="30"></div>
+            <div><label>Role</label><select id="staffRoleInput"><option value="staff">Staff</option><option value="manager">Manager</option><option value="admin">Admin</option></select></div>
+          </div>
+          <div>
+            <label>Color</label>
+            <div id="recentColors" class="recent-colors" style="display:flex;flex-wrap:wrap;gap:6px;margin:6px 0;"></div>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <input id="colorPicker" type="color" value="#5A31F4"/><span class="muted">Pick a color or tap a recent swatch</span>
+            </div>
+          </div>
+          <div class="grid-2" style="margin-top:8px">
+            <div><label>Passcode (PIN)</label><input id="staffPassInput" type="password"></div>
+            <div style="display:flex;align-items:flex-end;gap:8px">
+              <button id="btnAddStaff" class="btn-good">Save Staff</button>
+              <button id="btnDeleteStaff" class="btn-outline">Delete Staff</button>
+            </div>
+          </div>
+          <div class="muted">Staff cannot see other staff's pay or rate.</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Planner Options</h3>
+        <div class="grid-2">
+          <div><label>Start hour (0–23)</label><input id="optStartHour" type="number" min="0" max="23" step="1" value="8"></div>
+          <div><label>Hours shown (1–24)</label><input id="optHours" type="number" min="1" max="24" step="1" value="16"></div>
+        </div>
+        <div class="grid-2">
+          <div><label>Slot minutes</label><select id="optSlotMins"><option>15</option><option selected>30</option><option>60</option></select></div>
+          <div><label>Target headcount / slot</label><input id="optTargetHeadcount" type="number" min="0" step="1" value="0"></div>
+        </div>
+        <div class="grid-2">
+          <div><label>Staff can see others on Planner</label><select id="optStaffSeeOthers"><option value="true">Yes</option><option value="false">No</option></select></div>
+          <div><label>Use light theme by default</label><select id="optThemeDefault"><option value="dark">No (Dark)</option><option value="light">Yes (Light)</option></select></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Themes</h3>
+        <div class="theme-grid" id="themeGrid"></div>
+      </div>
+    </section>
+  </div>
+
+  <div id="shiftModal" class="modal" style="display:none; align-items:center; justify-content:center; position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:999;">
+    <div class="panel" style="width:min(560px, 92vw); background:var(--card); border:1px solid var(--border); border-radius:14px; padding:16px;">
+      <h3>Edit / Add Shift <span id="shiftDateLabel" style="color:#ef4444;font-weight:900;margin-left:8px;"></span></h3>
+      <div class="grid-2">
+        <div><label>Staff</label><select id="shiftStaff"></select></div>
+        <div><label>Day</label><select id="shiftDay"></select></div>
+      </div>
+      <div class="grid-2">
+        <div><label>Start</label><input id="shiftStart" type="time" step="300" placeholder="HH:MM"></div>
+        <div><label>End</label><input id="shiftEnd" type="time" step="300" placeholder="HH:MM"></div>
+      </div>
+      <div class="grid-2">
+        <div><label>Break (mins)</label><input id="shiftBreak" type="number" min="0" step="5" value="30"></div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:22px;"><label><input id="shiftPenalty" type="checkbox"> Penalty applies</label></div>
+      </div>
+      <div class="grid-2">
+        <div><label>Repeat weekly (count)</label><input id="shiftRepeat" type="number" min="0" step="1" value="0"></div>
+      </div>
+      <div style="margin-top:8px;">
+        <label>Days this week</label>
+        <div id="daysThisWeek" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;">
+          <label><input type="checkbox" value="0"> Mon</label>
+          <label><input type="checkbox" value="1"> Tue</label>
+          <label><input type="checkbox" value="2"> Wed</label>
+          <label><input type="checkbox" value="3"> Thu</label>
+          <label><input type="checkbox" value="4"> Fri</label>
+          <label><input type="checkbox" value="5"> Sat</label>
+          <label><input type="checkbox" value="6"> Sun</label>
+        </div>
+      </div>
+      <div><label>Notes</label><textarea id="shiftNotes" style="width:100%;min-height:70px;"></textarea></div>
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <button id="btnSaveShift" class="btn-primary">Save</button>
+        <button id="btnDeleteShift" class="btn-outline">Delete</button>
+        <button id="btnCloseShift" class="btn-outline">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="requestsModal" class="modal" style="display:none; align-items:center; justify-content:center; position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:2000;">
+    <div class="panel" style="width:min(560px, 92vw); background:var(--card); border:1px solid var(--border); border-radius:14px; padding:16px;">
+      <h3>Absence Requests (this week)</h3>
+      <div id="requestsList" class="muted" style="margin:8px 0 12px;"></div>
+      <div style="display:flex; gap:8px; justify-content:flex-end;">
+        <button id="btnCloseRequests" class="btn-outline">Close</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+(function(){
+'use strict';
+
+// ---------- Shortcuts ----------
+var $ = function(s){ return document.querySelector(s); };
+var $$ = function(s){ return document.querySelectorAll(s); };
+var byId = function(id){ return document.getElementById(id); };
+var DAY = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+
+// ---------- App state ----------
+var App = {
+  version: '14.23.3',
+  settings: {
+    dbUrl:'https://munchandcrun.firebaseio.com', workspace:'munchandcrun', authToken:'',
+    theme:'dark', themeName:'dark-classic', recentColors:[], appTitle:'Munch & C Run — Staff Scheduler',
+    autoPullMins: 0, autoPushMins: 0,
+    // planner
+    gridStartHour: 8, gridHours: 16, slotMins: 30, targetHeadcount: 0,
+    staffSeeOthers: true,
+    publishedWeeks: {}
+  },
+  staff:{}, availability:{}, weeks:{}, absenceRequests:{}, shiftChangeRequests:{},
+  currentUser:null,
+  cacheKey:'mc_scheduler_cache_v14_23_3'
+};
+
+// ---------- Themes ----------
+var THEMES = {
+  'light-classic': {mode:'light', vars:{bg:'#f7f8fd', fg:'#0a0f1a', card:'#ffffff', muted:'#59677a', accent:'#5A31F4', accent2:'#00D4FF', accent3:'#FF3D71', good:'#16a34a', warn:'#ca8a04', bad:'#dc2626', grid:'#ffffff', staff:'#fafbff', alt:'transparent', chip:'#00000033', border:'rgba(0,0,0,.15)'}},
+  'light-pastel-coral': {mode:'light', vars:{bg:'#fff7f5', fg:'#1b1b1b', card:'#ffffff', muted:'#5b6169', accent:'#ff6b6b', accent2:'#ffd166', accent3:'#ef476f', good:'#2dd4bf', warn:'#f59e0b', bad:'#ef4444', grid:'#fffdfc', staff:'#ffffff', alt:'transparent', chip:'#00000022', border:'rgba(0,0,0,.14)'}},
+  'light-pastel-mint': {mode:'light', vars:{bg:'#f3fff7', fg:'#112018', card:'#ffffff', muted:'#33524b', accent:'#10b981', accent2:'#34d399', accent3:'#f97316', good:'#16a34a', warn:'#a16207', bad:'#b91c1c', grid:'#f9fffc', staff:'#ffffff', alt:'transparent', chip:'#00000022', border:'rgba(0,0,0,.14)'}},
+  'light-pastel-lilac': {mode:'light', vars:{bg:'#f7f3ff', fg:'#171228', card:'#ffffff', muted:'#4a4763', accent:'#7c3aed', accent2:'#a78bfa', accent3:'#f472b6', good:'#22c55e', warn:'#f59e0b', bad:'#ef4444', grid:'#fbf8ff', staff:'#ffffff', alt:'transparent', chip:'#00000022', border:'rgba(0,0,0,.14)'}},
+  'light-pastel-sky': {mode:'light', vars:{bg:'#f2f8ff', fg:'#0a1420', card:'#ffffff', muted:'#3b556f', accent:'#3b82f6', accent2:'#22d3ee', accent3:'#f97316', good:'#22c55e', warn:'#f59e0b', bad:'#ef4444', grid:'#f9fbff', staff:'#ffffff', alt:'transparent', chip:'#00000022', border:'rgba(0,0,0,.14)'}},
+  'dark-classic':  {mode:'dark',  vars:{bg:'#0d0f1a', fg:'#f9fbff', card:'#14182b', muted:'#8aa1b3', accent:'#5A31F4', accent2:'#00D4FF', accent3:'#FF3D71', good:'#22c55e', warn:'#f59e0b', bad:'#ef4444', grid:'#0f1324', staff:'#0f1226', alt:'transparent', chip:'#ffffff55', border:'rgba(255,255,255,.15)'}},
+  'dark-ink': {mode:'dark', vars:{bg:'#0a0c12', fg:'#ecf2ff', card:'#10131a', muted:'#9aa7bd', accent:'#5761ff', accent2:'#2dd4bf', accent3:'#ff6b6b', good:'#34d399', warn:'#fbbf24', bad:'#f87171', grid:'#0d1117', staff:'#0f1422', alt:'transparent', chip:'#ffffff44', border:'rgba(255,255,255,.14)'}},
+  'dark-emerald': {mode:'dark', vars:{bg:'#0b1412', fg:'#e9fffa', card:'#0f1c19', muted:'#8ac7b4', accent:'#10b981', accent2:'#34d399', accent3:'#f59e0b', good:'#22c55e', warn:'#f59e0b', bad:'#ff6b6b', grid:'#0b1715', staff:'#0f1a17', alt:'transparent', chip:'#ffffff44', border:'rgba(255,255,255,.14)'}},
+  'dark-slate': {mode:'dark', vars:{bg:'#0b1220', fg:'#e9f3ff', card:'#101726', muted:'#96abc0', accent:'#38bdf8', accent2:'#7dd3fc', accent3:'#fb7185', good:'#22c55e', warn:'#f59e0b', bad:'#ef4444', grid:'#0e1626', staff:'#0f172a', alt:'transparent', chip:'#ffffff44', border:'rgba(255,255,255,.14)'}},
+  'dark-rose': {mode:'dark', vars:{bg:'#1a0e12', fg:'#ffeef2', card:'#22131a', muted:'#d8a5b1', accent:'#e11d48', accent2:'#fb7185', accent3:'#f59e0b', good:'#22c55e', warn:'#f59e0b', bad:'#ef4444', grid:'#1a1115', staff:'#1f1318', alt:'transparent', chip:'#ffffff44', border:'rgba(255,255,255,.14)'}}
+};
+function applyTheme(name){
+  var t = THEMES[name] || THEMES['dark-classic'];
+  var root = document.documentElement;
+  Object.keys(t.vars).forEach(function(k){ root.style.setProperty('--'+k, t.vars[k]); });
+  if(t.mode==='light') document.body.setAttribute('data-theme','light'); else document.body.removeAttribute('data-theme');
+  App.settings.theme = t.mode; App.settings.themeName = name; saveLocal();
+}
+function renderThemePicker(){
+  var grid=byId('themeGrid'); if(!grid) return;
+  grid.innerHTML='';
+  Object.keys(THEMES).forEach(function(key){
+    var t=THEMES[key];
+    var card=document.createElement('div'); card.className='theme-card'; card.dataset.key=key;
+    if(App.settings.themeName===key) card.classList.add('selected');
+    var sw=document.createElement('div'); sw.className='theme-swatch'; sw.style.background = t.vars.accent;
+    var lab=document.createElement('div'); lab.innerHTML = '<div style="font-weight:800">'+key+'</div><div class="muted">'+t.mode+'</div>';
+    card.appendChild(sw); card.appendChild(lab);
+    card.onclick=function(){ applyTheme(key); renderThemePicker(); };
+    grid.appendChild(card);
+  });
+}
+
+// ---------- Utils ----------
+function pad(n){ n=parseInt(n,10); if(isNaN(n)||n<0)n=0; return (n<10?'0':'')+n; }
+function fmtMoney(n){ return '$'+(n||0).toFixed(2); }
+function toISO(d){ return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
+function fmtDMY(d){ return pad(d.getDate())+'/'+pad(d.getMonth()+1)+'/'+d.getFullYear(); }
+function fromISO(s){ var x=s.split('-'); return new Date(parseInt(x[0],10),parseInt(x[1],10)-1,parseInt(x[2],10)); }
+function weekStart(base){ var d=new Date(base.getFullYear(),base.getMonth(),base.getDate()); var g=d.getDay(); d.setDate(d.getDate() + (g===0?-6:1-g)); d.setHours(0,0,0,0); return d; }
+
+function normalizeHHMM(v){
+  if(!v) return '';
+  v=String(v).trim();
+  if(/^\d{2}:\d{2}$/.test(v)) return v;
+  var m = v.match(/^(\d{1,2})(?::(\d{0,2}|--))?\s*([aApP][mM])?$/);
+  if(!m){ m = v.match(/^(\d{1,2})(?::(\d{1,2}))?\s*([aApP][mM])$/); }
+  if(m){
+    var hh = parseInt(m[1],10); if(isNaN(hh)) hh=0;
+    var mm = 0;
+    if(m[2] && m[2] !== '--'){ mm = parseInt(m[2],10); if(isNaN(mm)) mm=0; }
+    if(m[3]){
+      var ap = m[3].toLowerCase();
+      if(ap==='pm' && hh!==12) hh+=12;
+      if(ap==='am' && hh===12) hh=0;
+    }
+    hh=Math.max(0,Math.min(23,hh)); mm=Math.max(0,Math.min(59,mm));
+    return pad(hh)+':'+pad(mm);
+  }
+  if(/^\d{1,2}$/.test(v)) return pad(parseInt(v,10))+':00';
+  return '';
+}
+
+// Accept "HH:MM" 24h or "H:MM AM/PM"
+function parse12(s){
+  try{
+    if(!s) return NaN;
+    s=String(s).trim();
+    if(s.indexOf(' ')===-1){
+      var parts=s.split(':');
+      var h=parseInt(parts[0],10); if(isNaN(h)) return NaN;
+      var mm=parts.length>1?parseInt(parts[1],10):0; if(isNaN(mm)) mm=0;
+      h=Math.max(0,Math.min(23,h)); mm=Math.max(0,Math.min(59,mm));
+      return h*60+mm;
+    }else{
+      var t=s.split(/\s+/)[0], apRaw=s.split(/\s+/)[1]||'AM';
+      var ap=apRaw.toUpperCase();
+      var sp=t.split(':');
+      var h=parseInt(sp[0]||'0',10), mm=parseInt(sp[1]||'0',10);
+      if(isNaN(h)) h=0; if(isNaN(mm)) mm=0;
+      h=h%12; if(ap==='PM') h+=12; if(ap==='AM' && t.indexOf('12')===0) h=0;
+      return h*60+mm;
+    }
+  }catch(e){ return NaN; }
+}
+function to12hStr(hhmm){
+  if(!hhmm) return '12:00 AM';
+  var sp=String(hhmm).split(':');
+  var h=parseInt(sp[0]||'0',10), m=parseInt(sp[1]||'0',10);
+  if(isNaN(h)) h=0; if(isNaN(m)) m=0;
+  var ap=h>=12?'PM':'AM', h12=((h%12)||12);
+  return h12+':'+pad(m)+' '+ap;
+}
+function times12(mins){
+  mins=Math.max(0,Math.min(24*60,mins));
+  var h=Math.floor(mins/60), mm=mins%60, ap=h>=12?'PM':'AM';
+  h=h%12; if(h===0) h=12; return h+':'+pad(mm)+' '+ap;
+}
+// planner grid helpers
+function gridStartMins(){ return (parseInt(App.settings.gridStartHour,10)||0)*60; }
+function gridEndMins(){ return gridStartMins() + Math.max(60,(parseInt(App.settings.gridHours,10)||16)*60); }
+function slotMinutes(){ return Math.max(5, parseInt(App.settings.slotMins,10)||30); }
+function colCount(){ return Math.round((gridEndMins()-gridStartMins())/slotMinutes()); }
+function percentFromTime(tStr){
+  var s=parse12(tStr);
+  var m=(isNaN(s)?0:s)-gridStartMins();
+  var span=gridEndMins()-gridStartMins();
+  if(m<0)m=0; if(m>span)m=span;
+  return (m/span)*100;
+}
+// hour helpers
+function hoursBetweenAny(a,b){
+  var x=parse12(a), y=parse12(b);
+  if(isNaN(x)||isNaN(y)) return 0;
+  if(y<=x) y+=24*60;
+  return Math.max(0,y-x)/60;
+}
+// breaks
+function autoBreakMinsForHours(h){ if(h>=10) return 60; if(h>=5) return 30; return 0; }
+function breakMinutesForShift(sh,st){
+  if(sh && sh.breakMins!=null && sh.breakMins!=='' && !isNaN(parseInt(sh.breakMins,10))) return parseInt(sh.breakMins,10)||0;
+  var h=hoursBetweenAny(sh.start, sh.end);
+  return autoBreakMinsForHours(h);
+}
+
+// color helpers
+function mix(a,b,w){ function H(x){ x=x.replace('#',''); if(x.length===3)x=x[0]+x[0]+x[1]+x[1]+x[2]+x[2]; return {r:parseInt(x.slice(0,2),16),g:parseInt(x.slice(2,4),16),b:parseInt(x.slice(4,6),16)}; } var A=H(a),B=H(b); var r=Math.round(A.r*(1-w)+B.r*w), g=Math.round(A.g*(1-w)+B.g*w), bl=Math.round(A.b*(1-w)+B.b*w); function to(x){ return x.toString(16).padStart(2,'0'); } return '#'+to(r)+to(g)+to(bl); }
+function idealText(hex){ var h=hex.replace('#',''); var r=parseInt(h.slice(0,2),16), g=parseInt(h.slice(2,4),16), b=parseInt(h.slice(4,6),16); var yiq=(r*299+g*587+b*114)/1000; return yiq>=128?'#0e1020':'#ffffff'; }
+function themeAdj(c){ return (App.settings.theme==='light' ? mix(c,'#000000',0.15) : mix(c,'#ffffff',0.25)); }
+function uid(){ return Math.random().toString(36).slice(2,10); }
+
+// ---------- Local Storage ----------
+function saveLocal(){ try{ localStorage.setItem(App.cacheKey, JSON.stringify({settings:App.settings,staff:App.staff,weeks:App.weeks,availability:App.availability,absenceRequests:App.absenceRequests,version:App.version})); }catch(e){} }
+function loadLocal(){ try{ var raw=localStorage.getItem(App.cacheKey); if(!raw) return; var d=JSON.parse(raw)||{}; if(d.settings){ for(var k in d.settings){ App.settings[k]=d.settings[k]; } } App.staff=d.staff||App.staff; App.weeks=d.weeks||App.weeks; App.availability=d.availability||App.availability; App.absenceRequests=d.absenceRequests||App.absenceRequests; }catch(e){} }
+
+// ---------- Firebase REST ----------
+function wsRoot(){ return App.settings.dbUrl.replace(/\/$/,'')+'/'+App.settings.workspace; }
+function withAuth(url){ return App.settings.authToken ? url+(url.indexOf('?')>=0?'&':'?')+'auth='+encodeURIComponent(App.settings.authToken) : url; }
+async function dbGet(p){ var r=await fetch(withAuth(wsRoot()+p+'.json')); if(!r.ok) throw new Error('GET '+r.status); return r.json(); }
+async function dbPatch(p,data){ var r=await fetch(withAuth(wsRoot()+p+'.json'),{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}); if(!r.ok) throw new Error('PATCH '+r.status); return r.json(); }
+
+// ---------- Roles ----------
+function isAdmin(){ return App.currentUser && App.currentUser.role==='admin'; }
+function canEdit(){ return App.currentUser && (App.currentUser.role==='manager' || App.currentUser.role==='admin'); }
+function canModerateAbsences(){ return canEdit(); }
+
+// ---------- Splash ----------
+function splashShow(msg){ var el=byId('splashSync'); if(!el) return; el.style.display='flex'; byId('splashBox').textContent=msg||'Syncing…'; requestAnimationFrame(function(){ el.style.opacity='1'; }); }
+function splashHide(msg){ var el=byId('splashSync'); if(!el) return; if(msg) byId('splashBox').textContent=msg; setTimeout(function(){ el.style.opacity='0'; setTimeout(function(){ el.style.display='none'; },300); }, 600); }
+
+var autoPullTimer=null, autoPushTimer=null;
+function startAutoSyncTimers(){
+  if(autoPullTimer){ clearInterval(autoPullTimer); autoPullTimer=null; }
+  if(autoPushTimer){ clearInterval(autoPushTimer); autoPushTimer=null; }
+  var p=parseInt(App.settings.autoPullMins||0,10);
+  var q=parseInt(App.settings.autoPushMins||0,10);
+  if(p>0){ autoPullTimer=setInterval(function(){ pullData(false).catch(function(){}); }, p*60000); }
+  if(q>0){ autoPushTimer=setInterval(function(){ if(canEdit()) pushData().catch(function(){}); }, q*60000); }
+}
+
+// ---------- Init ----------
+function init(){
+  loadLocal();
+    // Safety: ensure only login is shown until user enters app
+    document.querySelectorAll('.section').forEach(s=>s.classList.remove('show'));
+  byId('appTitle').textContent = App.settings.appTitle || 'Munch & C Run — Staff Scheduler';
+  initColorRecents();
+  initTabs();
+  initPlanner();
+  populateLoginSelects();
+  applyTheme(App.settings.themeName||'dark-classic');
+  renderThemePicker();
+
+  var tb = byId('btnTheme'); if(tb){ tb.onclick = function(){ var cur=App.settings.themeName||'dark-classic'; var next=(THEMES[cur] && THEMES[cur].mode==='light') ? 'dark-classic' : 'light-classic'; applyTheme(next); renderThemePicker(); }; }
+
+  // Seed settings UI
+  byId('dbUrlInput').value=App.settings.dbUrl;
+  byId('workspaceInput').value=App.settings.workspace;
+  byId('authTokenInput').value=App.settings.authToken||'';
+  byId('appTitleInput').value=App.settings.appTitle || 'Munch & C Run — Staff Scheduler';
+  byId('autoPullMinsInput').value=App.settings.autoPullMins||0;
+  byId('autoPushMinsInput').value=App.settings.autoPushMins||0;
+  byId('optStartHour').value=App.settings.gridStartHour;
+  byId('optHours').value=App.settings.gridHours;
+  byId('optSlotMins').value=App.settings.slotMins;
+  byId('optTargetHeadcount').value=App.settings.targetHeadcount||0;
+  byId('optStaffSeeOthers').value=String(App.settings.staffSeeOthers);
+
+  // Initial pull with splash
+  splashShow('Syncing…'); byId('splashSync').style.display='flex';
+  pullData(true).then(function(){
+    populateLoginSelects(); populateExistingStaff();
+    splashHide('Sync successful');
+  }).catch(function(e){
+    var m=byId('loginMsg'); if(m) m.textContent='Startup sync failed: '+(e&&e.message?e.message:''); splashHide('Sync failed — offline mode available');
+  }).finally(function(){
+    if(!App.staff || Object.keys(App.staff).length===0){
+      var a=uid(), b=uid(), c=uid();
+      App.staff[a]={name:'Alex',rate:30,rateWeekend:0,ratePenalty:0,otMult:1.5,otWeekly:38,otDaily:8,breakDefault:30,role:'admin',color:'#5A31F4',passHash:''};
+      App.staff[b]={name:'Casey',rate:25,rateWeekend:0,ratePenalty:0,otMult:1.5,otWeekly:38,otDaily:8,breakDefault:30,role:'manager',color:'#22b8cf',passHash:''};
+      App.staff[c]={name:'Sam',rate:28,rateWeekend:0,ratePenalty:0,otMult:1.5,otWeekly:38,otDaily:8,breakDefault:30,role:'staff',color:'#ff922b',passHash:''};
+      saveLocal(); populateLoginSelects(); populateExistingStaff();
+    } else { populateExistingStaff(); populateLoginSelects(); }
+    setTimeout(function(){ pullData(false).then(function(){ populateLoginSelects(); populateExistingStaff(); }); }, 2000);
+  });
+
+  byId('btnSaveSettings').onclick = function(){
+    if(!isAdmin()) return alert('Admin only.');
+    App.settings.dbUrl=byId('dbUrlInput').value.trim();
+    App.settings.workspace=byId('workspaceInput').value.trim();
+    App.settings.authToken=(byId('authTokenInput').value||'').trim();
+    App.settings.appTitle=(byId('appTitleInput').value||'Munch & C Run — Staff Scheduler');
+    App.settings.autoPullMins=parseInt(byId('autoPullMinsInput').value||'0',10)||0;
+    App.settings.autoPushMins=parseInt(byId('autoPushMinsInput').value||'0',10)||0;
+    App.settings.gridStartHour=parseInt(byId('optStartHour').value||'8',10);
+    App.settings.gridHours=parseInt(byId('optHours').value||'16',10);
+    App.settings.slotMins=parseInt(byId('optSlotMins').value||'30',10);
+    App.settings.targetHeadcount=parseInt(byId('optTargetHeadcount').value||'0',10);
+    App.settings.staffSeeOthers = (byId('optStaffSeeOthers').value==='true');
+    document.querySelector('.appbar .title').textContent=App.settings.appTitle;
+    saveLocal(); startAutoSyncTimers(); renderPlanner(); alert('Saved.');
+  };
+  byId('btnResetLocal').onclick = function(){ if(!isAdmin()) return alert('Admin only.'); if(confirm('Reset local cache?')){ localStorage.removeItem(App.cacheKey); location.reload(); } };
+
+  byId('btnExportSettings').onclick=function(){ var data={settings:App.settings,staff:App.staff,availability:App.availability,weeks:App.weeks,absenceRequests:App.absenceRequests}; var a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'})); a.download='munchandcrun_export.json'; a.click(); };
+  byId('btnImportSettings').onclick=function(){ byId('importSettingsInput').click(); };
+  byId('importSettingsInput').onchange=async function(e){ var f=e.target.files[0]; if(!f) return; try{ var d=JSON.parse(await f.text()); if(d.settings){ for(var k in d.settings){ App.settings[k]=d.settings[k]; } } App.staff=d.staff||App.staff; App.availability=d.availability||App.availability; App.weeks=d.weeks||App.weeks; App.absenceRequests=d.absenceRequests||App.absenceRequests; saveLocal(); populateLoginSelects(); populateExistingStaff(); renderAfterLogin(); startAutoSyncTimers(); alert('Imported. Use Push to sync.'); }catch(err){ alert('Invalid JSON'); } };
+
+  byId('btnLogin').onclick = login;
+  var pwd=byId('loginPass'); if(pwd){ pwd.addEventListener('keydown',function(e){ if(e.key==='Enter'){ login(); } }); }
+  byId('btnContinueOffline').onclick = function(){ var id=byId('loginStaffSelect').value; if(!id||!App.staff[id]){alert('Select a staff');return;} var s=App.staff[id]; App.currentUser={id:id, name:s.name, role:s.role||'staff', rate:s.rate||0}; enterApp(); startAutoSyncTimers(); };
+
+  byId('btnPull').onclick = function(){ pullData(false).then(function(){alert('Pulled latest.');}).catch(function(e){alert('Pull failed: '+e.message);}); };
+  byId('btnPush').onclick = function(){ if(!canEdit()) return alert('Only manager or admin can push.'); pushData().then(function(){alert('Pushed.');}).catch(function(e){alert('Push failed: '+e.message);}); };
+  var pullTop=byId('btnPullTop'), pushTop=byId('btnPushTop');
+  if(pullTop) pullTop.onclick=function(){ byId('btnPull').onclick(); };
+  if(pushTop) pushTop.onclick=function(){ byId('btnPush').onclick(); };
+  var logout=byId('btnLogout'); if(logout) logout.onclick=function(){ App.currentUser=null; showLogin(); byId('userChip').textContent=''; startAutoSyncTimers(); };
+
+  byId('btnExportJSON').onclick=function(){ if(!isAdmin()) return alert('Admin only.'); var data={settings:App.settings,staff:App.staff,availability:App.availability,weeks:App.weeks,absenceRequests:App.absenceRequests}; var a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'})); a.download='munchandcrun_export.json'; a.click(); };
+  byId('btnExportCSV').onclick=function(){ if(!isAdmin()) return alert('Admin only.'); exportPayrollCSV(); };
+  byId('btnImportJSON').onclick=function(){ if(!isAdmin()) return alert('Admin only.'); byId('importJSONInput').click(); };
+  byId('importJSONInput').onchange=async function(e){ if(!isAdmin()) return; var f=e.target.files[0]; if(!f) return; try{ var d=JSON.parse(await f.text()); if(d.settings){ for(var k in d.settings){ App.settings[k]=d.settings[k]; } } App.staff=d.staff||App.staff; App.availability=d.availability||App.availability; App.weeks=d.weeks||App.weeks; App.absenceRequests=d.absenceRequests||App.absenceRequests; saveLocal(); populateLoginSelects(); populateExistingStaff(); renderAfterLogin(); startAutoSyncTimers(); alert('Imported. Use Push to sync.'); }catch(err){ alert('Invalid JSON'); } };
+
+  byId('btnPrevWeek').onclick=function(){ shiftWeek(-1); };
+  byId('btnNextWeek').onclick=function(){ shiftWeek(1); };
+  byId('btnCopyDay').onclick=function(){ if(!canEdit()) return alert('Manager/Admin only.'); copyDayToNext(); };
+  byId('btnCopyWeek').onclick=function(){ if(!canEdit()) return alert('Manager/Admin only.'); copyWeekToNext(); };
+  byId('btnRecurring').onclick=function(){ if(!canEdit()) return alert('Manager/Admin only.'); openShiftModal({repeatOpen:true}); };
+  byId('btnPublish').onclick=function(){ if(!canEdit()) return alert('Manager/Admin only.'); togglePublishWeek(); };
+  byId('btnPrint').onclick=function(){ window.print(); };
+  byId('btnPrintView').onclick=function(){ showTab('Print'); };
+  byId('btnBuildPrint').onclick=function(){ buildPrintView(); };
+  byId('btnPrintNow').onclick=function(){ window.print(); };
+  byId('btnClosePrint').onclick=function(){ showTab('Planner'); };
+
+  byId('btnRequests').onclick=function(){ if(!canModerateAbsences()) return alert('Manager/Admin only.'); openRequestsModal(); };
+
+  byId('btnCloseShift').onclick=closeShiftModal;
+  byId('btnSaveShift').onclick=saveShiftFromModal;
+  byId('btnDeleteShift').onclick=deleteShiftFromModal;
+
+  var addBtn=byId('btnAddStaff'); if(addBtn) addBtn.onclick=onSaveStaff;
+  var delBtn=byId('btnDeleteStaff'); if(delBtn) delBtn.onclick=onDeleteStaff;
+  var exSel=byId('existingStaffSelect'); if(exSel) exSel.onchange=loadStaffIntoForm;
+
+  var ap=byId('absPrev'), an=byId('absNext'), asf=byId('absStaffFilter');
+  if(ap) ap.onclick=function(){ AbsCal.date.setMonth(AbsCal.date.getMonth()-1); renderAbsenceCalendar(); };
+  if(an) an.onclick=function(){ AbsCal.date.setMonth(AbsCal.date.getMonth()+1); renderAbsenceCalendar(); };
+  if(asf) asf.onchange=function(){ renderAbsenceCalendar(); };
+
+  var __resizeTimer=null;
+  window.addEventListener('resize', function(){
+    if(__resizeTimer) clearTimeout(__resizeTimer);
+    __resizeTimer = setTimeout(fitPlanner, 80);
+  });
+}
+document.addEventListener('DOMContentLoaded', init);
+
+// ---------- Theme helpers ----------
+function initColorRecents(){
+  var pick=byId('colorPicker'); var box=byId('recentColors');
+  function collect(){
+    var set=new Set(App.settings.recentColors||[]);
+    Object.keys(App.staff).forEach(function(id){ var s=App.staff[id]; if(s.color) set.add(s.color); });
+    if(set.size===0){ ['#5A31F4','#22b8cf','#ff922b','#34d399','#ef476f','#a78bfa'].forEach(function(c){ set.add(c); }); }
+    return Array.from(set).slice(0,12);
+  }
+  function render(){
+    if(!box) return; box.innerHTML='';
+    collect().forEach(function(c){
+      var sw=document.createElement('div'); sw.className='sw'; sw.style.background=c;
+      sw.onclick=function(){ byId('staffNameInput').dataset.color=c; var nodes=$$('.recent-colors .sw'); for(var i=0;i<nodes.length;i++){ nodes[i].classList.remove('selected'); } sw.classList.add('selected'); if(pick) pick.value=c; };
+      box.appendChild(sw);
+    });
+  }
+  if(pick){ pick.oninput=function(){ byId('staffNameInput').dataset.color=pick.value; }; }
+  render();
+}
+
+// ---------- Auth ----------
+async function login(){
+  var id=byId('loginStaffSelect').value;
+  var pass=byId('loginPass').value||'';
+  var ws=byId('wsIdInput').value.trim()||'munchandcrun';
+  App.settings.workspace=ws; byId('workspaceInput').value=ws;
+  if(!id || !App.staff[id]){ alert('Select a staff'); return; }
+  var s=App.staff[id];
+  var requirePass=!!(s.passHash && s.passHash.length>0);
+  var ok=false;
+  if(requirePass){
+    if(!pass){ ok=false; }
+    else{
+      try{
+        var enc=new TextEncoder(); var buf=await crypto.subtle.digest('SHA-256', enc.encode(pass));
+        var hash=Array.from(new Uint8Array(buf)).map(function(b){return b.toString(16).padStart(2,'0');}).join('');
+        ok=(hash===s.passHash);
+      }catch(e){ ok=false; }
+    }
+  }else{ ok=true; }
+  if(ok){
+    App.currentUser={id:id, name:s.name, role:s.role||'staff', rate:s.rate||0};
+    enterApp();
+    startAutoSyncTimers();
+  } else {
+    var m=byId('loginMsg'); if(m) m.textContent='Incorrect passcode.';
+  }
+}
+function enterApp(){ byId('loginSection').classList.remove('show'); showTab('My'); renderAfterLogin(); }
+function showLogin(){ var nodes=$$('.section'); for(var i=0;i<nodes.length;i++){ nodes[i].classList.remove('show'); } byId('loginSection').classList.add('show'); }
+function populateLoginSelects(){
+  var sel=byId('loginStaffSelect'); sel.innerHTML='<option value="">-- select --</option>';
+  Object.keys(App.staff).sort(function(a,b){ return (App.staff[a].name||'').localeCompare(App.staff[b].name||''); }).forEach(function(id){
+    var s=App.staff[id]; var o=document.createElement('option'); o.value=id; o.textContent=s.name; sel.appendChild(o);
+  });
+}
+function populateExistingStaff(){
+  var sel=byId('existingStaffSelect'); if(!sel) return; sel.innerHTML='<option value="">-- select staff --</option>';
+  Object.keys(App.staff).sort(function(a,b){ return (App.staff[a].name||'').localeCompare(App.staff[b].name||''); }).forEach(function(id){
+    var s=App.staff[id]; var o=document.createElement('option'); o.value=id; o.textContent=s.name; sel.appendChild(o);
+  });
+}
+
+// ---------- Tabs & render ----------
+function initTabs(){
+  byId('tabMy').onclick=function(){ showTab('My'); };
+  byId('tabPlanner').onclick=function(){ showTab('Planner'); };
+  byId('tabPayroll').onclick=function(){ showTab('Payroll'); };
+  byId('tabSettings').onclick=function(){ showTab('Settings'); };
+  byId('tabPrint').onclick=function(){ showTab('Print'); };
+  byId('tabAbsences').onclick=function(){ showTab('Absences'); renderAbsenceCalendar(); };
+}
+function showTab(name){
+  var role = App.currentUser ? App.currentUser.role : 'staff';
+  if(name==='Settings' && role!=='admin') return;
+  if(name==='Payroll' && role!=='admin') return;
+  var btns=$$('.tabs button'); for(var i=0;i<btns.length;i++){ btns[i].classList.remove('active'); }
+  var tab=byId('tab'+name); if(tab) tab.classList.add('active');
+  var sects=$$('.section, .login'); for(var j=0;j<sects.length;j++){ sects[j].classList.remove('show'); }
+  if(name==='My') byId('mySection').classList.add('show');
+  if(name==='Planner') byId('plannerSection').classList.add('show');
+  if(name==='Payroll') byId('payrollSection').classList.add('show');
+  if(name==='Settings') byId('settingsSection').classList.add('show');
+  if(name==='Absences') byId('absencesSection').classList.add('show');
+  if(name==='Print'){ byId('printSection').classList.add('show'); try{ buildPrintView(); }catch(e){} }
+}
+function renderAfterLogin(){
+  var role = App.currentUser ? App.currentUser.role : 'staff';
+  byId('tabPlanner').style.display='none';
+  byId('tabPayroll').style.display='none';
+  byId('tabSettings').style.display='none';
+  byId('tabPrint').style.display='none';
+  var pullTop=byId('btnPullTop'), pushTop=byId('btnPushTop');
+  if(pullTop) pullTop.style.display='none'; if(pushTop) pushTop.style.display='none';
+  var lb=byId('btnLogout'); if(lb) lb.style.display='inline-block';
+  var uc=byId('userChip'); if(uc) uc.textContent = App.currentUser ? (App.currentUser.name + ' ('+ (App.currentUser.role||'') +')') : '';
+  if(role==='staff'){
+    byId('tabPlanner').style.display='inline-block';
+    byId('tabPrint').style.display='inline-block';
+    if(pullTop) pullTop.style.display='inline-block';
+  }
+  if(role==='manager'){
+    byId('tabPlanner').style.display='inline-block';
+    byId('tabPrint').style.display='inline-block';
+    if(pullTop) pullTop.style.display='inline-block'; if(pushTop) pushTop.style.display='inline-block';
+  }
+  if(role==='admin'){
+    byId('tabPlanner').style.display='inline-block';
+    byId('tabPayroll').style.display='inline-block';
+    byId('tabSettings').style.display='inline-block';
+    byId('tabPrint').style.display='inline-block';
+    if(pullTop) pullTop.style.display='inline-block'; if(pushTop) pushTop.style.display='inline-block';
+  }
+  renderMyShifts(); renderPlanner(); renderPayroll();
+}
+
+// ---------- Rates & OT helpers ----------
+function effectiveRate(staffId, dayIndex, shift){
+  var st=App.staff[staffId]||{};
+  var isWeekend = (dayIndex===5 || dayIndex===6);
+  if(shift && shift.penalty && st.ratePenalty>0) return st.ratePenalty;
+  if(isWeekend && st.rateWeekend>0) return st.rateWeekend;
+  return st.rate||0;
+}
+function splitOvertime(staffId, dayIndex, hours, state){
+  var st=App.staff[staffId]||{};
+  var otW = parseFloat(st.otWeekly||0)||0;
+  var otD = parseFloat(st.otDaily||0)||0;
+  var normal = hours, ot = 0;
+  if(otD>0){
+    var availDay = Math.max(0, otD - state.dayCum);
+    var dayOT = Math.max(0, hours - availDay);
+    if(dayOT>0){ normal -= dayOT; ot += dayOT; }
+  }
+  if(otW>0){
+    var availWeek = Math.max(0, otW - state.weekCum);
+    var weekOT = Math.max(0, normal - availWeek);
+    if(weekOT>0){ normal -= weekOT; ot += weekOT; }
+  }
+  return {normal:normal, ot:ot};
+}
+
+// ---------- My Shifts ----------
+function renderMyShifts(){
+  if(!App.currentUser) return;
+  var start=weekStart(new Date()); var iso=toISO(start);
+  var days = DAY.map(function(_,i){ var d=new Date(start); d.setDate(d.getDate()+i); return d; });
+  var list=byId('myShiftsList'); list.innerHTML='';
+  var tw=0,tb=0,tp=0,py=0,totOT=0; var weekCum=0;
+  var tbdy=byId('myWageTable').querySelector('tbody'); tbdy.innerHTML='';
+  for(var i=0;i<7;i++){
+    var ds = (App.weeks[iso] && App.weeks[iso][String(i)]) ? App.weeks[iso][String(i)] : {};
+    var w=0,b=0,p=0,m=0, dayCum=0, dayOT=0;
+    Object.keys(ds).forEach(function(key){
+      var sh=ds[key];
+      if(sh.staffId===App.currentUser.id){
+        var ww=hoursBetweenAny(sh.start,sh.end);
+        var br=(breakMinutesForShift(sh, App.staff[sh.staffId])||0)/60;
+        var payH=Math.max(0,ww-br);
+        var rate = effectiveRate(sh.staffId, i, sh);
+        var st=App.staff[sh.staffId]||{}; var mult=parseFloat(st.otMult||1.5)||1.5;
+        var split = splitOvertime(sh.staffId, i, payH, {weekCum:weekCum, dayCum:dayCum});
+        var pay = (split.normal*rate) + (split.ot*rate*mult);
+        m += pay; p += payH; w += ww; b += br; weekCum += (split.normal + split.ot); dayCum += payH; dayOT += split.ot;
+        var overnight = (parse12(sh.end)<=parse12(sh.start));
+        var div=document.createElement('div'); div.textContent = fmtDMY(days[i])+': '+sh.start+'–'+sh.end+(overnight?' (next day)':'')+' ('+ww.toFixed(2)+'h, break '+br.toFixed(2)+'h, pay '+fmtMoney(pay)+ (split.ot>0?(' incl OT '+split.ot.toFixed(2)+'h'):'') +')'; list.appendChild(div);
+      }
+    });
+    if(w>0||b>0){
+      var tr=document.createElement('tr');
+      tr.innerHTML='<td>'+days[i].toLocaleDateString(undefined,{weekday:'short'})+'</td><td>'+w.toFixed(2)+'</td><td>'+b.toFixed(2)+'</td><td>'+p.toFixed(2)+'</td><td>'+dayOT.toFixed(2)+'</td><td>'+fmtMoney(m)+'</td>';
+      tbdy.appendChild(tr);
+    }
+    tw+=w; tb+=b; tp+=p; py+=m; totOT+=dayOT;
+  }
+  byId('myTotalWork').textContent=tw.toFixed(2);
+  byId('myTotalBreak').textContent=tb.toFixed(2);
+  byId('myTotalPayable').textContent=tp.toFixed(2);
+  byId('myTotalOT').textContent=totOT.toFixed(2);
+  byId('myTotalPay').textContent=fmtMoney(py);
+  byId('myHours').textContent='This week: '+tp.toFixed(2)+' payable hours — '+fmtMoney(py);
+}
+
+// ---------- Planner ----------
+var Planner = { weekStartISO: toISO(weekStart(new Date())), activeDayIndex:0, editingShift:null };
+function initPlanner(){ renderDayTabs(); renderPlanner(); fitPlanner(); }
+function fitPlanner(){
+  var grid=byId('plannerGrid'); if(!grid) return;
+  var wrap=grid.getBoundingClientRect();
+  var avail=Math.max(320, wrap.width - 220);
+  var colW=Math.max(12, Math.floor(avail/Math.max(4,colCount())));
+  var gnodes=document.querySelectorAll('.grid');
+  for(var i=0;i<gnodes.length;i++){ gnodes[i].style.setProperty('--colW', colW+'px'); }
+}
+function shiftWeek(d){ var base=fromISO(Planner.weekStartISO); base.setDate(base.getDate()+d*7); Planner.weekStartISO=toISO(weekStart(base)); renderPlanner(); renderPayroll(); }
+function renderDayTabs(){
+  var c = byId('dayTabs');
+  if(!c) return;
+  c.innerHTML = '';
+  // Compute label dates for current week
+  var start = fromISO(Planner.weekStartISO);
+  DAY.forEach(function(n,i){
+    var b = document.createElement('button');
+    var d = new Date(start);
+    d.setDate(d.getDate()+i);
+    var dd = pad(d.getDate());
+    var mm = pad(d.getMonth()+1);
+    b.textContent = n + ' ' + dd + '/' + mm;
+    // helpful full-date tooltip
+    try{ b.title = d.toLocaleDateString(undefined,{weekday:'long', year:'numeric', month:'short', day:'numeric'}); }catch(e){}
+    if(i===Planner.activeDayIndex) b.classList.add('active');
+    b.onclick = function(){ Planner.activeDayIndex = i; renderPlanner(); };
+    c.appendChild(b);
+  });
+}
+function buildGridTemplate(){ var tpl='220px '; for(var i=0;i<colCount();i++){ tpl+='var(--colW) '; } return tpl.trim(); }
+
+function renderPlanner(){
+  var s=fromISO(Planner.weekStartISO);
+  byId('weekLabel').textContent=fmtDMY(s)+'  –  '+fmtDMY(new Date(s.getFullYear(),s.getMonth(),s.getDate()+6));
+  byId('payrollWeekLabel').textContent='Week of '+fmtDMY(s);
+  var end=new Date(s); end.setDate(end.getDate()+6);
+  var ph=byId('plannerPrintHeader'); if(ph) ph.textContent='Week of '+fmtDMY(s)+' – '+fmtDMY(end);
+  byId('plannerGrid').innerHTML='';
+  renderLegend();
+  renderWeekOverview();
+  renderAvailabilityBar();
+  renderCoverageBar();
+
+  // header
+  var header=document.createElement('div'); header.className='header'; header.style.gridTemplateColumns = buildGridTemplate();
+  var staffH=document.createElement('div'); staffH.textContent='Staff'; header.appendChild(staffH);
+  for(var i=0;i<colCount();i++){
+    var t = gridStartMins() + i*slotMinutes();
+    var hh = Math.floor((t/60)%24), mm = t%60;
+    var label = (mm===0) ? (((hh%12)||12)+(hh<12?'a':'p')) : '·';
+    var cell=document.createElement('div'); cell.textContent=label.toUpperCase(); header.appendChild(cell);
+  }
+  byId('plannerGrid').appendChild(header);
+
+  // rows
+  var entries=Object.keys(App.staff).map(function(id){ return [id, App.staff[id]]; })
+    .filter(function(x){ return (x[1].role||'staff')!=='admin'; })
+    .sort(function(a,b){ return (a[1].name||'').localeCompare(b[1].name||''); });
+
+  var dayKey=String(Planner.activeDayIndex);
+  var week=App.weeks[Planner.weekStartISO]||{};
+  var isPublished = !!App.settings.publishedWeeks[Planner.weekStartISO];
+  var selfViewOnly = (App.currentUser && App.currentUser.role==='staff' && !App.settings.staffSeeOthers);
+
+  var curISO=(function(){ var d0=fromISO(Planner.weekStartISO); d0.setDate(d0.getDate()+Planner.activeDayIndex); return toISO(d0); })();
+
+  entries.forEach(function(pair){
+    var id=pair[0], st=pair[1];
+    if(selfViewOnly && id!==App.currentUser.id) return;
+
+    var row=document.createElement('div'); row.className='row'; row.style.gridTemplateColumns = buildGridTemplate();
+
+    var sc=document.createElement('div'); sc.className='staffcell';
+    var nameWrap=document.createElement('div'); nameWrap.style.display='flex'; nameWrap.style.alignItems='center'; nameWrap.style.gap='8px'; nameWrap.style.width='100%';
+    var dot=document.createElement('div'); dot.className='dot'; dot.style.background=st.color||'#5A31F4';
+    var name=document.createElement('div'); name.textContent=st.name;
+    var badge=document.createElement('div'); badge.className='badge'; badge.textContent='0.00h wk';
+    nameWrap.appendChild(dot); nameWrap.appendChild(name); nameWrap.appendChild(badge);
+    sc.appendChild(nameWrap);
+
+    // mini-actions
+    var mini=document.createElement('div'); mini.className='mini-actions';
+    function addMini(lbl, cls, handler){ var b=document.createElement('button'); b.className='btn-mini '+cls; b.textContent=lbl; b.onclick=function(e){ e.stopPropagation(); handler(); }; mini.appendChild(b); }
+    addMini('Propose Away','danger', function(){ proposeAway(curISO, id); });
+    addMini('Partial Away','warn', function(){ var rng=prompt('Enter time range (e.g., 09:00-12:00)'); if(!rng||rng.indexOf('-')<0) return; var p=rng.split('-'); proposePartial(curISO, id, (p[0]||'').trim(), (p[1]||'').trim()); });
+    addMini('Clear','mute', function(){ clearAway(curISO, id); });
+    
+    addMini('Propose Edit','success', function(){ proposeShiftEdit(curISO, id); });
+sc.appendChild(mini);
+
+    row.appendChild(sc);
+
+    var wrap=document.createElement('div'); wrap.className='rowwrap'; wrap.style.gridColumn='2 / span '+colCount();
+    row.appendChild(wrap);
+
+    for(var ci=0;ci<colCount();ci++){ var c=document.createElement('div'); c.className='cell'; if(((ci*slotMinutes())%(60))>=30) c.classList.add('alt'); row.appendChild(c); }
+
+    var dayShifts=(week[dayKey])||{}; var dayH=0;
+    Object.keys(dayShifts).forEach(function(sid){
+      var sh=dayShifts[sid];
+      if(sh.staffId!==id) return;
+      var work=hoursBetweenAny(sh.start, sh.end);
+      dayH+=work;
+
+      var startM = parse12(sh.start), endM0 = parse12(sh.end);
+      var endM = (endM0<=startM) ? endM0 + 24*60 : endM0;
+      var span = gridEndMins()-gridStartMins();
+      var leftM = Math.max(0, Math.min(span, (isNaN(startM)?0:startM) - gridStartMins()));
+      var rightM = Math.max(0, Math.min(span, (isNaN(endM)?0:endM) - gridStartMins()));
+      var left = (leftM/span)*100;
+      var width = Math.max(0.5, ((rightM-leftM)/span)*100);
+
+      var chip=document.createElement('div'); chip.className='shift'; if(endM0<=startM) chip.classList.add('overnight');
+      var bg=themeAdj(st.color||'#5A31F4'); chip.style.background=bg; chip.style.color=idealText(bg);
+      chip.style.left=left+'%'; chip.style.width=width+'%'; chip.dataset.id=sid;
+
+      var breakMin = breakMinutesForShift(sh, st);
+      chip.title = st.name+' — '+sh.start+'–'+sh.end+' ('+work.toFixed(2)+'h, break '+breakMin+'m)';
+
+      var label=document.createElement('span'); label.className='label'; label.textContent=st.name;
+      var hrs=document.createElement('span'); hrs.className='hours'; hrs.textContent=sh.start+'–'+sh.end+' ('+work.toFixed(2)+'h)';
+      chip.appendChild(label); chip.appendChild(hrs);
+
+      var bpill=document.createElement('span'); bpill.className='breakpill'; bpill.textContent='⏱ '+breakMin+'m';
+      bpill.title = 'Click to toggle break: 0m vs auto ('+breakMin+'m)';
+      if(canEdit() && !isPublished){
+        bpill.onclick=function(e){
+          e.stopPropagation();
+          var dk=String(Planner.activeDayIndex);
+          var wk=App.weeks[Planner.weekStartISO]||{};
+          var store = wk[dk] && wk[dk][sid];
+          if(!store) return;
+          if(parseInt(store.breakMins||'0',10)===0){ delete store.breakMins; } else { store.breakMins=0; }
+          saveLocal(); renderPlanner(); renderPayroll(); renderMyShifts();
+        };
+      }
+      chip.appendChild(bpill);
+
+      if(canEdit()) chip.onclick=function(e){ e.stopPropagation(); openShiftModal({shiftId:sid, dayIndex:Planner.activeDayIndex}); };
+      wrap.appendChild(chip);
+    });
+
+    // away overlays
+    drawAwayOverlays(wrap, curISO, id);
+
+    var weekH=0;
+    for(var d=0; d<7; d++){
+      var ds=week[String(d)]||{};
+      Object.keys(ds).forEach(function(k){ var sh=ds[k]; if(sh.staffId===id) weekH+=hoursBetweenAny(sh.start, sh.end); });
+    }
+    badge.textContent=weekH.toFixed(2)+'h wk'; badge.title='Today: '+dayH.toFixed(2)+'h';
+
+    if(canEdit() && isPublished===false){
+      wrap.onclick=function(ev){
+        if(ev.target && ev.target.closest && ev.target.closest('.shift')) return;
+        var x=ev.offsetX / (wrap.clientWidth||1);
+        var m = Math.round((gridStartMins()) + x*(gridEndMins()-gridStartMins()));
+        var round = Math.round(m/slotMinutes())*slotMinutes();
+        var stt = to12hStr(pad(Math.floor(round/60))+':'+pad(round%60));
+        var end = to12hStr(pad(Math.floor((round+120)%1440/60))+':'+pad((round+120)%60));
+        openShiftModal({staffId:id, dayIndex:Planner.activeDayIndex, start:stt, end:end});
+      };
+    }
+
+    byId('plannerGrid').appendChild(row);
+  });
+
+  renderDayTabs(); fitPlanner();
+}
+
+// ---------- Coverage (target headcount) ----------
+function renderCoverageBar(){
+  var el=byId('coverageBar'); if(!el) return;
+  el.innerHTML='';
+  var target = parseInt(App.settings.targetHeadcount||0,10);
+  if(!target){ el.style.display='none'; return; }
+  el.style.display='flex';
+  var counts = new Array(colCount()).fill(0);
+  var wk=App.weeks[Planner.weekStartISO]||{};
+  var ds=wk[String(Planner.activeDayIndex)]||{};
+  Object.keys(ds).forEach(function(k){
+    var sh=ds[k];
+    var s=parse12(sh.start), e=parse12(sh.end); if(e<=s) e+=1440;
+    var from = Math.max(gridStartMins(), s), to = Math.min(gridEndMins(), e);
+    var startIdx = Math.max(0, Math.floor((from-gridStartMins())/slotMinutes()));
+    var endIdx = Math.max(0, Math.ceil((to-gridStartMins())/slotMinutes()));
+    for(var i=startIdx;i<endIdx;i++){ counts[i]+=1; }
+  });
+  for(var i=0;i<colCount();i++){
+    var t=gridStartMins()+i*slotMinutes();
+    var slot=document.createElement('div'); slot.className='slot'; slot.title=((Math.floor(t/60)%24)+':'+pad(t%60))+' — '+counts[i]+' assigned';
+    slot.style.width='calc(var(--colW) - 2px)';
+    slot.style.background = counts[i] >= target ? 'linear-gradient(180deg, rgba(34,197,94,.8), rgba(34,197,94,.4))' : 'linear-gradient(180deg, rgba(239,68,68,.8), rgba(239,68,68,.4))';
+    el.appendChild(slot);
+  }
+}
+
+// ---------- Shift modal ----------
+function openShiftModal(opts){
+  var m=byId('shiftModal'); m.style.display='flex';
+
+  // reset day checkboxes every time
+  var chks=$$('#daysThisWeek input[type=checkbox]'); for(var ci=0;ci<chks.length;ci++){ chks[ci].checked=false; }
+
+  var selS=byId('shiftStaff'); selS.innerHTML='';
+  Object.keys(App.staff).map(function(id){ return [id,App.staff[id]]; }).filter(function(p){ return (p[1].role||'staff')!=='admin'; }).sort(function(a,b){ return (a[1].name||'').localeCompare(b[1].name||''); }).forEach(function(p){ var id=p[0], s=p[1]; var o=document.createElement('option'); o.value=id; o.textContent=s.name; selS.appendChild(o); });
+  var selD=byId('shiftDay'); selD.innerHTML=''; DAY.forEach(function(n,i){ var o=document.createElement('option'); o.value=i; o.textContent=n; selD.appendChild(o); });
+
+  
+
+function updateShiftDateLabel(){
+  try{
+    var idx = parseInt(byId('shiftDay').value||'0',10);
+    var d0 = fromISO(Planner.weekStartISO); d0.setDate(d0.getDate()+idx);
+    var el = byId('shiftDateLabel'); if(el){ el.textContent = DAY[idx]+' '+fmtDMY(d0); }
+  }catch(e){}
+}
+selD.onchange = updateShiftDateLabel;
+// adapt time step to slot minutes
+  var step = Math.max(1, slotMinutes())*60;
+  byId('shiftStart').step = step;
+  byId('shiftEnd').step = step;
+
+  var manualBreakEdited=false;
+  byId('shiftBreak').oninput=function(){ manualBreakEdited = true; };
+
+  function recalcAutoBreak(){
+    if(manualBreakEdited) return;
+    var ss=normalizeHHMM(byId('shiftStart').value);
+    var ee=normalizeHHMM(byId('shiftEnd').value);
+    if(!ss || !ee) return;
+    var start12 = to12hStr(ss);
+    var end12   = to12hStr(ee);
+    var h=hoursBetweenAny(start12,end12);
+    byId('shiftBreak').value = autoBreakMinsForHours(h);
+  }
+  function normalizeField(el){
+    var v = normalizeHHMM(el.value);
+    if(v){ el.value = v; }
+  }
+  var sEl=byId('shiftStart'), eEl=byId('shiftEnd');
+  sEl.addEventListener('change', function(){ normalizeField(sEl); recalcAutoBreak(); });
+  eEl.addEventListener('change', function(){ normalizeField(eEl); recalcAutoBreak(); });
+  sEl.addEventListener('blur', function(){ normalizeField(sEl); recalcAutoBreak(); });
+  eEl.addEventListener('blur', function(){ normalizeField(eEl); recalcAutoBreak(); });
+
+  if(opts && opts.shiftId){
+    var dk=String(opts.dayIndex);
+    var wk=App.weeks[Planner.weekStartISO]||{};
+    var sh = (wk[dk]&&wk[dk][opts.shiftId]) ? wk[dk][opts.shiftId] : null;
+    if(!sh && wk[dk]){ var keys=Object.keys(wk[dk]); for(var i=0;i<keys.length;i++){ var key=keys[i], val=wk[dk][key]; if(val && val.id===opts.shiftId){ sh=val; opts.shiftId=key; break; } } }
+    if(!sh){ alert('Shift not found'); closeShiftModal(); return; }
+    Planner.editingShift={id:opts.shiftId, dayIndex:opts.dayIndex};
+    selS.value=sh.staffId; selD.value=String(opts.dayIndex); updateShiftDateLabel();
+    var toHHMM=function(v){ var m=parse12(v); var hh=('0'+Math.floor((isNaN(m)?0:m)/60)).slice(-2); var mm=('0'+((isNaN(m)?0:m)%60)).slice(-2); return hh+':'+mm; };
+    byId('shiftStart').value=toHHMM(sh.start); byId('shiftEnd').value=toHHMM(sh.end);
+    var dispBreak = (sh.breakMins!=null && sh.breakMins!=='') ? parseInt(sh.breakMins,10) : autoBreakMinsForHours(hoursBetweenAny(sh.start, sh.end));
+    byId('shiftBreak').value=dispBreak; byId('shiftNotes').value=sh.notes||''; byId('shiftPenalty').checked=!!sh.penalty; byId('btnDeleteShift').style.display='inline-block';
+  } else {
+    Planner.editingShift=null;
+    var firstStaffId = (opts && opts.staffId) || (function(){ var ks=Object.keys(App.staff).filter(function(k){ return (App.staff[k].role||'staff')!=='admin'; }); return ks.length?ks[0]:''; })();
+    selS.value=firstStaffId;
+    selD.value=String((opts && opts.dayIndex)!=null?opts.dayIndex:Planner.activeDayIndex); updateShiftDateLabel();
+    byId('shiftStart').value=(opts&&opts.start)?normalizeHHMM(opts.start):'09:00';
+    byId('shiftEnd').value=(opts&&opts.end)?normalizeHHMM(opts.end):'17:00';
+    var ss=normalizeHHMM(byId('shiftStart').value), ee=normalizeHHMM(byId('shiftEnd').value);
+    if(ss) byId('shiftStart').value=ss; if(ee) byId('shiftEnd').value=ee;
+    byId('shiftBreak').value=autoBreakMinsForHours(hoursBetweenAny(to12hStr(ss),to12hStr(ee)));
+    byId('shiftNotes').value=''; byId('shiftPenalty').checked=false; byId('btnDeleteShift').style.display='none';
+  }
+}
+function closeShiftModal(){ byId('shiftModal').style.display='none'; }
+
+function saveShiftFromModal(){
+  if(!canEdit()) return alert('Only manager or admin can modify shifts.');
+  if(App.settings.publishedWeeks[Planner.weekStartISO]){
+    if(!confirm('This week is marked Published. Proceed with edit?')) return;
+  }
+  var staffId=byId('shiftStaff').value;
+  var dayIndex=parseInt(byId('shiftDay').value||'0',10);
+  var startNorm=normalizeHHMM(byId('shiftStart').value);
+  var endNorm=normalizeHHMM(byId('shiftEnd').value);
+  if(!startNorm || !endNorm){ alert('Please enter Start and End as an hour (minutes will default to :00) or HH:MM.'); return; }
+  byId('shiftStart').value=startNorm; byId('shiftEnd').value=endNorm;
+  var start12=to12hStr(startNorm); var end12=to12hStr(endNorm);
+  var breakMins=parseInt(byId('shiftBreak').value,10); if(isNaN(breakMins)) breakMins = autoBreakMinsForHours(hoursBetweenAny(start12,end12));
+  var notes=byId('shiftNotes').value||'';
+  var penalty=!!byId('shiftPenalty').checked;
+  var repeat=Math.max(0, parseInt(byId('shiftRepeat').value||'0',10));
+
+  var d0=fromISO(Planner.weekStartISO); d0.setDate(d0.getDate()+dayIndex);
+  var iso=toISO(d0);
+  var unavail = (((App.availability||{})[iso]||{})[staffId]||{}).unavailable===true;
+  if(unavail){
+    var nm=(App.staff[staffId]&&App.staff[staffId].name)||'Staff';
+    if(!confirm(nm+' marked unavailable on '+fmtDMY(d0)+'. Create shift anyway?')) return;
+  }
+
+  if(!App.weeks[Planner.weekStartISO]) App.weeks[Planner.weekStartISO]={};
+  if(!App.weeks[Planner.weekStartISO][String(dayIndex)]) App.weeks[Planner.weekStartISO][String(dayIndex)]={};
+  var existing = App.weeks[Planner.weekStartISO][String(dayIndex)];
+
+  var ns=parse12(start12), ne0=parse12(end12); if(isNaN(ns)||isNaN(ne0)){ alert('Invalid time. Try HH or HH:MM (minutes default to :00).'); return; }
+  var ne = (ne0<=ns) ? ne0+1440 : ne0;
+
+  var keys=Object.keys(existing);
+  for(var i=0;i<keys.length;i++){
+    var sid=keys[i], sh=existing[sid];
+    if(Planner.editingShift && sid===Planner.editingShift.id) continue;
+    if(sh.staffId!==staffId) continue;
+    var s0=parse12(sh.start), e0=parse12(sh.end); if(e0<=s0) e0+=1440;
+    if(ns<e0 && ne>s0){ alert('Overlap with another shift for this staff on this day.'); return; }
+  }
+  if(ne0<=ns){
+    var nextIdx = (dayIndex+1)%7;
+    var nextDay = App.weeks[Planner.weekStartISO][String(nextIdx)]||{};
+    var nextKeys=Object.keys(nextDay);
+    for(var j=0;j<nextKeys.length;j++){
+      var shn=nextDay[nextKeys[j]]; if(shn.staffId!==staffId) continue;
+      var s1=parse12(shn.start), e1=parse12(shn.end); if(e1<=s1) e1+=1440;
+      s1+=1440; e1+=1440;
+      if(ns<e1 && ne>s1){ if(!confirm('Overnight shift overlaps a shift on next day for this staff. Create anyway?')) return; break; }
+    }
+  }
+
+  if(Planner.editingShift){ existing[Planner.editingShift.id] = { id:Planner.editingShift.id, staffId:staffId, day:dayIndex, start:start12, end:end12, breakMins:breakMins, notes:notes, penalty:penalty }; }
+  else { var nid=uid(); existing[nid] = { id:nid, staffId:staffId, day:dayIndex, start:start12, end:end12, breakMins:breakMins, notes:notes, penalty:penalty }; }
+
+  var checks = byId('daysThisWeek') ? Array.from(byId('daysThisWeek').querySelectorAll('input[type=checkbox]:checked')).map(function(x){return parseInt(x.value,10);}) : [];
+  if(checks.length>0){
+    checks.forEach(function(di){
+      if(di===dayIndex && Planner.editingShift) return;
+      if(!App.weeks[Planner.weekStartISO][String(di)]) App.weeks[Planner.weekStartISO][String(di)]={};
+      var ex=App.weeks[Planner.weekStartISO][String(di)];
+      var clash=false; var ns0=parse12(start12), ne00=parse12(end12); var ne0x = (ne00<=ns0)?ne00+1440:ne00;
+      Object.keys(ex).forEach(function(k){ var s0=ex[k]; if(s0.staffId!==staffId) return; var s=parse12(s0.start), e=parse12(s0.end); if(e<=s) e+=1440; if(ns0<e && ne0x>s) clash=true; });
+      if(!clash){ var id2=uid(); ex[id2]={ id:id2, staffId:staffId, day:di, start:start12, end:end12, breakMins:breakMins, notes:notes, penalty:penalty }; }
+    });
+  }
+
+  if(repeat>0){
+    for(var r=1;r<=repeat;r++){
+      var d=new Date(fromISO(Planner.weekStartISO)); d.setDate(d.getDate()+r*7);
+      var isoW=toISO(weekStart(d));
+      if(!App.weeks[isoW]) App.weeks[isoW]={};
+      var daysToUse = (checks.length>0 ? checks : [dayIndex]);
+      daysToUse.forEach(function(di){ if(!App.weeks[isoW][String(di)]) App.weeks[isoW][String(di)]={}; var id3=uid(); App.weeks[isoW][String(di)][id3]={ id:id3, staffId:staffId, day:di, start:start12, end:end12, breakMins:breakMins, notes:notes, penalty:penalty }; });
+    }
+  }
+
+  saveLocal(); closeShiftModal(); renderPlanner(); renderPayroll(); renderMyShifts();
+}
+function deleteShiftFromModal(){
+  if(!canEdit()) return alert('Only manager or admin can modify shifts.');
+  if(!Planner.editingShift){ closeShiftModal(); return; }
+  var dk=String(Planner.editingShift.dayIndex);
+  if(App.weeks[Planner.weekStartISO] && App.weeks[Planner.weekStartISO][dk] && App.weeks[Planner.weekStartISO][dk][Planner.editingShift.id]) delete App.weeks[Planner.weekStartISO][dk][Planner.editingShift.id];
+  saveLocal(); closeShiftModal(); renderPlanner(); renderPayroll(); renderMyShifts();
+}
+
+// ---------- Staff CRUD ----------
+async function onSaveStaff(){
+  if(!isAdmin()) return alert('Admin only.');
+  var selectedId = byId('existingStaffSelect').value || null;
+  var name=byId('staffNameInput').value.trim();
+  var rate=parseFloat(byId('staffRateInput').value||'0');
+  var rateWeekend=parseFloat(byId('staffWeekendRateInput').value||'0');
+  var ratePenalty=parseFloat(byId('staffPenaltyRateInput').value||'0');
+  var otMult=parseFloat(byId('staffOTMultInput').value||'1.5');
+  var otWeekly=parseFloat(byId('staffOTWeeklyInput').value||'38');
+  var otDaily=parseFloat(byId('staffOTDailyInput').value||'8');
+  var br=parseInt(byId('staffBreakInput').value||'30',10);
+  var role=byId('staffRoleInput').value;
+  var pick=byId('colorPicker');
+  var color=byId('staffNameInput').dataset.color || (pick?pick.value:'#5A31F4');
+  var pass=byId('staffPassInput').value||'';
+  if(!name){ alert('Enter name'); return; }
+  var passHash='';
+  if(pass){
+    var enc=new TextEncoder(); var buf=await crypto.subtle.digest('SHA-256', enc.encode(pass)); passHash=Array.from(new Uint8Array(buf)).map(function(b){return b.toString(16).padStart(2,'0');}).join('');
+  }else{
+    passHash = selectedId ? ((App.staff[selectedId]&&App.staff[selectedId].passHash)||'') : '';
+  }
+  var id = selectedId || uid();
+  App.staff[id]={name:name,rate:rate,rateWeekend:rateWeekend,ratePenalty:ratePenalty,otMult:otMult,otWeekly:otWeekly,otDaily:otDaily,breakDefault:br,role:role,color:color,passHash:passHash};
+  App.settings.recentColors=[color].concat((App.settings.recentColors||[]).filter(function(c){return c!==color;})).slice(0,12);
+  saveLocal(); populateLoginSelects(); populateExistingStaff(); alert('Saved staff.');
+}
+function onDeleteStaff(){
+  if(!isAdmin()) return alert('Admin only.');
+  var id=byId('existingStaffSelect').value; if(!id) return alert('Pick a staff to delete');
+  if(!confirm('Delete '+((App.staff[id]&&App.staff[id].name)||'staff')+'?')) return;
+  delete App.staff[id]; saveLocal(); populateLoginSelects(); populateExistingStaff(); clearStaffForm();
+}
+function loadStaffIntoForm(){
+  var id=this.value; if(!id){ clearStaffForm(); return; }
+  var s=App.staff[id]; if(!s) return;
+  byId('staffNameInput').value=s.name||'';
+  byId('staffRateInput').value=s.rate||0;
+  byId('staffWeekendRateInput').value=s.rateWeekend||0;
+  byId('staffPenaltyRateInput').value=s.ratePenalty||0;
+  byId('staffOTMultInput').value=s.otMult||1.5;
+  byId('staffOTWeeklyInput').value=s.otWeekly||38;
+  byId('staffOTDailyInput').value=s.otDaily||8;
+  byId('staffBreakInput').value=s.breakDefault||30;
+  byId('staffRoleInput').value=s.role||'staff';
+  byId('colorPicker').value=s.color||'#5A31F4';
+  byId('staffNameInput').dataset.color = s.color||'#5A31F4';
+}
+function clearStaffForm(){
+  byId('staffNameInput').value='';
+  byId('staffRateInput').value='25';
+  byId('staffWeekendRateInput').value='0';
+  byId('staffPenaltyRateInput').value='0';
+  byId('staffOTMultInput').value='1.5';
+  byId('staffOTWeeklyInput').value='38';
+  byId('staffOTDailyInput').value='8';
+  byId('staffBreakInput').value='30';
+  byId('staffRoleInput').value='staff';
+  byId('colorPicker').value='#5A31F4';
+  byId('staffNameInput').dataset.color='#5A31F4';
+}
+
+// ---------- Legend/Overview/Availability ----------
+function renderLegend(){ var el=byId('legend'); if(!el) return; el.innerHTML=''; el.style.display='none'; }
+function renderWeekOverview(){
+  var el=byId('weekOverview'); if(!el) return; el.innerHTML='';
+  var title=document.createElement('div'); title.className='wo-head wo-title'; title.textContent='Week Overview'; el.appendChild(title);
+  for(var d=0; d<7; d++){ var h=document.createElement('div'); h.className='wo-head'; h.textContent=DAY[d]; el.appendChild(h); }
+  var week=App.weeks[Planner.weekStartISO]||{};
+  Object.keys(App.staff).filter(function(id){ return (App.staff[id].role||'staff')!=='admin'; }).sort(function(a,b){ return (App.staff[a].name||'').localeCompare(App.staff[b].name||''); }).forEach(function(id){
+    var s=App.staff[id];
+    var nm=document.createElement('div'); nm.className='wo-name';
+    var dot=document.createElement('div'); dot.style.width='10px'; dot.style.height='10px'; dot.style.borderRadius='50%'; dot.style.background=s.color||'#5A31F4'; nm.appendChild(dot);
+    var t=document.createElement('div'); t.textContent=s.name; nm.appendChild(t); el.appendChild(nm);
+    for(var i=0;i<7;i++){
+      var cell=document.createElement('div'); cell.className='wo-cell';
+      var ds=week[String(i)]||{};
+      Object.keys(ds).forEach(function(k){ var sh=ds[k]; if(sh.staffId!==id) return; var chip=document.createElement('div'); chip.className='wo-chip'; var bg=themeAdj(s.color||'#5A31F4'); chip.style.background=bg; chip.style.color=idealText(bg); chip.textContent=(sh.start||'')+'–'+(sh.end||''); cell.appendChild(chip); });
+      el.appendChild(cell);
+    }
+  });
+}
+function renderAvailabilityBar(){
+  var el=byId('availabilityBar'); if(!el) return; var u=App.currentUser; if(!u || u.role!=='staff'){ el.innerHTML=''; el.style.display='none'; return; }
+  el.style.display='flex'; el.innerHTML='';
+  var start=fromISO(Planner.weekStartISO);
+  ensureRequestsStore();
+  for(var d=0; d<7; d++){
+    var dt=new Date(start); dt.setDate(dt.getDate()+d);
+    var iso=toISO(dt);
+    var published = (App.availability && App.availability[iso] && App.availability[iso][u.id] && App.availability[iso][u.id].unavailable===true);
+    var pending = (App.absenceRequests && App.absenceRequests[iso] && App.absenceRequests[iso][u.id]);
+    var label = published ? 'Away (published)' : (pending ? 'Requested' : 'Available');
+    var item=document.createElement('div'); item.className='day'+(published?' off':''); item.textContent = DAY[d]+' — '+label;
+    item.title='Click to toggle a request for this day';
+    (function(iso,published){
+      item.onclick=function(){
+        if(published){ alert('This day is already published away. Ask a manager to clear.'); return; }
+        App.absenceRequests[iso]=App.absenceRequests[iso]||{};
+        if(App.absenceRequests[iso][u.id]){ delete App.absenceRequests[iso][u.id]; if(Object.keys(App.absenceRequests[iso]).length===0) delete App.absenceRequests[iso]; }
+        else { App.absenceRequests[iso][u.id]={unavailable:true, status:'pending'}; }
+        saveLocal(); renderAvailabilityBar();
+      };
+    })(iso,published);
+    el.appendChild(item);
+  }
+}
+
+// ---------- Absences: overlays + calendar + requests ----------
+function ensureRequestsStore(){ if(!App.absenceRequests) App.absenceRequests={}; }
+function drawAwayOverlays(wrapEl, iso, staffId){
+  try{
+    if(!wrapEl) return;
+    if(!App.availability) return;
+    var dayRec = App.availability[iso] || {};
+    var state = dayRec[staffId];
+    var olds = wrapEl.querySelectorAll('.away-band, .away-chip'); for(var i=0;i<olds.length;i++) olds[i].remove();
+    if(!state) return;
+    var span = 16*60;
+    function clamp(x,a,b){ return Math.max(a, Math.min(b, x)); }
+    function blockSeg(start, end){
+      var s = start ? parse12(start) : 8*60;
+      var e = end   ? parse12(end)   : 24*60;
+      if(isNaN(s)) s = 8*60; if(isNaN(e)) e = 24*60;
+      if(e<=s) e+=1440;
+      s = clamp(s, 8*60, 24*60); e = clamp(e, 8*60, 24*60);
+      var left = ((s - 8*60)/span)*100;
+      var width = Math.max(0.5, ((e - s)/span)*100);
+      var div=document.createElement('div'); div.className='away-band'; div.style.left=left+'%'; div.style.width=width+'%'; return div;
+    }
+    if(state.unavailable){
+      var full=document.createElement('div'); full.className='away-band'; full.style.left='0'; full.style.width='100%';
+      var chip=document.createElement('div'); chip.className='away-chip'; chip.textContent='AWAY';
+      wrapEl.appendChild(full); wrapEl.appendChild(chip);
+    }
+    if(state.blocks && state.blocks.length){
+      for(var j=0;j<state.blocks.length;j++){
+        var b=state.blocks[j];
+        var seg=blockSeg(b.start||null, b.end||null);
+        var chip2=document.createElement('div'); chip2.className='away-chip'; chip2.textContent='AWAY '+(b.start||'')+'–'+(b.end||'');
+        wrapEl.appendChild(seg); wrapEl.appendChild(chip2);
+      }
+    }
+  }catch(e){}
+}
+
+var AbsCal = { date: new Date() };
+function renderAbsenceCalendar(){
+  var grid=byId('absCalGrid'); if(!grid) return;
+  var lab=byId('absMonthLabel'); var staffSel=byId('absStaffFilter');
+  if(staffSel && staffSel.options.length===0){
+    var optAll=document.createElement('option'); optAll.value=''; optAll.textContent='All staff'; staffSel.appendChild(optAll);
+    var arr = Object.keys(App.staff).map(function(id){ return [id,App.staff[id]]; }).sort(function(a,b){ return (a[1].name||'').localeCompare(b[1].name||''); });
+    for(var i=0;i<arr.length;i++){ var sid=arr[i][0], s=arr[i][1]; if((s.role||'staff')==='admin') continue; var o=document.createElement('option'); o.value=sid; o.textContent=s.name||''; staffSel.appendChild(o); }
+  }
+  var y=AbsCal.date.getFullYear(), m=AbsCal.date.getMonth();
+  var first=new Date(y,m,1); var start=weekStart(first);
+  if(lab) lab.textContent = AbsCal.date.toLocaleDateString(undefined, {month:'long', year:'numeric'});
+  grid.innerHTML='';
+  for(var dIdx=0; dIdx<42; dIdx++){
+    var d=new Date(start); d.setDate(start.getDate()+dIdx);
+    var cell=document.createElement('div'); cell.className='abs-day';
+    var head=document.createElement('div'); head.className='abs-date'; head.textContent = d.getDate()+' '+d.toLocaleDateString(undefined,{weekday:'short'}); cell.appendChild(head);
+    var iso=toISO(d);
+    var rec = (App.availability && App.availability[iso]) ? App.availability[iso] : {};
+    var filterId = staffSel ? staffSel.value : '';
+    var keys = Object.keys(rec);
+    for(var k=0;k<keys.length;k++){
+      var sid=keys[k]; if(filterId && sid!==filterId) continue;
+      var val=rec[sid]; var st=App.staff[sid]; if(!st) continue;
+      if(val.unavailable){ var ch=document.createElement('div'); ch.className='abs-chip full'; ch.textContent=(st.name||'')+' — AWAY'; cell.appendChild(ch); }
+      if(val.blocks && val.blocks.length){ for(var b=0;b<val.blocks.length;b++){ var bl=val.blocks[b]; var ch2=document.createElement('div'); ch2.className='abs-chip block'; ch2.textContent=(st.name||'')+' — '+(bl.start||'')+'–'+(bl.end||''); cell.appendChild(ch2); } }
+    }
+    grid.appendChild(cell);
+  }
+}
+
+function openRequestsModal(){
+  ensureRequestsStore();
+  var modal=byId('requestsModal'); var list=byId('requestsList'); list.innerHTML='';
+  var start=fromISO(Planner.weekStartISO);
+  var any=false;
+  // Absence requests
+  for(var i=0;i<7;i++){
+    var d=new Date(start); d.setDate(d.getDate()+i); var iso=toISO(d);
+    var bucket = (App.absenceRequests && App.absenceRequests[iso]) ? App.absenceRequests[iso] : null;
+    if(!bucket) continue;
+    var ids = Object.keys(bucket);
+    for(var j=0;j<ids.length;j++){
+      var sid=ids[j]; var req=bucket[sid]; if(!req) continue;
+      any=true;
+      var st=App.staff[sid]||{}; var row=document.createElement('div');
+      row.style.display='flex'; row.style.gap='8px'; row.style.alignItems='center'; row.style.marginBottom='6px';
+      row.innerHTML = '<div style="font-weight:800">'+(st.name||'')+'</div><div class="muted">'+fmtDMY(d)+'</div>'+
+                      '<div class="pill">'+(req.blocks && req.blocks.length? (req.blocks[0].start||'')+'–'+(req.blocks[0].end||'') : 'Full day')+'</div>';
+      var app=document.createElement('button'); app.className='btn-good'; app.textContent='Approve';
+      var rej=document.createElement('button'); rej.className='btn-outline'; rej.textContent='Reject';
+      (function(iso,sid,req){ app.onclick=function(){ approveRequest(iso,sid,req); }; rej.onclick=function(){ rejectRequest(iso,sid); }; })(iso,sid,req);
+      row.appendChild(app); row.appendChild(rej); list.appendChild(row);
+    }
+  }
+  // Shift-change requests
+  if(App.shiftChangeRequests){
+    for(var di=0;di<7;di++){
+      var nd=new Date(start); nd.setDate(start.getDate()+di); var iso2=toISO(nd);
+      var changes = App.shiftChangeRequests[iso2];
+      if(!changes) continue;
+      Object.keys(changes).forEach(function(key){
+        var req = changes[key]; if(!req) return;
+        any=true;
+        var st=App.staff[req.staffId]||{};
+        var row=document.createElement('div');
+        row.style.display='flex'; row.style.gap='8px'; row.style.alignItems='center'; row.style.marginBottom='6px';
+        row.innerHTML = '<div style="font-weight:800">'+(st.name||'')+'</div><div class="muted">'+fmtDMY(nd)+'</div>'+
+                        '<div class="pill">Shift end → '+(req.newEnd||'?')+'</div>';
+        var appB=document.createElement('button'); appB.className='btn-good'; appB.textContent='Apply';
+        var rejB=document.createElement('button'); rejB.className='btn-outline'; rejB.textContent='Discard';
+        (function(iso2,key,req){ appB.onclick=function(){ approveShiftChange(iso2,key,req); }; rejB.onclick=function(){ rejectShiftChange(iso2,key); }; })(iso2,key,req);
+        row.appendChild(appB); row.appendChild(rejB); list.appendChild(row);
+      });
+    }
+  }
+  if(!any){ list.textContent='No pending requests for this week.'; }
+  modal.style.display='flex';
+  byId('btnCloseRequests').onclick=function(){ modal.style.display='none'; };
+  if(typeof updateRequestsBadge==='function') updateRequestsBadge();
+}
+function approveRequest(iso,sid,req){
+  if(!canModerateAbsences()) return alert('Manager/Admin only.');
+  if(!App.availability) App.availability={};
+  var day=App.availability[iso]=App.availability[iso]||{};
+  if(req.blocks && req.blocks.length){ day[sid]=day[sid]||{}; day[sid].blocks = (day[sid].blocks||[]).concat(req.blocks); }
+  else { day[sid]={unavailable:true}; }
+  if(App.absenceRequests && App.absenceRequests[iso]){ delete App.absenceRequests[iso][sid]; if(Object.keys(App.absenceRequests[iso]).length===0) delete App.absenceRequests[iso]; }
+  saveLocal(); renderPlanner(); renderAbsenceCalendar(); openRequestsModal();
+}
+function rejectRequest(iso,sid){
+  if(!canModerateAbsences()) return alert('Manager/Admin only.');
+  if(App.absenceRequests && App.absenceRequests[iso]){ delete App.absenceRequests[iso][sid]; if(Object.keys(App.absenceRequests[iso]).length===0) delete App.absenceRequests[iso]; }
+  saveLocal(); openRequestsModal();
+}
+function approveShiftChange(iso,key,req){
+  if(!canModerateAbsences()) return alert('Manager/Admin only.');
+  try{
+    var wsISO = req.weekStartISO;
+    var dayIndex = req.dayIndex;
+    if(wsISO==null || dayIndex==null){
+      alert('Missing shift location info; cannot apply.'); return;
+    }
+    var week = App.weeks[wsISO] || {};
+    var dayBucket = week[String(dayIndex)] || {};
+    var shift = dayBucket[req.shiftId || key];
+    if(!shift){
+      alert('Original shift not found; maybe it was deleted.');
+    }else{
+      shift.end = req.newEnd || shift.end;
+      App.weeks[wsISO] = week;
+    }
+    if(App.shiftChangeRequests && App.shiftChangeRequests[iso]){
+      delete App.shiftChangeRequests[iso][key];
+      if(Object.keys(App.shiftChangeRequests[iso]).length===0) delete App.shiftChangeRequests[iso];
+    }
+    saveLocal();
+    renderPlanner();
+    renderMyShifts();
+    renderPayroll();
+    if(typeof updateRequestsBadge==='function') updateRequestsBadge();
+    openRequestsModal();
+  }catch(e){
+    console.error('approveShiftChange error', e);
+    alert('Could not apply change: '+e);
+  }
+}
+function rejectShiftChange(iso,key){
+  if(!canModerateAbsences()) return alert('Manager/Admin only.');
+  if(App.shiftChangeRequests && App.shiftChangeRequests[iso]){
+    delete App.shiftChangeRequests[iso][key];
+    if(Object.keys(App.shiftChangeRequests[iso]).length===0) delete App.shiftChangeRequests[iso];
+  }
+function countPendingRequestsForWeek(){
+  if(!window.Planner || !Planner.weekStartISO) return 0;
+  var start = fromISO(Planner.weekStartISO);
+  if(!start) return 0;
+  var total = 0;
+  for(var i=0;i<7;i++){
+    var d = new Date(start); d.setDate(start.getDate()+i);
+    var iso = toISO(d);
+    if(App.absenceRequests && App.absenceRequests[iso]){
+      total += Object.keys(App.absenceRequests[iso]).length;
+    }
+    if(App.shiftChangeRequests && App.shiftChangeRequests[iso]){
+      total += Object.keys(App.shiftChangeRequests[iso]).length;
+    }
+  }
+  return total;
+}
+function updateRequestsBadge(){
+  var el = byId('requestsCountBadge');
+  if(!el) return;
+  var count = countPendingRequestsForWeek();
+  if(count > 0){
+    el.textContent = count;
+    el.style.display = 'inline-block';
+  }else{
+    el.style.display = 'none';
+  }
+}
+  saveLocal(); if(typeof updateRequestsBadge==='function') updateRequestsBadge(); openRequestsModal();
+}
+
+
+// Staff bar -> request (not publish) handled in renderAvailabilityBar()
+
+// Mini-actions helpers
+function proposeAway(iso, staffId){
+  ensureRequestsStore();
+  if(!App.currentUser) return;
+  if(App.currentUser.role==='staff' && App.currentUser.id!==staffId){
+    alert('Staff can only propose their own away.'); return;
+  }
+  if(canModerateAbsences()){
+    if(!App.availability) App.availability={}; var day=App.availability[iso]=App.availability[iso]||{}; day[staffId]={unavailable:true}; saveLocal(); renderPlanner(); renderAbsenceCalendar(); return;
+  }
+  App.absenceRequests[iso]=App.absenceRequests[iso]||{};
+  App.absenceRequests[iso][staffId]={unavailable:true, status:'pending'};
+  saveLocal();
+  try{
+    var payload={}; payload[iso]=App.absenceRequests[iso];
+    dbPatch('/absenceRequests', payload).catch(function(e){ console.error('Push absenceRequests failed', e); });
+  }catch(e){}
+  if(typeof updateRequestsBadge==='function') updateRequestsBadge();
+  alert('Request sent.');
+}
+function proposePartial(iso, staffId, start, end){
+  ensureRequestsStore();
+  if(!App.currentUser) return;
+  if(App.currentUser.role==='staff' && App.currentUser.id!==staffId){
+    alert('Staff can only propose their own away.'); return;
+  }
+  if(canModerateAbsences()){
+    if(!App.availability) App.availability={}; var day=App.availability[iso]=App.availability[iso]||{}; day[staffId]=day[staffId]||{}; day[staffId].blocks = (day[staffId].blocks||[]).concat([{start:start, end:end}]); saveLocal(); renderPlanner(); renderAbsenceCalendar(); return;
+  }
+  App.absenceRequests[iso]=App.absenceRequests[iso]||{};
+  App.absenceRequests[iso][staffId]={blocks:[{start:start, end:end}], status:'pending'};
+  saveLocal();
+  try{
+    var payload2={}; payload2[iso]=App.absenceRequests[iso];
+    dbPatch('/absenceRequests', payload2).catch(function(e){ console.error('Push partial absenceRequests failed', e); });
+  }catch(e){}
+  if(typeof updateRequestsBadge==='function') updateRequestsBadge();
+  alert('Request sent.');
+}
+function clearAway(iso, staffId){
+  if(!canModerateAbsences()) return alert('Manager/Admin only to clear published away.');
+  if(App.availability && App.availability[iso] && App.availability[iso][staffId]){ delete App.availability[iso][staffId]; if(Object.keys(App.availability[iso]).length===0) delete App.availability[iso]; }
+  saveLocal(); renderPlanner(); renderAbsenceCalendar();
+}
+
+// ---------- Copy & Payroll ----------
+function copyDayToNext(){ var f=Planner.activeDayIndex; var t=(f+1)%7; var wk=App.weeks[Planner.weekStartISO]||{}; var src=JSON.parse(JSON.stringify(wk[String(f)]||{})); wk[String(t)]={}; Object.keys(src).forEach(function(k){ var sh=src[k]; var id=uid(); wk[String(t)][id]={id:id,staffId:sh.staffId,day:t,start:sh.start,end:sh.end,breakMins:sh.breakMins,notes:sh.notes,penalty:sh.penalty}; }); App.weeks[Planner.weekStartISO]=wk; saveLocal(); Planner.activeDayIndex=t; renderPlanner(); }
+function copyWeekToNext(){ var from=Planner.weekStartISO; var d=fromISO(from); d.setDate(d.getDate()+7); var to=toISO(weekStart(d)); var src=JSON.parse(JSON.stringify(App.weeks[from]||{})); App.weeks[to]={}; Object.keys(src).forEach(function(k){ var shs=src[k]; App.weeks[to][k]={}; Object.keys(shs).forEach(function(sk){ var sh=shs[sk]; var id=uid(); App.weeks[to][k][id]={id:id,staffId:sh.staffId,day:sh.day,start:sh.start,end:sh.end,breakMins:sh.breakMins,notes:sh.notes,penalty:sh.penalty}; }); }); saveLocal(); Planner.weekStartISO=to; renderPlanner(); renderPayroll(); }
+function renderPayroll(){
+  var tb=byId('payrollTable').querySelector('tbody'); tb.innerHTML='';
+  var s=fromISO(Planner.weekStartISO); byId('payrollWeekLabel').textContent='Week of '+fmtDMY(s);
+  var end=new Date(s); end.setDate(end.getDate()+6);
+  var ph=byId('plannerPrintHeader'); if(ph) ph.textContent='Week of '+fmtDMY(s)+' – '+fmtDMY(end);
+  var aW=0,aB=0,aP=0,aM=0,aOT=0;
+  Object.keys(App.staff).sort(function(a,b){ return (App.staff[a].name||'').localeCompare(App.staff[b].name||''); }).forEach(function(id){
+    var st=App.staff[id];
+    var W=0,B=0,P=0,M=0,OT=0, weekCum=0;
+    for(var j=0;j<7;j++){
+      var ds=(App.weeks[Planner.weekStartISO] && App.weeks[Planner.weekStartISO][String(j)]) ? App.weeks[Planner.weekStartISO][String(j)] : {}; var dayCum=0;
+      Object.keys(ds).forEach(function(k){
+        var sh=ds[k];
+        if(sh.staffId!==id) return;
+        var w=hoursBetweenAny(sh.start,sh.end); var br=(breakMinutesForShift(sh, st)||0)/60; var payH=Math.max(0, w - br);
+        var rate=effectiveRate(id, j, sh); var mult=parseFloat(st.otMult||1.5)||1.5;
+        var split = splitOvertime(id, j, payH, {weekCum:weekCum, dayCum:dayCum});
+        var pay = (split.normal*rate) + (split.ot*rate*mult);
+        W+=w; B+=br; P+=payH; M+=pay; OT+=split.ot; weekCum += split.normal + split.ot; dayCum += payH;
+      });
+    }
+    if(W>0||B>0||M>0){
+      var tr=document.createElement('tr');
+
+      // Use staff colour as row background, with readable text
+      var bg = st.color || '#111827';
+      var textColor = '#ffffff';
+      try{
+        var c = (bg || '').replace('#','');
+        if(c.length === 6){
+          var r = parseInt(c.substr(0,2),16);
+          var g = parseInt(c.substr(2,2),16);
+          var b = parseInt(c.substr(4,2),16);
+          var lum = 0.299*r + 0.587*g + 0.114*b;
+          textColor = lum > 150 ? '#000000' : '#ffffff';
+        }
+      }catch(e){}
+      tr.style.background = bg;
+      tr.style.color = textColor;
+
+      tr.innerHTML='<td>'+st.name+'</td><td>'+fmtMoney(st.rate||0)+'</td><td>'+W.toFixed(2)+'</td><td>'+B.toFixed(2)+'</td><td>'+P.toFixed(2)+'</td><td>'+OT.toFixed(2)+'</td><td>'+fmtMoney(M)+'</td>';
+      tb.appendChild(tr);
+      aW+=W; aB+=B; aP+=P; aM+=M; aOT+=OT;
+    }
+  });
+  byId('allWork').textContent=aW.toFixed(2); byId('allBreak').textContent=aB.toFixed(2); byId('allPayable').textContent=aP.toFixed(2); byId('allOT').textContent=aOT.toFixed(2); byId('allPay').textContent=fmtMoney(aM);
+}
+function exportPayrollCSV(){
+  var rows = [['Staff','Rate','Work (hrs)','Break (hrs)','Payable (hrs)','OT (hrs)','Total Pay']];
+  var tb=byId('payrollTable').querySelector('tbody');
+  var trs=tb.querySelectorAll('tr');
+  for(var i=0;i<trs.length;i++){
+    var tr=trs[i]; var cells=[]; for(var j=0;j<tr.children.length;j++){ cells.push(tr.children[j].textContent); }
+    rows.push(cells);
+  }
+  var footer = ['All Staff','',byId('allWork').textContent,byId('allBreak').textContent,byId('allPayable').textContent,byId('allOT').textContent,byId('allPay').textContent];
+  rows.push(footer);
+  var csv = rows.map(function(r){ return r.map(function(v){ return '\"'+String(v).replace(/\"/g,'\"\"')+'\"'; }).join(','); }).join('\n');
+  var a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'})); a.download='payroll_'+Planner.weekStartISO+'.csv'; a.click();
+}
+
+// ---------- Print View (multi-week) ----------
+function buildPrintView(){
+  var cont=byId('printContainer'); cont.innerHTML='';
+  var startOffset = Math.max(0, parseInt(byId('printStartOffset').value||'0',10));
+  var weeks = Math.max(1, Math.min(4, parseInt(byId('printWeeksCount').value||'1',10)));
+  var base=fromISO(Planner.weekStartISO); base.setDate(base.getDate()+startOffset*7);
+  for(var w=0; w<weeks; w++){
+    var ws=toISO(weekStart(new Date(base.getFullYear(), base.getMonth(), base.getDate()+w*7)));
+    var paper=document.createElement('div'); paper.className='print-week';
+    var h=document.createElement('div'); h.style.fontWeight='800'; h.style.margin='4px 0 8px'; var start=fromISO(ws); var end=new Date(start); end.setDate(end.getDate()+6); h.textContent='Week of '+fmtDMY(start)+' – '+fmtDMY(end); paper.appendChild(h);
+    var grid=document.createElement('div'); grid.className='print-grid'; var headBlank=document.createElement('div'); headBlank.className='print-head'; headBlank.textContent=''; grid.appendChild(headBlank);
+    for(var d=0; d<7; d++){ var hd=document.createElement('div'); hd.className='print-head'; hd.textContent=DAY[d]; grid.appendChild(hd); }
+    var entries=Object.keys(App.staff).map(function(id){ return [id,App.staff[id]]; }).filter(function(p){ return (p[1].role||'staff')!=='admin'; }).sort(function(a,b){ return (a[1].name||'').localeCompare(b[1].name||''); });
+    entries.forEach(function(p){
+      var id=p[0], st=p[1];
+      var nm=document.createElement('div'); nm.className='print-name'; var d=document.createElement('div'); d.style.width='10px'; d.style.height='10px'; d.style.borderRadius='50%'; d.style.background=st.color||'#5A31F4'; nm.appendChild(d); var t=document.createElement('div'); t.textContent=st.name; nm.appendChild(t); grid.appendChild(nm);
+      for(var day=0; day<7; day++){
+        var cell=document.createElement('div'); cell.className='print-cell';
+        var ds=(App.weeks[ws] && App.weeks[ws][String(day)]) ? App.weeks[ws][String(day)] : {};
+        Object.keys(ds).forEach(function(k){
+          var sh=ds[k]; if(sh.staffId!==id) return;
+          var chip=document.createElement('span'); chip.className='print-chip'; var bg=themeAdj(st.color||'#5A31F4'); chip.style.background=bg; chip.style.color=idealText(bg); chip.textContent=sh.start+'–'+sh.end;
+          (function(sh){
+  try{
+    function toMin(v){ if(v==null) return null; if(typeof v==='number') return v;
+      var s=String(v).trim();
+      var m12=s.match(/^(\d{1,2})(?::(\d{2}))?\s*(AM|PM)$/i);
+      if(m12){ var h=parseInt(m12[1],10)||0, mm=parseInt(m12[2]||'0',10)||0, ap=m12[3].toUpperCase(); if(ap==='PM'&&h<12)h+=12; if(ap==='AM'&&h===12)h=0; return h*60+mm; }
+      var m24=s.match(/^(\d{1,2}):(\d{2})$/); if(m24){ return (parseInt(m24[1],10)||0)*60+(parseInt(m24[2],10)||0); }
+      var n=parseInt(s,10); return isFinite(n)? n:null; }
+    var st = toMin(sh && (sh.start!=null?sh.start:(sh.startMin!=null?sh.startMin:null)));
+    var badge = (!isFinite(st) ? '' : (st>=8*60 && st<=16*60+59 ? '☀️' : (st>=17*60 || st===0 ? '🌙' : '')));
+    if(badge){ var sp=document.createElement('span'); sp.textContent=badge+' '; sp.style.marginRight='4px'; chip.insertBefore(sp, chip.firstChild); }
+  }catch(e){}
+})(sh);
+cell.appendChild(chip);
+        });
+        // tiny AWAY chip
+        var avrec=(App.availability && App.availability[toISO(new Date(start.getFullYear(), start.getMonth(), start.getDate()+day))])||{};
+        var astate=avrec[id];
+        if(astate){
+          var chip2=document.createElement('span'); chip2.className='print-chip'; chip2.style.border='1px dashed rgba(239,68,68,.6)'; chip2.style.color='#ef4444'; chip2.textContent = astate.unavailable ? 'AWAY' : (astate.blocks && astate.blocks.length?('AWAY '+(astate.blocks[0].start||'')+'–'+(astate.blocks[0].end||'')):'AWAY');
+          cell.appendChild(chip2);
+        }
+        grid.appendChild(cell);
+      }
+    });
+    paper.appendChild(grid); cont.appendChild(paper);
+  }
+}
+
+// ---------- Publish ----------
+function togglePublishWeek(){
+  var cur = !!App.settings.publishedWeeks[Planner.weekStartISO];
+  var next = !cur;
+  App.settings.publishedWeeks[Planner.weekStartISO] = next;
+  saveLocal();
+  alert(next?'Marked week as Published (staff cannot add new shifts)':'Unpublished week (editable).');
+  renderPlanner();
+}
+
+// ---------- Absences Sync ----------
+async function pullData(silent){
+  var data=await dbGet('');
+  if(data){
+    App.staff=data.staff||App.staff;
+    App.availability=data.availability||App.availability;
+    App.absenceRequests=data.absenceRequests||App.absenceRequests||{};
+    App.weeks=data.weeks||App.weeks;
+    App.shiftChangeRequests=data.shiftChangeRequests||App.shiftChangeRequests||{};
+    if(data.settings && data.settings.publishedWeeks) App.settings.publishedWeeks = data.settings.publishedWeeks;
+  }
+  saveLocal();
+  if(typeof updateRequestsBadge==='function') updateRequestsBadge();
+  if(!silent){ populateLoginSelects(); populateExistingStaff(); }
+  return true;
+}
+async function pushData(){
+  await dbPatch('', {staff:App.staff, availability:App.availability, absenceRequests:App.absenceRequests||{}, weeks:App.weeks, shiftChangeRequests:App.shiftChangeRequests||{}, settings:{publishedWeeks:App.settings.publishedWeeks}});
+  return true;
+}
+
+// Single-source proposeShiftEdit used by the "Propose Edit" button
+window.proposeShiftEdit = async function(iso, staffId){
+  try{
+    var d = fromISO(iso);
+    var ws = toISO(weekStart(d));
+    var week = App.weeks[ws] || {};
+    var base = weekStart(d);
+    var dayIndex = Math.round((d.getTime() - base.getTime()) / 86400000);
+    if(dayIndex < 0 || dayIndex > 6){
+      alert('No shift found for that day.');
+      return;
+    }
+    var dayKey = String(dayIndex);
+    var bucket = week[dayKey] || {};
+    var options = [];
+    Object.keys(bucket).forEach(function(k){
+      var sh = bucket[k];
+      if(!sh) return;
+      if(String(sh.staffId) !== String(staffId)) return;
+      options.push({key:k, shift:sh, weekStartISO:ws, dayIndex:dayIndex});
+    });
+    if(options.length === 0){
+      alert('No shift found for that day.');
+      return;
+    }
+    var pickIndex = 0;
+    if(options.length > 1){
+      var msg = 'Select shift to edit:\n';
+      for(var i=0;i<options.length;i++){
+        var sh = options[i].shift;
+        msg += i + ': ' + (sh.start || '?') + '–' + (sh.end || '?') + '\n';
+      }
+      var inp = prompt(msg, '0');
+      if(inp == null) return;
+      pickIndex = parseInt(inp, 10) || 0;
+      if(pickIndex < 0 || pickIndex >= options.length) pickIndex = 0;
+    }
+    var selected = options[pickIndex];
+    var sh = selected.shift;
+    var currentEnd = sh.end || '';
+    var val = prompt('New end time (e.g., 17:30 or 5:30 PM):', currentEnd);
+    if(val == null || String(val).trim() === '') return;
+    var newEnd = String(val).trim();
+    if(!App.shiftChangeRequests) App.shiftChangeRequests = {};
+    if(!App.shiftChangeRequests[iso]) App.shiftChangeRequests[iso] = {};
+    App.shiftChangeRequests[iso][selected.key] = {
+      staffId: staffId,
+      shiftId: selected.key,
+      weekStartISO: selected.weekStartISO,
+      dayIndex: selected.dayIndex,
+      newEnd: newEnd,
+      status: 'pending'
+    };
+    saveLocal();
+    try{
+      var payload = {};
+      payload[iso] = App.shiftChangeRequests[iso];
+      await dbPatch('/shiftChangeRequests', payload);
+    }catch(e){
+      console.error('Failed to push shiftChangeRequests', e);
+      alert('Saved locally. Could not send to server.');
+    }
+    if(typeof updateRequestsBadge==='function') updateRequestsBadge();
+    alert('Shift edit request sent.');
+  }catch(e){
+    console.error('proposeShiftEdit error', e);
+    alert('Could not create request: ' + e);
+  }
+};
+
+})();</script>
+
+</body>
+</html>
