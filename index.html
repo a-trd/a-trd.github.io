@@ -5,161 +5,962 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1"/>
   <title>Munch & C Run — Staff Scheduler (v14.23.3)</title>
   <meta name="theme-color" content="#5A31F4"/>
+
   <style>
-    *{box-sizing:border-box}
-    html,body{margin:0;padding:0;height:100%;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;background:var(--bg);color:var(--fg)}
-    :root{
-      --bg:#0d0f1a;--fg:#f9fbff;--card:#14182b;--muted:#8aa1b3;
-      --accent:#5A31F4;--accent2:#00D4FF;--accent3:#FF3D71;
-      --good:#22c55e;--warn:#f59e0b;--bad:#ef4444;
-      --grid:#0f1324;--staff:#0f1226;--alt:transparent;--chip:#ffffff55;--border:rgba(255,255,255,.15);
+    /* ---------- Design tokens ---------- */
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--fg);
+    }
+
+    :root {
+      --bg:#0d0f1a; --fg:#f9fbff; --card:#14182b; --muted:#8aa1b3;
+      --accent:#5A31F4; --accent2:#00D4FF; --accent3:#FF3D71;
+      --good:#22c55e; --warn:#f59e0b; --bad:#ef4444;
+      --grid:#0f1324; --staff:#0f1226; --alt:transparent;
+      --chip:#ffffff55; --border:rgba(255,255,255,.15);
       --rowH:38px;
       --input-bg:#0f1324; --input-fg:#f9fbff; --input-border:rgba(255,255,255,.25);
+      --radius-lg:16px;
+      --radius-md:12px;
+      --radius-pill:999px;
+      --shadow-card:0 12px 30px rgba(0,0,0,.35);
+      --shadow-soft:0 8px 20px rgba(0,0,0,.25);
     }
-    [data-theme="light"]{
-      --bg:#f7f8fd;--fg:#0a0f1a;--card:#ffffff;--muted:#59677a;
-      --grid:#ffffff;--staff:#fafbff;--alt:transparent;--chip:#00000033;--border:rgba(0,0,0,.15);
+
+    [data-theme="light"] {
+      --bg:#f7f8fd; --fg:#0a0f1a; --card:#ffffff; --muted:#59677a;
+      --grid:#ffffff; --staff:#fafbff; --alt:transparent;
+      --chip:#00000033; --border:rgba(0,0,0,.15);
       --input-bg:#ffffff; --input-fg:#0a0f1a; --input-border:rgba(0,0,0,.15);
     }
-    .appbar{position:sticky;top:0;z-index:200;display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;box-shadow:0 6px 18px rgba(0,0,0,.25)}
-    .title{font-weight:800;letter-spacing:.3px}
-    .tabs{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-    .tabs button{border:none;padding:8px 12px;border-radius:999px;background:rgba(255,255,255,.16);color:#fff;font-weight:600;cursor:pointer}
-    .tabs button.active{background:#fff;color:#2c2c2c}
-    .btn-primary{background:linear-gradient(90deg,var(--accent3),var(--accent));border:none;color:#fff;padding:8px 12px;border-radius:10px;font-weight:800;cursor:pointer}
-    .btn-good{background:linear-gradient(90deg,var(--good),#3be38f);border:none;color:#04120d;padding:8px 12px;border-radius:10px;font-weight:800;cursor:pointer}
-    .btn-outline{background:transparent;border:1px solid var(--border);color:var(--fg);padding:8px 12px;border-radius:10px;cursor:pointer}
-    .requests-strip{display:flex;align-items:center;gap:8px;margin:4px 0 10px;}
-    .btn-requests{background:linear-gradient(90deg,#fb923c,#f97316);border:none;color:#fff;padding:6px 18px;border-radius:999px;font-weight:800;cursor:pointer;box-shadow:0 0 0 1px rgba(0,0,0,0.28),0 10px 22px rgba(0,0,0,0.55);letter-spacing:0.03em;text-transform:uppercase;font-size:12px;}
-    .btn-requests:hover{transform:translateY(-1px);box-shadow:0 0 0 1px rgba(0,0,0,0.25),0 12px 26px rgba(0,0,0,0.7);}
-    .req-badge{display:none;margin-left:6px;min-width:18px;padding:1px 6px;border-radius:999px;background:#111827;color:#f9fafb;font-size:11px;line-height:1.4;text-align:center;}
-    .requests-hint{font-size:11px;color:var(--muted);opacity:0.85;}
-    [data-theme="light"] .btn-outline{color:#0a0f1a}
-    .wrap{padding:16px;max-width:1200px;margin:0 auto}
-    .card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;box-shadow:0 10px 28px rgba(0,0,0,.25)}
-    .muted{color:var(--muted);font-size:13px}
-    .pill{padding:6px 10px;background:#1b2140;border-radius:999px;color:#cdd6f4}
-    [data-theme="light"] .pill{background:#e9edff;color:#001927}
-    .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-    .table{width:100%;border-collapse:collapse}
-    .table th,.table td{padding:10px 12px;border-bottom:1px dashed var(--border);text-align:left}
-    .table th{color:#b2c1ff;font-size:13px;text-transform:uppercase;letter-spacing:.04em}
 
-    .planner{overflow:hidden;border-radius:12px;border:1px solid var(--border)}
-    .grid{position:relative;width:100%;background:var(--grid);--colW:32px}
-    .grid .header{display:grid;position:sticky;top:0;z-index:20;background:var(--card)}
-    .grid .header div{padding:8px;border-right:1px dashed var(--border);font-size:12px;color:var(--fg);font-weight:700;letter-spacing:.02em;text-align:center;opacity:.9}
-    .grid .row{display:grid;align-items:center}
-    .grid .row .cell{border-right:1px dashed var(--border);border-bottom:1px dashed var(--border);height:var(--rowH);position:relative;z-index:1}
-    .grid .row .cell.alt{background:var(--alt)}
-    .grid .row .staffcell{position:sticky;left:0;background:var(--staff);z-index:6;padding:8px;display:flex;gap:6px;align-items:flex-start;border-right:1px solid var(--border);height:calc(var(--rowH) + 22px);flex-direction:column}
-    .mini-actions{display:flex;gap:6px;margin-top:4px;flex-wrap:wrap}
-    .mini-actions .btn-mini{font-size:11px;padding:2px 6px;border-radius:8px;border:1px solid var(--border);background:var(--card);cursor:pointer;user-select:none;color:var(--muted)}
-    .mini-actions .btn-mini.danger{background:linear-gradient(180deg, rgba(239,68,68,.25), rgba(239,68,68,.12));border-color:rgba(239,68,68,.5)}
-    .mini-actions .btn-mini.warn{background:linear-gradient(180deg, rgba(245,158,11,.25), rgba(245,158,11,.12));border-color:rgba(245,158,11,.5)}
-    .mini-actions .btn-mini.mute{background:linear-gradient(180deg, rgba(0,212,255,.25), rgba(0,212,255,.12));border-color:rgba(0,212,255,.5);opacity:1;color:var(--fg)}
-    .grid .row .staffcell .dot{width:10px;height:10px;border-radius:50%}
-    .grid .row .staffcell .badge{margin-left:auto;background:#1b2140;padding:4px 8px;border-radius:999px;font-size:12px;color:#c8d3ff;align-self:flex-end}
-    [data-theme="light"] .grid .row .staffcell .badge{background:#e9edff;color:#001927}
-    .rowwrap{position:relative;height:calc(var(--rowH) + 22px);z-index:2}
-    .shift{position:absolute;left:0;top:0;height:calc(100% - 4px);margin-top:2px;border-radius:10px;display:flex;align-items:center;padding:0 8px;gap:8px;font-weight:800;color:#0e1020;overflow:hidden;box-shadow:0 6px 14px rgba(0,0,0,.35);border:2px solid var(--chip);font-size:12px;z-index:3}
-    .shift .label{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .shift .hours{opacity:.95;text-shadow:0 1px 1px rgba(0,0,0,.35)}
-    .shift .breakpill{margin-left:auto; padding:2px 6px; border-radius:8px; background:rgba(0,0,0,.15); font-weight:900; font-size:11px; line-height:1; cursor:pointer; user-select:none}
-    [data-theme="light"] .shift .breakpill{background:rgba(255,255,255,.25)}
-    .away-band{position:absolute;top:2px;bottom:2px;border-radius:8px;border:2px dashed rgba(239,68,68,.55);background:repeating-linear-gradient(135deg, rgba(239,68,68,.22) 0 6px, transparent 6px 12px); pointer-events:none; z-index:2}
-    .away-chip{position:absolute;top:2px;left:2px;font-size:10px;font-weight:800;padding:2px 6px;border-radius:8px;background:rgba(239,68,68,.9);color:#fff; z-index:4}
+    /* ---------- App shell ---------- */
 
-    .daytabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
-    .daytabs button{border:none;padding:8px 10px;border-radius:10px;background:#1b2140;color:#fff;cursor:pointer}
-    .daytabs button.active{background:var(--accent2);color:#001927}
-
-    .print-header{display:none;font-weight:800;text-align:center;margin:8px 0;}
-
-    .coverage{display:flex;align-items:center;gap:8px;margin:10px 0}
-    .coverage .slot{height:18px;border-radius:6px;min-width:6px}
-
-    .legend{display:none}
-    .week-overview{display:grid;grid-template-columns:220px repeat(7,1fr);gap:8px;align-items:center}
-    .week-overview .wo-head{font-size:12px;color:var(--fg);opacity:.85;text-align:center}
-    .wo-title{font-weight:800;color:var(--fg);text-align:left}
-    .week-overview .wo-name{position:sticky;left:0;background:var(--staff);border:1px solid var(--border);padding:6px 8px;border-radius:8px;display:flex;align-items:center;gap:8px}
-    .week-overview .wo-cell{background:var(--grid);border:1px solid var(--border);border-radius:8px;min-height:28px;position:relative;overflow:hidden;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;padding:2px}
-    .wo-chip{display:inline-flex;align-items:center;justify-content:center;border-radius:6px;padding:2px 6px;margin:2px;font-size:12px;font-weight:800}
-
-    .availability{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-    .availability .day{display:flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;background:var(--card);border:1px solid var(--border);cursor:pointer;font-size:12px;color:var(--fg)}
-    .availability .day.off{background:linear-gradient(180deg, rgba(255,61,113,.35), rgba(255,61,113,.2));border-color: rgba(255,61,113,.5)}
-
-    .recent-colors .sw{width:26px;height:26px;border-radius:6px;border:2px solid var(--border);cursor:pointer}
-    .login:not(.show), .section:not(.show){display:none !important;} .login.show, .section.login,.section{display:none}
-    .show{display:block !important;}
-    .card input[type=text], .card input[type=password], .card input[type=number], .card select, .card input[type=time], .card textarea {
-      width:100%;background:var(--input-bg);color:var(--input-fg);border:1px solid var(--input-border);border-radius:10px;padding:8px 12px
+    body {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
     }
 
-    /* Themes + Print styling */
-    .theme-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
-    .theme-card{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px 12px;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.18)}
-    .theme-card .theme-swatch{width:42px;height:28px;border-radius:8px;border:2px solid var(--border)}
-    .theme-card.selected{outline:3px solid var(--accent2)}
-    .theme-card:hover{transform:translateY(-1px)}
-    .print-weeks{display:flex;flex-direction:column;gap:16px}
-    .print-week{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px}
-    .print-grid{display:grid;grid-template-columns:220px repeat(7,1fr);gap:8px;align-items:stretch}
-    .print-head{font-weight:800;text-align:center;color:var(--fg)}
-    .print-name{display:flex;align-items:center;gap:8px;background:var(--staff);border:1px solid var(--border);padding:6px 8px;border-radius:8px;position:sticky;left:0}
-    .print-cell{min-height:32px;background:var(--grid);border:1px solid var(--border);border-radius:8px;padding:4px;display:flex;align-items:center;flex-wrap:wrap;gap:4px;justify-content:center}
-    .print-chip{display:inline-flex;align-items:center;justify-content:center;border-radius:6px;padding:2px 6px;font-size:12px;font-weight:800}
-
-    /* Absences calendar */
-    .abs-cal{display:grid;grid-template-columns:repeat(7,1fr);gap:8px}
-    .abs-day{min-height:86px;border:1px solid var(--border);border-radius:8px;background:var(--grid);padding:6px;display:flex;flex-direction:column;gap:4px}
-    .abs-date{font-weight:800;font-size:12px;opacity:.85}
-    .abs-chip{display:inline-flex;align-items:center;justify-content:center;padding:2px 6px;border-radius:8px;font-size:11px;font-weight:800;margin:2px 2px 0 0}
-    .abs-chip.full{background:linear-gradient(180deg, rgba(239,68,68,.9), rgba(239,68,68,.7));color:#fff}
-    .abs-chip.block{background:linear-gradient(180deg, rgba(239,68,68,.25), rgba(239,68,68,.15));color:#ef4444;border:1px dashed rgba(239,68,68,.5)}
-
-    @media print{
-      .print-controls{display:none !important}
-      .print-header{display:block !important}
-      body{background:#fff;color:#000}
-      .appbar,.tabs,#loginSection,.toolbar{display:none !important}
-      .wrap{padding:0}
-      .print-week{background:#fff;border:1px solid #000}
-      .print-name{background:#fff;border-color:#000}
-      .print-cell{background:#fff;border-color:#000}
-      .print-head{color:#000}
-    }
-  
-.mini-actions .btn-mini.success{background:linear-gradient(180deg, rgba(16,185,129,.25), rgba(16,185,129,.12));border-color:rgba(16,185,129,.5);color:var(--fg)}
-
-    @media (max-width: 768px){
-      .wrap{padding:8px;max-width:none;margin:0;}
-      .appbar{flex-direction:column;align-items:flex-start;gap:8px;}
-      .tabs{flex-wrap:wrap;}
-      .grid-2{grid-template-columns:1fr;}
-      .planner{overflow-x:auto;}
-      .grid{min-width:720px;}
-      .table{font-size:12px;}
-      .table th,.table td{padding:6px 8px;}
-      .mini-actions .btn-mini{font-size:10px;padding:2px 4px;}
-      .daytabs{flex-wrap:wrap;}
-      .requests-strip{flex-wrap:wrap;}
+    .appbar {
+      position: sticky;
+      top: 0;
+      z-index: 200;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 10px 14px;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      color: #fff;
+      box-shadow: 0 6px 18px rgba(0,0,0,.25);
     }
 
-    /* Toasts */
-    .toast-wrap{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:4000;display:flex;flex-direction:column;gap:10px;align-items:center;justify-content:center;pointer-events:none}
-    .toast{pointer-events:auto;background:var(--card);border:1px solid var(--border);color:var(--fg);padding:10px 14px;border-radius:12px;box-shadow:0 10px 28px rgba(0,0,0,.35);display:flex;align-items:center;gap:10px;opacity:0;transform:translateY(6px);transition:opacity .25s ease,transform .25s ease max-width:min(90vw,520px);text-align:center}
-    .toast.show{opacity:1;transform:translateY(0)}
-    .toast.success{border-color:rgba(34,197,94,.55);box-shadow:0 10px 24px rgba(34,197,94,.25)}
-    .toast.error{border-color:rgba(239,68,68,.55);box-shadow:0 10px 24px rgba(239,68,68,.25)}
-    .toast.info{border-color:var(--border)}
-    .toast .t-icon{font-size:16px;line-height:1}
-    .toast .t-msg{font-weight:800;font-size:13px}
-</style>
+    .title {
+      font-weight: 800;
+      letter-spacing: .3px;
+      font-size: 16px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      padding-bottom: 2px;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .tabs::-webkit-scrollbar {
+      display: none;
+    }
+
+    .tabs button {
+      border: none;
+      padding: 6px 10px;
+      border-radius: var(--radius-pill);
+      background: rgba(255,255,255,.16);
+      color: #fff;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .tabs button.active {
+      background: #fff;
+      color: #111827;
+    }
+
+    .pill {
+      padding: 5px 10px;
+      border-radius: var(--radius-pill);
+      background: #1b2140;
+      color: #cdd6f4;
+      font-size: 12px;
+    }
+
+    [data-theme="light"] .pill {
+      background:#e9edff;
+      color:#001927;
+    }
+
+    .btn-primary,
+    .btn-good,
+    .btn-outline,
+    .btn-requests {
+      border-radius: 10px;
+      border: none;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .btn-primary {
+      background: linear-gradient(90deg, var(--accent3), var(--accent));
+      color: #fff;
+      padding: 6px 10px;
+    }
+
+    .btn-good {
+      background: linear-gradient(90deg, var(--good), #3be38f);
+      color: #04120d;
+      padding: 6px 10px;
+    }
+
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--fg);
+      padding: 6px 10px;
+    }
+
+    [data-theme="light"] .btn-outline {
+      color:#0a0f1a;
+    }
+
+    .btn-requests {
+      background: linear-gradient(90deg, #fb923c, #f97316);
+      color: #fff;
+      padding: 6px 16px;
+      border-radius: var(--radius-pill);
+      letter-spacing: .03em;
+      text-transform: uppercase;
+      box-shadow:
+        0 0 0 1px rgba(0,0,0,0.28),
+        0 10px 22px rgba(0,0,0,0.55);
+    }
+
+    .btn-requests:hover {
+      transform: translateY(-1px);
+      box-shadow:
+        0 0 0 1px rgba(0,0,0,0.25),
+        0 12px 26px rgba(0,0,0,0.7);
+    }
+
+    .req-badge {
+      display: none;
+      margin-left: 6px;
+      min-width: 18px;
+      padding: 1px 6px;
+      border-radius: var(--radius-pill);
+      background: #111827;
+      color: #f9fafb;
+      font-size: 11px;
+      line-height: 1.4;
+      text-align: center;
+    }
+
+    .requests-strip {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 6px 0 10px;
+      flex-wrap: wrap;
+    }
+
+    .requests-hint {
+      font-size: 11px;
+      color: var(--muted);
+      opacity: .85;
+    }
+
+    /* ---------- Layout containers ---------- */
+
+    .wrap {
+      width: 100%;
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 12px 12px 20px;
+      flex: 1 1 auto;
+    }
+
+    .section {
+      margin-bottom: 16px;
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border);
+      padding: 14px 14px 16px;
+      box-shadow: var(--shadow-soft);
+      margin-bottom: 12px;
+    }
+
+    .card h3 {
+      margin: 0 0 10px;
+      font-size: 15px;
+    }
+
+    .muted {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .table th,
+    .table td {
+      padding: 8px 10px;
+      border-bottom: 1px dashed var(--border);
+      text-align: left;
+      vertical-align: middle;
+    }
+
+    .table th {
+      color: #b2c1ff;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+
+    /* ---------- Inputs ---------- */
+
+    .card input[type=text],
+    .card input[type=password],
+    .card input[type=number],
+    .card input[type=time],
+    .card select,
+    .card textarea {
+      width: 100%;
+      border-radius: 10px;
+      border: 1px solid var(--input-border);
+      background: var(--input-bg);
+      color: var(--input-fg);
+      padding: 7px 10px;
+      font-size: 13px;
+    }
+
+    .card textarea {
+      resize: vertical;
+      min-height: 70px;
+    }
+
+    .card label {
+      display: block;
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    /* ---------- Planner grid ---------- */
+
+    .planner {
+      overflow-x: auto;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: var(--grid);
+    }
+
+    .grid {
+      position: relative;
+      width: 100%;
+      --colW: 32px;
+    }
+
+    .grid .header {
+      display: grid;
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background: var(--card);
+    }
+
+    .grid .header div {
+      padding: 6px 4px;
+      border-right: 1px dashed var(--border);
+      font-size: 11px;
+      color: var(--fg);
+      font-weight: 700;
+      letter-spacing: .02em;
+      text-align: center;
+      opacity: .9;
+    }
+
+    .grid .row {
+      display: grid;
+      align-items: stretch;
+    }
+
+    .grid .row .cell {
+      border-right: 1px dashed var(--border);
+      border-bottom: 1px dashed var(--border);
+      height: var(--rowH);
+      position: relative;
+      z-index: 1;
+    }
+
+    .grid .row .cell.alt {
+      background: var(--alt);
+    }
+
+    .grid .row .staffcell {
+      position: sticky;
+      left: 0;
+      background: var(--staff);
+      z-index: 6;
+      padding: 6px 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      border-right: 1px solid var(--border);
+      height: calc(var(--rowH) + 22px);
+    }
+
+    .grid .row .staffcell .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+
+    .grid .row .staffcell .badge {
+      margin-left: auto;
+      background:#1b2140;
+      padding: 2px 6px;
+      border-radius: var(--radius-pill);
+      font-size: 11px;
+      color: #c8d3ff;
+    }
+
+    [data-theme="light"] .grid .row .staffcell .badge {
+      background:#e9edff;
+      color:#001927;
+    }
+
+    .rowwrap {
+      position: relative;
+      height: calc(var(--rowH) + 22px);
+      z-index: 2;
+    }
+
+    .shift {
+      position: absolute;
+      left: 0;
+      top: 0;
+      height: calc(100% - 4px);
+      margin-top: 2px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 0 8px;
+      font-weight: 800;
+      color: #0e1020;
+      overflow: hidden;
+      box-shadow: 0 6px 14px rgba(0,0,0,.35);
+      border: 2px solid var(--chip);
+      font-size: 11px;
+      z-index: 3;
+      min-width: 10%;
+    }
+
+    .shift .label {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .shift .hours {
+      opacity: .95;
+      text-shadow: 0 1px 1px rgba(0,0,0,.35);
+    }
+
+    .shift .breakpill {
+      margin-left: auto;
+      padding: 2px 6px;
+      border-radius: 8px;
+      background: rgba(0,0,0,.18);
+      font-weight: 900;
+      font-size: 10px;
+      line-height: 1;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    [data-theme="light"] .shift .breakpill {
+      background: rgba(255,255,255,.25);
+    }
+
+    .away-band {
+      position: absolute;
+      top: 2px;
+      bottom: 2px;
+      border-radius: 8px;
+      border: 2px dashed rgba(239,68,68,.55);
+      background: repeating-linear-gradient(
+        135deg,
+        rgba(239,68,68,.22) 0 6px,
+        transparent 6px 12px
+      );
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    .away-chip {
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      font-size: 10px;
+      font-weight: 800;
+      padding: 2px 6px;
+      border-radius: 8px;
+      background: rgba(239,68,68,.9);
+      color: #fff;
+      z-index: 4;
+    }
+
+    .mini-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-top: 4px;
+    }
+
+    .mini-actions .btn-mini {
+      font-size: 10px;
+      padding: 2px 5px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      cursor: pointer;
+      user-select: none;
+      color: var(--muted);
+    }
+
+    .mini-actions .btn-mini.danger {
+      background: linear-gradient(180deg, rgba(239,68,68,.25), rgba(239,68,68,.12));
+      border-color: rgba(239,68,68,.5);
+    }
+
+    .mini-actions .btn-mini.warn {
+      background: linear-gradient(180deg, rgba(245,158,11,.25), rgba(245,158,11,.12));
+      border-color: rgba(245,158,11,.5);
+    }
+
+    .mini-actions .btn-mini.mute {
+      background: linear-gradient(180deg, rgba(0,212,255,.25), rgba(0,212,255,.12));
+      border-color: rgba(0,212,255,.5);
+      color: var(--fg);
+    }
+
+    .mini-actions .btn-mini.success {
+      background: linear-gradient(180deg, rgba(16,185,129,.25), rgba(16,185,129,.12));
+      border-color: rgba(16,185,129,.5);
+      color: var(--fg);
+    }
+
+    .daytabs {
+      display: flex;
+      gap: 6px;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      padding-bottom: 4px;
+      margin: 8px 0;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .daytabs button {
+      border: none;
+      padding: 6px 10px;
+      border-radius: 10px;
+      background: #1b2140;
+      color: #fff;
+      cursor: pointer;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .daytabs button.active {
+      background: var(--accent2);
+      color: #001927;
+    }
+
+    .print-header {
+      display: none;
+      font-weight: 800;
+      text-align: center;
+      margin: 8px 0;
+    }
+
+    .coverage {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      margin: 8px 0;
+      overflow-x: auto;
+      padding-bottom: 2px;
+    }
+
+    .coverage .slot {
+      height: 16px;
+      border-radius: 6px;
+      min-width: 6px;
+    }
+
+    /* ---------- Week overview & availability ---------- */
+
+    .week-overview {
+      display: grid;
+      grid-template-columns: 200px repeat(7, minmax(0, 1fr));
+      gap: 6px;
+      align-items: center;
+      overflow-x: auto;
+    }
+
+    .wo-head {
+      font-size: 11px;
+      color: var(--fg);
+      opacity: .85;
+      text-align: center;
+    }
+
+    .wo-title {
+      font-weight: 800;
+      text-align: left;
+    }
+
+    .wo-name {
+      position: sticky;
+      left: 0;
+      background: var(--staff);
+      border: 1px solid var(--border);
+      padding: 6px 8px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      z-index: 1;
+    }
+
+    .wo-cell {
+      background: var(--grid);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      min-height: 24px;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      padding: 2px;
+    }
+
+    .wo-chip {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+      padding: 2px 6px;
+      margin: 2px;
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .availability {
+      display: flex;
+      flex-wrap: nowrap;
+      gap: 6px;
+      align-items: center;
+      overflow-x: auto;
+      padding-bottom: 4px;
+    }
+
+    .availability .day {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: var(--radius-pill);
+      background: var(--card);
+      border: 1px solid var(--border);
+      cursor: pointer;
+      font-size: 11px;
+      white-space: nowrap;
+    }
+
+    .availability .day.off {
+      background: linear-gradient(
+        180deg,
+        rgba(255,61,113,.35),
+        rgba(255,61,113,.2)
+      );
+      border-color: rgba(255,61,113,.5);
+    }
+
+    /* ---------- Absences calendar ---------- */
+
+    .abs-cal {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0,1fr));
+      gap: 6px;
+    }
+
+    .abs-day {
+      min-height: 86px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--grid);
+      padding: 6px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 11px;
+    }
+
+    .abs-date {
+      font-weight: 800;
+      font-size: 11px;
+      opacity: .85;
+    }
+
+    .abs-chip {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2px 6px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 800;
+      margin: 2px 2px 0 0;
+    }
+
+    .abs-chip.full {
+      background: linear-gradient(180deg, rgba(239,68,68,.9), rgba(239,68,68,.7));
+      color: #fff;
+    }
+
+    .abs-chip.block {
+      background: linear-gradient(180deg, rgba(239,68,68,.25), rgba(239,68,68,.15));
+      color: #ef4444;
+      border: 1px dashed rgba(239,68,68,.5);
+    }
+
+    /* ---------- Print view ---------- */
+
+    .print-weeks {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .print-week {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px;
+    }
+
+    .print-grid {
+      display: grid;
+      grid-template-columns: 200px repeat(7, minmax(0,1fr));
+      gap: 6px;
+      align-items: stretch;
+      overflow-x: auto;
+    }
+
+    .print-head {
+      font-weight: 800;
+      text-align: center;
+      color: var(--fg);
+      font-size: 11px;
+    }
+
+    .print-name {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--staff);
+      border: 1px solid var(--border);
+      padding: 6px 8px;
+      border-radius: 8px;
+      position: sticky;
+      left: 0;
+      z-index: 1;
+    }
+
+    .print-cell {
+      min-height: 28px;
+      background: var(--grid);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 4px;
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 4px;
+      justify-content: center;
+    }
+
+    .print-chip {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+      padding: 2px 6px;
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .print-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .print-controls label {
+      margin-bottom: 0;
+    }
+
+    /* ---------- Staff colors ---------- */
+
+    .recent-colors {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin: 6px 0;
+    }
+
+    .recent-colors .sw {
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      border: 2px solid var(--border);
+      cursor: pointer;
+    }
+
+    /* ---------- Theme picker ---------- */
+
+    .theme-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px,1fr));
+      gap: 10px;
+    }
+
+    .theme-card {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 8px 10px;
+      cursor: pointer;
+      box-shadow: 0 6px 18px rgba(0,0,0,.18);
+    }
+
+    .theme-card .theme-swatch {
+      width: 40px;
+      height: 28px;
+      border-radius: 8px;
+      border: 2px solid var(--border);
+    }
+
+    .theme-card.selected {
+      outline: 2px solid var(--accent2);
+    }
+
+    .theme-card:hover {
+      transform: translateY(-1px);
+    }
+
+    /* ---------- Modals ---------- */
+
+    .modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.6);
+      z-index: 999;
+      align-items: center;
+      justify-content: center;
+      padding: 10px;
+    }
+
+    .panel {
+      width: min(560px, 100%);
+      max-height: 90vh;
+      overflow-y: auto;
+      background: var(--card);
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      padding: 14px;
+      box-shadow: var(--shadow-card);
+    }
+
+    /* ---------- Splash overlay ---------- */
+
+    #splashSync {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0,0,0,.5);
+      z-index: 3000;
+      opacity: 0;
+      transition: opacity .3s ease;
+      pointer-events: none;
+    }
+
+    #splashBox {
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--fg);
+      padding: 16px 20px;
+      border-radius: 12px;
+      box-shadow: 0 10px 28px rgba(0,0,0,.35);
+      font-weight: 800;
+    }
+
+    /* ---------- Visibility helpers ---------- */
+
+    .login:not(.show),
+    .section:not(.show) {
+      display: none !important;
+    }
+
+    .login.show {
+      display: block !important;
+    }
+
+    /* ---------- Responsive ---------- */
+
+    @media (max-width: 768px) {
+      .appbar {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .wrap {
+        max-width: none;
+        padding: 8px 8px 16px;
+      }
+
+      .grid-2 {
+        grid-template-columns: 1fr;
+      }
+
+      .card {
+        padding: 12px;
+      }
+
+      .table-wrapper {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      .table {
+        min-width: 600px;
+      }
+
+      .planner .grid {
+        min-width: 720px;
+      }
+
+      .week-overview {
+        grid-template-columns: 160px repeat(7,minmax(0,1fr));
+      }
+
+      .print-grid {
+        grid-template-columns: 160px repeat(7,minmax(0,1fr));
+      }
+
+      .requests-strip {
+        flex-wrap: wrap;
+      }
+    }
+
+    @media print {
+      .appbar,
+      .tabs,
+      .toolbar,
+      #loginSection,
+      .print-controls,
+      #splashSync {
+        display: none !important;
+      }
+
+      body {
+        background: #fff;
+        color: #000;
+      }
+
+      .wrap {
+        padding: 0;
+        max-width: none;
+      }
+
+      .print-header {
+        display: block !important;
+      }
+
+      .print-week {
+        background: #fff;
+        border: 1px solid #000;
+      }
+
+      .print-name,
+      .print-cell {
+        background: #fff;
+        border-color: #000;
+      }
+
+      .print-head {
+        color: #000;
+      }
+    }
+  </style>
 </head>
 <body>
+
+  <!-- Top app bar + tab strip -->
   <div class="appbar">
     <div class="title" id="appTitle">Munch & C Run — Staff Scheduler</div>
     <div class="tabs">
@@ -177,78 +978,135 @@
     </div>
   </div>
 
-  <div id="splashSync" style="position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.5);z-index:3000;opacity:0;transition:opacity .3s ease;pointer-events:none">
-    <div id="splashBox" style="background:var(--card);border:1px solid var(--border);color:var(--fg);padding:16px 20px;border-radius:12px;box-shadow:0 10px 28px rgba(0,0,0,.35);font-weight:800">Syncing…</div>
+  <!-- Sync splash -->
+  <div id="splashSync">
+    <div id="splashBox">Syncing…</div>
   </div>
 
   <div class="wrap">
+
+    <!-- Login -->
     <section id="loginSection" class="login show">
       <div class="card">
         <h3>Login</h3>
         <div class="grid-2">
-          <div><label>Workspace ID</label><input id="wsIdInput" type="text" value="munchandcrun"></div>
-          <div><label>Staff</label><select id="loginStaffSelect"></select></div>
+          <div>
+            <label>Workspace ID</label>
+            <input id="wsIdInput" type="text" value="munchandcrun">
+          </div>
+          <div>
+            <label>Staff</label>
+            <select id="loginStaffSelect"></select>
+          </div>
         </div>
         <div class="grid-2" style="margin-top:8px">
-          <div><label>Passcode</label><input id="loginPass" type="password" placeholder="PIN / passcode" data-enter-login="1"></div>
-          <div style="display:flex;align-items:flex-end;gap:8px;">
+          <div>
+            <label>Passcode</label>
+            <input id="loginPass" type="password" placeholder="PIN / passcode" data-enter-login="1">
+          </div>
+          <div style="display:flex;align-items:flex-end;gap:8px;flex-wrap:wrap;">
             <button id="btnLogin" class="btn-primary">Login</button>
-            <button id="btnContinueOffline" class="btn-outline">Bypass sync & continue offline</button>
+            <button id="btnContinueOffline" class="btn-outline">Bypass sync &amp; continue offline</button>
           </div>
         </div>
-        <div class="muted" id="loginMsg"></div>
+        <div class="muted" id="loginMsg" style="margin-top:6px;"></div>
       </div>
     </section>
 
+    <!-- My Shifts -->
     <section id="mySection" class="section">
       <div class="card">
-        <h3>My Shifts & Wages (This Week)</h3>
-        <div style="display:flex; gap:8px; align-items:center; margin-bottom:8px;"><span class="pill" id="myHours"></span></div>
+        <h3>My Shifts &amp; Wages (This Week)</h3>
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
+          <span class="pill" id="myHours"></span>
+        </div>
         <div class="grid-2">
-          <div><div id="myShiftsList" class="muted"></div></div>
           <div>
+            <label>Shifts</label>
+            <div id="myShiftsList" class="muted"></div>
+          </div>
+          <div class="table-wrapper">
+            <label>Wage breakdown</label>
             <table class="table" id="myWageTable">
-              <thead><tr><th>Day</th><th>Hours</th><th>Break</th><th>Payable</th><th>OT</th><th>Pay</th></tr></thead>
+              <thead>
+                <tr>
+                  <th>Day</th><th>Hours</th><th>Break</th><th>Payable</th><th>OT</th><th>Pay</th>
+                </tr>
+              </thead>
               <tbody></tbody>
-              <tfoot><tr><td><b>Total</b></td><td id="myTotalWork">0</td><td id="myTotalBreak">0</td><td id="myTotalPayable">0</td><td id="myTotalOT">0</td><td id="myTotalPay">$0.00</td></tr></tfoot>
+              <tfoot>
+                <tr>
+                  <td><b>Total</b></td>
+                  <td id="myTotalWork">0</td>
+                  <td id="myTotalBreak">0</td>
+                  <td id="myTotalPayable">0</td>
+                  <td id="myTotalOT">0</td>
+                  <td id="myTotalPay">$0.00</td>
+                </tr>
+              </tfoot>
             </table>
-            <div class="muted">Break time is not counted towards pay. Overnight shifts count toward the day they start. Auto-break: 0m &lt;5h, 30m 5–9:59h, 60m ≥10h (unless overridden).</div>
+            <div class="muted" style="margin-top:4px;">
+              Break time is not counted towards pay. Overnight shifts count toward the day they start.
+              Auto-break: 0m &lt;5h, 30m 5–9:59h, 60m ≥10h (unless overridden).
+            </div>
           </div>
         </div>
       </div>
     </section>
 
+    <!-- Planner -->
     <section id="plannerSection" class="section">
       <div class="card">
-        <div class="toolbar" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+        <div class="toolbar" style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:8px;">
           <button id="btnPrevWeek" class="btn-outline">← Prev week</button>
           <div class="pill" id="weekLabel"></div>
           <button id="btnNextWeek" class="btn-outline">Next week →</button>
-          <div style="flex:1"></div>
+          <div style="flex:1;"></div>
           <button id="btnCopyDay" class="btn-outline">Copy Day →</button>
           <button id="btnCopyWeek" class="btn-outline">Copy Week →</button>
           <button id="btnRecurring" class="btn-outline">Add Recurring</button>
           <button id="btnPublish" class="btn-outline">Toggle Publish</button>
           <button id="btnPrint" class="btn-outline">Print (current)</button>
           <button id="btnPrintView" class="btn-outline">Print View…</button>
-          </div>
+        </div>
+
         <div id="legend" class="legend"></div>
-        <div id="weekOverview" class="week-overview" style="margin-bottom:10px;"></div>
-        <div class="requests-strip"><button id="btnRequests" class="btn-requests">View requests<span id="requestsCountBadge" class="req-badge">0</span></button><span class="requests-hint">Manager tools – pending leave & shift edits.</span></div>
-        <div id="availabilityBar" class="availability" style="margin:8px 0;"></div>
+
+        <div id="weekOverview" class="week-overview" style="margin-bottom:8px;"></div>
+
+        <div class="requests-strip">
+          <button id="btnRequests" class="btn-requests">
+            View requests
+            <span id="requestsCountBadge" class="req-badge">0</span>
+          </button>
+          <span class="requests-hint">Manager tools – pending leave &amp; shift edits.</span>
+        </div>
+
+        <div id="availabilityBar" class="availability" style="margin:6px 0;"></div>
         <div class="coverage" id="coverageBar"></div>
         <div class="daytabs" id="dayTabs"></div>
+
         <div id="plannerPrintHeader" class="print-header"></div>
-        <div class="planner"><div class="grid" id="plannerGrid"></div></div>
+
+        <div class="planner">
+          <div class="grid" id="plannerGrid"></div>
+        </div>
       </div>
     </section>
 
+    <!-- Print View (multi-week) -->
     <section id="printSection" class="section">
       <div class="card">
-        <h3>Print View (multi-week)</h3>
+        <h3>Print View (multi‑week)</h3>
         <div class="print-controls">
-          <label>Start Week Offset (0=this week)</label><input id="printStartOffset" type="number" min="0" step="1" value="0"/>
-          <label>Weeks to include</label><input id="printWeeksCount" type="number" min="1" max="4" step="1" value="2"/>
+          <div>
+            <label>Start Week Offset (0=this week)</label>
+            <input id="printStartOffset" type="number" min="0" step="1" value="0">
+          </div>
+          <div>
+            <label>Weeks to include</label>
+            <input id="printWeeksCount" type="number" min="1" max="4" step="1" value="2">
+          </div>
           <button id="btnBuildPrint" class="btn-good">Build</button>
           <button id="btnPrintNow" class="btn-primary">Print</button>
           <button id="btnClosePrint" class="btn-outline">Close</button>
@@ -257,6 +1115,7 @@
       </div>
     </section>
 
+    <!-- Absences -->
     <section id="absencesSection" class="section">
       <div class="card">
         <h3>Absences</h3>
@@ -264,7 +1123,7 @@
           <button id="absPrev" class="btn-outline">←</button>
           <div id="absMonthLabel" class="pill"></div>
           <button id="absNext" class="btn-outline">→</button>
-          <div style="flex:1"></div>
+          <div style="flex:1;"></div>
           <label>Staff</label>
           <select id="absStaffFilter"></select>
         </div>
@@ -272,103 +1131,237 @@
       </div>
     </section>
 
+    <!-- Payroll -->
     <section id="payrollSection" class="section">
       <div class="card">
-        <div class="toolbar" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+        <div class="toolbar" style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:8px;">
           <div class="pill" id="payrollWeekLabel"></div>
           <button id="btnExportJSON" class="btn-outline">Export JSON</button>
           <button id="btnExportCSV" class="btn-outline">Export CSV</button>
-          <input id="importJSONInput" type="file" accept="application/json" style="display:none"/>
+          <input id="importJSONInput" type="file" accept="application/json" style="display:none">
           <button id="btnImportJSON" class="btn-outline">Import JSON</button>
+          <div style="flex:1;"></div>
           <button id="btnPull" class="btn-good">⬇ Pull</button>
           <button id="btnPush" class="btn-primary">⬆ Push</button>
         </div>
-        <table class="table" id="payrollTable">
-          <thead><tr><th>Staff</th><th>Rate</th><th>Work (hrs)</th><th>Break (hrs)</th><th>Payable (hrs)</th><th>OT (hrs)</th><th>Total Pay</th></tr></thead>
-          <tbody></tbody>
-          <tfoot><tr><td><b>All Staff</b></td><td></td><td id="allWork">0</td><td id="allBreak">0</td><td id="allPayable">0</td><td id="allOT">0</td><td id="allPay">$0.00</td></tr></tfoot>
-        </table>
+        <div class="table-wrapper">
+          <table class="table" id="payrollTable">
+            <thead>
+              <tr>
+                <th>Staff</th><th>Rate</th><th>Work (hrs)</th><th>Break (hrs)</th>
+                <th>Payable (hrs)</th><th>OT (hrs)</th><th>Total Pay</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+            <tfoot>
+              <tr>
+                <td><b>All Staff</b></td>
+                <td></td>
+                <td id="allWork">0</td>
+                <td id="allBreak">0</td>
+                <td id="allPayable">0</td>
+                <td id="allOT">0</td>
+                <td id="allPay">$0.00</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
       </div>
     </section>
 
+    <!-- Settings -->
     <section id="settingsSection" class="section">
       <div class="grid-2">
+        <!-- Sync & Connection -->
         <div class="card">
-          <h3>Sync & Connection</h3>
-          <label>App Title</label><input id="appTitleInput" type="text" value="Munch & C Run — Staff Scheduler">
-          <label>Firebase Realtime Database URL</label><input id="dbUrlInput" type="text" value="https://munchandcrun.firebaseio.com">
-          <label>Workspace ID</label><input id="workspaceInput" type="text" value="munchandcrun">
-          <label>Auth token (optional)</label><input id="authTokenInput" type="text" placeholder="Firebase auth token if rules require it">
+          <h3>Sync &amp; Connection</h3>
+          <label>App Title</label>
+          <input id="appTitleInput" type="text" value="Munch & C Run — Staff Scheduler">
+          <label>Firebase Realtime Database URL</label>
+          <input id="dbUrlInput" type="text" value="https://munchandcrun.firebaseio.com">
+          <label>Workspace ID</label>
+          <input id="workspaceInput" type="text" value="munchandcrun">
+          <label>Auth token (optional)</label>
+          <input id="authTokenInput" type="text" placeholder="Firebase auth token if rules require it">
           <div class="grid-2">
-            <div><label>Auto Pull (mins)</label><input id="autoPullMinsInput" type="number" min="0" step="1" value="0"></div>
-            <div><label>Auto Push (mins)</label><input id="autoPushMinsInput" type="number" min="0" step="1" value="0"></div>
+            <div>
+              <label>Auto Pull (mins)</label>
+              <input id="autoPullMinsInput" type="number" min="0" step="1" value="0">
+            </div>
+            <div>
+              <label>Auto Push (mins)</label>
+              <input id="autoPushMinsInput" type="number" min="0" step="1" value="0">
+            </div>
           </div>
           <div style="height:8px"></div>
-          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
             <button id="btnSaveSettings" class="btn-primary">Save</button>
             <button id="btnResetLocal" class="btn-outline">Reset Local Cache</button>
             <button id="btnExportSettings" class="btn-outline">Export Data</button>
-            <input id="importSettingsInput" type="file" accept="application/json" style="display:none"/>
+            <input id="importSettingsInput" type="file" accept="application/json" style="display:none">
             <button id="btnImportSettings" class="btn-outline">Import Data</button>
           </div>
-          <div class="muted">Syncs automatically on startup. Use global Push/Pull to force. Auto Pull/Push run when set & you’re logged in (Push requires manager/admin).</div>
+          <div class="muted" style="margin-top:6px;">
+            Syncs automatically on startup. Use global Push/Pull to force.
+            Auto Pull/Push run when set &amp; you’re logged in (Push requires manager/admin).
+          </div>
         </div>
+
+        <!-- Staff -->
         <div class="card">
           <h3>Staff</h3>
           <div class="grid-2">
-            <div><label>Existing Staff</label><select id="existingStaffSelect"></select></div>
-            <div><label>Staff Name</label><input id="staffNameInput" type="text" placeholder="Full name"></div>
+            <div>
+              <label>Existing Staff</label>
+              <select id="existingStaffSelect"></select>
+            </div>
+            <div>
+              <label>Staff Name</label>
+              <input id="staffNameInput" type="text" placeholder="Full name">
+            </div>
           </div>
           <div class="grid-2">
-            <div><label>Hourly Rate</label><input id="staffRateInput" type="number" min="0" step="0.01" value="25"></div>
-            <div><label>Weekend Rate</label><input id="staffWeekendRateInput" type="number" min="0" step="0.01" placeholder="(optional)"></div>
+            <div>
+              <label>Hourly Rate</label>
+              <input id="staffRateInput" type="number" min="0" step="0.01" value="25">
+            </div>
+            <div>
+              <label>Weekend Rate</label>
+              <input id="staffWeekendRateInput" type="number" min="0" step="0.01" placeholder="(optional)">
+            </div>
           </div>
           <div class="grid-2">
-            <div><label>Penalty Rate</label><input id="staffPenaltyRateInput" type="number" min="0" step="0.01" placeholder="(optional)"></div>
-            <div><label>OT Multiplier (x)</label><input id="staffOTMultInput" type="number" min="1" step="0.1" value="1.5"></div>
+            <div>
+              <label>Penalty Rate</label>
+              <input id="staffPenaltyRateInput" type="number" min="0" step="0.01" placeholder="(optional)">
+            </div>
+            <div>
+              <label>OT Multiplier (x)</label>
+              <input id="staffOTMultInput" type="number" min="1" step="0.1" value="1.5">
+            </div>
           </div>
           <div class="grid-2">
-            <div><label>OT Weekly Threshold (hrs)</label><input id="staffOTWeeklyInput" type="number" min="0" step="0.25" value="38"></div>
-            <div><label>OT Daily Threshold (hrs)</label><input id="staffOTDailyInput" type="number" min="0" step="0.25" value="8"></div>
+            <div>
+              <label>OT Weekly Threshold (hrs)</label>
+              <input id="staffOTWeeklyInput" type="number" min="0" step="0.25" value="38">
+            </div>
+            <div>
+              <label>OT Daily Threshold (hrs)</label>
+              <input id="staffOTDailyInput" type="number" min="0" step="0.25" value="8">
+            </div>
           </div>
           <div class="grid-2">
-            <div><label>Break Default (mins)</label><input id="staffBreakInput" type="number" min="0" step="5" value="30"></div>
-            <div><label>Role</label><select id="staffRoleInput"><option value="staff">Staff</option><option value="manager">Manager</option><option value="admin">Admin</option></select></div>
+            <div>
+              <label>Break Default (mins)</label>
+              <input id="staffBreakInput" type="number" min="0" step="5" value="30">
+            </div>
+            <div>
+              <label>Role</label>
+              <select id="staffRoleInput">
+                <option value="staff">Staff</option>
+                <option value="manager">Manager</option>
+                <option value="admin">Admin</option>
+              </select>
+            </div>
           </div>
           <div>
             <label>Color</label>
-            <div id="recentColors" class="recent-colors" style="display:flex;flex-wrap:wrap;gap:6px;margin:6px 0;"></div>
+            <div id="recentColors" class="recent-colors"></div>
             <div style="display:flex;gap:8px;align-items:center;">
-              <input id="colorPicker" type="color" value="#5A31F4"/><span class="muted">Pick a color or tap a recent swatch</span>
+              <input id="colorPicker" type="color" value="#5A31F4">
+              <span class="muted">Pick a color or tap a recent swatch</span>
             </div>
           </div>
           <div class="grid-2" style="margin-top:8px">
-            <div><label>Passcode (PIN)</label><input id="staffPassInput" type="password"></div>
-            <div style="display:flex;align-items:flex-end;gap:8px">
+            <div>
+              <label>Passcode (PIN)</label>
+              <input id="staffPassInput" type="password">
+            </div>
+            <div style="display:flex;align-items:flex-end;gap:8px;flex-wrap:wrap;">
               <button id="btnAddStaff" class="btn-good">Save Staff</button>
               <button id="btnDeleteStaff" class="btn-outline">Delete Staff</button>
             </div>
           </div>
-          <div class="muted">Staff cannot see other staff's pay or rate.</div>
+          <div class="muted" style="margin-top:6px;">
+            Staff cannot see other staff's pay or rate.
+          </div>
         </div>
       </div>
 
+      <!-- Planner options -->
       <div class="card">
         <h3>Planner Options</h3>
         <div class="grid-2">
-          <div><label>Start hour (0–23)</label><input id="optStartHour" type="number" min="0" max="23" step="1" value="8"></div>
-          <div><label>Hours shown (1–24)</label><input id="optHours" type="number" min="1" max="24" step="1" value="16"></div>
+          <div>
+            <label>Start hour (0–23)</label>
+            <input id="optStartHour" type="number" min="0" max="23" step="1" value="8">
+          </div>
+          <div>
+            <label>Hours shown (1–24)</label>
+            <input id="optHours" type="number" min="1" max="24" step="1" value="16">
+          </div>
         </div>
         <div class="grid-2">
-          <div><label>Slot minutes</label><select id="optSlotMins"><option>15</option><option selected>30</option><option>60</option></select></div>
-          <div><label>Target headcount / slot</label><input id="optTargetHeadcount" type="number" min="0" step="1" value="0"></div>
+          <div>
+            <label>Slot minutes</label>
+            <select id="optSlotMins">
+              <option>15</option>
+              <option selected>30</option>
+              <option>60</option>
+            </select>
+          </div>
+          <div>
+            <label>Target headcount / slot</label>
+            <input id="optTargetHeadcount" type="number" min="0" step="1" value="0">
+          </div>
         </div>
         <div class="grid-2">
-          <div><label>Staff can see others on Planner</label><select id="optStaffSeeOthers"><option value="true">Yes</option><option value="false">No</option></select></div>
-          <div><label>Use light theme by default</label><select id="optThemeDefault"><option value="dark">No (Dark)</option><option value="light">Yes (Light)</option></select></div>
+          <div>
+            <label>Staff can see others on Planner</label>
+            <select id="optStaffSeeOthers">
+              <option value="true">Yes</option>
+              <option value="false">No</option>
+            </select>
+          </div>
+          <div>
+            <label>Use light theme by default</label>
+            <select id="optThemeDefault">
+              <option value="dark">No (Dark)</option>
+              <option value="light">Yes (Light)</option>
+            </select>
+          </div>
         </div>
       </div>
 
+      <!-- Admin tools / history -->
+      <div class="card">
+        <h3>Admin Tools</h3>
+        <div class="muted">Manager/Admin-only tools for reviewing absence approvals and rejections.</div>
+        <div class="grid-2" style="margin-top:8px;">
+          <div>
+            <label>Staff filter</label>
+            <select id="adminHistoryStaffFilter">
+              <option value="">All staff</option>
+            </select>
+          </div>
+          <div style="display:flex;align-items:flex-end;gap:8px;">
+            <button id="btnAdminRefreshHistory" class="btn-outline">Refresh history</button>
+          </div>
+        </div>
+        <div id="adminHistoryEmpty" class="muted" style="margin-top:8px;">No history yet.</div>
+        <div id="adminHistoryTableWrap" style="margin-top:8px;max-height:260px;overflow:auto;display:none;">
+          <table class="table compact" id="adminHistoryTable">
+            <thead>
+              <tr>
+                <th>Date</th><th>Staff</th><th>Status</th><th>Type</th><th>Details</th>
+              </tr>
+            </thead>
+            <tbody id="adminHistoryTbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Themes -->
       <div class="card">
         <h3>Themes</h3>
         <div class="theme-grid" id="themeGrid"></div>
@@ -376,27 +1369,48 @@
     </section>
   </div>
 
-  <div id="shiftModal" class="modal" style="display:none; align-items:center; justify-content:center; position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:999;">
-    <div class="panel" style="width:min(560px, 92vw); background:var(--card); border:1px solid var(--border); border-radius:14px; padding:16px;">
+  <!-- Shift modal -->
+  <div id="shiftModal" class="modal">
+    <div class="panel">
       <h3>Edit / Add Shift <span id="shiftDateLabel" style="color:#ef4444;font-weight:900;margin-left:8px;"></span></h3>
       <div class="grid-2">
-        <div><label>Staff</label><select id="shiftStaff"></select></div>
-        <div><label>Day</label><select id="shiftDay"></select></div>
+        <div>
+          <label>Staff</label>
+          <select id="shiftStaff"></select>
+        </div>
+        <div>
+          <label>Day</label>
+          <select id="shiftDay"></select>
+        </div>
       </div>
       <div class="grid-2">
-        <div><label>Start</label><input id="shiftStart" type="time" step="300" placeholder="HH:MM"></div>
-        <div><label>End</label><input id="shiftEnd" type="time" step="300" placeholder="HH:MM"></div>
+        <div>
+          <label>Start</label>
+          <input id="shiftStart" type="time" step="300" placeholder="HH:MM">
+        </div>
+        <div>
+          <label>End</label>
+          <input id="shiftEnd" type="time" step="300" placeholder="HH:MM">
+        </div>
       </div>
       <div class="grid-2">
-        <div><label>Break (mins)</label><input id="shiftBreak" type="number" min="0" step="5" value="30"></div>
-        <div style="display:flex;align-items:center;gap:8px;margin-top:22px;"><label><input id="shiftPenalty" type="checkbox"> Penalty applies</label></div>
+        <div>
+          <label>Break (mins)</label>
+          <input id="shiftBreak" type="number" min="0" step="5" value="30">
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:22px;">
+          <label><input id="shiftPenalty" type="checkbox"> Penalty applies</label>
+        </div>
       </div>
       <div class="grid-2">
-        <div><label>Repeat weekly (count)</label><input id="shiftRepeat" type="number" min="0" step="1" value="0"></div>
+        <div>
+          <label>Repeat weekly (count)</label>
+          <input id="shiftRepeat" type="number" min="0" step="1" value="0">
+        </div>
       </div>
       <div style="margin-top:8px;">
         <label>Days this week</label>
-        <div id="daysThisWeek" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;">
+        <div id="daysThisWeek" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;font-size:12px;">
           <label><input type="checkbox" value="0"> Mon</label>
           <label><input type="checkbox" value="1"> Tue</label>
           <label><input type="checkbox" value="2"> Wed</label>
@@ -406,8 +1420,11 @@
           <label><input type="checkbox" value="6"> Sun</label>
         </div>
       </div>
-      <div><label>Notes</label><textarea id="shiftNotes" style="width:100%;min-height:70px;"></textarea></div>
-      <div style="display:flex;gap:8px;margin-top:12px">
+      <div>
+        <label>Notes</label>
+        <textarea id="shiftNotes"></textarea>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">
         <button id="btnSaveShift" class="btn-primary">Save</button>
         <button id="btnDeleteShift" class="btn-outline">Delete</button>
         <button id="btnCloseShift" class="btn-outline">Cancel</button>
@@ -415,42 +1432,24 @@
     </div>
   </div>
 
-  <div id="requestsModal" class="modal" style="display:none; align-items:center; justify-content:center; position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:2000;">
-    <div class="panel" style="width:min(560px, 92vw); background:var(--card); border:1px solid var(--border); border-radius:14px; padding:16px;">
+  <!-- Requests modal -->
+  <div id="requestsModal" class="modal" style="z-index:2000;">
+    <div class="panel">
       <h3>Absence Requests (this week)</h3>
       <div id="requestsList" class="muted" style="margin:8px 0 12px;"></div>
-      <div style="display:flex; gap:8px; justify-content:flex-end;">
+      <div style="display:flex;gap:8px;justify-content:flex-end;">
         <button id="btnCloseRequests" class="btn-outline">Close</button>
       </div>
     </div>
   </div>
 
+  <!-- Paste your original JavaScript here without changes.
+       i.e. both <script>...</script> blocks from the original file. -->
 <script>
 (function(){
 'use strict';
 
 // ---------- Shortcuts ----------
-// ---------- Toasts ----------
-function toast(msg, kind, ms){
-  try{
-    var wrap = byId('toasts'); 
-    if(!wrap){ alert(String(msg)); return; }
-    kind = kind || 'info'; 
-    ms = Math.max(600, parseInt(ms||2000,10));
-    var el = document.createElement('div');
-    el.className = 'toast '+kind;
-    var icon = kind==='success'?'✔️':(kind==='error'?'⚠️':'ℹ️');
-    el.innerHTML = '<span class="t-icon">'+icon+'</span><span class="t-msg"></span>';
-    el.querySelector('.t-msg').textContent = String(msg);
-    wrap.appendChild(el);
-    requestAnimationFrame(function(){ el.classList.add('show'); });
-    setTimeout(function(){
-      el.classList.remove('show');
-      setTimeout(function(){ if(el && el.parentNode) el.parentNode.removeChild(el); }, 300);
-    }, ms);
-  }catch(e){ try{ alert(String(msg)); }catch(_){} }
-}
-
 var $ = function(s){ return document.querySelector(s); };
 var $$ = function(s){ return document.querySelectorAll(s); };
 var byId = function(id){ return document.getElementById(id); };
@@ -468,7 +1467,7 @@ var App = {
     staffSeeOthers: true,
     publishedWeeks: {}
   },
-  staff:{}, availability:{}, weeks:{}, absenceRequests:{}, shiftChangeRequests:{},
+  staff:{}, availability:{}, weeks:{}, absenceRequests:{}, absenceHistory:{}, shiftChangeRequests:{},
   currentUser:null,
   cacheKey:'mc_scheduler_cache_v14_23_3'
 };
@@ -605,10 +1604,19 @@ function mix(a,b,w){ function H(x){ x=x.replace('#',''); if(x.length===3)x=x[0]+
 function idealText(hex){ var h=hex.replace('#',''); var r=parseInt(h.slice(0,2),16), g=parseInt(h.slice(2,4),16), b=parseInt(h.slice(4,6),16); var yiq=(r*299+g*587+b*114)/1000; return yiq>=128?'#0e1020':'#ffffff'; }
 function themeAdj(c){ return (App.settings.theme==='light' ? mix(c,'#000000',0.15) : mix(c,'#ffffff',0.25)); }
 function uid(){ return Math.random().toString(36).slice(2,10); }
+function escapeHtml(str){
+  if(str==null) return '';
+  return String(str)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;')
+    .replace(/'/g,'&#39;');
+}
 
 // ---------- Local Storage ----------
-function saveLocal(){ try{ localStorage.setItem(App.cacheKey, JSON.stringify({settings:App.settings,staff:App.staff,weeks:App.weeks,availability:App.availability,absenceRequests:App.absenceRequests,version:App.version})); }catch(e){} }
-function loadLocal(){ try{ var raw=localStorage.getItem(App.cacheKey); if(!raw) return; var d=JSON.parse(raw)||{}; if(d.settings){ for(var k in d.settings){ App.settings[k]=d.settings[k]; } } App.staff=d.staff||App.staff; App.weeks=d.weeks||App.weeks; App.availability=d.availability||App.availability; App.absenceRequests=d.absenceRequests||App.absenceRequests; }catch(e){} }
+function saveLocal(){ try{ localStorage.setItem(App.cacheKey, JSON.stringify({settings:App.settings,staff:App.staff,weeks:App.weeks,availability:App.availability,absenceRequests:App.absenceRequests,absenceHistory:App.absenceHistory,shiftChangeRequests:App.shiftChangeRequests,version:App.version})); }catch(e){} }
+function loadLocal(){ try{ var raw=localStorage.getItem(App.cacheKey); if(!raw) return; var d=JSON.parse(raw)||{}; if(d.settings){ for(var k in d.settings){ App.settings[k]=d.settings[k]; } } App.staff=d.staff||App.staff; App.weeks=d.weeks||App.weeks; App.availability=d.availability||App.availability; App.absenceRequests=d.absenceRequests||App.absenceRequests; App.absenceHistory=d.absenceHistory||App.absenceHistory; App.shiftChangeRequests=d.shiftChangeRequests||App.shiftChangeRequests; }catch(e){} }
 
 // ---------- Firebase REST ----------
 function wsRoot(){ return App.settings.dbUrl.replace(/\/$/,'')+'/'+App.settings.workspace; }
@@ -667,9 +1675,9 @@ function init(){
   splashShow('Syncing…'); byId('splashSync').style.display='flex';
   pullData(true).then(function(){
     populateLoginSelects(); populateExistingStaff();
-    splashHide('Sync successful'); toast('Synced','success');
+    splashHide('Sync successful');
   }).catch(function(e){
-    var m=byId('loginMsg'); if(m) m.textContent='Startup sync failed: '+(e&&e.message?e.message:''); splashHide('Sync failed — offline mode available'); toast('Startup sync failed — offline mode available','error',3500);
+    var m=byId('loginMsg'); if(m) m.textContent='Startup sync failed: '+(e&&e.message?e.message:''); splashHide('Sync failed — offline mode available');
   }).finally(function(){
     if(!App.staff || Object.keys(App.staff).length===0){
       var a=uid(), b=uid(), c=uid();
@@ -695,20 +1703,20 @@ function init(){
     App.settings.targetHeadcount=parseInt(byId('optTargetHeadcount').value||'0',10);
     App.settings.staffSeeOthers = (byId('optStaffSeeOthers').value==='true');
     document.querySelector('.appbar .title').textContent=App.settings.appTitle;
-    saveLocal(); startAutoSyncTimers(); renderPlanner(); toast('Settings saved','success');
+    saveLocal(); startAutoSyncTimers(); renderPlanner(); alert('Saved.');
   };
   byId('btnResetLocal').onclick = function(){ if(!isAdmin()) return alert('Admin only.'); if(confirm('Reset local cache?')){ localStorage.removeItem(App.cacheKey); location.reload(); } };
 
   byId('btnExportSettings').onclick=function(){ var data={settings:App.settings,staff:App.staff,availability:App.availability,weeks:App.weeks,absenceRequests:App.absenceRequests}; var a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'})); a.download='munchandcrun_export.json'; a.click(); };
   byId('btnImportSettings').onclick=function(){ byId('importSettingsInput').click(); };
-  byId('importSettingsInput').onchange=async function(e){ var f=e.target.files[0]; if(!f) return; try{ var d=JSON.parse(await f.text()); if(d.settings){ for(var k in d.settings){ App.settings[k]=d.settings[k]; } } App.staff=d.staff||App.staff; App.availability=d.availability||App.availability; App.weeks=d.weeks||App.weeks; App.absenceRequests=d.absenceRequests||App.absenceRequests; saveLocal(); populateLoginSelects(); populateExistingStaff(); renderAfterLogin(); startAutoSyncTimers(); toast('Imported. Use Push to sync.','success'); }catch(err){ alert('Invalid JSON'); } };
+  byId('importSettingsInput').onchange=async function(e){ var f=e.target.files[0]; if(!f) return; try{ var d=JSON.parse(await f.text()); if(d.settings){ for(var k in d.settings){ App.settings[k]=d.settings[k]; } } App.staff=d.staff||App.staff; App.availability=d.availability||App.availability; App.weeks=d.weeks||App.weeks; App.absenceRequests=d.absenceRequests||App.absenceRequests; saveLocal(); populateLoginSelects(); populateExistingStaff(); renderAfterLogin(); startAutoSyncTimers(); alert('Imported. Use Push to sync.'); }catch(err){ alert('Invalid JSON'); } };
 
   byId('btnLogin').onclick = login;
   var pwd=byId('loginPass'); if(pwd){ pwd.addEventListener('keydown',function(e){ if(e.key==='Enter'){ login(); } }); }
   byId('btnContinueOffline').onclick = function(){ var id=byId('loginStaffSelect').value; if(!id||!App.staff[id]){alert('Select a staff');return;} var s=App.staff[id]; App.currentUser={id:id, name:s.name, role:s.role||'staff', rate:s.rate||0}; enterApp(); startAutoSyncTimers(); };
 
-  byId('btnPull').onclick = function(){ pullData(false).then(function(){toast('Pulled latest','success');}).catch(function(e){toast('Pull failed: '+(e&&e.message?e.message:e),'error',3000);}); };
-  byId('btnPush').onclick = function(){ if(!canEdit()) return alert('Only manager or admin can push.'); pushData().then(function(){toast('Pushed','success');}).catch(function(e){toast('Push failed: '+(e&&e.message?e.message:e),'error',3000);}); };
+  byId('btnPull').onclick = function(){ pullData(false).then(function(){alert('Pulled latest.');}).catch(function(e){alert('Pull failed: '+e.message);}); };
+  byId('btnPush').onclick = function(){ if(!canEdit()) return alert('Only manager or admin can push.'); pushData().then(function(){alert('Pushed.');}).catch(function(e){alert('Push failed: '+e.message);}); };
   var pullTop=byId('btnPullTop'), pushTop=byId('btnPushTop');
   if(pullTop) pullTop.onclick=function(){ byId('btnPull').onclick(); };
   if(pushTop) pushTop.onclick=function(){ byId('btnPush').onclick(); };
@@ -717,7 +1725,7 @@ function init(){
   byId('btnExportJSON').onclick=function(){ if(!isAdmin()) return alert('Admin only.'); var data={settings:App.settings,staff:App.staff,availability:App.availability,weeks:App.weeks,absenceRequests:App.absenceRequests}; var a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'})); a.download='munchandcrun_export.json'; a.click(); };
   byId('btnExportCSV').onclick=function(){ if(!isAdmin()) return alert('Admin only.'); exportPayrollCSV(); };
   byId('btnImportJSON').onclick=function(){ if(!isAdmin()) return alert('Admin only.'); byId('importJSONInput').click(); };
-  byId('importJSONInput').onchange=async function(e){ if(!isAdmin()) return; var f=e.target.files[0]; if(!f) return; try{ var d=JSON.parse(await f.text()); if(d.settings){ for(var k in d.settings){ App.settings[k]=d.settings[k]; } } App.staff=d.staff||App.staff; App.availability=d.availability||App.availability; App.weeks=d.weeks||App.weeks; App.absenceRequests=d.absenceRequests||App.absenceRequests; saveLocal(); populateLoginSelects(); populateExistingStaff(); renderAfterLogin(); startAutoSyncTimers(); toast('Imported. Use Push to sync.','success'); }catch(err){ alert('Invalid JSON'); } };
+  byId('importJSONInput').onchange=async function(e){ if(!isAdmin()) return; var f=e.target.files[0]; if(!f) return; try{ var d=JSON.parse(await f.text()); if(d.settings){ for(var k in d.settings){ App.settings[k]=d.settings[k]; } } App.staff=d.staff||App.staff; App.availability=d.availability||App.availability; App.weeks=d.weeks||App.weeks; App.absenceRequests=d.absenceRequests||App.absenceRequests; saveLocal(); populateLoginSelects(); populateExistingStaff(); renderAfterLogin(); startAutoSyncTimers(); alert('Imported. Use Push to sync.'); }catch(err){ alert('Invalid JSON'); } };
 
   byId('btnPrevWeek').onclick=function(){ shiftWeek(-1); };
   byId('btnNextWeek').onclick=function(){ shiftWeek(1); };
@@ -737,7 +1745,15 @@ function init(){
   byId('btnSaveShift').onclick=saveShiftFromModal;
   byId('btnDeleteShift').onclick=deleteShiftFromModal;
 
-  var addBtn=byId('btnAddStaff'); if(addBtn) addBtn.onclick=onSaveStaff;
+  
+  var adminStaffSel = byId('adminHistoryStaffFilter');
+  if(adminStaffSel){
+    populateAdminHistoryStaffFilter();
+    adminStaffSel.onchange = renderAdminHistory;
+  }
+  var adminBtn = byId('btnAdminRefreshHistory');
+  if(adminBtn) adminBtn.onclick = renderAdminHistory;
+var addBtn=byId('btnAddStaff'); if(addBtn) addBtn.onclick=onSaveStaff;
   var delBtn=byId('btnDeleteStaff'); if(delBtn) delBtn.onclick=onDeleteStaff;
   var exSel=byId('existingStaffSelect'); if(exSel) exSel.onchange=loadStaffIntoForm;
 
@@ -817,6 +1833,97 @@ function populateExistingStaff(){
     var s=App.staff[id]; var o=document.createElement('option'); o.value=id; o.textContent=s.name; sel.appendChild(o);
   });
 }
+
+function populateAdminHistoryStaffFilter(){
+  var sel = byId('adminHistoryStaffFilter');
+  if(!sel) return;
+  var current = sel.value || '';
+  sel.innerHTML = '<option value="">All staff</option>';
+  Object.keys(App.staff||{}).sort(function(a,b){
+    return (App.staff[a].name||'').localeCompare(App.staff[b].name||'');
+  }).forEach(function(id){
+    var s = App.staff[id]||{};
+    var o = document.createElement('option');
+    o.value = id;
+    o.textContent = s.name || id;
+    sel.appendChild(o);
+  });
+  if(current){
+    var opt = sel.querySelector('option[value="' + current + '"]');
+    if(opt) sel.value = current;
+  }
+}
+function renderAdminHistory(){
+  var wrap = byId('adminHistoryTableWrap');
+  var empty = byId('adminHistoryEmpty');
+  var tbody = byId('adminHistoryTbody');
+  if(!wrap || !tbody || !empty) return;
+  tbody.innerHTML = '';
+  if(!isAdmin()){
+    empty.textContent = 'Admin only.';
+    empty.style.display = '';
+    wrap.style.display = 'none';
+    return;
+  }
+  var filterSel = byId('adminHistoryStaffFilter');
+  var filterId = filterSel ? filterSel.value : '';
+  var hist = App.absenceHistory || {};
+  var rows = [];
+  Object.keys(hist).forEach(function(iso){
+    var day = hist[iso] || {};
+    Object.keys(day).forEach(function(sid){
+      if(filterId && String(sid)!==String(filterId)) return;
+      var rec = day[sid];
+      if(!rec) return;
+      var staff = (App.staff && App.staff[sid]) || {};
+      var name = staff.name || sid;
+      var status = rec.status || 'approved';
+      var type = (rec.blocks && rec.blocks.length ? 'Partial' : (rec.unavailable ? 'Full-day' : 'Other'));
+      var parts = [];
+      if(rec.blocks && rec.blocks.length){
+        rec.blocks.forEach(function(b){
+          if(!b) return;
+          var seg = (b.start||'') + '–' + (b.end||'');
+          if(b.reason) seg += ' — ' + b.reason;
+          parts.push(seg);
+        });
+      }else if(rec.unavailable){
+        var seg = 'Full-day';
+        if(rec.reason) seg += ' — ' + rec.reason;
+        parts.push(seg);
+      }else if(rec.reason){
+        parts.push(rec.reason);
+      }
+      var details = parts.join(' | ');
+      var when = rec.resolvedAt || (iso + ' (no timestamp)');
+      rows.push({when:when, iso:iso, name:name, status:status, type:type, details:details});
+    });
+  });
+  if(!rows.length){
+    empty.textContent = 'No history for current filters.';
+    empty.style.display = '';
+    wrap.style.display = 'none';
+    return;
+  }
+  rows.sort(function(a,b){
+    var ta = Date.parse(a.when) || Date.parse(a.iso) || 0;
+    var tb = Date.parse(b.when) || Date.parse(b.iso) || 0;
+    return tb - ta;
+  });
+  rows.slice(0,200).forEach(function(r){
+    var tr = document.createElement('tr');
+    tr.innerHTML =
+      '<td>'+escapeHtml(r.when)+'</td>'+
+      '<td>'+escapeHtml(r.name)+'</td>'+
+      '<td>'+escapeHtml(r.status)+'</td>'+
+      '<td>'+escapeHtml(r.type)+'</td>'+
+      '<td>'+escapeHtml(r.details)+'</td>';
+    tbody.appendChild(tr);
+  });
+  empty.style.display = 'none';
+  wrap.style.display = '';
+}
+
 
 // ---------- Tabs & render ----------
 function initTabs(){
@@ -1029,6 +2136,7 @@ function renderPlanner(){
     addMini('Clear','mute', function(){ clearAway(curISO, id); });
     
     addMini('Propose Edit','success', function(){ proposeShiftEdit(curISO, id); });
+    addMini('INFO','info', function(){ window.openInfoForCell(curISO, id); });
 sc.appendChild(mini);
 
     row.appendChild(sc);
@@ -1327,7 +2435,7 @@ async function onSaveStaff(){
   var id = selectedId || uid();
   App.staff[id]={name:name,rate:rate,rateWeekend:rateWeekend,ratePenalty:ratePenalty,otMult:otMult,otWeekly:otWeekly,otDaily:otDaily,breakDefault:br,role:role,color:color,passHash:passHash};
   App.settings.recentColors=[color].concat((App.settings.recentColors||[]).filter(function(c){return c!==color;})).slice(0,12);
-  saveLocal(); populateLoginSelects(); populateExistingStaff(); toast('Saved staff','success');
+  saveLocal(); populateLoginSelects(); populateExistingStaff(); alert('Saved staff.');
 }
 function onDeleteStaff(){
   if(!isAdmin()) return alert('Admin only.');
@@ -1496,7 +2604,8 @@ function openRequestsModal(){
       var st=App.staff[sid]||{}; var row=document.createElement('div');
       row.style.display='flex'; row.style.gap='8px'; row.style.alignItems='center'; row.style.marginBottom='6px';
       row.innerHTML = '<div style="font-weight:800">'+(st.name||'')+'</div><div class="muted">'+fmtDMY(d)+'</div>'+
-                      '<div class="pill">'+(req.blocks && req.blocks.length? (req.blocks[0].start||'')+'–'+(req.blocks[0].end||'') : 'Full day')+'</div>';
+                      '<div class="pill">'+(req.blocks && req.blocks.length? (req.blocks[0].start||'')+'–'+(req.blocks[0].end||'') : 'Full day')+'</div>'+
+                      (req.reason?'<div class="muted">Reason: '+String(req.reason).replace(/</g,'&lt;')+'</div>': (req.blocks && req.blocks[0] && req.blocks[0].reason?'<div class="muted">Reason: '+String(req.blocks[0].reason).replace(/</g,'&lt;')+'</div>':''));
       var app=document.createElement('button'); app.className='btn-good'; app.textContent='Approve';
       var rej=document.createElement('button'); rej.className='btn-outline'; rej.textContent='Reject';
       (function(iso,sid,req){ app.onclick=function(){ approveRequest(iso,sid,req); }; rej.onclick=function(){ rejectRequest(iso,sid); }; })(iso,sid,req);
@@ -1530,18 +2639,56 @@ function openRequestsModal(){
   if(typeof updateRequestsBadge==='function') updateRequestsBadge();
 }
 function approveRequest(iso,sid,req){
+  sid = String(sid);
   if(!canModerateAbsences()) return alert('Manager/Admin only.');
   if(!App.availability) App.availability={};
-  var day=App.availability[iso]=App.availability[iso]||{};
-  if(req.blocks && req.blocks.length){ day[sid]=day[sid]||{}; day[sid].blocks = (day[sid].blocks||[]).concat(req.blocks); }
-  else { day[sid]={unavailable:true}; }
-  if(App.absenceRequests && App.absenceRequests[iso]){ delete App.absenceRequests[iso][sid]; if(Object.keys(App.absenceRequests[iso]).length===0) delete App.absenceRequests[iso]; }
-  saveLocal(); renderPlanner(); renderAbsenceCalendar(); toast('Approved','success'); openRequestsModal();
+  var day = App.availability[iso] = App.availability[iso] || {};
+  if(req && req.blocks && req.blocks.length){
+    day[sid] = day[sid] || {};
+    if(!Array.isArray(day[sid].blocks)) day[sid].blocks = [];
+    day[sid].blocks = day[sid].blocks.concat(req.blocks);
+  }else{
+    day[sid] = day[sid] || {};
+    day[sid].unavailable = true;
+    if(req && req.reason) day[sid].reason = req.reason;
+  }
+  if(!App.absenceHistory) App.absenceHistory = {};
+  var histDay = App.absenceHistory[iso] = App.absenceHistory[iso] || {};
+  var entry = Object.assign({}, req||{}, {
+    status: 'approved',
+    resolvedAt: new Date().toISOString()
+  });
+  histDay[sid] = entry;
+  if(App.absenceRequests && App.absenceRequests[iso]){
+    delete App.absenceRequests[iso][sid];
+    if(Object.keys(App.absenceRequests[iso]).length===0) delete App.absenceRequests[iso];
+  }
+  saveLocal();
+  renderPlanner();
+  renderAbsenceCalendar();
+  openRequestsModal();
+  if(typeof window._refreshSchedulerDebug==='function') window._refreshSchedulerDebug();
 }
 function rejectRequest(iso,sid){
+  sid = String(sid);
   if(!canModerateAbsences()) return alert('Manager/Admin only.');
-  if(App.absenceRequests && App.absenceRequests[iso]){ delete App.absenceRequests[iso][sid]; if(Object.keys(App.absenceRequests[iso]).length===0) delete App.absenceRequests[iso]; }
-  saveLocal(); toast('Rejected','info'); openRequestsModal();
+  if(App.absenceRequests && App.absenceRequests[iso]){
+    var req = App.absenceRequests[iso][sid];
+    if(req){
+      if(!App.absenceHistory) App.absenceHistory = {};
+      var histDay = App.absenceHistory[iso] = App.absenceHistory[iso] || {};
+      var entry = Object.assign({}, req, {
+        status: 'rejected',
+        resolvedAt: new Date().toISOString()
+      });
+      histDay[sid] = entry;
+    }
+    delete App.absenceRequests[iso][sid];
+    if(Object.keys(App.absenceRequests[iso]).length===0) delete App.absenceRequests[iso];
+  }
+  saveLocal();
+  openRequestsModal();
+  if(typeof window._refreshSchedulerDebug==='function') window._refreshSchedulerDebug();
 }
 function approveShiftChange(iso,key,req){
   if(!canModerateAbsences()) return alert('Manager/Admin only.');
@@ -1569,19 +2716,24 @@ function approveShiftChange(iso,key,req){
     renderMyShifts();
     renderPayroll();
     if(typeof updateRequestsBadge==='function') updateRequestsBadge();
-    toast('Applied','success');
     openRequestsModal();
   }catch(e){
     console.error('approveShiftChange error', e);
     alert('Could not apply change: '+e);
   }
 }
+
 function rejectShiftChange(iso,key){
   if(!canModerateAbsences()) return alert('Manager/Admin only.');
   if(App.shiftChangeRequests && App.shiftChangeRequests[iso]){
     delete App.shiftChangeRequests[iso][key];
     if(Object.keys(App.shiftChangeRequests[iso]).length===0) delete App.shiftChangeRequests[iso];
   }
+  saveLocal();
+  if(typeof updateRequestsBadge==='function') updateRequestsBadge();
+  openRequestsModal();
+}
+
 function countPendingRequestsForWeek(){
   if(!window.Planner || !Planner.weekStartISO) return 0;
   var start = fromISO(Planner.weekStartISO);
@@ -1610,57 +2762,113 @@ function updateRequestsBadge(){
     el.style.display = 'none';
   }
 }
-  saveLocal(); if(typeof updateRequestsBadge==='function') updateRequestsBadge(); toast('Discarded','info'); openRequestsModal();
-}
-
-
 // Staff bar -> request (not publish) handled in renderAvailabilityBar()
 
 // Mini-actions helpers
 function proposeAway(iso, staffId){
+  staffId = String(staffId);
+  var reason = prompt('Reason/comment (optional):') || '';
+
   ensureRequestsStore();
   if(!App.currentUser) return;
-  if(App.currentUser.role==='staff' && App.currentUser.id!==staffId){
+  if(App.currentUser.role==='staff' && String(App.currentUser.id)!==staffId){
     alert('Staff can only propose their own away.'); return;
   }
   if(canModerateAbsences()){
-    if(!App.availability) App.availability={}; var day=App.availability[iso]=App.availability[iso]||{}; day[staffId]={unavailable:true}; saveLocal(); renderPlanner(); renderAbsenceCalendar(); return;
+    if(!App.availability) App.availability={};
+    var day = App.availability[iso] = App.availability[iso] || {};
+    var rec = day[staffId] = day[staffId] || {};
+    rec.unavailable = true;
+    if(reason) rec.reason = reason;
+    saveLocal();
+    renderPlanner();
+    renderAbsenceCalendar();
+    if(typeof window._refreshSchedulerDebug==='function') window._refreshSchedulerDebug();
+    return;
   }
   App.absenceRequests[iso]=App.absenceRequests[iso]||{};
-  App.absenceRequests[iso][staffId]={unavailable:true, status:'pending'};
+  var cur = (App.absenceRequests[iso][staffId]||{});
+  if(Array.isArray(cur.blocks) && cur.blocks.length){
+    alert('This day already has partial away requests. Clear them first if you want to request a full day away.');
+    return;
+  }
+  cur.unavailable = true;
+  if(!Array.isArray(cur.blocks)) cur.blocks = [];
+  if((reason||'') && !cur.reason) cur.reason = reason;
+  cur.status = 'pending';
+  App.absenceRequests[iso][staffId] = cur;
   saveLocal();
   try{
     var payload={}; payload[iso]=App.absenceRequests[iso];
     dbPatch('/absenceRequests', payload).catch(function(e){ console.error('Push absenceRequests failed', e); });
   }catch(e){}
   if(typeof updateRequestsBadge==='function') updateRequestsBadge();
-  toast('Request sent','success');
+  if(typeof window._refreshSchedulerDebug==='function') window._refreshSchedulerDebug();
+  alert('Request sent.');
 }
 function proposePartial(iso, staffId, start, end){
+  staffId = String(staffId);
+  var reason = prompt('Reason/comment for this partial away (optional):') || '';
+
   ensureRequestsStore();
   if(!App.currentUser) return;
-  if(App.currentUser.role==='staff' && App.currentUser.id!==staffId){
+  if(App.currentUser.role==='staff' && String(App.currentUser.id)!==staffId){
     alert('Staff can only propose their own away.'); return;
   }
+  var startM = parse12(start);
+  var endM = parse12(end);
+  if(startM==null || endM==null){
+    alert('Please enter valid start and end times for the partial away.');
+    return;
+  }
+  if(endM <= startM){
+    alert('End time must be after start time for the partial away.');
+    return;
+  }
   if(canModerateAbsences()){
-    if(!App.availability) App.availability={}; var day=App.availability[iso]=App.availability[iso]||{}; day[staffId]=day[staffId]||{}; day[staffId].blocks = (day[staffId].blocks||[]).concat([{start:start, end:end}]); saveLocal(); renderPlanner(); renderAbsenceCalendar(); return;
+    if(!App.availability) App.availability={};
+    var day = App.availability[iso] = App.availability[iso] || {};
+    var rec = day[staffId] = day[staffId] || {};
+    if(!Array.isArray(rec.blocks)) rec.blocks = [];
+    rec.blocks.push({start:start, end:end, reason:(reason||'')});
+    saveLocal();
+    renderPlanner();
+    renderAbsenceCalendar();
+    if(typeof window._refreshSchedulerDebug==='function') window._refreshSchedulerDebug();
+    return;
   }
   App.absenceRequests[iso]=App.absenceRequests[iso]||{};
-  App.absenceRequests[iso][staffId]={blocks:[{start:start, end:end}], status:'pending'};
+  var cur = (App.absenceRequests[iso][staffId]||{});
+  if(cur.unavailable && (!cur.blocks || !cur.blocks.length)){
+    alert('There is already a full-day away request for this day. Clear it first if you want to propose partial away times.');
+    return;
+  }
+  if(!Array.isArray(cur.blocks)) cur.blocks = [];
+  cur.blocks = cur.blocks.concat([{start:start, end:end, reason:(reason||'')}]);
+  if((reason||'') && !cur.reason) cur.reason = reason;
+  cur.status = 'pending';
+  App.absenceRequests[iso][staffId] = cur;
   saveLocal();
   try{
     var payload2={}; payload2[iso]=App.absenceRequests[iso];
     dbPatch('/absenceRequests', payload2).catch(function(e){ console.error('Push partial absenceRequests failed', e); });
   }catch(e){}
   if(typeof updateRequestsBadge==='function') updateRequestsBadge();
-  toast('Request sent','success');
+  if(typeof window._refreshSchedulerDebug==='function') window._refreshSchedulerDebug();
+  alert('Request sent.');
 }
 function clearAway(iso, staffId){
+  staffId = String(staffId);
   if(!canModerateAbsences()) return alert('Manager/Admin only to clear published away.');
-  if(App.availability && App.availability[iso] && App.availability[iso][staffId]){ delete App.availability[iso][staffId]; if(Object.keys(App.availability[iso]).length===0) delete App.availability[iso]; }
-  saveLocal(); renderPlanner(); renderAbsenceCalendar();
+  if(App.availability && App.availability[iso] && App.availability[iso][staffId]){
+    delete App.availability[iso][staffId];
+    if(Object.keys(App.availability[iso]).length===0) delete App.availability[iso];
+  }
+  saveLocal();
+  renderPlanner();
+  renderAbsenceCalendar();
+  if(typeof window._refreshSchedulerDebug==='function') window._refreshSchedulerDebug();
 }
-
 // ---------- Copy & Payroll ----------
 function copyDayToNext(){ var f=Planner.activeDayIndex; var t=(f+1)%7; var wk=App.weeks[Planner.weekStartISO]||{}; var src=JSON.parse(JSON.stringify(wk[String(f)]||{})); wk[String(t)]={}; Object.keys(src).forEach(function(k){ var sh=src[k]; var id=uid(); wk[String(t)][id]={id:id,staffId:sh.staffId,day:t,start:sh.start,end:sh.end,breakMins:sh.breakMins,notes:sh.notes,penalty:sh.penalty}; }); App.weeks[Planner.weekStartISO]=wk; saveLocal(); Planner.activeDayIndex=t; renderPlanner(); }
 function copyWeekToNext(){ var from=Planner.weekStartISO; var d=fromISO(from); d.setDate(d.getDate()+7); var to=toISO(weekStart(d)); var src=JSON.parse(JSON.stringify(App.weeks[from]||{})); App.weeks[to]={}; Object.keys(src).forEach(function(k){ var shs=src[k]; App.weeks[to][k]={}; Object.keys(shs).forEach(function(sk){ var sh=shs[sk]; var id=uid(); App.weeks[to][k][id]={id:id,staffId:sh.staffId,day:sh.day,start:sh.start,end:sh.end,breakMins:sh.breakMins,notes:sh.notes,penalty:sh.penalty}; }); }); saveLocal(); Planner.weekStartISO=to; renderPlanner(); renderPayroll(); }
@@ -1782,7 +2990,7 @@ function togglePublishWeek(){
   var next = !cur;
   App.settings.publishedWeeks[Planner.weekStartISO] = next;
   saveLocal();
-  toast(next?'Marked week as Published (staff cannot add new shifts)':'Unpublished week (editable).','info');
+  alert(next?'Marked week as Published (staff cannot add new shifts)':'Unpublished week (editable).');
   renderPlanner();
 }
 
@@ -1793,6 +3001,7 @@ async function pullData(silent){
     App.staff=data.staff||App.staff;
     App.availability=data.availability||App.availability;
     App.absenceRequests=data.absenceRequests||App.absenceRequests||{};
+    App.absenceHistory=data.absenceHistory||App.absenceHistory||{};
     App.weeks=data.weeks||App.weeks;
     App.shiftChangeRequests=data.shiftChangeRequests||App.shiftChangeRequests||{};
     if(data.settings && data.settings.publishedWeeks) App.settings.publishedWeeks = data.settings.publishedWeeks;
@@ -1803,7 +3012,7 @@ async function pullData(silent){
   return true;
 }
 async function pushData(){
-  await dbPatch('', {staff:App.staff, availability:App.availability, absenceRequests:App.absenceRequests||{}, weeks:App.weeks, shiftChangeRequests:App.shiftChangeRequests||{}, settings:{publishedWeeks:App.settings.publishedWeeks}});
+  await dbPatch('', {staff:App.staff, availability:App.availability, absenceRequests:App.absenceRequests||{}, absenceHistory:App.absenceHistory||{}, weeks:App.weeks, shiftChangeRequests:App.shiftChangeRequests||{}, settings:{publishedWeeks:App.settings.publishedWeeks}});
   return true;
 }
 
@@ -1867,19 +3076,217 @@ window.proposeShiftEdit = async function(iso, staffId){
       await dbPatch('/shiftChangeRequests', payload);
     }catch(e){
       console.error('Failed to push shiftChangeRequests', e);
-      toast('Saved locally. Could not send to server.','error',3200);
+      alert('Saved locally. Could not send to server.');
     }
     if(typeof updateRequestsBadge==='function') updateRequestsBadge();
-    toast('Shift edit request sent','success');
+    alert('Shift edit request sent.');
   }catch(e){
     console.error('proposeShiftEdit error', e);
     alert('Could not create request: ' + e);
   }
 };
 
+})();
+// === INFO helpers (dual RTDB paths + robust keys) ===
+(function(){
+  function getDayRec(map, iso, sid){
+    try{
+      var day = (map && map[iso]) ? map[iso] : null;
+      if(!day) return null;
+      if(day[sid]!=null) return day[sid];
+      var s = String(sid); if(day[s]!=null) return day[s];
+      var n = Number(sid); if(!isNaN(n) && day[n]!=null) return day[n];
+    }catch(e){} return null;
+  }
+  function collect(container, sid, prefix){
+    var out=[]; if(!container) return out;
+    var one = container[sid] || container[String(sid)] || container[Number(sid)];
+    if(one){
+      if(one.reason) out.push(prefix + one.reason);
+      if(one.blocks && one.blocks.length){
+        for(var i=0;i<one.blocks.length;i++){ var b=one.blocks[i]; if(b && b.reason){ out.push(prefix+'('+(b.start||'')+'–'+(b.end||'')+'): '+b.reason); } }
+      }
+      return out;
+    }
+    try{
+      Object.keys(container).forEach(function(k){
+        var r=container[k]; if(!r) return;
+        if(r.reason) out.push('['+k+'] '+prefix+r.reason);
+        if(r.blocks && r.blocks.length){ r.blocks.forEach(function(b){ if(b && b.reason){ out.push('['+k+'] '+prefix+'('+(b.start||'')+'–'+(b.end||'')+'): '+b.reason); } }); }
+      });
+    }catch(e){} return out;
+  }
+  function rtdbRead(path){
+    return firebase.database().ref(path).once('value').then(function(snap){
+      return snap && snap.val ? snap.val() : (snap && snap._delegate && snap._delegate._node && snap.val());
+    });
+  }
+  window.openInfoForCell = async function(iso, staffId){
+    staffId = String(staffId);
+    try{
+      var dbUrlEl = document.getElementById('dbUrlInput');
+      var wsEl = document.getElementById('workspaceInput');
+      var authEl = document.getElementById('authTokenInput');
+
+      var dbUrl = (dbUrlEl && dbUrlEl.value.trim()) || (window.App && App.settings && App.settings.dbUrl) || 'https://munchandcrun.firebaseio.com';
+      var workspace = (wsEl && wsEl.value.trim()) || (window.App && App.settings && App.settings.workspace) || 'munchandcrun';
+      var auth = (authEl && authEl.value.trim()) || (window.App && App.settings && App.settings.authToken) || '';
+
+      if(!dbUrl || !workspace){
+        alert('No info recorded for this day.');
+        return;
+      }
+
+      dbUrl = dbUrl.replace(/\/+$/,'');
+      workspace = workspace.replace(/^\/+/,'');
+      var base = dbUrl + '/' + workspace;
+
+      async function fetchJson(path){
+        try{
+          var url = base + path + '.json' + (auth ? ('?auth='+encodeURIComponent(auth)) : '');
+          var res = await fetch(url);
+          if(!res.ok) return null;
+          return await res.json();
+        }catch(e){
+          return null;
+        }
+      }
+
+      var lines = [];
+
+      var dayAvail = await fetchJson('/availability/' + encodeURIComponent(iso));
+      if(dayAvail){
+        var rec = dayAvail[staffId] || dayAvail[String(staffId)] || dayAvail[Number(staffId)];
+        if(rec){
+          if(rec.unavailable){
+            var msg = 'Approved away (full-day)';
+            if(rec.reason) msg += ': ' + String(rec.reason);
+            msg += ' — published to roster';
+            lines.push(msg);
+          }
+          if(Array.isArray(rec.blocks)){
+            rec.blocks.forEach(function(b){
+              if(!b) return;
+              var seg = 'Approved away';
+              if(b.start || b.end){
+                seg += ' (' + (b.start || '') + '–' + (b.end || '') + ')';
+              }
+              if(b.reason) seg += ': ' + String(b.reason);
+              seg += ' — published to roster';
+              lines.push(seg);
+            });
+          }
+        }
+      }
+
+      var dayReqs = await fetchJson('/absenceRequests/' + encodeURIComponent(iso));
+      if(dayReqs){
+        var req = dayReqs[staffId] || dayReqs[String(staffId)] || dayReqs[Number(staffId)];
+        if(req){
+          if(req.unavailable){
+            var msg2 = 'Pending away (full-day)';
+            if(req.reason) msg2 += ': ' + String(req.reason);
+            msg2 += ' — requested by staff';
+            lines.push(msg2);
+          }
+          if(Array.isArray(req.blocks)){
+            req.blocks.forEach(function(b){
+              if(!b) return;
+              var seg2 = 'Pending away';
+              if(b.start || b.end){
+                seg2 += ' (' + (b.start || '') + '–' + (b.end || '') + ')';
+              }
+              if(b.reason) seg2 += ': ' + String(b.reason);
+              seg2 += ' — requested by staff';
+              lines.push(seg2);
+            });
+          }
+        }
+      }
+
+      if(!lines.length){
+        alert('No info recorded for this day.');
+      }else{
+        alert(lines.join('\n\n'));
+      }
+    }catch(e){
+      console.error('INFO lookup failed', e);
+      alert('No info recorded for this day.');
+    }
+  };
 })();</script>
 
-<div id="toasts" class="toast-wrap" aria-live="polite"></div>
 
+<script>
+(function(){
+  var debugVisible = false;
+  var debugEl = null;
+  function ensureDebugEl(){
+    if(debugEl) return debugEl;
+    debugEl = document.createElement('div');
+    debugEl.id = 'scheduler-debug-overlay';
+    debugEl.style.position = 'fixed';
+    debugEl.style.bottom = '0';
+    debugEl.style.right = '0';
+    debugEl.style.maxWidth = '420px';
+    debugEl.style.maxHeight = '50vh';
+    debugEl.style.overflow = 'auto';
+    debugEl.style.fontSize = '11px';
+    debugEl.style.background = 'rgba(0,0,0,0.85)';
+    debugEl.style.color = '#fff';
+    debugEl.style.padding = '8px';
+    debugEl.style.zIndex = '9999';
+    debugEl.style.boxShadow = '0 0 8px rgba(0,0,0,0.5)';
+    debugEl.style.borderRadius = '6px 0 0 0';
+    document.body.appendChild(debugEl);
+    return debugEl;
+  }
+  function computeActiveISO(){
+    try{
+      if(!window.Planner || !window.Planner.weekStartISO) return null;
+      var base = fromISO(Planner.weekStartISO);
+      var idx = Planner.activeDayIndex || 0;
+      var d = new Date(base.getTime());
+      d.setDate(d.getDate() + idx);
+      return toISO(d);
+    }catch(e){
+      return null;
+    }
+  }
+  function renderDebug(){
+    if(!debugVisible) return;
+    var el = ensureDebugEl();
+    var html = '<div style="font-weight:bold;margin-bottom:4px;">Debug (Ctrl+Alt+D)</div>';
+    try{
+      var iso = computeActiveISO();
+      html += '<div><strong>Active day:</strong> ' + (iso || '-') + '</div>';
+      if(iso && window.App){
+        var avDay = (App.availability && App.availability[iso]) || null;
+        var reqDay = (App.absenceRequests && App.absenceRequests[iso]) || null;
+        var histDay = (App.absenceHistory && App.absenceHistory[iso]) || null;
+        html += '<pre style="white-space:pre-wrap;margin-top:4px;">availability: ' + JSON.stringify(avDay, null, 2) + '</pre>';
+        html += '<pre style="white-space:pre-wrap;margin-top:4px;">absenceRequests: ' + JSON.stringify(reqDay, null, 2) + '</pre>';
+        html += '<pre style="white-space:pre-wrap;margin-top:4px;">absenceHistory: ' + JSON.stringify(histDay, null, 2) + '</pre>';
+      }
+    }catch(e){
+      html += '<div>Error rendering debug: ' + e.message + '</div>';
+    }
+    el.innerHTML = html;
+  }
+  document.addEventListener('keydown', function(ev){
+    var key = ev.key || '';
+    if(key.toLowerCase() === 'd' && ev.ctrlKey && ev.altKey){
+      debugVisible = !debugVisible;
+      if(!debugVisible && debugEl && debugEl.parentNode){
+        debugEl.parentNode.removeChild(debugEl);
+        debugEl = null;
+      }else if(debugVisible){
+        renderDebug();
+      }
+    }
+  });
+  window._refreshSchedulerDebug = renderDebug;
+})();
+</script>
 </body>
 </html>
