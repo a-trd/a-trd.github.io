@@ -1715,11 +1715,36 @@ function init(){
   var pwd=byId('loginPass'); if(pwd){ pwd.addEventListener('keydown',function(e){ if(e.key==='Enter'){ login(); } }); }
   byId('btnContinueOffline').onclick = function(){ var id=byId('loginStaffSelect').value; if(!id||!App.staff[id]){alert('Select a staff');return;} var s=App.staff[id]; App.currentUser={id:id, name:s.name, role:s.role||'staff', rate:s.rate||0}; enterApp(); startAutoSyncTimers(); };
 
-  byId('btnPull').onclick = function(){ pullData(false).then(function(){alert('Pulled latest.');}).catch(function(e){alert('Pull failed: '+e.message);}); };
-  byId('btnPush').onclick = function(){ if(!canEdit()) return alert('Only manager or admin can push.'); pushData().then(function(){alert('Pushed.');}).catch(function(e){alert('Push failed: '+e.message);}); };
-  var pullTop=byId('btnPullTop'), pushTop=byId('btnPushTop');
-  if(pullTop) pullTop.onclick=function(){ byId('btnPull').onclick(); };
-  if(pushTop) pushTop.onclick=function(){ byId('btnPush').onclick(); };
+  // Manual Pull/Push using splash (no OK popup on success)
+  byId('btnPull').onclick = function(){
+    splashShow('Pulling latest…');
+    pullData(false).then(function(){
+      // success: toast-style splash, auto-fades
+      splashHide('Pulled latest.');
+    }).catch(function(e){
+      // failure: show brief splash + blocking alert so you notice
+      splashHide('Pull failed.');
+      alert('Pull failed: ' + (e && e.message ? e.message : 'Unknown error'));
+    });
+  };
+
+  byId('btnPush').onclick = function(){
+    if (!canEdit()) return alert('Only manager or admin can push.');
+    splashShow('Pushing changes…');
+    pushData().then(function(){
+      splashHide('Pushed.');
+    }).catch(function(e){
+      splashHide('Push failed.');
+      alert('Push failed: ' + (e && e.message ? e.message : 'Unknown error'));
+    });
+  };
+
+  // Top-bar buttons reuse the same handlers
+  var pullTop = byId('btnPullTop'),
+      pushTop = byId('btnPushTop');
+  if (pullTop) pullTop.onclick = byId('btnPull').onclick;
+  if (pushTop) pushTop.onclick = byId('btnPush').onclick;
+
   var logout=byId('btnLogout'); if(logout) logout.onclick=function(){ App.currentUser=null; showLogin(); byId('userChip').textContent=''; startAutoSyncTimers(); };
 
   byId('btnExportJSON').onclick=function(){ if(!isAdmin()) return alert('Admin only.'); var data={settings:App.settings,staff:App.staff,availability:App.availability,weeks:App.weeks,absenceRequests:App.absenceRequests}; var a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'})); a.download='munchandcrun_export.json'; a.click(); };
