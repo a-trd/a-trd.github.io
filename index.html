@@ -15,10 +15,7 @@
       padding: 0;
       height: 100%;
       font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      background:
-        radial-gradient(circle at top left, rgba(94,234,212,.20), transparent 55%),
-        radial-gradient(circle at bottom right, rgba(244,114,182,.20), transparent 55%),
-        var(--bg);
+      background: var(--bg);
       color: var(--fg);
     }
 
@@ -205,8 +202,8 @@
 
     .wrap {
       width: 100%;
-      max-width: none;
-      margin: 0;
+      max-width: 960px;
+      margin: 0 auto;
       padding: 12px 12px 20px;
       flex: 1 1 auto;
     }
@@ -873,70 +870,6 @@
       display: block !important;
     }
 
-    
-    /* ---------- Mobile bottom navigation ---------- */
-    .bottom-nav {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      z-index: 250;
-      display: none;
-      align-items: center;
-      justify-content: space-between;
-      gap: 4px;
-      padding: 6px 8px calc(env(safe-area-inset-bottom, 0px) + 8px);
-      background: linear-gradient(90deg, var(--accent3), var(--accent2), var(--accent));
-      box-shadow: 0 -8px 24px rgba(15,23,42,.60);
-    }
-
-    .bottom-nav button {
-      flex: 1 1 0;
-      border: none;
-      border-radius: var(--radius-pill);
-      padding: 4px 4px 2px;
-      font-size: 11px;
-      font-weight: 700;
-      background: rgba(15,23,42,.16);
-      color: #f9fafb;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 2px;
-      cursor: pointer;
-      white-space: nowrap;
-    }
-
-    .bottom-nav button span.label {
-      font-size: 10px;
-      letter-spacing: .12em;
-      text-transform: uppercase;
-    }
-
-    .bottom-nav button.active {
-      background: #f9fafb;
-      color: #020617;
-      box-shadow: 0 4px 10px rgba(15,23,42,.55);
-    }
-
-    .bottom-nav button:active {
-      transform: translateY(1px) scale(.97);
-    }
-
-    @media (max-width: 768px) {
-      body {
-        padding-bottom: 78px;
-      }
-    }
-
-    @media print {
-      .bottom-nav {
-        display: none !important;
-      }
-    }
-
-
     /* ---------- Responsive ---------- */
 
     @media (max-width: 768px) {
@@ -1510,30 +1443,7 @@
     </div>
   </div>
 
-    <nav id="bottomNav" class="bottom-nav" aria-label="Primary navigation">
-    <button id="bottomMy">
-      <span>🏠</span>
-      <span class="label">My</span>
-    </button>
-    <button id="bottomPlanner">
-      <span>📅</span>
-      <span class="label">Plan</span>
-    </button>
-    <button id="bottomPayroll">
-      <span>💰</span>
-      <span class="label">Pay</span>
-    </button>
-    <button id="bottomAbsences">
-      <span>🌴</span>
-      <span class="label">Away</span>
-    </button>
-    <button id="bottomSettings">
-      <span>⚙️</span>
-      <span class="label">Settings</span>
-    </button>
-  </nav>
-
-<!-- Paste your original JavaScript here without changes.
+  <!-- Paste your original JavaScript here without changes.
        i.e. both <script>...</script> blocks from the original file. -->
 <script>
 (function(){
@@ -1550,7 +1460,7 @@ var App = {
   version: '14.23.3',
   settings: {
     dbUrl:'https://munchandcrun.firebaseio.com', workspace:'munchandcrun', authToken:'',
-    theme:'light', themeName:'light-pastel-sky', recentColors:[], appTitle:'Munch & C Run — Staff Scheduler',
+    theme:'dark', themeName:'dark-classic', recentColors:[], appTitle:'Munch & C Run — Staff Scheduler',
     autoPullMins: 0, autoPushMins: 0,
     // planner
     gridStartHour: 8, gridHours: 16, slotMins: 30, targetHeadcount: 0,
@@ -1723,6 +1633,23 @@ function canModerateAbsences(){ return canEdit(); }
 function splashShow(msg){ var el=byId('splashSync'); if(!el) return; el.style.display='flex'; byId('splashBox').textContent=msg||'Syncing…'; requestAnimationFrame(function(){ el.style.opacity='1'; }); }
 function splashHide(msg){ var el=byId('splashSync'); if(!el) return; if(msg) byId('splashBox').textContent=msg; setTimeout(function(){ el.style.opacity='0'; setTimeout(function(){ el.style.display='none'; },300); }, 600); }
 
+var toastTimer=null;
+function showToast(msg){
+  var el = byId('toastBar');
+  if(!el){
+    el = document.createElement('div');
+    el.id = 'toastBar';
+    el.className = 'toast-bar';
+    document.body.appendChild(el);
+  }
+  el.textContent = msg || '';
+  el.classList.add('show');
+  if(toastTimer){ clearTimeout(toastTimer); }
+  toastTimer = setTimeout(function(){
+    el.classList.remove('show');
+  }, 2200);
+}
+
 var autoPullTimer=null, autoPushTimer=null;
 function startAutoSyncTimers(){
   if(autoPullTimer){ clearInterval(autoPullTimer); autoPullTimer=null; }
@@ -1738,7 +1665,6 @@ function init(){
   loadLocal();
     // Safety: ensure only login is shown until user enters app
     document.querySelectorAll('.section').forEach(s=>s.classList.remove('show'));
-  var __nav = byId('bottomNav'); if(__nav) __nav.style.display='none';
   byId('appTitle').textContent = App.settings.appTitle || 'Munch & C Run — Staff Scheduler';
   initColorRecents();
   initTabs();
@@ -1806,8 +1732,21 @@ function init(){
   var pwd=byId('loginPass'); if(pwd){ pwd.addEventListener('keydown',function(e){ if(e.key==='Enter'){ login(); } }); }
   byId('btnContinueOffline').onclick = function(){ var id=byId('loginStaffSelect').value; if(!id||!App.staff[id]){alert('Select a staff');return;} var s=App.staff[id]; App.currentUser={id:id, name:s.name, role:s.role||'staff', rate:s.rate||0}; enterApp(); startAutoSyncTimers(); };
 
-  byId('btnPull').onclick = function(){ pullData(false).then(function(){alert('Pulled latest.');}).catch(function(e){alert('Pull failed: '+e.message);}); };
-  byId('btnPush').onclick = function(){ if(!canEdit()) return alert('Only manager or admin can push.'); pushData().then(function(){alert('Pushed.');}).catch(function(e){alert('Push failed: '+e.message);}); };
+  byId('btnPull').onclick = function(){
+    pullData(false).then(function(){
+      showToast('Pulled latest');
+    }).catch(function(e){
+      alert('Pull failed: '+e.message);
+    });
+  };
+  byId('btnPush').onclick = function(){
+    if(!canEdit()) return alert('Only manager or admin can push.');
+    pushData().then(function(){
+      showToast('Pushed successfully');
+    }).catch(function(e){
+      alert('Push failed: '+e.message);
+    });
+  };
   var pullTop=byId('btnPullTop'), pushTop=byId('btnPushTop');
   if(pullTop) pullTop.onclick=function(){ byId('btnPull').onclick(); };
   if(pushTop) pushTop.onclick=function(){ byId('btnPush').onclick(); };
@@ -2023,16 +1962,20 @@ function initTabs(){
   byId('tabPayroll').onclick=function(){ showTab('Payroll'); };
   byId('tabSettings').onclick=function(){ showTab('Settings'); };
   byId('tabPrint').onclick=function(){ showTab('Print'); };
-  byId('tabAbsences').onclick=function(){ showTab('Absences'); };
+  byId('tabAbsences').onclick=function(){ showTab('Absences'); renderAbsenceCalendar(); };
 
   var bMy = byId('bottomMy');
   if(bMy) bMy.onclick=function(){ showTab('My'); };
+
   var bPlanner = byId('bottomPlanner');
   if(bPlanner) bPlanner.onclick=function(){ showTab('Planner'); };
+
   var bPayroll = byId('bottomPayroll');
   if(bPayroll) bPayroll.onclick=function(){ showTab('Payroll'); };
+
   var bAbs = byId('bottomAbsences');
   if(bAbs) bAbs.onclick=function(){ showTab('Absences'); };
+
   var bSettings = byId('bottomSettings');
   if(bSettings) bSettings.onclick=function(){ showTab('Settings'); };
 }
@@ -2041,38 +1984,37 @@ function showTab(name){
   if(name==='Settings' && role!=='admin') return;
   if(name==='Payroll' && role!=='admin') return;
 
-  // top tabs
-  var btns=$$('.tabs button');
-  for(var i=0;i<btns.length;i++){ btns[i].classList.remove('active'); }
+  var topBtns=$$('.tabs button');
+  for(var i=0;i<topBtns.length;i++){ topBtns[i].classList.remove('active'); }
   var tab=byId('tab'+name);
   if(tab) tab.classList.add('active');
 
-  // bottom nav
-  var bottomButtons=$$('.bottom-nav button');
-  for(var j=0;j<bottomButtons.length;j++){ bottomButtons[j].classList.remove('active'); }
+  var bottomBtns=$$('.bottom-nav button');
+  for(var j=0;j<bottomBtns.length;j++){ bottomBtns[j].classList.remove('active'); }
   var bottomMap={
     My:'bottomMy',
     Planner:'bottomPlanner',
     Payroll:'bottomPayroll',
     Absences:'bottomAbsences',
-    Settings:'bottomSettings'
+    Settings:'bottomSettings',
+    Print:null
   };
   var bId = bottomMap[name];
   if(bId){
-    var bEl = byId(bId);
-    if(bEl) bEl.classList.add('active');
+    var b = byId(bId);
+    if(b) b.classList.add('active');
   }
 
-  // sections
   var sects=$$('.section, .login');
   for(var k=0;k<sects.length;k++){ sects[k].classList.remove('show'); }
+
   if(name==='My') byId('mySection').classList.add('show');
   if(name==='Planner') byId('plannerSection').classList.add('show');
   if(name==='Payroll') byId('payrollSection').classList.add('show');
   if(name==='Settings') byId('settingsSection').classList.add('show');
   if(name==='Absences'){
     byId('absencesSection').classList.add('show');
-    renderAbsenceCalendar();
+    try{ renderAbsenceCalendar(); }catch(e){}
   }
   if(name==='Print'){
     byId('printSection').classList.add('show');
@@ -2082,7 +2024,6 @@ function showTab(name){
 function renderAfterLogin(){
   var role = App.currentUser ? App.currentUser.role : 'staff';
 
-  // hide all role-gated tabs by default
   byId('tabPlanner').style.display='none';
   byId('tabPayroll').style.display='none';
   byId('tabSettings').style.display='none';
@@ -2098,21 +2039,20 @@ function renderAfterLogin(){
   var uc=byId('userChip');
   if(uc) uc.textContent = App.currentUser ? (App.currentUser.name + ' ('+ (App.currentUser.role||'') +')') : '';
 
-  // bottom-nav visibility + role-based items
   var nav = byId('bottomNav');
   if(nav) nav.style.display='flex';
 
-  var bMy = byId('bottomMy'),
-      bPlanner = byId('bottomPlanner'),
-      bPayroll = byId('bottomPayroll'),
-      bAbs = byId('bottomAbsences'),
-      bSettings = byId('bottomSettings');
+  var bMy = byId('bottomMy');
+  var bPlanner = byId('bottomPlanner');
+  var bPayroll = byId('bottomPayroll');
+  var bSettings = byId('bottomSettings');
+  var bAbs = byId('bottomAbsences');
 
   if(bMy) bMy.style.display='';
   if(bPlanner) bPlanner.style.display='none';
   if(bPayroll) bPayroll.style.display='none';
-  if(bAbs) bAbs.style.display='';
   if(bSettings) bSettings.style.display='none';
+  if(bAbs) bAbs.style.display='';
 
   if(role==='staff'){
     byId('tabPlanner').style.display='inline-block';
