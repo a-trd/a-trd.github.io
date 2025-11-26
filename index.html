@@ -1027,6 +1027,315 @@
       }
     }
   </style>
+
+<style>
+  :root {
+    --bg:#f3f4f6;
+    --fg:#020617;
+    --accent:#2563eb;
+    --accent2:#0ea5e9;
+    --accent3:#22c55e;
+    --card:#ffffff;
+    --muted:#6b7280;
+    --border-subtle:#e5e7eb;
+  }
+
+  html, body {
+    background: var(--bg);
+    color: var(--fg);
+  }
+
+  body {
+    padding: 0;
+  }
+
+  .appbar {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 10px 14px 8px;
+    background: #f9fafb;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .appbar .title {
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+  }
+
+  .tabs {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    overflow-x: auto;
+    padding-bottom: 2px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .tabs button {
+    border: none;
+    padding: 7px 12px;
+    border-radius: 999px;
+    background: #e5edff;
+    color: #1d4ed8;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+
+  .tabs button.active {
+    background: #1d4ed8;
+    color: #ffffff;
+  }
+
+  .tabs #btnPullTop,
+  .tabs #btnPushTop,
+  .tabs #btnLogout,
+  .tabs #btnTheme {
+    margin-left: auto;
+    font-size: 11px;
+  }
+
+  .wrap {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 10px 12px calc(env(safe-area-inset-bottom, 0px) + 80px);
+  }
+
+  .section {
+    margin-bottom: 14px;
+  }
+
+  .card {
+    border-radius: 16px;
+    border: 1px solid var(--border-subtle);
+    background: var(--card);
+    box-shadow: 0 10px 28px rgba(15,23,42,.06);
+    padding: 12px 14px 14px;
+  }
+
+  .card h3 {
+    font-size: 14px;
+    margin-top: 0;
+    margin-bottom: 6px;
+  }
+
+  .card-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+
+  .pill {
+    border-radius: 999px;
+    background: #e5e7eb;
+    color: #111827;
+    font-size: 11px;
+    padding: 3px 10px;
+    font-weight: 600;
+  }
+
+  .pill.highlight {
+    background: #dbeafe;
+    color: #1d4ed8;
+  }
+
+  .grid-2 {
+    display: grid;
+    grid-template-columns: minmax(0,1fr) minmax(0,1fr);
+    gap: 8px;
+  }
+
+  label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--muted);
+  }
+
+  input, select, textarea {
+    font-size: 13px;
+    border-radius: 10px;
+    border: 1px solid var(--border-subtle);
+    padding: 6px 8px;
+  }
+
+  .table-wrapper {
+    border-radius: 14px;
+    border: 1px solid var(--border-subtle);
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .table {
+    min-width: 100%;
+    border-collapse: collapse;
+  }
+
+  .table th,
+  .table td {
+    padding: 6px 8px;
+  }
+
+  .table th {
+    background: #f3f4f6;
+    font-size: 11px;
+  }
+
+  .table td {
+    font-size: 12px;
+  }
+
+  .btn-primary,
+  .btn-good,
+  .btn-outline,
+  .btn-requests {
+    border-radius: 999px;
+    padding-inline: 10px;
+    font-size: 11px;
+    height: 30px;
+  }
+
+  .btn-primary {
+    background: #2563eb;
+    border-color: #2563eb;
+  }
+
+  .btn-good {
+    background: #16a34a;
+    border-color: #16a34a;
+  }
+
+  .btn-outline {
+    background: #ffffff;
+    border-color: var(--border-subtle);
+    color: #111827;
+  }
+
+  .btn-requests {
+    background: #f97316;
+    border-color: #f97316;
+  }
+
+  #loginSection .card {
+    margin-top: 6px;
+  }
+
+  #mySection .card + .card {
+    margin-top: 10px;
+  }
+
+  .metrics-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+    margin-bottom: 6px;
+  }
+
+  /* Bottom navigation re-skin */
+  .bottom-nav {
+    position: fixed;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: 0;
+    right: auto;
+    max-width: 640px;
+    width: 100%;
+    padding: 4px 10px calc(env(safe-area-inset-bottom, 0px) + 8px);
+    background: #f9fafb;
+    border-top: 1px solid var(--border-subtle);
+    box-shadow: 0 -6px 18px rgba(15,23,42,.08);
+    border-radius: 16px 16px 0 0;
+  }
+
+  .bottom-nav button {
+    flex: 1 1 0;
+    border: none;
+    border-radius: 999px;
+    padding: 4px 4px 2px;
+    font-size: 11px;
+    font-weight: 600;
+    background: transparent;
+    color: var(--muted);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+  }
+
+  .bottom-nav button .label {
+    font-size: 10px;
+  }
+
+  .bottom-nav button.active {
+    background: #e5edff;
+    color: #1d4ed8;
+  }
+
+  .bottom-nav button span:first-child {
+    font-size: 16px;
+    line-height: 1.1;
+  }
+
+  /* Small-screen refinements */
+  @media (max-width: 768px) {
+    .wrap {
+      padding-inline: 10px;
+    }
+
+    .tabs #tabPayroll,
+    .tabs #tabPrint,
+    .tabs #tabSettings {
+      display: none;
+    }
+
+    .table th,
+    .table td {
+      padding: 5px 6px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .appbar {
+      padding-inline: 10px;
+    }
+
+    .card {
+      padding: 10px 10px 12px;
+      border-radius: 14px;
+    }
+
+    .card h3 {
+      font-size: 13px;
+    }
+
+    input, select, textarea {
+      font-size: 12px;
+    }
+
+    .btn-primary,
+    .btn-good,
+    .btn-outline,
+    .btn-requests {
+      font-size: 10px;
+      height: 28px;
+    }
+  }
+</style>
+
 </head>
 <body>
 
