@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1"/>
-  <title>Munch & C Run — Staff Scheduler (v14.23.3)</title>
+  <title>PrismShift — Workforce Scheduler (v1.0.0)</title>
   <meta name="theme-color" content="#5A31F4"/>
 
   <style>
@@ -22,27 +22,31 @@
       color: var(--fg);
     }
 
+    
     :root {
-      --bg:#0d0f1a; --fg:#f9fbff; --card:#14182b; --muted:#8aa1b3;
-      --accent:#5A31F4; --accent2:#00D4FF; --accent3:#FF3D71;
-      --good:#22c55e; --warn:#f59e0b; --bad:#ef4444;
-      --grid:#0f1324; --staff:#0f1226; --alt:transparent;
-      --chip:#ffffff55; --border:rgba(255,255,255,.15);
-      --rowH:38px;
-      --input-bg:#0f1324; --input-fg:#f9fbff; --input-border:rgba(255,255,255,.25);
-      --radius-lg:16px;
-      --radius-md:12px;
+      --bg:#020617; --fg:#e5e7eb; --card:#020617; --muted:#9ca3af;
+      --accent:#6366f1; --accent2:#22d3ee; --accent3:#f97316;
+      --good:#22c55e; --warn:#eab308; --bad:#ef4444;
+      --grid:#020617; --staff:#020617; --alt:rgba(15,23,42,.9);
+      --chip:#ffffff22; --border:rgba(148,163,184,.45);
+      --rowH:40px;
+      --input-bg:#020617; --input-fg:#e5e7eb; --input-border:rgba(148,163,184,.7);
+      --radius-lg:20px;
+      --radius-md:14px;
       --radius-pill:999px;
-      --shadow-card:0 12px 30px rgba(0,0,0,.35);
-      --shadow-soft:0 8px 20px rgba(0,0,0,.25);
+      --shadow-card:0 20px 50px rgba(15,23,42,.9);
+      --shadow-soft:0 14px 36px rgba(15,23,42,.8);
     }
 
+
+    
     [data-theme="light"] {
-      --bg:#f7f8fd; --fg:#0a0f1a; --card:#ffffff; --muted:#59677a;
-      --grid:#ffffff; --staff:#fafbff; --alt:transparent;
-      --chip:#00000033; --border:rgba(0,0,0,.15);
-      --input-bg:#ffffff; --input-fg:#0a0f1a; --input-border:rgba(0,0,0,.15);
+      --bg:#f9fafb; --fg:#020617; --card:#ffffff; --muted:#6b7280;
+      --grid:#f9fafb; --staff:#ffffff; --alt:#eff6ff;
+      --chip:#00000022; --border:rgba(148,163,184,.35);
+      --input-bg:#ffffff; --input-fg:#020617; --input-border:rgba(148,163,184,.5);
     }
+
 
     /* ---------- App shell ---------- */
 
@@ -1026,322 +1030,186 @@
         color: #000;
       }
     }
-  </style>
-
-<style>
-  :root {
-    --bg:#f3f4f6;
-    --fg:#020617;
-    --accent:#2563eb;
-    --accent2:#0ea5e9;
-    --accent3:#22c55e;
-    --card:#ffffff;
-    --muted:#6b7280;
-    --border-subtle:#e5e7eb;
-  }
-
-  html, body {
-    background: var(--bg);
-    color: var(--fg);
-  }
-
+  
+  /* === PrismShift — new layout, navigation & cards === */
   body {
-    padding: 0;
+    display: flex;
+    flex-direction: row;
+    min-height: 100vh;
+    background:
+      radial-gradient(circle at 0% 0%, rgba(56,189,248,0.18), transparent 55%),
+      radial-gradient(circle at 100% 100%, rgba(244,114,182,0.18), transparent 55%),
+      var(--bg);
   }
 
   .appbar {
     position: sticky;
     top: 0;
-    z-index: 40;
-    display: flex;
+    align-self: stretch;
+    width: 240px;
+    min-width: 220px;
     flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-    padding: 10px 14px 8px;
-    background: #f9fafb;
-    border-bottom: 1px solid var(--border-subtle);
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: 14px;
+    padding: 18px 14px 18px;
+    background: linear-gradient(180deg, rgba(15,23,42,0.98), rgba(15,23,42,0.96));
+    box-shadow:
+      0 20px 45px rgba(15,23,42,0.96),
+      1px 0 0 rgba(148,163,184,0.45);
+    border-right: 1px solid rgba(15,23,42,0.9);
   }
 
   .appbar .title {
-    font-size: 16px;
-    font-weight: 700;
-    letter-spacing: 0.01em;
+    font-size: 13px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    opacity: 0.9;
+    white-space: normal;
   }
 
   .tabs {
-    width: 100%;
     display: flex;
-    align-items: center;
+    flex-direction: column;
+    align-items: stretch;
     gap: 6px;
-    overflow-x: auto;
-    padding-bottom: 2px;
-    -webkit-overflow-scrolling: touch;
+    padding: 6px 0;
+    overflow: visible;
   }
 
-  .tabs::-webkit-scrollbar {
-    display: none;
+  #userChip {
+    margin-bottom: 2px;
+    border-radius: 999px;
+    background: rgba(15,23,42,0.9);
+    border: 1px solid rgba(148,163,184,0.7);
+    font-size: 11px;
+    padding-block: 6px;
   }
 
   .tabs button {
-    border: none;
-    padding: 7px 12px;
     border-radius: 999px;
-    background: #e5edff;
-    color: #1d4ed8;
-    font-weight: 600;
-    cursor: pointer;
     font-size: 12px;
-    white-space: nowrap;
+    padding: 7px 10px;
+    justify-content: flex-start;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: transparent;
+    color: var(--fg);
+    border: 1px solid transparent;
   }
 
   .tabs button.active {
-    background: #1d4ed8;
-    color: #ffffff;
-  }
-
-  .tabs #btnPullTop,
-  .tabs #btnPushTop,
-  .tabs #btnLogout,
-  .tabs #btnTheme {
-    margin-left: auto;
-    font-size: 11px;
+    background: linear-gradient(135deg, var(--accent2), var(--accent3));
+    color: #0f172a;
+    border-color: transparent;
+    box-shadow: 0 14px 25px rgba(15,23,42,0.9);
   }
 
   .wrap {
-    max-width: 640px;
+    flex: 1 1 auto;
+    max-width: 1160px;
     margin: 0 auto;
-    padding: 10px 12px calc(env(safe-area-inset-bottom, 0px) + 80px);
+    padding: 18px 18px 90px;
   }
 
   .section {
-    margin-bottom: 14px;
+    margin-bottom: 18px;
   }
 
   .card {
-    border-radius: 16px;
-    border: 1px solid var(--border-subtle);
-    background: var(--card);
-    box-shadow: 0 10px 28px rgba(15,23,42,.06);
-    padding: 12px 14px 14px;
+    border-radius: 22px;
+    background:
+      radial-gradient(circle at top left, rgba(56,189,248,0.18), transparent 60%),
+      radial-gradient(circle at bottom right, rgba(244,114,182,0.15), transparent 60%),
+      var(--card);
+    border: 1px solid rgba(148,163,184,0.65);
+    box-shadow: var(--shadow-card);
   }
 
   .card h3 {
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
     font-size: 14px;
-    margin-top: 0;
-    margin-bottom: 6px;
-  }
-
-  .card-header-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-    margin-bottom: 6px;
+    margin-bottom: 8px;
   }
 
   .pill {
     border-radius: 999px;
-    background: #e5e7eb;
-    color: #111827;
-    font-size: 11px;
-    padding: 3px 10px;
-    font-weight: 600;
+    background: rgba(15,23,42,0.96);
+    border: 1px solid rgba(148,163,184,0.6);
   }
 
-  .pill.highlight {
-    background: #dbeafe;
-    color: #1d4ed8;
+  .planner {
+    border-radius: 20px;
+    border-width: 0;
+    box-shadow: inset 0 0 0 1px rgba(15,23,42,0.9);
   }
 
-  .grid-2 {
-    display: grid;
-    grid-template-columns: minmax(0,1fr) minmax(0,1fr);
-    gap: 8px;
+  .grid .header {
+    background: rgba(15,23,42,0.98);
   }
 
-  label {
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--muted);
+  .grid .row .staffcell {
+    background: rgba(15,23,42,0.96);
   }
 
-  input, select, textarea {
-    font-size: 13px;
-    border-radius: 10px;
-    border: 1px solid var(--border-subtle);
-    padding: 6px 8px;
-  }
-
-  .table-wrapper {
-    border-radius: 14px;
-    border: 1px solid var(--border-subtle);
-    overflow: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  .table {
-    min-width: 100%;
-    border-collapse: collapse;
-  }
-
-  .table th,
-  .table td {
-    padding: 6px 8px;
-  }
-
-  .table th {
-    background: #f3f4f6;
-    font-size: 11px;
-  }
-
-  .table td {
-    font-size: 12px;
-  }
-
-  .btn-primary,
-  .btn-good,
-  .btn-outline,
-  .btn-requests {
+  .shift {
     border-radius: 999px;
-    padding-inline: 10px;
-    font-size: 11px;
-    height: 30px;
   }
 
-  .btn-primary {
-    background: #2563eb;
-    border-color: #2563eb;
-  }
-
-  .btn-good {
-    background: #16a34a;
-    border-color: #16a34a;
-  }
-
-  .btn-outline {
-    background: #ffffff;
-    border-color: var(--border-subtle);
-    color: #111827;
-  }
-
-  .btn-requests {
-    background: #f97316;
-    border-color: #f97316;
-  }
-
-  #loginSection .card {
-    margin-top: 6px;
-  }
-
-  #mySection .card + .card {
-    margin-top: 10px;
-  }
-
-  .metrics-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    align-items: center;
-    margin-bottom: 6px;
-  }
-
-  /* Bottom navigation re-skin */
   .bottom-nav {
-    position: fixed;
-    left: 50%;
-    transform: translateX(-50%);
-    bottom: 0;
-    right: auto;
-    max-width: 640px;
-    width: 100%;
-    padding: 4px 10px calc(env(safe-area-inset-bottom, 0px) + 8px);
-    background: #f9fafb;
-    border-top: 1px solid var(--border-subtle);
-    box-shadow: 0 -6px 18px rgba(15,23,42,.08);
-    border-radius: 16px 16px 0 0;
+    background:
+      radial-gradient(circle at 0% 0%, rgba(56,189,248,0.35), transparent 60%),
+      radial-gradient(circle at 100% 0%, rgba(244,114,182,0.35), transparent 60%),
+      rgba(15,23,42,0.98);
+    border-top: 1px solid rgba(15,23,42,0.9);
+    box-shadow: 0 -20px 40px rgba(15,23,42,0.95);
   }
 
   .bottom-nav button {
-    flex: 1 1 0;
-    border: none;
-    border-radius: 999px;
-    padding: 4px 4px 2px;
+    border-radius: 16px;
+    background: rgba(15,23,42,0.6);
     font-size: 11px;
-    font-weight: 600;
-    background: transparent;
-    color: var(--muted);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 2px;
-  }
-
-  .bottom-nav button .label {
-    font-size: 10px;
   }
 
   .bottom-nav button.active {
-    background: #e5edff;
-    color: #1d4ed8;
+    background: #f9fafb;
+    color: #020617;
   }
 
-  .bottom-nav button span:first-child {
-    font-size: 16px;
-    line-height: 1.1;
-  }
-
-  /* Small-screen refinements */
-  @media (max-width: 768px) {
-    .wrap {
-      padding-inline: 10px;
+  @media (max-width: 900px) {
+    body {
+      flex-direction: column;
     }
-
-    .tabs #tabPayroll,
-    .tabs #tabPrint,
-    .tabs #tabSettings {
+    .appbar {
+      position: relative;
+      width: 100%;
+      min-height: 0;
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+      border-right: none;
+      border-bottom: 1px solid rgba(15,23,42,0.9);
+      box-shadow: 0 10px 25px rgba(15,23,42,0.95);
+      padding-inline: 14px;
+    }
+    .tabs {
       display: none;
     }
-
-    .table th,
-    .table td {
-      padding: 5px 6px;
+    .wrap {
+      padding: 14px 12px 90px;
+      max-width: 100%;
     }
   }
 
-  @media (max-width: 480px) {
-    .appbar {
-      padding-inline: 10px;
-    }
-
-    .card {
-      padding: 10px 10px 12px;
-      border-radius: 14px;
-    }
-
-    .card h3 {
-      font-size: 13px;
-    }
-
-    input, select, textarea {
-      font-size: 12px;
-    }
-
-    .btn-primary,
-    .btn-good,
-    .btn-outline,
-    .btn-requests {
-      font-size: 10px;
-      height: 28px;
-    }
-  }
-</style>
-
+  </style>
 </head>
 <body>
 
   <!-- Top app bar + tab strip -->
   <div class="appbar">
-    <div class="title" id="appTitle">Munch & C Run — Staff Scheduler</div>
+    <div class="title" id="appTitle">PrismShift — Workforce Scheduler</div>
     <div class="tabs">
       <div id="userChip" class="pill" style="background:#ffffff22;color:#fff;font-weight:700;"></div>
       <button id="tabMy" class="active">My Shifts</button>
@@ -1395,7 +1263,7 @@
     <!-- My Shifts -->
     <section id="mySection" class="section">
       <div class="card">
-        <h3>My Shifts &amp; Wages (This Week)</h3>
+        <h3>My Schedule &amp; Wages</h3>
         <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
           <span class="pill" id="myHours"></span>
         </div>
@@ -1476,7 +1344,7 @@
     <!-- Print View (multi-week) -->
     <section id="printSection" class="section">
       <div class="card">
-        <h3>Print View (multi‑week)</h3>
+        <h3>Multi‑Week Planner Export</h3>
         <div class="print-controls">
           <div>
             <label>Start Week Offset (0=this week)</label>
@@ -1497,7 +1365,7 @@
     <!-- Absences -->
     <section id="absencesSection" class="section">
       <div class="card">
-        <h3>Absences</h3>
+        <h3>Time Off &amp; Unavailability</h3>
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px;">
           <button id="absPrev" class="btn-outline">←</button>
           <div id="absMonthLabel" class="pill"></div>
@@ -1553,9 +1421,9 @@
       <div class="grid-2">
         <!-- Sync & Connection -->
         <div class="card">
-          <h3>Sync &amp; Connection</h3>
+          <h3>Workspace &amp; Sync</h3>
           <label>App Title</label>
-          <input id="appTitleInput" type="text" value="Munch & C Run — Staff Scheduler">
+          <input id="appTitleInput" type="text" value="PrismShift — Workforce Scheduler">
           <label>Firebase Realtime Database URL</label>
           <input id="dbUrlInput" type="text" value="https://munchandcrun.firebaseio.com">
           <label>Workspace ID</label>
@@ -1714,7 +1582,7 @@
 
       <!-- Admin tools / history -->
       <div class="card">
-        <h3>Admin Tools</h3>
+        <h3>Manager History</h3>
         <div class="muted">Manager/Admin-only tools for reviewing absence approvals and rejections.</div>
         <div class="grid-2" style="margin-top:8px;">
           <div>
@@ -1859,10 +1727,10 @@ var DAY = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 
 // ---------- App state ----------
 var App = {
-  version: '14.23.3',
+  version: '1.0.0',
   settings: {
     dbUrl:'https://munchandcrun.firebaseio.com', workspace:'munchandcrun', authToken:'',
-    theme:'light', themeName:'light-pastel-sky', recentColors:[], appTitle:'Munch & C Run — Staff Scheduler',
+    theme:'light', themeName:'light-pastel-sky', recentColors:[], appTitle:'PrismShift — Workforce Scheduler',
     autoPullMins: 0, autoPushMins: 0,
     // planner
     gridStartHour: 8, gridHours: 16, slotMins: 30, targetHeadcount: 0,
@@ -1871,7 +1739,7 @@ var App = {
   },
   staff:{}, availability:{}, weeks:{}, absenceRequests:{}, absenceHistory:{}, shiftChangeRequests:{},
   currentUser:null,
-  cacheKey:'mc_scheduler_cache_v14_23_3'
+  cacheKey:'prismshift_scheduler_cache_v1_0_0'
 };
 
 // ---------- Themes ----------
@@ -2075,7 +1943,7 @@ function init(){
     // Safety: ensure only login is shown until user enters app
     document.querySelectorAll('.section').forEach(s=>s.classList.remove('show'));
   var __nav = byId('bottomNav'); if(__nav) __nav.style.display='none';
-  byId('appTitle').textContent = App.settings.appTitle || 'Munch & C Run — Staff Scheduler';
+  byId('appTitle').textContent = App.settings.appTitle || 'PrismShift — Workforce Scheduler';
   initColorRecents();
   initTabs();
   initPlanner();
@@ -2089,7 +1957,7 @@ function init(){
   byId('dbUrlInput').value=App.settings.dbUrl;
   byId('workspaceInput').value=App.settings.workspace;
   byId('authTokenInput').value=App.settings.authToken||'';
-  byId('appTitleInput').value=App.settings.appTitle || 'Munch & C Run — Staff Scheduler';
+  byId('appTitleInput').value=App.settings.appTitle || 'PrismShift — Workforce Scheduler';
   byId('autoPullMinsInput').value=App.settings.autoPullMins||0;
   byId('autoPushMinsInput').value=App.settings.autoPushMins||0;
   byId('optStartHour').value=App.settings.gridStartHour;
@@ -2121,7 +1989,7 @@ function init(){
     App.settings.dbUrl=byId('dbUrlInput').value.trim();
     App.settings.workspace=byId('workspaceInput').value.trim();
     App.settings.authToken=(byId('authTokenInput').value||'').trim();
-    App.settings.appTitle=(byId('appTitleInput').value||'Munch & C Run — Staff Scheduler');
+    App.settings.appTitle=(byId('appTitleInput').value||'PrismShift — Workforce Scheduler');
     App.settings.autoPullMins=parseInt(byId('autoPullMinsInput').value||'0',10)||0;
     App.settings.autoPushMins=parseInt(byId('autoPushMinsInput').value||'0',10)||0;
     App.settings.gridStartHour=parseInt(byId('optStartHour').value||'8',10);
@@ -2134,7 +2002,7 @@ function init(){
   };
   byId('btnResetLocal').onclick = function(){ if(!isAdmin()) return alert('Admin only.'); if(confirm('Reset local cache?')){ localStorage.removeItem(App.cacheKey); location.reload(); } };
 
-  byId('btnExportSettings').onclick=function(){ var data={settings:App.settings,staff:App.staff,availability:App.availability,weeks:App.weeks,absenceRequests:App.absenceRequests}; var a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'})); a.download='munchandcrun_export.json'; a.click(); };
+  byId('btnExportSettings').onclick=function(){ var data={settings:App.settings,staff:App.staff,availability:App.availability,weeks:App.weeks,absenceRequests:App.absenceRequests}; var a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'})); a.download='prismshift_export.json'; a.click(); };
   byId('btnImportSettings').onclick=function(){ byId('importSettingsInput').click(); };
   byId('importSettingsInput').onchange=async function(e){ var f=e.target.files[0]; if(!f) return; try{ var d=JSON.parse(await f.text()); if(d.settings){ for(var k in d.settings){ App.settings[k]=d.settings[k]; } } App.staff=d.staff||App.staff; App.availability=d.availability||App.availability; App.weeks=d.weeks||App.weeks; App.absenceRequests=d.absenceRequests||App.absenceRequests; saveLocal(); populateLoginSelects(); populateExistingStaff(); renderAfterLogin(); startAutoSyncTimers(); alert('Imported. Use Push to sync.'); }catch(err){ alert('Invalid JSON'); } };
 
@@ -2166,7 +2034,7 @@ function init(){
   if(pushTop) pushTop.onclick=function(){ byId('btnPush').onclick(); };
   var logout=byId('btnLogout'); if(logout) logout.onclick=function(){ App.currentUser=null; showLogin(); byId('userChip').textContent=''; var nav=byId('bottomNav'); if(nav) nav.style.display='none'; startAutoSyncTimers(); };
 
-  byId('btnExportJSON').onclick=function(){ if(!isAdmin()) return alert('Admin only.'); var data={settings:App.settings,staff:App.staff,availability:App.availability,weeks:App.weeks,absenceRequests:App.absenceRequests}; var a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'})); a.download='munchandcrun_export.json'; a.click(); };
+  byId('btnExportJSON').onclick=function(){ if(!isAdmin()) return alert('Admin only.'); var data={settings:App.settings,staff:App.staff,availability:App.availability,weeks:App.weeks,absenceRequests:App.absenceRequests}; var a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'})); a.download='prismshift_export.json'; a.click(); };
   byId('btnExportCSV').onclick=function(){ if(!isAdmin()) return alert('Admin only.'); exportPayrollCSV(); };
   byId('btnImportJSON').onclick=function(){ if(!isAdmin()) return alert('Admin only.'); byId('importJSONInput').click(); };
   byId('importJSONInput').onchange=async function(e){ if(!isAdmin()) return; var f=e.target.files[0]; if(!f) return; try{ var d=JSON.parse(await f.text()); if(d.settings){ for(var k in d.settings){ App.settings[k]=d.settings[k]; } } App.staff=d.staff||App.staff; App.availability=d.availability||App.availability; App.weeks=d.weeks||App.weeks; App.absenceRequests=d.absenceRequests||App.absenceRequests; saveLocal(); populateLoginSelects(); populateExistingStaff(); renderAfterLogin(); startAutoSyncTimers(); alert('Imported. Use Push to sync.'); }catch(err){ alert('Invalid JSON'); } };
@@ -2525,8 +2393,10 @@ function splitOvertime(staffId, dayIndex, hours, state){
 
 // ---------- My Shifts ----------
 
+
 function renderMyShifts(){
   if(!App.currentUser) return;
+  var now = new Date();
   var start=weekStart(new Date());
   var weekISO=toISO(start);
   var days = DAY.map(function(_,i){ var d=new Date(start); d.setDate(d.getDate()+i); return d; });
@@ -2534,6 +2404,9 @@ function renderMyShifts(){
   var tw=0,tb=0,tp=0,py=0,totOT=0;
   var weekCum=0;
   var tbdy=byId('myWageTable').querySelector('tbody'); tbdy.innerHTML='';
+
+  var nextShift = null;
+  var nextShiftDay = null;
 
   for(var i=0;i<7;i++){
     var dayISO = toISO(days[i]);
@@ -2573,6 +2446,25 @@ function renderMyShifts(){
         var div=document.createElement('div');
         div.textContent = fmtDMY(days[i])+': '+sh.start+'–'+sh.end+(overnight?' (next day)':'')+' ('+workAfterLeave.toFixed(2)+'h worked'+leaveText+', break '+br.toFixed(2)+'h, pay '+fmtMoney(pay)+ (split.ot>0?(' incl OT '+split.ot.toFixed(2)+'h'):'') +')';
         list.appendChild(div);
+
+        // Track the next upcoming shift this week
+        try{
+          var mins = parse12(sh.start);
+          if(!isNaN(mins)){
+            var h = Math.floor(mins/60), mm = mins%60;
+            var shiftStartDate = new Date(days[i].getFullYear(), days[i].getMonth(), days[i].getDate(), h, mm);
+            if(shiftStartDate >= now){
+              if(!nextShift || shiftStartDate < nextShift.startDate){
+                nextShift = {
+                  startDate: shiftStartDate,
+                  start: sh.start,
+                  end: sh.end
+                };
+                nextShiftDay = days[i];
+              }
+            }
+          }
+        }catch(e){}
       }
     });
 
@@ -2588,9 +2480,16 @@ function renderMyShifts(){
   byId('myTotalPayable').textContent=tp.toFixed(2);
   byId('myTotalOT').textContent=totOT.toFixed(2);
   byId('myTotalPay').textContent=fmtMoney(py);
-  byId('myHours').textContent='This week: '+tp.toFixed(2)+' payable hours — '+fmtMoney(py);
-}
 
+  var summary = 'This week: '+tp.toFixed(2)+' payable hours — '+fmtMoney(py);
+  if(nextShift && nextShiftDay){
+    var opts = { weekday:'short', month:'short', day:'numeric' };
+    var when;
+    try{ when = nextShiftDay.toLocaleDateString(undefined, opts); }catch(e){ when = fmtDMY(nextShiftDay); }
+    summary += ' · Next shift: '+when+' '+(nextShift.start||'')+'–'+(nextShift.end||'');
+  }
+  byId('myHours').textContent=summary;
+}
 
 // ---------- Planner ----------
 var Planner = { weekStartISO: toISO(weekStart(new Date())), activeDayIndex:0, editingShift:null };
@@ -2746,7 +2645,18 @@ sc.appendChild(mini);
       var ds=week[String(d)]||{};
       Object.keys(ds).forEach(function(k){ var sh=ds[k]; if(sh.staffId===id) weekH+=hoursBetweenAny(sh.start, sh.end); });
     }
-    badge.textContent=weekH.toFixed(2)+'h wk'; badge.title='Today: '+dayH.toFixed(2)+'h';
+    var otThreshold = parseFloat((st && st.otWeekly) || 0) || 0;
+    if(otThreshold > 0 && weekH > otThreshold){
+      badge.textContent = weekH.toFixed(2)+'h wk · OT';
+      badge.title = 'Today: '+dayH.toFixed(2)+'h · Above weekly OT threshold '+otThreshold.toFixed(1)+'h';
+      badge.style.background = 'linear-gradient(135deg, rgba(248,113,113,.95), rgba(239,68,68,.9))';
+      badge.style.color = '#ffffff';
+    } else {
+      badge.textContent=weekH.toFixed(2)+'h wk';
+      badge.title='Today: '+dayH.toFixed(2)+'h';
+      badge.style.background = '';
+      badge.style.color = '';
+    }
 
     if(canEdit() && isPublished===false){
       wrap.onclick=function(ev){
