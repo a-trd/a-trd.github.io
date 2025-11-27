@@ -548,7 +548,7 @@
 
     .week-overview {
       display: grid;
-      grid-template-columns: 200px repeat(7, minmax(0, 1fr));
+      grid-template-columns: 140px repeat(7, minmax(0, 1fr));
       gap: 6px;
       align-items: center;
       overflow-x: auto;
@@ -975,11 +975,11 @@
       }
 
       .week-overview {
-        grid-template-columns: 160px repeat(7,minmax(0,1fr));
+        grid-template-columns: 120px repeat(7,minmax(0,1fr));
       }
 
       .print-grid {
-        grid-template-columns: 160px repeat(7,minmax(0,1fr));
+        grid-template-columns: 120px repeat(7,minmax(0,1fr));
       }
 
       .requests-strip {
@@ -1318,6 +1318,8 @@
         <div id="weekOverview" class="week-overview" style="margin-bottom:8px;"></div>
 
         <div class="requests-strip">
+          <button id="btnPullPlanner" class="btn-good">⬇ Pull</button>
+          <button id="btnPushPlanner" class="btn-primary">⬆ Push</button>
           <button id="btnRequests" class="btn-requests">
             View requests
             <span id="requestsCountBadge" class="req-badge">0</span>
@@ -2028,6 +2030,10 @@ function init(){
   var pullTop=byId('btnPullTop'), pushTop=byId('btnPushTop');
   if(pullTop) pullTop.onclick=function(){ byId('btnPull').onclick(); };
   if(pushTop) pushTop.onclick=function(){ byId('btnPush').onclick(); };
+  var pullPlanner=byId('btnPullPlanner'), pushPlanner=byId('btnPushPlanner');
+  if(pullPlanner) pullPlanner.onclick=function(){ byId('btnPull').onclick(); };
+  if(pushPlanner) pushPlanner.onclick=function(){ byId('btnPush').onclick(); };
+
   var logout=byId('btnLogout'); if(logout) logout.onclick=function(){ App.currentUser=null; showLogin(); byId('userChip').textContent=''; var nav=byId('bottomNav'); if(nav) nav.style.display='none'; startAutoSyncTimers(); };
 
   byId('btnExportJSON').onclick=function(){ if(!isAdmin()) return alert('Admin only.'); var data={settings:App.settings,staff:App.staff,availability:App.availability,weeks:App.weeks,absenceRequests:App.absenceRequests}; var a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'})); a.download='munchandcrun_export.json'; a.click(); };
