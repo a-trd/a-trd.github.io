@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1"/>
-  <title>PrismShift — Workforce Scheduler (v1.0.0)</title>
+  <title>PrismShift — Workforce Scheduler (v1.0.1)</title>
   <meta name="theme-color" content="#5A31F4"/>
 
   <style>
@@ -552,7 +552,7 @@
 
     .week-overview {
       display: grid;
-      grid-template-columns: 200px repeat(7, minmax(0, 1fr));
+      grid-template-columns: 140px repeat(7, minmax(0, 1fr));
       gap: 6px;
       align-items: center;
       overflow-x: auto;
@@ -704,7 +704,7 @@
 
     .print-grid {
       display: grid;
-      grid-template-columns: 200px repeat(7, minmax(0,1fr));
+      grid-template-columns: 140px repeat(7, minmax(0,1fr));
       gap: 6px;
       align-items: stretch;
       overflow-x: auto;
@@ -979,11 +979,11 @@
       }
 
       .week-overview {
-        grid-template-columns: 160px repeat(7,minmax(0,1fr));
+        grid-template-columns: 120px repeat(7,minmax(0,1fr));
       }
 
       .print-grid {
-        grid-template-columns: 160px repeat(7,minmax(0,1fr));
+        grid-template-columns: 120px repeat(7,minmax(0,1fr));
       }
 
       .requests-strip {
@@ -1031,7 +1031,7 @@
       }
     }
   
-  /* === PrismShift — new layout, navigation & cards === */
+  /* === PrismShift — side-rail layout, colourful cards === */
   body {
     display: flex;
     flex-direction: row;
@@ -1727,7 +1727,7 @@ var DAY = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 
 // ---------- App state ----------
 var App = {
-  version: '1.0.0',
+  version: '1.0.1',
   settings: {
     dbUrl:'https://munchandcrun.firebaseio.com', workspace:'munchandcrun', authToken:'',
     theme:'light', themeName:'light-pastel-sky', recentColors:[], appTitle:'PrismShift — Workforce Scheduler',
@@ -1739,7 +1739,7 @@ var App = {
   },
   staff:{}, availability:{}, weeks:{}, absenceRequests:{}, absenceHistory:{}, shiftChangeRequests:{},
   currentUser:null,
-  cacheKey:'prismshift_scheduler_cache_v1_0_0'
+  cacheKey:'prismshift_scheduler_cache_v1_0_1'
 };
 
 // ---------- Themes ----------
