@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1"/>
-  <title>PrismShift — Workforce Scheduler (v1.0.1)</title>
-  <meta name="theme-color" content="#5A31F4"/>
+  <title>OrbitShift — Mobile Shift Console (v2.0.0)</title>
+  <meta name="theme-color" content="#22c55e"/>
 
   <style>
     /* ---------- Design tokens ---------- */
@@ -22,31 +22,27 @@
       color: var(--fg);
     }
 
-    
     :root {
-      --bg:#020617; --fg:#e5e7eb; --card:#020617; --muted:#9ca3af;
-      --accent:#6366f1; --accent2:#22d3ee; --accent3:#f97316;
-      --good:#22c55e; --warn:#eab308; --bad:#ef4444;
-      --grid:#020617; --staff:#020617; --alt:rgba(15,23,42,.9);
-      --chip:#ffffff22; --border:rgba(148,163,184,.45);
-      --rowH:40px;
-      --input-bg:#020617; --input-fg:#e5e7eb; --input-border:rgba(148,163,184,.7);
-      --radius-lg:20px;
-      --radius-md:14px;
+      --bg:#0d0f1a; --fg:#f9fbff; --card:#14182b; --muted:#8aa1b3;
+      --accent:#5A31F4; --accent2:#00D4FF; --accent3:#FF3D71;
+      --good:#22c55e; --warn:#f59e0b; --bad:#ef4444;
+      --grid:#0f1324; --staff:#0f1226; --alt:transparent;
+      --chip:#ffffff55; --border:rgba(255,255,255,.15);
+      --rowH:38px;
+      --input-bg:#0f1324; --input-fg:#f9fbff; --input-border:rgba(255,255,255,.25);
+      --radius-lg:16px;
+      --radius-md:12px;
       --radius-pill:999px;
-      --shadow-card:0 20px 50px rgba(15,23,42,.9);
-      --shadow-soft:0 14px 36px rgba(15,23,42,.8);
+      --shadow-card:0 12px 30px rgba(0,0,0,.35);
+      --shadow-soft:0 8px 20px rgba(0,0,0,.25);
     }
 
-
-    
     [data-theme="light"] {
-      --bg:#f9fafb; --fg:#020617; --card:#ffffff; --muted:#6b7280;
-      --grid:#f9fafb; --staff:#ffffff; --alt:#eff6ff;
-      --chip:#00000022; --border:rgba(148,163,184,.35);
-      --input-bg:#ffffff; --input-fg:#020617; --input-border:rgba(148,163,184,.5);
+      --bg:#f7f8fd; --fg:#0a0f1a; --card:#ffffff; --muted:#59677a;
+      --grid:#ffffff; --staff:#fafbff; --alt:transparent;
+      --chip:#00000033; --border:rgba(0,0,0,.15);
+      --input-bg:#ffffff; --input-fg:#0a0f1a; --input-border:rgba(0,0,0,.15);
     }
-
 
     /* ---------- App shell ---------- */
 
@@ -552,7 +548,7 @@
 
     .week-overview {
       display: grid;
-      grid-template-columns: 140px repeat(7, minmax(0, 1fr));
+      grid-template-columns: 200px repeat(7, minmax(0, 1fr));
       gap: 6px;
       align-items: center;
       overflow-x: auto;
@@ -704,7 +700,7 @@
 
     .print-grid {
       display: grid;
-      grid-template-columns: 140px repeat(7, minmax(0,1fr));
+      grid-template-columns: 200px repeat(7, minmax(0,1fr));
       gap: 6px;
       align-items: stretch;
       overflow-x: auto;
@@ -979,11 +975,11 @@
       }
 
       .week-overview {
-        grid-template-columns: 120px repeat(7,minmax(0,1fr));
+        grid-template-columns: 160px repeat(7,minmax(0,1fr));
       }
 
       .print-grid {
-        grid-template-columns: 120px repeat(7,minmax(0,1fr));
+        grid-template-columns: 160px repeat(7,minmax(0,1fr));
       }
 
       .requests-strip {
@@ -1030,186 +1026,186 @@
         color: #000;
       }
     }
-  
-  /* === PrismShift — side-rail layout, colourful cards === */
-  body {
-    display: flex;
-    flex-direction: row;
-    min-height: 100vh;
-    background:
-      radial-gradient(circle at 0% 0%, rgba(56,189,248,0.18), transparent 55%),
-      radial-gradient(circle at 100% 100%, rgba(244,114,182,0.18), transparent 55%),
-      var(--bg);
-  }
-
-  .appbar {
-    position: sticky;
-    top: 0;
-    align-self: stretch;
-    width: 240px;
-    min-width: 220px;
-    flex-direction: column;
-    align-items: stretch;
-    justify-content: flex-start;
-    gap: 14px;
-    padding: 18px 14px 18px;
-    background: linear-gradient(180deg, rgba(15,23,42,0.98), rgba(15,23,42,0.96));
-    box-shadow:
-      0 20px 45px rgba(15,23,42,0.96),
-      1px 0 0 rgba(148,163,184,0.45);
-    border-right: 1px solid rgba(15,23,42,0.9);
-  }
-
-  .appbar .title {
-    font-size: 13px;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    opacity: 0.9;
-    white-space: normal;
-  }
-
-  .tabs {
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 6px;
-    padding: 6px 0;
-    overflow: visible;
-  }
-
-  #userChip {
-    margin-bottom: 2px;
-    border-radius: 999px;
-    background: rgba(15,23,42,0.9);
-    border: 1px solid rgba(148,163,184,0.7);
-    font-size: 11px;
-    padding-block: 6px;
-  }
-
-  .tabs button {
-    border-radius: 999px;
-    font-size: 12px;
-    padding: 7px 10px;
-    justify-content: flex-start;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background: transparent;
-    color: var(--fg);
-    border: 1px solid transparent;
-  }
-
-  .tabs button.active {
-    background: linear-gradient(135deg, var(--accent2), var(--accent3));
-    color: #0f172a;
-    border-color: transparent;
-    box-shadow: 0 14px 25px rgba(15,23,42,0.9);
-  }
-
-  .wrap {
-    flex: 1 1 auto;
-    max-width: 1160px;
-    margin: 0 auto;
-    padding: 18px 18px 90px;
-  }
-
-  .section {
-    margin-bottom: 18px;
-  }
-
-  .card {
-    border-radius: 22px;
-    background:
-      radial-gradient(circle at top left, rgba(56,189,248,0.18), transparent 60%),
-      radial-gradient(circle at bottom right, rgba(244,114,182,0.15), transparent 60%),
-      var(--card);
-    border: 1px solid rgba(148,163,184,0.65);
-    box-shadow: var(--shadow-card);
-  }
-
-  .card h3 {
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    font-size: 14px;
-    margin-bottom: 8px;
-  }
-
-  .pill {
-    border-radius: 999px;
-    background: rgba(15,23,42,0.96);
-    border: 1px solid rgba(148,163,184,0.6);
-  }
-
-  .planner {
-    border-radius: 20px;
-    border-width: 0;
-    box-shadow: inset 0 0 0 1px rgba(15,23,42,0.9);
-  }
-
-  .grid .header {
-    background: rgba(15,23,42,0.98);
-  }
-
-  .grid .row .staffcell {
-    background: rgba(15,23,42,0.96);
-  }
-
-  .shift {
-    border-radius: 999px;
-  }
-
-  .bottom-nav {
-    background:
-      radial-gradient(circle at 0% 0%, rgba(56,189,248,0.35), transparent 60%),
-      radial-gradient(circle at 100% 0%, rgba(244,114,182,0.35), transparent 60%),
-      rgba(15,23,42,0.98);
-    border-top: 1px solid rgba(15,23,42,0.9);
-    box-shadow: 0 -20px 40px rgba(15,23,42,0.95);
-  }
-
-  .bottom-nav button {
-    border-radius: 16px;
-    background: rgba(15,23,42,0.6);
-    font-size: 11px;
-  }
-
-  .bottom-nav button.active {
-    background: #f9fafb;
-    color: #020617;
-  }
-
-  @media (max-width: 900px) {
-    body {
-      flex-direction: column;
-    }
-    .appbar {
-      position: relative;
-      width: 100%;
-      min-height: 0;
-      flex-direction: row;
-      align-items: center;
-      justify-content: space-between;
-      border-right: none;
-      border-bottom: 1px solid rgba(15,23,42,0.9);
-      box-shadow: 0 10px 25px rgba(15,23,42,0.95);
-      padding-inline: 14px;
-    }
-    .tabs {
-      display: none;
-    }
-    .wrap {
-      padding: 14px 12px 90px;
-      max-width: 100%;
-    }
-  }
-
   </style>
+
+  <style>
+    /* OrbitShift v2 — card-first, mobile-focused layout */
+    body {
+      background:
+        radial-gradient(circle at 0% -20%, rgba(59,130,246,0.22), transparent 55%),
+        radial-gradient(circle at 120% 120%, rgba(236,72,153,0.24), transparent 55%),
+        linear-gradient(145deg, #020617, #020617 45%, #020617);
+    }
+
+    .appbar {
+      background: rgba(15,23,42,0.96);
+      backdrop-filter: blur(26px);
+      border-radius: 18px;
+      margin: 10px auto 4px;
+      max-width: 960px;
+      padding: 6px 10px;
+      box-shadow: 0 18px 40px rgba(15,23,42,0.85);
+    }
+
+    .appbar .title {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .16em;
+      opacity: .9;
+    }
+
+    .tabs {
+      flex: 1;
+      justify-content: flex-end;
+      gap: 4px;
+    }
+
+    .tabs button {
+      font-size: 11px;
+      padding-inline: 9px;
+      border-radius: 999px;
+    }
+
+    .wrap {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 8px 10px 96px;
+      display: grid;
+      grid-auto-rows: min-content;
+      gap: 12px;
+    }
+
+    .section .card {
+      border-radius: 22px;
+      box-shadow:
+        0 12px 32px rgba(15,23,42,0.7),
+        0 0 0 1px rgba(15,23,42,0.8);
+    }
+
+    /* My Shifts: two-column card on desktop, stacked on mobile */
+    #mySection .card {
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+      column-gap: 14px;
+      row-gap: 10px;
+      align-items: flex-start;
+    }
+
+    #mySection h3 {
+      grid-column: 1 / -1;
+      margin-bottom: 4px;
+    }
+
+    #mySection .pill#myHours {
+      font-size: 11px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    #mySection .table-wrapper {
+      border-radius: 14px;
+      overflow: hidden;
+    }
+
+    #mySection .table {
+      background: rgba(15,23,42,0.9);
+    }
+
+    /* Planner: make the grid feel like a dense board */
+    #plannerSection .card {
+      padding-top: 10px;
+    }
+
+    #plannerSection .toolbar {
+      border-radius: 999px;
+      padding: 4px 6px;
+      background: radial-gradient(circle at 0 0, rgba(56,189,248,0.28), transparent 55%);
+      box-shadow: 0 10px 30px rgba(15,23,42,0.85);
+    }
+
+    .planner {
+      border-radius: 22px;
+      overflow: hidden;
+    }
+
+    .grid .header {
+      background: radial-gradient(circle at 0 0, rgba(15,23,42,0.9), rgba(15,23,42,0.96));
+    }
+
+    .grid .row .staffcell {
+      background: radial-gradient(circle at 0 0, rgba(15,23,42,0.96), rgba(15,23,42,0.92));
+    }
+
+    .rowwrap {
+      cursor: crosshair;
+    }
+
+    .shift {
+      border-radius: 999px;
+      box-shadow: 0 16px 34px rgba(15,23,42,0.9);
+    }
+
+    .shift .label {
+      text-transform: uppercase;
+      letter-spacing: .12em;
+      font-size: 10px;
+    }
+
+    .shift .hours {
+      font-size: 11px;
+    }
+
+    .mini-actions {
+      border-top: 1px dashed rgba(148,163,184,0.4);
+      padding-top: 4px;
+      margin-top: 4px;
+    }
+
+    /* Bottom nav as primary on mobile */
+    .bottom-nav {
+      max-width: 960px;
+      margin: 0 auto;
+      left: 50%;
+      transform: translateX(-50%);
+      border-radius: 18px 18px 0 0;
+    }
+
+    .bottom-nav button {
+      border-radius: 16px;
+    }
+
+    @media (max-width: 768px) {
+      .appbar {
+        border-radius: 0 0 18px 18px;
+        margin-inline: 0;
+      }
+
+      .tabs {
+        display: none;
+      }
+
+      .wrap {
+        padding-inline: 10px;
+        padding-top: 10px;
+      }
+
+      #mySection .card {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      #plannerSection .toolbar {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+      }
+    }
+  </style>
+
 </head>
 <body>
 
   <!-- Top app bar + tab strip -->
   <div class="appbar">
-    <div class="title" id="appTitle">PrismShift — Workforce Scheduler</div>
+    <div class="title" id="appTitle">OrbitShift — Mobile Shift Console</div>
     <div class="tabs">
       <div id="userChip" class="pill" style="background:#ffffff22;color:#fff;font-weight:700;"></div>
       <button id="tabMy" class="active">My Shifts</button>
@@ -1263,7 +1259,7 @@
     <!-- My Shifts -->
     <section id="mySection" class="section">
       <div class="card">
-        <h3>My Schedule &amp; Wages</h3>
+        <h3>My Shifts &amp; Wages (This Week)</h3>
         <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
           <span class="pill" id="myHours"></span>
         </div>
@@ -1344,7 +1340,7 @@
     <!-- Print View (multi-week) -->
     <section id="printSection" class="section">
       <div class="card">
-        <h3>Multi‑Week Planner Export</h3>
+        <h3>Print View (multi‑week)</h3>
         <div class="print-controls">
           <div>
             <label>Start Week Offset (0=this week)</label>
@@ -1365,7 +1361,7 @@
     <!-- Absences -->
     <section id="absencesSection" class="section">
       <div class="card">
-        <h3>Time Off &amp; Unavailability</h3>
+        <h3>Absences</h3>
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px;">
           <button id="absPrev" class="btn-outline">←</button>
           <div id="absMonthLabel" class="pill"></div>
@@ -1421,9 +1417,9 @@
       <div class="grid-2">
         <!-- Sync & Connection -->
         <div class="card">
-          <h3>Workspace &amp; Sync</h3>
+          <h3>Sync &amp; Connection</h3>
           <label>App Title</label>
-          <input id="appTitleInput" type="text" value="PrismShift — Workforce Scheduler">
+          <input id="appTitleInput" type="text" value="OrbitShift — Mobile Shift Console">
           <label>Firebase Realtime Database URL</label>
           <input id="dbUrlInput" type="text" value="https://munchandcrun.firebaseio.com">
           <label>Workspace ID</label>
@@ -1582,7 +1578,7 @@
 
       <!-- Admin tools / history -->
       <div class="card">
-        <h3>Manager History</h3>
+        <h3>Admin Tools</h3>
         <div class="muted">Manager/Admin-only tools for reviewing absence approvals and rejections.</div>
         <div class="grid-2" style="margin-top:8px;">
           <div>
@@ -1727,10 +1723,10 @@ var DAY = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 
 // ---------- App state ----------
 var App = {
-  version: '1.0.1',
+  version: '2.0.0',
   settings: {
     dbUrl:'https://munchandcrun.firebaseio.com', workspace:'munchandcrun', authToken:'',
-    theme:'light', themeName:'light-pastel-sky', recentColors:[], appTitle:'PrismShift — Workforce Scheduler',
+    theme:'light', themeName:'light-pastel-sky', recentColors:[], appTitle:'OrbitShift — Mobile Shift Console',
     autoPullMins: 0, autoPushMins: 0,
     // planner
     gridStartHour: 8, gridHours: 16, slotMins: 30, targetHeadcount: 0,
@@ -1739,7 +1735,7 @@ var App = {
   },
   staff:{}, availability:{}, weeks:{}, absenceRequests:{}, absenceHistory:{}, shiftChangeRequests:{},
   currentUser:null,
-  cacheKey:'prismshift_scheduler_cache_v1_0_1'
+  cacheKey:'mc_scheduler_cache_v14_23_3'
 };
 
 // ---------- Themes ----------
@@ -1943,7 +1939,7 @@ function init(){
     // Safety: ensure only login is shown until user enters app
     document.querySelectorAll('.section').forEach(s=>s.classList.remove('show'));
   var __nav = byId('bottomNav'); if(__nav) __nav.style.display='none';
-  byId('appTitle').textContent = App.settings.appTitle || 'PrismShift — Workforce Scheduler';
+  byId('appTitle').textContent = App.settings.appTitle || 'Munch & C Run — Staff Scheduler';
   initColorRecents();
   initTabs();
   initPlanner();
@@ -1957,7 +1953,7 @@ function init(){
   byId('dbUrlInput').value=App.settings.dbUrl;
   byId('workspaceInput').value=App.settings.workspace;
   byId('authTokenInput').value=App.settings.authToken||'';
-  byId('appTitleInput').value=App.settings.appTitle || 'PrismShift — Workforce Scheduler';
+  byId('appTitleInput').value=App.settings.appTitle || 'Munch & C Run — Staff Scheduler';
   byId('autoPullMinsInput').value=App.settings.autoPullMins||0;
   byId('autoPushMinsInput').value=App.settings.autoPushMins||0;
   byId('optStartHour').value=App.settings.gridStartHour;
@@ -1989,7 +1985,7 @@ function init(){
     App.settings.dbUrl=byId('dbUrlInput').value.trim();
     App.settings.workspace=byId('workspaceInput').value.trim();
     App.settings.authToken=(byId('authTokenInput').value||'').trim();
-    App.settings.appTitle=(byId('appTitleInput').value||'PrismShift — Workforce Scheduler');
+    App.settings.appTitle=(byId('appTitleInput').value||'Munch & C Run — Staff Scheduler');
     App.settings.autoPullMins=parseInt(byId('autoPullMinsInput').value||'0',10)||0;
     App.settings.autoPushMins=parseInt(byId('autoPushMinsInput').value||'0',10)||0;
     App.settings.gridStartHour=parseInt(byId('optStartHour').value||'8',10);
@@ -2002,7 +1998,7 @@ function init(){
   };
   byId('btnResetLocal').onclick = function(){ if(!isAdmin()) return alert('Admin only.'); if(confirm('Reset local cache?')){ localStorage.removeItem(App.cacheKey); location.reload(); } };
 
-  byId('btnExportSettings').onclick=function(){ var data={settings:App.settings,staff:App.staff,availability:App.availability,weeks:App.weeks,absenceRequests:App.absenceRequests}; var a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'})); a.download='prismshift_export.json'; a.click(); };
+  byId('btnExportSettings').onclick=function(){ var data={settings:App.settings,staff:App.staff,availability:App.availability,weeks:App.weeks,absenceRequests:App.absenceRequests}; var a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'})); a.download='munchandcrun_export.json'; a.click(); };
   byId('btnImportSettings').onclick=function(){ byId('importSettingsInput').click(); };
   byId('importSettingsInput').onchange=async function(e){ var f=e.target.files[0]; if(!f) return; try{ var d=JSON.parse(await f.text()); if(d.settings){ for(var k in d.settings){ App.settings[k]=d.settings[k]; } } App.staff=d.staff||App.staff; App.availability=d.availability||App.availability; App.weeks=d.weeks||App.weeks; App.absenceRequests=d.absenceRequests||App.absenceRequests; saveLocal(); populateLoginSelects(); populateExistingStaff(); renderAfterLogin(); startAutoSyncTimers(); alert('Imported. Use Push to sync.'); }catch(err){ alert('Invalid JSON'); } };
 
@@ -2034,7 +2030,7 @@ function init(){
   if(pushTop) pushTop.onclick=function(){ byId('btnPush').onclick(); };
   var logout=byId('btnLogout'); if(logout) logout.onclick=function(){ App.currentUser=null; showLogin(); byId('userChip').textContent=''; var nav=byId('bottomNav'); if(nav) nav.style.display='none'; startAutoSyncTimers(); };
 
-  byId('btnExportJSON').onclick=function(){ if(!isAdmin()) return alert('Admin only.'); var data={settings:App.settings,staff:App.staff,availability:App.availability,weeks:App.weeks,absenceRequests:App.absenceRequests}; var a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'})); a.download='prismshift_export.json'; a.click(); };
+  byId('btnExportJSON').onclick=function(){ if(!isAdmin()) return alert('Admin only.'); var data={settings:App.settings,staff:App.staff,availability:App.availability,weeks:App.weeks,absenceRequests:App.absenceRequests}; var a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'})); a.download='munchandcrun_export.json'; a.click(); };
   byId('btnExportCSV').onclick=function(){ if(!isAdmin()) return alert('Admin only.'); exportPayrollCSV(); };
   byId('btnImportJSON').onclick=function(){ if(!isAdmin()) return alert('Admin only.'); byId('importJSONInput').click(); };
   byId('importJSONInput').onchange=async function(e){ if(!isAdmin()) return; var f=e.target.files[0]; if(!f) return; try{ var d=JSON.parse(await f.text()); if(d.settings){ for(var k in d.settings){ App.settings[k]=d.settings[k]; } } App.staff=d.staff||App.staff; App.availability=d.availability||App.availability; App.weeks=d.weeks||App.weeks; App.absenceRequests=d.absenceRequests||App.absenceRequests; saveLocal(); populateLoginSelects(); populateExistingStaff(); renderAfterLogin(); startAutoSyncTimers(); alert('Imported. Use Push to sync.'); }catch(err){ alert('Invalid JSON'); } };
@@ -2393,10 +2389,8 @@ function splitOvertime(staffId, dayIndex, hours, state){
 
 // ---------- My Shifts ----------
 
-
 function renderMyShifts(){
   if(!App.currentUser) return;
-  var now = new Date();
   var start=weekStart(new Date());
   var weekISO=toISO(start);
   var days = DAY.map(function(_,i){ var d=new Date(start); d.setDate(d.getDate()+i); return d; });
@@ -2404,9 +2398,6 @@ function renderMyShifts(){
   var tw=0,tb=0,tp=0,py=0,totOT=0;
   var weekCum=0;
   var tbdy=byId('myWageTable').querySelector('tbody'); tbdy.innerHTML='';
-
-  var nextShift = null;
-  var nextShiftDay = null;
 
   for(var i=0;i<7;i++){
     var dayISO = toISO(days[i]);
@@ -2446,25 +2437,6 @@ function renderMyShifts(){
         var div=document.createElement('div');
         div.textContent = fmtDMY(days[i])+': '+sh.start+'–'+sh.end+(overnight?' (next day)':'')+' ('+workAfterLeave.toFixed(2)+'h worked'+leaveText+', break '+br.toFixed(2)+'h, pay '+fmtMoney(pay)+ (split.ot>0?(' incl OT '+split.ot.toFixed(2)+'h'):'') +')';
         list.appendChild(div);
-
-        // Track the next upcoming shift this week
-        try{
-          var mins = parse12(sh.start);
-          if(!isNaN(mins)){
-            var h = Math.floor(mins/60), mm = mins%60;
-            var shiftStartDate = new Date(days[i].getFullYear(), days[i].getMonth(), days[i].getDate(), h, mm);
-            if(shiftStartDate >= now){
-              if(!nextShift || shiftStartDate < nextShift.startDate){
-                nextShift = {
-                  startDate: shiftStartDate,
-                  start: sh.start,
-                  end: sh.end
-                };
-                nextShiftDay = days[i];
-              }
-            }
-          }
-        }catch(e){}
       }
     });
 
@@ -2480,16 +2452,9 @@ function renderMyShifts(){
   byId('myTotalPayable').textContent=tp.toFixed(2);
   byId('myTotalOT').textContent=totOT.toFixed(2);
   byId('myTotalPay').textContent=fmtMoney(py);
-
-  var summary = 'This week: '+tp.toFixed(2)+' payable hours — '+fmtMoney(py);
-  if(nextShift && nextShiftDay){
-    var opts = { weekday:'short', month:'short', day:'numeric' };
-    var when;
-    try{ when = nextShiftDay.toLocaleDateString(undefined, opts); }catch(e){ when = fmtDMY(nextShiftDay); }
-    summary += ' · Next shift: '+when+' '+(nextShift.start||'')+'–'+(nextShift.end||'');
-  }
-  byId('myHours').textContent=summary;
+  byId('myHours').textContent='This week: '+tp.toFixed(2)+' payable hours — '+fmtMoney(py);
 }
+
 
 // ---------- Planner ----------
 var Planner = { weekStartISO: toISO(weekStart(new Date())), activeDayIndex:0, editingShift:null };
@@ -2645,18 +2610,7 @@ sc.appendChild(mini);
       var ds=week[String(d)]||{};
       Object.keys(ds).forEach(function(k){ var sh=ds[k]; if(sh.staffId===id) weekH+=hoursBetweenAny(sh.start, sh.end); });
     }
-    var otThreshold = parseFloat((st && st.otWeekly) || 0) || 0;
-    if(otThreshold > 0 && weekH > otThreshold){
-      badge.textContent = weekH.toFixed(2)+'h wk · OT';
-      badge.title = 'Today: '+dayH.toFixed(2)+'h · Above weekly OT threshold '+otThreshold.toFixed(1)+'h';
-      badge.style.background = 'linear-gradient(135deg, rgba(248,113,113,.95), rgba(239,68,68,.9))';
-      badge.style.color = '#ffffff';
-    } else {
-      badge.textContent=weekH.toFixed(2)+'h wk';
-      badge.title='Today: '+dayH.toFixed(2)+'h';
-      badge.style.background = '';
-      badge.style.color = '';
-    }
+    badge.textContent=weekH.toFixed(2)+'h wk'; badge.title='Today: '+dayH.toFixed(2)+'h';
 
     if(canEdit() && isPublished===false){
       wrap.onclick=function(ev){
