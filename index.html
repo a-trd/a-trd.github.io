@@ -1136,6 +1136,15 @@
       background: radial-gradient(circle at 0 0, rgba(15,23,42,0.96), rgba(15,23,42,0.92));
     }
 
+    /* Light theme: use card/staff background so text stays readable */
+    [data-theme="light"] .grid .header {
+      background: var(--card);
+    }
+
+    [data-theme="light"] .grid .row .staffcell {
+      background: var(--staff);
+    }
+
     .rowwrap {
       cursor: crosshair;
     }
@@ -1733,8 +1742,7 @@ var App = {
     // planner
     gridStartHour: 8, gridHours: 16, slotMins: 30, targetHeadcount: 0,
     staffSeeOthers: true,
-    publishedWeeks: {},
-    staffThemes: {}
+    publishedWeeks: {}
   },
   staff:{}, availability:{}, weeks:{}, absenceRequests:{}, absenceHistory:{}, shiftChangeRequests:{},
   currentUser:null,
@@ -1759,25 +1767,15 @@ function applyTheme(name){
   var root = document.documentElement;
   Object.keys(t.vars).forEach(function(k){ root.style.setProperty('--'+k, t.vars[k]); });
   if(t.mode==='light') document.body.setAttribute('data-theme','light'); else document.body.removeAttribute('data-theme');
-  App.settings.theme = t.mode;
-  App.settings.themeName = name;
-  if(App.currentUser && App.currentUser.id){
-    if(!App.settings.staffThemes){ App.settings.staffThemes = {}; }
-    App.settings.staffThemes[App.currentUser.id] = name;
-  }
-  saveLocal();
+  App.settings.theme = t.mode; App.settings.themeName = name; saveLocal();
 }
 function renderThemePicker(){
   var grid=byId('themeGrid'); if(!grid) return;
   grid.innerHTML='';
-  var activeTheme = App.settings.themeName;
-  if(App.currentUser && App.currentUser.id && App.settings.staffThemes && App.settings.staffThemes[App.currentUser.id]){
-    activeTheme = App.settings.staffThemes[App.currentUser.id];
-  }
   Object.keys(THEMES).forEach(function(key){
     var t=THEMES[key];
     var card=document.createElement('div'); card.className='theme-card'; card.dataset.key=key;
-    if(activeTheme===key) card.classList.add('selected');
+    if(App.settings.themeName===key) card.classList.add('selected');
     var sw=document.createElement('div'); sw.className='theme-swatch'; sw.style.background = t.vars.accent;
     var lab=document.createElement('div'); lab.innerHTML = '<div style="font-weight:800">'+key+'</div><div class="muted">'+t.mode+'</div>';
     card.appendChild(sw); card.appendChild(lab);
@@ -1785,6 +1783,7 @@ function renderThemePicker(){
     grid.appendChild(card);
   });
 }
+
 // ---------- Utils ----------
 function pad(n){ n=parseInt(n,10); if(isNaN(n)||n<0)n=0; return (n<10?'0':'')+n; }
 function fmtMoney(n){ return '$'+(n||0).toFixed(2); }
@@ -2137,12 +2136,8 @@ async function login(){
   }else{ ok=true; }
   if(ok){
     App.currentUser={id:id, name:s.name, role:s.role||'staff', rate:s.rate||0};
-    var staffTheme = (App.settings.staffThemes && App.settings.staffThemes[id]) || App.settings.themeName || 'dark-classic';
-    applyTheme(staffTheme);
-    renderThemePicker();
     enterApp();
     startAutoSyncTimers();
-
   } else {
     var m=byId('loginMsg'); if(m) m.textContent='Incorrect passcode.';
   }
