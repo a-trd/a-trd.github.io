@@ -496,6 +496,37 @@
       color: var(--fg);
     }
 
+    /* Day tools: match planner mini-action colors */
+    .daytools-actions .btn-outline.dt-danger {
+      background: linear-gradient(180deg, rgba(239,68,68,.25), rgba(239,68,68,.12));
+      border-color: rgba(239,68,68,.5);
+      color: var(--fg);
+    }
+
+    .daytools-actions .btn-outline.dt-warn {
+      background: linear-gradient(180deg, rgba(245,158,11,.25), rgba(245,158,11,.12));
+      border-color: rgba(245,158,11,.5);
+      color: var(--fg);
+    }
+
+    .daytools-actions .btn-outline.dt-mute {
+      background: linear-gradient(180deg, rgba(0,212,255,.25), rgba(0,212,255,.12));
+      border-color: rgba(0,212,255,.5);
+      color: var(--fg);
+    }
+
+    .daytools-actions .btn-outline.dt-success {
+      background: linear-gradient(180deg, rgba(16,185,129,.25), rgba(16,185,129,.12));
+      border-color: rgba(16,185,129,.5);
+      color: var(--fg);
+    }
+
+    .daytools-actions .btn-outline.dt-info {
+      background: linear-gradient(180deg, rgba(59,130,246,.25), rgba(59,130,246,.12));
+      border-color: rgba(59,130,246,.5);
+      color: var(--fg);
+    }
+
     .daytabs {
       display: flex;
       gap: 6px;
@@ -1686,6 +1717,25 @@
     </div>
   </div>
 
+  <!-- Day tools modal (Week Overview quick actions) -->
+  <div id="dayToolsModal" class="modal" style="z-index:1900;">
+    <div class="panel">
+      <h3 id="dayToolsTitle">Day tools</h3>
+      <div id="dayToolsSubtitle" class="muted" style="margin:4px 0 12px;"></div>
+      <div class="daytools-actions" style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px;">
+        <button id="dtEditShift" class="btn-primary">Edit / Add shift</button>
+        <button id="dtProposeAway" class="btn-outline dt-danger">Propose Away (full day)</button>
+        <button id="dtPartialAway" class="btn-outline dt-warn">Partial Away</button>
+        <button id="dtClearAway" class="btn-outline dt-mute">Clear Away (manager)</button>
+        <button id="dtProposeEdit" class="btn-outline dt-success">Propose Edit</button>
+        <button id="dtInfo" class="btn-outline dt-info">Info for this day</button>
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;">
+        <button id="btnCloseDayTools" class="btn-outline">Close</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Requests modal -->
   <div id="requestsModal" class="modal" style="z-index:2000;">
     <div class="panel">
@@ -1697,20 +1747,7 @@
     </div>
   </div>
 
-  
-  <!-- Week Overview quick actions modal -->
-  <div id="woActionsModal" class="modal">
-    <div class="panel">
-      <h3>Day tools</h3>
-      <div id="woActionsContext" class="muted" style="margin:4px 0 10px;"></div>
-      <div class="mini-actions" id="woActionsButtons" style="margin-bottom:10px;"></div>
-      <div style="display:flex;gap:8px;justify-content:flex-end;">
-        <button id="btnWoActionsClose" class="btn-outline">Close</button>
-      </div>
-    </div>
-  </div>
-
-  <nav id="bottomNav" class="bottom-nav" aria-label="Primary navigation">
+    <nav id="bottomNav" class="bottom-nav" aria-label="Primary navigation">
     <button id="bottomMy">
       <span>🏠</span>
       <span class="label">My</span>
@@ -2080,6 +2117,19 @@ function init(){
   byId('btnCloseShift').onclick=closeShiftModal;
   byId('btnSaveShift').onclick=saveShiftFromModal;
   byId('btnDeleteShift').onclick=deleteShiftFromModal;
+
+  // Day tools modal (week overview quick actions)
+  var dtModal = byId('dayToolsModal');
+  if(dtModal){
+    var _b;
+    _b = byId('btnCloseDayTools'); if(_b) _b.onclick = closeDayTools;
+    _b = byId('dtEditShift'); if(_b) _b.onclick = dayToolsEditShift;
+    _b = byId('dtProposeAway'); if(_b) _b.onclick = dayToolsProposeAway;
+    _b = byId('dtPartialAway'); if(_b) _b.onclick = dayToolsPartialAway;
+    _b = byId('dtClearAway'); if(_b) _b.onclick = dayToolsClearAway;
+    _b = byId('dtProposeEdit'); if(_b) _b.onclick = dayToolsProposeEdit;
+    _b = byId('dtInfo'); if(_b) _b.onclick = dayToolsInfo;
+  }
 
   
   var adminStaffSel = byId('adminHistoryStaffFilter');
@@ -2918,6 +2968,7 @@ function renderWeekOverview(){
   var title=document.createElement('div'); title.className='wo-head wo-title'; title.textContent='Week Overview'; el.appendChild(title);
   for(var d=0; d<7; d++){ var h=document.createElement('div'); h.className='wo-head'; h.textContent=DAY[d]; el.appendChild(h); }
   var week=App.weeks[Planner.weekStartISO]||{};
+  var startDate=fromISO(Planner.weekStartISO);
   Object.keys(App.staff).filter(function(id){ return (App.staff[id].role||'staff')!=='admin'; }).sort(function(a,b){ return (App.staff[a].name||'').localeCompare(App.staff[b].name||''); }).forEach(function(id){
     var s=App.staff[id];
     var nm=document.createElement('div'); nm.className='wo-name';
@@ -2925,133 +2976,123 @@ function renderWeekOverview(){
     var t=document.createElement('div'); t.textContent=s.name; nm.appendChild(t); el.appendChild(nm);
     for(var i=0;i<7;i++){
       var cell=document.createElement('div'); cell.className='wo-cell';
-      var ds=week[String(i)]||{};
-      Object.keys(ds).forEach(function(k){ var sh=ds[k]; if(sh.staffId!==id) return; var chip=document.createElement('div'); chip.className='wo-chip'; var bg=themeAdj(s.color||'#5A31F4'); chip.style.background=bg; chip.style.color=idealText(bg); chip.textContent=(sh.start||'')+'–'+(sh.end||''); chip.dataset.shiftId = k; cell.appendChild(chip); });
       cell.dataset.staffId = id;
-      cell.dataset.dayIndex = i;
-      cell.onclick = function(){
-        if(!canEdit()) return;
-        var sid = this.dataset.staffId;
-        var day = parseInt(this.dataset.dayIndex || '0', 10);
-        openWeekOverviewActions(sid, day);
-      };
+      cell.dataset.dayIndex = String(i);
+      cell.onclick=(function(staffId, dayIndex){
+        return function(ev){
+          ev.stopPropagation();
+          if(!App.currentUser) return;
+          openDayToolsFor(staffId, parseInt(dayIndex,10));
+        };
+      })(id, String(i));
+      var dt=new Date(startDate);
+      dt.setDate(dt.getDate()+i);
+      var iso=toISO(dt);
+      drawAwayOverlays(cell, iso, id);
+      
+      var ds=week[String(i)]||{};
+      Object.keys(ds).forEach(function(k){ var sh=ds[k]; if(sh.staffId!==id) return; var chip=document.createElement('div'); chip.className='wo-chip'; var bg=themeAdj(s.color||'#5A31F4'); chip.style.background=bg; chip.style.color=idealText(bg); chip.textContent=(sh.start||'')+'–'+(sh.end||''); cell.appendChild(chip); });
       el.appendChild(cell);
     }
   });
 }
 
-function openWeekOverviewActions(staffId, dayIndex){
-  if(staffId == null) return;
+// ---------- Week Overview Day Tools ----------
+var DayToolsCtx = {staffId:null, dayIndex:null, iso:null};
+
+function openDayToolsFor(staffId, dayIndex){
   staffId = String(staffId);
-  dayIndex = parseInt(dayIndex || '0', 10);
-  if(dayIndex < 0 || dayIndex > 6) dayIndex = 0;
-
-  if(!Planner || !Planner.weekStartISO){
-    alert('Planner not ready yet.'); return;
+  dayIndex = parseInt(dayIndex||0, 10);
+  if(!App.currentUser){
+    alert('Please log in first.');
+    return;
   }
-
-  var base = fromISO(Planner.weekStartISO);
-  base.setDate(base.getDate() + dayIndex);
-  var iso = toISO(base);
-
-  var staff = App.staff[staffId];
-  var staffName = staff && staff.name ? staff.name : staffId;
-
-  var ctx = byId('woActionsContext');
-  if(ctx){
-    ctx.textContent = staffName + ' — ' + DAY[dayIndex] + ' ' + fmtDMY(base);
+  var modal = byId('dayToolsModal');
+  if(!modal) return;
+  DayToolsCtx.staffId = staffId;
+  DayToolsCtx.dayIndex = dayIndex;
+  var d0 = fromISO(Planner.weekStartISO);
+  d0.setDate(d0.getDate()+dayIndex);
+  DayToolsCtx.iso = toISO(d0);
+  var staff = App.staff[staffId] || {};
+  var name = staff.name || ('Staff ' + staffId);
+  var titleEl = byId('dayToolsTitle');
+  var subEl = byId('dayToolsSubtitle');
+  if(titleEl) titleEl.textContent = 'Day tools';
+  if(subEl){
+    try{
+      subEl.textContent = name + ' — ' + DAY[dayIndex] + ' ' + fmtDMY(d0);
+    }catch(e){
+      subEl.textContent = name;
+    }
   }
-
-  var modal = byId('woActionsModal');
-  var box = byId('woActionsButtons');
-  if(!modal || !box) return;
-
-  box.innerHTML = '';
-
-  function closeModal(){
-    if(modal) modal.style.display = 'none';
-  }
-
-  function addMini(label, cls, handler){
-    var b = document.createElement('button');
-    b.type = 'button';
-    b.className = 'btn-mini ' + (cls || '');
-    b.textContent = label;
-    b.onclick = function(e){
-      e.preventDefault();
-      e.stopPropagation();
-      if(handler) handler();
-    };
-    box.appendChild(b);
-  }
-
-  addMini('Propose Away','danger', function(){
-    proposeAway(iso, staffId);
-  });
-
-  addMini('Partial Away','warn', function(){
-    var rng = prompt('Enter start and end times for partial away as "HH:MM-HH:MM"', '09:00-11:00');
-    if(!rng) return;
-    var parts = String(rng).split('-');
-    if(parts.length < 2){
-      alert('Please enter start and end times, e.g. "09:00-11:00".');
-      return;
-    }
-    var s = (parts[0] || '').trim();
-    var e = (parts[1] || '').trim();
-    if(!s || !e){
-      alert('Please enter start and end times, e.g. "09:00-11:00".');
-      return;
-    }
-    proposePartial(iso, staffId, s, e);
-  });
-
-  addMini('Propose Edit','success', function(){
-    if(window.proposeShiftEdit){
-      window.proposeShiftEdit(iso, staffId);
-    }else{
-      alert('Propose Edit not available.');
-    }
-  });
-
-  addMini('Info','info', function(){
-    if(window.openInfoForCell){
-      window.openInfoForCell(iso, staffId);
-    }else{
-      alert('No extra info available.');
-    }
-  });
-
-  addMini('Edit / Add Shift','mute', function(){
-    var week = App.weeks[Planner.weekStartISO] || {};
-    var day = week[String(dayIndex)] || {};
-    var firstShiftId = null;
-    var keys = Object.keys(day);
-    for(var i=0;i<keys.length;i++){
-      var sid = keys[i];
-      var sh = day[sid];
-      if(sh && String(sh.staffId) === staffId){
-        firstShiftId = sid;
-        break;
-      }
-    }
-    if(firstShiftId){
-      openShiftModal({shiftId:firstShiftId, dayIndex:dayIndex});
-    }else{
-      openShiftModal({staffId:staffId, dayIndex:dayIndex});
-    }
-  });
-
-  var closeBtn = byId('btnWoActionsClose');
-  if(closeBtn){
-    closeBtn.onclick = function(e){
-      e.preventDefault();
-      e.stopPropagation();
-      closeModal();
-    };
-  }
-
   modal.style.display = 'flex';
+}
+
+function closeDayTools(){
+  var modal = byId('dayToolsModal');
+  if(modal) modal.style.display = 'none';
+}
+
+function dayToolsEditShift(){
+  if(!DayToolsCtx || DayToolsCtx.staffId==null) return;
+  var staffId = DayToolsCtx.staffId;
+  var dayIndex = DayToolsCtx.dayIndex || 0;
+  closeDayTools();
+  Planner.activeDayIndex = dayIndex;
+  var week = App.weeks[Planner.weekStartISO] || {};
+  var dayBucket = week[String(dayIndex)] || {};
+  var firstKey = null;
+  Object.keys(dayBucket).some(function(k){
+    var sh = dayBucket[k];
+    if(sh && String(sh.staffId)===String(staffId)){
+      firstKey = k;
+      return true;
+    }
+    return false;
+  });
+  if(firstKey){
+    openShiftModal({shiftId:firstKey, dayIndex:dayIndex});
+  } else {
+    openShiftModal({staffId:staffId, dayIndex:dayIndex});
+  }
+}
+
+function dayToolsProposeAway(){
+  if(!DayToolsCtx || !DayToolsCtx.iso) return;
+  closeDayTools();
+  proposeAway(DayToolsCtx.iso, DayToolsCtx.staffId);
+}
+
+function dayToolsPartialAway(){
+  if(!DayToolsCtx || !DayToolsCtx.iso) return;
+  closeDayTools();
+  var rng = prompt('Enter time range for partial away (e.g. 09:00-12:00)');
+  if(!rng || rng.indexOf('-')<0) return;
+  var p = rng.split('-');
+  proposePartial(DayToolsCtx.iso, DayToolsCtx.staffId, (p[0]||'').trim(), (p[1]||'').trim());
+}
+
+function dayToolsClearAway(){
+  if(!DayToolsCtx || !DayToolsCtx.iso) return;
+  closeDayTools();
+  clearAway(DayToolsCtx.iso, DayToolsCtx.staffId);
+}
+
+function dayToolsProposeEdit(){
+  if(!DayToolsCtx || !DayToolsCtx.iso) return;
+  closeDayTools();
+  if(window.proposeShiftEdit){
+    window.proposeShiftEdit(DayToolsCtx.iso, DayToolsCtx.staffId);
+  }
+}
+
+function dayToolsInfo(){
+  if(!DayToolsCtx || !DayToolsCtx.iso) return;
+  closeDayTools();
+  if(window.openInfoForCell){
+    window.openInfoForCell(DayToolsCtx.iso, DayToolsCtx.staffId);
+  }
 }
 
 function renderAvailabilityBar(){
