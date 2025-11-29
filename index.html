@@ -1136,15 +1136,6 @@
       background: radial-gradient(circle at 0 0, rgba(15,23,42,0.96), rgba(15,23,42,0.92));
     }
 
-    /* Light theme: use card/staff background so text stays readable */
-    [data-theme="light"] .grid .header {
-      background: var(--card);
-    }
-
-    [data-theme="light"] .grid .row .staffcell {
-      background: var(--staff);
-    }
-
     .rowwrap {
       cursor: crosshair;
     }
@@ -1207,7 +1198,16 @@
         overflow-x: auto;
       }
     }
-  </style>
+  
+    /* Light theme planner tweaks to keep staff + header backgrounds light */
+    [data-theme="light"] .grid .header {
+      background: var(--card);
+    }
+
+    [data-theme="light"] .grid .row .staffcell {
+      background: var(--staff);
+    }
+</style>
 
 </head>
 <body>
@@ -1744,7 +1744,7 @@ var App = {
     staffSeeOthers: true,
     publishedWeeks: {}
   },
-  staff:{}, availability:{}, weeks:{}, absenceRequests:{}, absenceHistory:{}, shiftChangeRequests:{},
+  staff:{}, availability:{}, weeks:{}, absenceRequests:{}, absenceHistory:{}, shiftChangeRequests:{}, payrollAdjustments:{}, payrollPaid:{},
   currentUser:null,
   cacheKey:'mc_scheduler_cache_v14_23_3'
 };
@@ -1892,8 +1892,8 @@ function escapeHtml(str){
 }
 
 // ---------- Local Storage ----------
-function saveLocal(){ try{ localStorage.setItem(App.cacheKey, JSON.stringify({settings:App.settings,staff:App.staff,weeks:App.weeks,availability:App.availability,absenceRequests:App.absenceRequests,absenceHistory:App.absenceHistory,shiftChangeRequests:App.shiftChangeRequests,version:App.version})); }catch(e){} }
-function loadLocal(){ try{ var raw=localStorage.getItem(App.cacheKey); if(!raw) return; var d=JSON.parse(raw)||{}; if(d.settings){ for(var k in d.settings){ App.settings[k]=d.settings[k]; } } App.staff=d.staff||App.staff; App.weeks=d.weeks||App.weeks; App.availability=d.availability||App.availability; App.absenceRequests=d.absenceRequests||App.absenceRequests; App.absenceHistory=d.absenceHistory||App.absenceHistory; App.shiftChangeRequests=d.shiftChangeRequests||App.shiftChangeRequests; }catch(e){} }
+function saveLocal(){ try{ localStorage.setItem(App.cacheKey, JSON.stringify({settings:App.settings,staff:App.staff,weeks:App.weeks,availability:App.availability,absenceRequests:App.absenceRequests,absenceHistory:App.absenceHistory,shiftChangeRequests:App.shiftChangeRequests,payrollAdjustments:App.payrollAdjustments,payrollPaid:App.payrollPaid,version:App.version})); }catch(e){} }
+function loadLocal(){ try{ var raw=localStorage.getItem(App.cacheKey); if(!raw) return; var d=JSON.parse(raw)||{}; if(d.settings){ for(var k in d.settings){ App.settings[k]=d.settings[k]; } } App.staff=d.staff||App.staff; App.weeks=d.weeks||App.weeks; App.availability=d.availability||App.availability; App.absenceRequests=d.absenceRequests||App.absenceRequests; App.absenceHistory=d.absenceHistory||App.absenceHistory; App.shiftChangeRequests=d.shiftChangeRequests||App.shiftChangeRequests; App.payrollAdjustments=d.payrollAdjustments||App.payrollAdjustments||{}; App.payrollPaid=d.payrollPaid||App.payrollPaid||{}; }catch(e){} }
 
 // ---------- Firebase REST ----------
 function wsRoot(){ return App.settings.dbUrl.replace(/\/$/,'')+'/'+App.settings.workspace; }
@@ -3452,7 +3452,7 @@ function renderPayroll(){
   var end=new Date(s); end.setDate(end.getDate()+6);
   var ph=byId('plannerPrintHeader'); if(ph) ph.textContent='Week of '+fmtDMY(s)+' – '+fmtDMY(end);
 
-  var aW=0,aB=0,aP=0,aM=0,aOT=0;
+  var aW=0,aB=0,aP=0,aM=0,aOT=0,aAdj=0;
 
   Object.keys(App.staff).sort(function(a,b){
     return (App.staff[a].name||'').localeCompare(App.staff[b].name||'');
@@ -3514,6 +3514,32 @@ function renderPayroll(){
         tr.style.color = lum>150 ? '#020617' : '#f9fafb';
       }catch(e){}
 
+      var weekKey = Planner.weekStartISO;
+      if(!App.payrollAdjustments) App.payrollAdjustments = {};
+      if(!App.payrollPaid) App.payrollPaid = {};
+      var adjBucket = App.payrollAdjustments[weekKey] || {};
+      var paidBucket = App.payrollPaid[weekKey] || {};
+      var adjRec = adjBucket[id] || {amount:0, comment:''};
+      var adjAmt = parseFloat(adjRec.amount||0); if(!isFinite(adjAmt)) adjAmt = 0;
+      var adjComment = adjRec.comment || '';
+      var isPaid = !!paidBucket[id];
+      var finalPay = M + adjAmt;
+
+      var adjHtml = '';
+      if(Math.abs(adjAmt) > 0.0001){
+        var sign = adjAmt>0?'+':'';
+        adjHtml = '<div class="muted small">Adj: '+sign+fmtMoney(adjAmt)+(adjComment?(' — '+escapeHtml(adjComment)):'')+'</div>';
+      }
+
+      var totalCell = ''
+        + '<div>'+fmtMoney(finalPay)+'</div>'
+        + adjHtml
+        + '<button type="button" class="btn-outline payroll-adjust-btn" data-staff="'+escapeHtml(String(id))+'" style="margin-top:4px;">Adjust</button>'
+        + '<label class="muted small" style="display:flex;align-items:center;gap:4px;margin-top:4px;">'
+          + '<input type="checkbox" class="payroll-paid-checkbox" data-staff="'+escapeHtml(String(id))+'"'+(isPaid?' checked':'')+'>'
+          + '<span>Paid</span>'
+        + '</label>';
+
       tr.innerHTML =
         '<td>'+escapeHtml(st.name||'')+'</td>'+
         '<td>'+fmtMoney(st.rate||0)+'</td>'+
@@ -3521,10 +3547,10 @@ function renderPayroll(){
         '<td>'+B.toFixed(2)+'</td>'+
         '<td>'+P.toFixed(2)+'</td>'+
         '<td>'+OT.toFixed(2)+'</td>'+
-        '<td>'+fmtMoney(M)+'</td>';
+        '<td>'+totalCell+'</td>';
 
       tb.appendChild(tr);
-      aW+=W; aB+=B; aP+=P; aM+=M; aOT+=OT;
+      aW+=W; aB+=B; aP+=P; aM+=finalPay; aOT+=OT; aAdj+=adjAmt;
     }
   });
 
@@ -3548,6 +3574,68 @@ function exportPayrollCSV(){
   var csv = rows.map(function(r){ return r.map(function(v){ return '\"'+String(v).replace(/\"/g,'\"\"')+'\"'; }).join(','); }).join('\n');
   var a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'})); a.download='payroll_'+Planner.weekStartISO+'.csv'; a.click();
 }
+
+
+// ---------- Payroll adjustments helpers ----------
+function ensurePayrollStores(){
+  if(!App.payrollAdjustments) App.payrollAdjustments = {};
+  if(!App.payrollPaid) App.payrollPaid = {};
+}
+function setPayrollAdjustment(weekIso, staffId, amount, comment){
+  ensurePayrollStores();
+  weekIso = String(weekIso||'');
+  staffId = String(staffId||'');
+  if(!weekIso || !staffId) return;
+  if(!App.payrollAdjustments[weekIso]) App.payrollAdjustments[weekIso] = {};
+  App.payrollAdjustments[weekIso][staffId] = {amount:amount, comment:comment||''};
+  saveLocal();
+}
+function setPayrollPaid(weekIso, staffId, paid){
+  ensurePayrollStores();
+  weekIso = String(weekIso||'');
+  staffId = String(staffId||'');
+  if(!weekIso || !staffId) return;
+  if(!App.payrollPaid[weekIso]) App.payrollPaid[weekIso] = {};
+  if(paid){ App.payrollPaid[weekIso][staffId] = true; }
+  else { delete App.payrollPaid[weekIso][staffId]; }
+  saveLocal();
+}
+function openPayrollAdjustmentPrompt(staffId){
+  staffId = String(staffId||'');
+  if(!staffId) return;
+  var weekIso = Planner.weekStartISO;
+  ensurePayrollStores();
+  var bucket = App.payrollAdjustments[weekIso] || {};
+  var rec = bucket[staffId] || {amount:0, comment:''};
+  var staff = App.staff[staffId] || {};
+  var currentAmt = parseFloat(rec.amount||0); if(!isFinite(currentAmt)) currentAmt = 0;
+  var amtStr = prompt('Adjustment amount for '+(staff.name||('staff '+staffId))+' this week (use negative for deductions):', currentAmt||0);
+  if(amtStr===null) return;
+  var amt = parseFloat(amtStr);
+  if(!isFinite(amt)) amt = 0;
+  var comment = prompt('Comment / note for this adjustment:', rec.comment||'') || '';
+  setPayrollAdjustment(weekIso, staffId, amt, comment);
+  renderPayroll();
+}
+// Global delegation for payroll controls
+document.addEventListener('click', function(ev){
+  var t = ev.target;
+  if(!t || !t.closest) return;
+  var btn = t.closest('.payroll-adjust-btn');
+  if(btn){
+    var sid = btn.getAttribute('data-staff');
+    openPayrollAdjustmentPrompt(sid);
+  }
+});
+document.addEventListener('change', function(ev){
+  var t = ev.target;
+  if(!t) return;
+  if(t.classList && t.classList.contains('payroll-paid-checkbox')){
+    var sid = t.getAttribute('data-staff');
+    setPayrollPaid(Planner.weekStartISO, sid, !!t.checked);
+  }
+});
+
 
 // ---------- Print View (multi-week) ----------
 function buildPrintView(){
@@ -3620,6 +3708,8 @@ async function pullData(silent){
     App.absenceHistory=data.absenceHistory||App.absenceHistory||{};
     App.weeks=data.weeks||App.weeks;
     App.shiftChangeRequests=data.shiftChangeRequests||App.shiftChangeRequests||{};
+    App.payrollAdjustments=data.payrollAdjustments||App.payrollAdjustments||{};
+    App.payrollPaid=data.payrollPaid||App.payrollPaid||{};
     if(data.settings && data.settings.publishedWeeks) App.settings.publishedWeeks = data.settings.publishedWeeks;
   }
   saveLocal();
@@ -3628,7 +3718,7 @@ async function pullData(silent){
   return true;
 }
 async function pushData(){
-  await dbPatch('', {staff:App.staff, availability:App.availability, absenceRequests:App.absenceRequests||{}, absenceHistory:App.absenceHistory||{}, weeks:App.weeks, shiftChangeRequests:App.shiftChangeRequests||{}, settings:{publishedWeeks:App.settings.publishedWeeks}});
+  await dbPatch('', {staff:App.staff, availability:App.availability, absenceRequests:App.absenceRequests||{}, absenceHistory:App.absenceHistory||{}, weeks:App.weeks, shiftChangeRequests:App.shiftChangeRequests||{}, payrollAdjustments:App.payrollAdjustments||{}, payrollPaid:App.payrollPaid||{}, settings:{publishedWeeks:App.settings.publishedWeeks}});
   return true;
 }
 
