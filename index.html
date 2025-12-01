@@ -1057,18 +1057,7 @@
         color: #000;
       }
     }
-  
-.wo-day-total{
-  font-size:0.45em;
-  opacity:0.75;
-}
-
-.wo-week-total{
-  font-size:0.5em;
-  opacity:0.75;
-}
-
-</style>
+  </style>
 
   <style>
     /* OrbitShift v2 — card-first, mobile-focused layout */
@@ -1432,8 +1421,6 @@
       <div class="card">
         <div class="toolbar" style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:8px;">
           <div class="pill" id="payrollWeekLabel"></div>
-          <button id="btnPayrollPrevWeek" class="btn-outline">← Prev week</button>
-          <button id="btnPayrollNextWeek" class="btn-outline">Next week →</button>
           <button id="btnExportJSON" class="btn-outline">Export JSON</button>
           <button id="btnExportCSV" class="btn-outline">Export CSV</button>
           <input id="importJSONInput" type="file" accept="application/json" style="display:none">
@@ -1829,11 +1816,7 @@ function applyTheme(name){
   var t = THEMES[name] || THEMES['dark-classic'];
   var root = document.documentElement;
   Object.keys(t.vars).forEach(function(k){ root.style.setProperty('--'+k, t.vars[k]); });
-  if(t.mode==='light'){
-    document.body.setAttribute('data-theme','light');
-  }else{
-    document.body.removeAttribute('data-theme');
-  }
+  if(t.mode==='light') document.body.setAttribute('data-theme','light'); else document.body.removeAttribute('data-theme');
   App.settings.theme = t.mode; App.settings.themeName = name; saveLocal();
 }
 function renderThemePicker(){
@@ -2594,7 +2577,6 @@ function renderPlanner(){
   byId('plannerGrid').innerHTML='';
   renderLegend();
   renderWeekOverview();
-  try{ updateWeekOverviewHours(); }catch(e){}
   renderAvailabilityBar();
   renderCoverageBar();
 
@@ -3013,91 +2995,6 @@ function renderWeekOverview(){
       el.appendChild(cell);
     }
   });
-}
-
-
-function updateWeekOverviewHours(){
-  var cont = byId('weekOverview');
-  if(!cont || !App || !App.staff) return;
-  var start = fromISO(Planner.weekStartISO);
-  var week = App.weeks && App.weeks[Planner.weekStartISO] ? App.weeks[Planner.weekStartISO] : {};
-
-  // compute per-day + per-week hours
-  var totalsByStaff = {};
-
-  var cells = cont.querySelectorAll('.wo-cell');
-  for(var i=0;i<cells.length;i++){
-    var cell = cells[i];
-    var sid = cell.dataset && cell.dataset.staffId;
-    var dayIndexStr = cell.dataset && cell.dataset.dayIndex;
-    if(!sid || dayIndexStr==null) continue;
-    var dayIndex = parseInt(dayIndexStr,10); if(!isFinite(dayIndex)) continue;
-    var st = App.staff[sid]; if(!st) continue;
-
-    var d = new Date(start.getTime());
-    d.setDate(d.getDate()+dayIndex);
-    var iso = toISO(d);
-
-    var ds = (week && week[String(dayIndex)]) ? week[String(dayIndex)] : {};
-    var dayHours = 0;
-    Object.keys(ds).forEach(function(k){
-      var sh = ds[k];
-      if(!sh || String(sh.staffId)!==String(sid)) return;
-      var dur = hoursBetweenAny(sh.start, sh.end);
-      var brM = (breakMinutesForShift(sh, st) || 0) / 60;
-      if(brM > dur) brM = dur;
-      var payH = Math.max(0, dur - brM);
-      dayHours += payH;
-    });
-
-    // append per-day total to the first shift chip instead of a separate row
-    if(dayHours > 0.0001){
-      var chip = cell.querySelector('.wo-chip');
-      if(chip){
-        // avoid duplicating if already appended
-        var txt = chip.textContent || '';
-        if(txt.indexOf('(') === -1){
-          chip.textContent = txt + ' (' + dayHours.toFixed(1) + 'h)';
-        }
-      }
-      if(!totalsByStaff[sid]) totalsByStaff[sid] = 0;
-      totalsByStaff[sid] += dayHours;
-    }
-  }
-
-  // Update staff name labels with weekly total e.g. "Name (32.0h wk)"
-  var staffIds = Object.keys(App.staff || {}).sort(function(a,b){
-    var an = (App.staff[a] && App.staff[a].name) || '';
-    var bn = (App.staff[b] && App.staff[b].name) || '';
-    return an.localeCompare(bn);
-  });
-  var names = cont.querySelectorAll('.wo-name');
-  for(var j=0;j<names.length && j<staffIds.length;j++){
-    var sid2 = staffIds[j];
-    var nm = names[j];
-    var st2 = App.staff[sid2] || {};
-    var baseName = st2.name || '';
-    var wkH = totalsByStaff[sid2] || 0;
-
-    // try to update second inner div (after color dot)
-    var txt = null;
-    var divs = nm.getElementsByTagName('div');
-    if(divs.length > 1){
-      txt = divs[1];
-    }else{
-      txt = nm;
-    }
-    // clear existing
-    while (txt.firstChild) txt.removeChild(txt.firstChild);
-    // base name
-    txt.appendChild(document.createTextNode(baseName));
-    if(wkH > 0.0001){
-      var span = document.createElement('span');
-      span.className = 'wo-week-total';
-      span.textContent = ' ('+wkH.toFixed(1)+'h wk)';
-      txt.appendChild(span);
-    }
-  }
 }
 
 // ---------- Week Overview Day Tools ----------
