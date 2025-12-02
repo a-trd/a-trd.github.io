@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1"/>
-  <title>OrbitShift — Mobile Shift Console (v2.0.0)</title>
+  <title>M&C-ATRD-scheduler --=Aspire Group=-- (v2.0.0)</title>
   <meta name="theme-color" content="#22c55e"/>
 
   <style>
@@ -71,6 +71,24 @@
       font-weight: 800;
       letter-spacing: .3px;
       font-size: 16px;
+
+    .appbar-brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    #appLogoBox {
+      width: 20px;
+      height: 20px;
+      border-radius: 4px;
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      flex-shrink: 0;
+      display: none;
+    }
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -1256,7 +1274,10 @@
 
   <!-- Top app bar + tab strip -->
   <div class="appbar">
-    <div class="title" id="appTitle">OrbitShift — Mobile Shift Console</div>
+    <div class="appbar-brand">
+      <div id="appLogoBox"></div>
+      <div class="title" id="appTitle">M&C-ATRD-scheduler --=Aspire Group=--</div>
+    </div>
     <div class="tabs">
       <div id="userChip" class="pill" style="background:#ffffff22;color:#fff;font-weight:700;"></div>
       <button id="tabMy" class="active">My Shifts</button>
@@ -1474,7 +1495,9 @@
         <div class="card">
           <h3>Sync &amp; Connection</h3>
           <label>App Title</label>
-          <input id="appTitleInput" type="text" value="OrbitShift — Mobile Shift Console">
+          <input id="appTitleInput" type="text" value="M&C-ATRD-scheduler --=Aspire Group=--">
+          <label>Logo URL (optional)</label>
+          <input id="logoUrlInput" type="text" placeholder="https://example.com/logo.png">
           <label>Firebase Realtime Database URL</label>
           <input id="dbUrlInput" type="text" value="https://munchandcrun.firebaseio.com">
           <label>Workspace ID</label>
@@ -1808,7 +1831,7 @@ var App = {
   version: '2.0.0',
   settings: {
     dbUrl:'https://munchandcrun.firebaseio.com', workspace:'munchandcrun', authToken:'',
-    theme:'light', themeName:'light-pastel-sky', recentColors:[], appTitle:'OrbitShift — Mobile Shift Console',
+    theme:'light', themeName:'light-pastel-sky', recentColors:[], appTitle:'M&C-ATRD-scheduler --=Aspire Group=--', logoUrl:'',
     autoPullMins: 0, autoPushMins: 0,
     // planner
     gridStartHour: 8, gridHours: 16, slotMins: 30, targetHeadcount: 0,
@@ -2025,7 +2048,8 @@ function init(){
     // Safety: ensure only login is shown until user enters app
     document.querySelectorAll('.section').forEach(s=>s.classList.remove('show'));
   var __nav = byId('bottomNav'); if(__nav) __nav.style.display='none';
-  byId('appTitle').textContent = App.settings.appTitle || 'Munch & C Run — Staff Scheduler';
+  var __appTitleEl = byId('appTitle'); if(__appTitleEl) __appTitleEl.textContent = App.settings.appTitle || 'M&C-ATRD-scheduler --=Aspire Group=--';
+  var __logoBoxInit = byId('appLogoBox'); if(__logoBoxInit){ var __lu=App.settings.logoUrl||''; if(__lu){ __logoBoxInit.style.display='inline-block'; __logoBoxInit.style.backgroundImage='url("'+__lu+'")'; } else { __logoBoxInit.style.display='none'; __logoBoxInit.style.backgroundImage='none'; } }
   initColorRecents();
   initTabs();
   initPlanner();
@@ -2039,7 +2063,8 @@ function init(){
   byId('dbUrlInput').value=App.settings.dbUrl;
   byId('workspaceInput').value=App.settings.workspace;
   byId('authTokenInput').value=App.settings.authToken||'';
-  byId('appTitleInput').value=App.settings.appTitle || 'Munch & C Run — Staff Scheduler';
+  byId('appTitleInput').value=App.settings.appTitle || 'M&C-ATRD-scheduler --=Aspire Group=--';
+  if(byId('logoUrlInput')) byId('logoUrlInput').value = App.settings.logoUrl || '';
   byId('autoPullMinsInput').value=App.settings.autoPullMins||0;
   byId('autoPushMinsInput').value=App.settings.autoPushMins||0;
   byId('optStartHour').value=App.settings.gridStartHour;
@@ -2071,7 +2096,8 @@ function init(){
     App.settings.dbUrl=byId('dbUrlInput').value.trim();
     App.settings.workspace=byId('workspaceInput').value.trim();
     App.settings.authToken=(byId('authTokenInput').value||'').trim();
-    App.settings.appTitle=(byId('appTitleInput').value||'Munch & C Run — Staff Scheduler');
+    App.settings.appTitle=(byId('appTitleInput').value||'M&C-ATRD-scheduler --=Aspire Group=--');
+    App.settings.logoUrl=(byId('logoUrlInput') && byId('logoUrlInput').value||'').trim();
     App.settings.autoPullMins=parseInt(byId('autoPullMinsInput').value||'0',10)||0;
     App.settings.autoPushMins=parseInt(byId('autoPushMinsInput').value||'0',10)||0;
     App.settings.gridStartHour=parseInt(byId('optStartHour').value||'8',10);
@@ -2079,7 +2105,8 @@ function init(){
     App.settings.slotMins=parseInt(byId('optSlotMins').value||'30',10);
     App.settings.targetHeadcount=parseInt(byId('optTargetHeadcount').value||'0',10);
     App.settings.staffSeeOthers = (byId('optStaffSeeOthers').value==='true');
-    document.querySelector('.appbar .title').textContent=App.settings.appTitle;
+    var __titleEl=document.querySelector('.appbar .title'); if(__titleEl) __titleEl.textContent=App.settings.appTitle;
+    var __logoBox=byId('appLogoBox'); if(__logoBox){ var __u=App.settings.logoUrl||''; if(__u){ __logoBox.style.display='inline-block'; __logoBox.style.backgroundImage='url("'+__u+'")'; } else { __logoBox.style.display='none'; __logoBox.style.backgroundImage='none'; } }
     saveLocal(); startAutoSyncTimers(); renderPlanner(); alert('Saved.');
   };
   byId('btnResetLocal').onclick = function(){ if(!isAdmin()) return alert('Admin only.'); if(confirm('Reset local cache?')){ localStorage.removeItem(App.cacheKey); location.reload(); } };
@@ -4023,15 +4050,38 @@ async function pullData(silent){
     App.shiftChangeRequests=data.shiftChangeRequests||App.shiftChangeRequests||{};
     App.payrollAdjustments=data.payrollAdjustments||App.payrollAdjustments||{};
     App.payrollPaid=data.payrollPaid||App.payrollPaid||{};
-    if(data.settings && data.settings.publishedWeeks) App.settings.publishedWeeks = data.settings.publishedWeeks;
+    if(data.settings){
+      for(var k in data.settings){
+        if(k==='dbUrl' || k==='workspace' || k==='authToken') continue;
+        App.settings[k]=data.settings[k];
+      }
+    }
   }
   saveLocal();
   if(typeof updateRequestsBadge==='function') updateRequestsBadge();
   if(!silent){ populateLoginSelects(); populateExistingStaff(); }
+  var __title=document.getElementById('appTitle');
+  if(__title) __title.textContent = App.settings.appTitle || 'M&C-ATRD-scheduler --=Aspire Group=--';
+  var __logo=document.getElementById('appLogoBox');
+  if(__logo){
+    var __lu2=App.settings.logoUrl||'';
+    if(__lu2){
+      __logo.style.display='inline-block';
+      __logo.style.backgroundImage='url("'+__lu2+'")';
+    }else{
+      __logo.style.display='none';
+      __logo.style.backgroundImage='none';
+    }
+  }
+  if(typeof applyTheme==='function' && App.settings.themeName){
+    applyTheme(App.settings.themeName);
+    if(typeof renderThemePicker==='function') renderThemePicker();
+  }
   return true;
 }
+
 async function pushData(){
-  await dbPatch('', {staff:App.staff, availability:App.availability, absenceRequests:App.absenceRequests||{}, absenceHistory:App.absenceHistory||{}, weeks:App.weeks, shiftChangeRequests:App.shiftChangeRequests||{}, payrollAdjustments:App.payrollAdjustments||{}, payrollPaid:App.payrollPaid||{}, settings:{publishedWeeks:App.settings.publishedWeeks}});
+  await dbPatch('', {staff:App.staff, availability:App.availability, absenceRequests:App.absenceRequests||{}, absenceHistory:App.absenceHistory||{}, weeks:App.weeks, shiftChangeRequests:App.shiftChangeRequests||{}, payrollAdjustments:App.payrollAdjustments||{}, payrollPaid:App.payrollPaid||{}, settings:{theme:App.settings.theme,themeName:App.settings.themeName,recentColors:App.settings.recentColors,appTitle:App.settings.appTitle,logoUrl:App.settings.logoUrl||'',gridStartHour:App.settings.gridStartHour,gridHours:App.settings.gridHours,slotMins:App.settings.slotMins,targetHeadcount:App.settings.targetHeadcount,staffSeeOthers:App.settings.staffSeeOthers,publishedWeeks:App.settings.publishedWeeks}});
   return true;
 }
 
