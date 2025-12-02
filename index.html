@@ -1057,7 +1057,18 @@
         color: #000;
       }
     }
-  </style>
+  
+.wo-day-total{
+  font-size:0.45em;
+  opacity:0.75;
+}
+
+.wo-week-total{
+  font-size:0.5em;
+  opacity:0.75;
+}
+
+</style>
 
   <style>
     /* OrbitShift v2 — card-first, mobile-focused layout */
@@ -1421,6 +1432,8 @@
       <div class="card">
         <div class="toolbar" style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:8px;">
           <div class="pill" id="payrollWeekLabel"></div>
+          <button id="btnPayrollPrevWeek" class="btn-outline">← Prev week</button>
+          <button id="btnPayrollNextWeek" class="btn-outline">Next week →</button>
           <button id="btnExportJSON" class="btn-outline">Export JSON</button>
           <button id="btnExportCSV" class="btn-outline">Export CSV</button>
           <input id="importJSONInput" type="file" accept="application/json" style="display:none">
@@ -1547,6 +1560,14 @@
                 <option value="manager">Manager</option>
                 <option value="admin">Admin</option>
               </select>
+            </div>
+          </div>
+          <div class="grid-2">
+            <div>
+              <label><input id="staffHiddenInput" type="checkbox"> Hidden (no roster / payroll)</label>
+              <div class="muted" style="font-size:12px;margin-top:2px;">
+                Can log in but will not appear in Planner, Print view or Payroll.
+              </div>
             </div>
           </div>
           <div>
@@ -1816,7 +1837,11 @@ function applyTheme(name){
   var t = THEMES[name] || THEMES['dark-classic'];
   var root = document.documentElement;
   Object.keys(t.vars).forEach(function(k){ root.style.setProperty('--'+k, t.vars[k]); });
-  if(t.mode==='light') document.body.setAttribute('data-theme','light'); else document.body.removeAttribute('data-theme');
+  if(t.mode==='light'){
+    document.body.setAttribute('data-theme','light');
+  }else{
+    document.body.removeAttribute('data-theme');
+  }
   App.settings.theme = t.mode; App.settings.themeName = name; saveLocal();
 }
 function renderThemePicker(){
@@ -2102,6 +2127,8 @@ function init(){
 
   byId('btnPrevWeek').onclick=function(){ shiftWeek(-1); };
   byId('btnNextWeek').onclick=function(){ shiftWeek(1); };
+  byId('btnPayrollPrevWeek').onclick=function(){ shiftWeek(-1); };
+  byId('btnPayrollNextWeek').onclick=function(){ shiftWeek(1); };
   byId('btnCopyDay').onclick=function(){ if(!canEdit()) return alert('Manager/Admin only.'); copyDayToNext(); };
   byId('btnCopyWeek').onclick=function(){ if(!canEdit()) return alert('Manager/Admin only.'); copyWeekToNext(); };
   byId('btnRecurring').onclick=function(){ if(!canEdit()) return alert('Manager/Admin only.'); openShiftModal({repeatOpen:true}); };
@@ -2577,6 +2604,7 @@ function renderPlanner(){
   byId('plannerGrid').innerHTML='';
   renderLegend();
   renderWeekOverview();
+  try{ updateWeekOverviewHours(); }catch(e){}
   renderAvailabilityBar();
   renderCoverageBar();
 
@@ -2593,7 +2621,10 @@ function renderPlanner(){
 
   // rows
   var entries=Object.keys(App.staff).map(function(id){ return [id, App.staff[id]]; })
-    .filter(function(x){ return (x[1].role||'staff')!=='admin'; })
+    .filter(function(x){
+      var st = x[1] || {};
+      return (st.role||'staff')!=='admin' && !st.hidden;
+    })
     .sort(function(a,b){ return (a[1].name||'').localeCompare(b[1].name||''); });
 
   var dayKey=String(Planner.activeDayIndex);
@@ -2743,7 +2774,10 @@ function openShiftModal(opts){
   var chks=$$('#daysThisWeek input[type=checkbox]'); for(var ci=0;ci<chks.length;ci++){ chks[ci].checked=false; }
 
   var selS=byId('shiftStaff'); selS.innerHTML='';
-  Object.keys(App.staff).map(function(id){ return [id,App.staff[id]]; }).filter(function(p){ return (p[1].role||'staff')!=='admin'; }).sort(function(a,b){ return (a[1].name||'').localeCompare(b[1].name||''); }).forEach(function(p){ var id=p[0], s=p[1]; var o=document.createElement('option'); o.value=id; o.textContent=s.name; selS.appendChild(o); });
+  Object.keys(App.staff).map(function(id){ return [id,App.staff[id]]; }).filter(function(p){
+    var st = p[1] || {};
+    return (st.role||'staff')!=='admin' && !st.hidden;
+  }).sort(function(a,b){ return (a[1].name||'').localeCompare(b[1].name||''); }).forEach(function(p){ var id=p[0], s=p[1]; var o=document.createElement('option'); o.value=id; o.textContent=s.name; selS.appendChild(o); });
   var selD=byId('shiftDay'); selD.innerHTML=''; DAY.forEach(function(n,i){ var o=document.createElement('option'); o.value=i; o.textContent=n; selD.appendChild(o); });
 
   
@@ -2914,6 +2948,8 @@ async function onSaveStaff(){
   var pick=byId('colorPicker');
   var color=byId('staffNameInput').dataset.color || (pick?pick.value:'#5A31F4');
   var pass=byId('staffPassInput').value||'';
+  var hiddenEl = byId('staffHiddenInput');
+  var hidden = !!(hiddenEl && hiddenEl.checked);
   if(!name){ alert('Enter name'); return; }
   var passHash='';
   if(pass){
@@ -2922,7 +2958,7 @@ async function onSaveStaff(){
     passHash = selectedId ? ((App.staff[selectedId]&&App.staff[selectedId].passHash)||'') : '';
   }
   var id = selectedId || uid();
-  App.staff[id]={name:name,rate:rate,rateWeekend:rateWeekend,ratePenalty:ratePenalty,otMult:otMult,otWeekly:otWeekly,otDaily:otDaily,breakDefault:br,role:role,color:color,passHash:passHash};
+  App.staff[id]={name:name,rate:rate,rateWeekend:rateWeekend,ratePenalty:ratePenalty,otMult:otMult,otWeekly:otWeekly,otDaily:otDaily,breakDefault:br,role:role,color:color,hidden:hidden,passHash:passHash};
   App.settings.recentColors=[color].concat((App.settings.recentColors||[]).filter(function(c){return c!==color;})).slice(0,12);
   saveLocal(); populateLoginSelects(); populateExistingStaff(); alert('Saved staff.');
 }
@@ -2946,6 +2982,8 @@ function loadStaffIntoForm(){
   byId('staffRoleInput').value=s.role||'staff';
   byId('colorPicker').value=s.color||'#5A31F4';
   byId('staffNameInput').dataset.color = s.color||'#5A31F4';
+  var hiddenEl = byId('staffHiddenInput');
+  if(hiddenEl) hiddenEl.checked = !!s.hidden;
 }
 function clearStaffForm(){
   byId('staffNameInput').value='';
@@ -2959,6 +2997,8 @@ function clearStaffForm(){
   byId('staffRoleInput').value='staff';
   byId('colorPicker').value='#5A31F4';
   byId('staffNameInput').dataset.color='#5A31F4';
+  var hiddenEl = byId('staffHiddenInput');
+  if(hiddenEl) hiddenEl.checked = false;
 }
 
 // ---------- Legend/Overview/Availability ----------
@@ -2969,7 +3009,10 @@ function renderWeekOverview(){
   for(var d=0; d<7; d++){ var h=document.createElement('div'); h.className='wo-head'; h.textContent=DAY[d]; el.appendChild(h); }
   var week=App.weeks[Planner.weekStartISO]||{};
   var startDate=fromISO(Planner.weekStartISO);
-  Object.keys(App.staff).filter(function(id){ return (App.staff[id].role||'staff')!=='admin'; }).sort(function(a,b){ return (App.staff[a].name||'').localeCompare(App.staff[b].name||''); }).forEach(function(id){
+  Object.keys(App.staff).filter(function(id){
+    var s = App.staff[id] || {};
+    return (s.role||'staff')!=='admin' && !s.hidden;
+  }).sort(function(a,b){ return (App.staff[a].name||'').localeCompare(App.staff[b].name||''); }).forEach(function(id){
     var s=App.staff[id];
     var nm=document.createElement('div'); nm.className='wo-name';
     var dot=document.createElement('div'); dot.style.width='10px'; dot.style.height='10px'; dot.style.borderRadius='50%'; dot.style.background=s.color||'#5A31F4'; nm.appendChild(dot);
@@ -2995,6 +3038,94 @@ function renderWeekOverview(){
       el.appendChild(cell);
     }
   });
+}
+
+
+function updateWeekOverviewHours(){
+  var cont = byId('weekOverview');
+  if(!cont || !App || !App.staff) return;
+  var start = fromISO(Planner.weekStartISO);
+  var week = App.weeks && App.weeks[Planner.weekStartISO] ? App.weeks[Planner.weekStartISO] : {};
+
+  // compute per-day + per-week hours
+  var totalsByStaff = {};
+
+  var cells = cont.querySelectorAll('.wo-cell');
+  for(var i=0;i<cells.length;i++){
+    var cell = cells[i];
+    var sid = cell.dataset && cell.dataset.staffId;
+    var dayIndexStr = cell.dataset && cell.dataset.dayIndex;
+    if(!sid || dayIndexStr==null) continue;
+    var dayIndex = parseInt(dayIndexStr,10); if(!isFinite(dayIndex)) continue;
+    var st = App.staff[sid]; if(!st) continue;
+
+    var d = new Date(start.getTime());
+    d.setDate(d.getDate()+dayIndex);
+    var iso = toISO(d);
+
+    var ds = (week && week[String(dayIndex)]) ? week[String(dayIndex)] : {};
+    var dayHours = 0;
+    Object.keys(ds).forEach(function(k){
+      var sh = ds[k];
+      if(!sh || String(sh.staffId)!==String(sid)) return;
+      var dur = hoursBetweenAny(sh.start, sh.end);
+      var brM = (breakMinutesForShift(sh, st) || 0) / 60;
+      if(brM > dur) brM = dur;
+      var payH = Math.max(0, dur - brM);
+      dayHours += payH;
+    });
+
+    // append per-day total to the first shift chip instead of a separate row
+    if(dayHours > 0.0001){
+      var chip = cell.querySelector('.wo-chip');
+      if(chip){
+        // avoid duplicating if already appended
+        var txt = chip.textContent || '';
+        if(txt.indexOf('(') === -1){
+          chip.textContent = txt + ' (' + dayHours.toFixed(1) + 'h)';
+        }
+      }
+      if(!totalsByStaff[sid]) totalsByStaff[sid] = 0;
+      totalsByStaff[sid] += dayHours;
+    }
+  }
+
+  // Update staff name labels with weekly total e.g. "Name (32.0h wk)"
+  var staffIds = Object.keys(App.staff || {}).filter(function(id){
+    var st = App.staff[id] || {};
+    return (st.role||'staff')!=='admin' && !st.hidden;
+  }).sort(function(a,b){
+    var an = (App.staff[a] && App.staff[a].name) || '';
+    var bn = (App.staff[b] && App.staff[b].name) || '';
+    return an.localeCompare(bn);
+  });
+  var names = cont.querySelectorAll('.wo-name');
+  for(var j=0;j<names.length && j<staffIds.length;j++){
+    var sid2 = staffIds[j];
+    var nm = names[j];
+    var st2 = App.staff[sid2] || {};
+    var baseName = st2.name || '';
+    var wkH = totalsByStaff[sid2] || 0;
+
+    // try to update second inner div (after color dot)
+    var txt = null;
+    var divs = nm.getElementsByTagName('div');
+    if(divs.length > 1){
+      txt = divs[1];
+    }else{
+      txt = nm;
+    }
+    // clear existing
+    while (txt.firstChild) txt.removeChild(txt.firstChild);
+    // base name
+    txt.appendChild(document.createTextNode(baseName));
+    if(wkH > 0.0001){
+      var span = document.createElement('span');
+      span.className = 'wo-week-total';
+      span.textContent = ' ('+wkH.toFixed(1)+'h wk)';
+      txt.appendChild(span);
+    }
+  }
 }
 
 // ---------- Week Overview Day Tools ----------
@@ -3635,6 +3766,8 @@ function renderPayroll(){
     return (App.staff[a].name||'').localeCompare(App.staff[b].name||'');
   }).forEach(function(id){
     var st=App.staff[id];
+    if(!st) return;
+    if((st.role||'staff')==='admin' || st.hidden) return;
     var W=0,B=0,P=0,M=0,OT=0;
     var weekCum=0;
 
@@ -3826,7 +3959,10 @@ function buildPrintView(){
     var h=document.createElement('div'); h.style.fontWeight='800'; h.style.margin='4px 0 8px'; var start=fromISO(ws); var end=new Date(start); end.setDate(end.getDate()+6); h.textContent='Week of '+fmtDMY(start)+' – '+fmtDMY(end); paper.appendChild(h);
     var grid=document.createElement('div'); grid.className='print-grid'; var headBlank=document.createElement('div'); headBlank.className='print-head'; headBlank.textContent=''; grid.appendChild(headBlank);
     for(var d=0; d<7; d++){ var hd=document.createElement('div'); hd.className='print-head'; hd.textContent=DAY[d]; grid.appendChild(hd); }
-    var entries=Object.keys(App.staff).map(function(id){ return [id,App.staff[id]]; }).filter(function(p){ return (p[1].role||'staff')!=='admin'; }).sort(function(a,b){ return (a[1].name||'').localeCompare(b[1].name||''); });
+    var entries=Object.keys(App.staff).map(function(id){ return [id,App.staff[id]]; }).filter(function(p){
+      var st = p[1] || {};
+      return (st.role||'staff')!=='admin' && !st.hidden;
+    }).sort(function(a,b){ return (a[1].name||'').localeCompare(b[1].name||''); });
     entries.forEach(function(p){
       var id=p[0], st=p[1];
       var nm=document.createElement('div'); nm.className='print-name'; var d=document.createElement('div'); d.style.width='10px'; d.style.height='10px'; d.style.borderRadius='50%'; d.style.background=st.color||'#5A31F4'; nm.appendChild(d); var t=document.createElement('div'); t.textContent=st.name; nm.appendChild(t); grid.appendChild(nm);
