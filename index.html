@@ -1307,7 +1307,7 @@
         <div class="grid-2">
           <div>
             <label>Workspace ID</label>
-            <input id="wsIdInput" type="text" value="munchandcrun">
+            <input id="wsIdInput" type="text" value="mnc-atrd">
           </div>
           <div>
             <label>Staff</label>
@@ -1499,9 +1499,9 @@
           <label>Logo URL (optional)</label>
           <input id="logoUrlInput" type="text" placeholder="https://example.com/logo.png">
           <label>Firebase Realtime Database URL</label>
-          <input id="dbUrlInput" type="text" value="https://munchandcrun.firebaseio.com">
+          <input id="dbUrlInput" type="text" value="https://mnc-atrd-default-rtdb.asia-southeast1.firebasedatabase.app/">
           <label>Workspace ID</label>
-          <input id="workspaceInput" type="text" value="munchandcrun">
+          <input id="workspaceInput" type="text" value="mnc-atrd">
           <label>Auth token (optional)</label>
           <input id="authTokenInput" type="text" placeholder="Firebase auth token if rules require it">
           <div class="grid-2">
@@ -1842,7 +1842,7 @@ var DAY = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 var App = {
   version: '2.0.0',
   settings: {
-    dbUrl:'https://munchandcrun.firebaseio.com', workspace:'munchandcrun', authToken:'',
+    dbUrl:'https://mnc-atrd-default-rtdb.asia-southeast1.firebasedatabase.app/', workspace:'mnc-atrd', authToken:'',
     theme:'light', themeName:'light-pastel-sky', recentColors:[], appTitle:'M&C-ATRD-scheduler --=Aspire Group=--', logoUrl:'',
     autoPullMins: 0, autoPushMins: 0,
     // planner
@@ -2254,7 +2254,7 @@ function initColorRecents(){
 async function login(){
   var id=byId('loginStaffSelect').value;
   var pass=byId('loginPass').value||'';
-  var ws=byId('wsIdInput').value.trim()||'munchandcrun';
+  var ws=byId('wsIdInput').value.trim()||'mnc-atrd';
   App.settings.workspace=ws; byId('workspaceInput').value=ws;
   if(!id || !App.staff[id]){ alert('Select a staff'); return; }
   var s=App.staff[id];
@@ -4253,8 +4253,8 @@ window.proposeShiftEdit = async function(iso, staffId){
       var wsEl = document.getElementById('workspaceInput');
       var authEl = document.getElementById('authTokenInput');
 
-      var dbUrl = (dbUrlEl && dbUrlEl.value.trim()) || (window.App && App.settings && App.settings.dbUrl) || 'https://munchandcrun.firebaseio.com';
-      var workspace = (wsEl && wsEl.value.trim()) || (window.App && App.settings && App.settings.workspace) || 'munchandcrun';
+      var dbUrl = (dbUrlEl && dbUrlEl.value.trim()) || (window.App && App.settings && App.settings.dbUrl) || 'https://mnc-atrd-default-rtdb.asia-southeast1.firebasedatabase.app/';
+      var workspace = (wsEl && wsEl.value.trim()) || (window.App && App.settings && App.settings.workspace) || 'mnc-atrd';
       var auth = (authEl && authEl.value.trim()) || (window.App && App.settings && App.settings.authToken) || '';
 
       if(!dbUrl || !workspace){
