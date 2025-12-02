@@ -1812,7 +1812,19 @@
       <span>⚙️</span>
       <span class="label">Settings</span>
     </button>
-  </nav>
+  
+    <button id="bottomPull">
+      <span>⬇</span>
+      <span class="label">Pull</span>
+    </button>
+    <button id="bottomPush">
+      <span>⬆</span>
+      <span class="label">Push</span>
+    </button>
+    <button id="bottomLogout">
+      <span>🚪</span>
+      <span class="label">Logout</span>
+    </button></nav>
 
 <!-- Paste your original JavaScript here without changes.
        i.e. both <script>...</script> blocks from the original file. -->
@@ -2144,6 +2156,13 @@ function init(){
   var pullPlanner=byId('btnPullPlanner'), pushPlanner=byId('btnPushPlanner');
   if(pullPlanner) pullPlanner.onclick=function(){ byId('btnPull').onclick(); };
   if(pushPlanner) pushPlanner.onclick=function(){ byId('btnPush').onclick(); };
+  var bottomPull=byId('bottomPull');
+  if(bottomPull) bottomPull.onclick=function(){ var btn=byId('btnPull'); if(btn && btn.onclick) btn.onclick(); };
+  var bottomPush=byId('bottomPush');
+  if(bottomPush) bottomPush.onclick=function(){ var btn=byId('btnPush'); if(btn && btn.onclick) btn.onclick(); };
+  var bottomLogout=byId('bottomLogout');
+  if(bottomLogout) bottomLogout.onclick=function(){ var lb=byId('btnLogout'); if(lb && lb.onclick) lb.onclick(); };
+
 
   var logout=byId('btnLogout'); if(logout) logout.onclick=function(){ App.currentUser=null; showLogin(); byId('userChip').textContent=''; var nav=byId('bottomNav'); if(nav) nav.style.display='none'; startAutoSyncTimers(); };
 
