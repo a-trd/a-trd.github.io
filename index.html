@@ -67,7 +67,12 @@
       box-shadow: 0 6px 18px rgba(0,0,0,.25);
     }
 
-        .appbar-brand {
+    .title {
+      font-weight: 800;
+      letter-spacing: .3px;
+      font-size: 16px;
+
+    .appbar-brand {
       display: flex;
       align-items: center;
       gap: 8px;
@@ -84,11 +89,6 @@
       flex-shrink: 0;
       display: none;
     }
-
-    .title {
-      font-weight: 800;
-      letter-spacing: .3px;
-      font-size: 16px;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -1100,10 +1100,9 @@
     .appbar {
       background: rgba(15,23,42,0.96);
       backdrop-filter: blur(26px);
-      border-radius: 0 0 18px 18px;
-      margin: 0 0 4px;
-      width: 100%;
-      max-width: none;
+      border-radius: 18px;
+      margin: 10px auto 4px;
+      max-width: 960px;
       padding: 6px 10px;
       box-shadow: 0 18px 40px rgba(15,23,42,0.85);
     }
@@ -1128,9 +1127,8 @@
     }
 
     .wrap {
-      width: 100%;
-      max-width: none;
-      margin: 0;
+      max-width: 960px;
+      margin: 0 auto;
       padding: 8px 10px 96px;
       display: grid;
       grid-auto-rows: min-content;
@@ -1225,11 +1223,10 @@
 
     /* Bottom nav as primary on mobile */
     .bottom-nav {
-      max-width: none;
-      margin: 0;
-      left: 0;
-      right: 0;
-      transform: none;
+      max-width: 960px;
+      margin: 0 auto;
+      left: 50%;
+      transform: translateX(-50%);
       border-radius: 18px 18px 0 0;
     }
 
@@ -4137,7 +4134,6 @@ async function pullData(silent){
     App.payrollPaid=data.payrollPaid||App.payrollPaid||{};
     if(data.settings){
       for(var k in data.settings){
-        if(k==='dbUrl' || k==='workspace' || k==='authToken') continue;
         App.settings[k]=data.settings[k];
       }
     }
@@ -4145,8 +4141,10 @@ async function pullData(silent){
   saveLocal();
   if(typeof updateRequestsBadge==='function') updateRequestsBadge();
   if(!silent){ populateLoginSelects(); populateExistingStaff(); }
+
   var __title=document.getElementById('appTitle');
   if(__title) __title.textContent = App.settings.appTitle || 'M&C-ATRD-scheduler --=Aspire Group=--';
+
   var __logo=document.getElementById('appLogoBox');
   if(__logo){
     var __lu2=App.settings.logoUrl||'';
@@ -4158,6 +4156,16 @@ async function pullData(silent){
       __logo.style.backgroundImage='none';
     }
   }
+
+  var __db=document.getElementById('dbUrlInput');
+  if(__db) __db.value = App.settings.dbUrl || '';
+  var __ws=document.getElementById('workspaceInput');
+  if(__ws) __ws.value = App.settings.workspace || '';
+  var __auth=document.getElementById('authTokenInput');
+  if(__auth) __auth.value = App.settings.authToken || '';
+  var __wsLogin=document.getElementById('wsIdInput');
+  if(__wsLogin) __wsLogin.value = App.settings.workspace || '';
+
   if(typeof applyTheme==='function' && App.settings.themeName){
     applyTheme(App.settings.themeName);
     if(typeof renderThemePicker==='function') renderThemePicker();
@@ -4166,7 +4174,32 @@ async function pullData(silent){
 }
 
 async function pushData(){
-  await dbPatch('', {staff:App.staff, availability:App.availability, absenceRequests:App.absenceRequests||{}, absenceHistory:App.absenceHistory||{}, weeks:App.weeks, shiftChangeRequests:App.shiftChangeRequests||{}, payrollAdjustments:App.payrollAdjustments||{}, payrollPaid:App.payrollPaid||{}, settings:{theme:App.settings.theme,themeName:App.settings.themeName,recentColors:App.settings.recentColors,appTitle:App.settings.appTitle,logoUrl:App.settings.logoUrl||'',gridStartHour:App.settings.gridStartHour,gridHours:App.settings.gridHours,slotMins:App.settings.slotMins,targetHeadcount:App.settings.targetHeadcount,staffSeeOthers:App.settings.staffSeeOthers,publishedWeeks:App.settings.publishedWeeks}});
+  await dbPatch('', {
+    staff:App.staff,
+    availability:App.availability,
+    absenceRequests:App.absenceRequests||{},
+    absenceHistory:App.absenceHistory||{},
+    weeks:App.weeks,
+    shiftChangeRequests:App.shiftChangeRequests||{},
+    payrollAdjustments:App.payrollAdjustments||{},
+    payrollPaid:App.payrollPaid||{},
+    settings:{
+      dbUrl:App.settings.dbUrl,
+      workspace:App.settings.workspace,
+      authToken:App.settings.authToken||'',
+      theme:App.settings.theme,
+      themeName:App.settings.themeName,
+      recentColors:App.settings.recentColors,
+      appTitle:App.settings.appTitle,
+      logoUrl:App.settings.logoUrl||'',
+      gridStartHour:App.settings.gridStartHour,
+      gridHours:App.settings.gridHours,
+      slotMins:App.settings.slotMins,
+      targetHeadcount:App.settings.targetHeadcount,
+      staffSeeOthers:App.settings.staffSeeOthers,
+      publishedWeeks:App.settings.publishedWeeks
+    }
+  });
   return true;
 }
 
