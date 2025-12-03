@@ -1497,7 +1497,7 @@
           <label>App Title</label>
           <input id="appTitleInput" type="text" value="M&C-ATRD-scheduler --=Aspire Group=--">
           <label>Logo URL (optional)</label>
-          <input id="logoUrlInput" type="text" placeholder="https://example.com/logo.png">
+          <input id="logoUrlInput" type="text" placeholder="Image URL or Google Drive share link">
           <label>Firebase Realtime Database URL</label>
           <input id="dbUrlInput" type="text" value="https://mnc-atrd-default-rtdb.asia-southeast1.firebasedatabase.app/">
           <label>Workspace ID</label>
@@ -1821,6 +1821,10 @@
       <span>⬆</span>
       <span class="label">Push</span>
     </button>
+    <button id="bottomFullscreen">
+      <span>⤢</span>
+      <span class="label">Full</span>
+    </button>
     <button id="bottomLogout">
       <span>🚪</span>
       <span class="label">Logout</span>
@@ -2001,6 +2005,27 @@ function escapeHtml(str){
     .replace(/'/g,'&#39;');
 }
 
+function resolveLogoUrl(raw){
+  if(!raw) return '';
+  var url = String(raw).trim();
+  if(!url) return '';
+  try{
+    if(url.indexOf('drive.google.com') !== -1){
+      var idMatch = null;
+      var m1 = url.match(/\/file\/d\/([^/]+)/);
+      if(m1 && m1[1]) idMatch = m1[1];
+      if(!idMatch){
+        var m2 = url.match(/[?&]id=([^&]+)/);
+        if(m2 && m2[1]) idMatch = m2[1];
+      }
+      if(idMatch){
+        return 'https://drive.google.com/uc?export=view&id=' + encodeURIComponent(idMatch);
+      }
+    }
+  }catch(e){}
+  return url;
+}
+
 // ---------- Local Storage ----------
 function saveLocal(){ try{ localStorage.setItem(App.cacheKey, JSON.stringify({settings:App.settings,staff:App.staff,weeks:App.weeks,availability:App.availability,absenceRequests:App.absenceRequests,absenceHistory:App.absenceHistory,shiftChangeRequests:App.shiftChangeRequests,payrollAdjustments:App.payrollAdjustments,payrollPaid:App.payrollPaid,version:App.version})); }catch(e){} }
 function loadLocal(){ try{ var raw=localStorage.getItem(App.cacheKey); if(!raw) return; var d=JSON.parse(raw)||{}; if(d.settings){ for(var k in d.settings){ App.settings[k]=d.settings[k]; } } App.staff=d.staff||App.staff; App.weeks=d.weeks||App.weeks; App.availability=d.availability||App.availability; App.absenceRequests=d.absenceRequests||App.absenceRequests; App.absenceHistory=d.absenceHistory||App.absenceHistory; App.shiftChangeRequests=d.shiftChangeRequests||App.shiftChangeRequests; App.payrollAdjustments=d.payrollAdjustments||App.payrollAdjustments||{}; App.payrollPaid=d.payrollPaid||App.payrollPaid||{}; }catch(e){} }
@@ -2043,6 +2068,41 @@ function splashHide(msg){
   }, 700);
 }
 
+// ---------- Fullscreen ----------
+function isFullscreenActive(){
+  return !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement);
+}
+function requestAppFullscreen(){
+  var el = document.documentElement || document.body;
+  if(!el) return;
+  if(el.requestFullscreen) el.requestFullscreen();
+  else if(el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+  else if(el.mozRequestFullScreen) el.mozRequestFullScreen();
+  else if(el.msRequestFullscreen) el.msRequestFullscreen();
+}
+function exitAppFullscreen(){
+  if(document.exitFullscreen) document.exitFullscreen();
+  else if(document.webkitExitFullscreen) document.webkitExitFullscreen();
+  else if(document.mozCancelFullScreen) document.mozCancelFullScreen();
+  else if(document.msExitFullscreen) document.msExitFullscreen();
+}
+function toggleAppFullscreen(){
+  if(isFullscreenActive()) exitAppFullscreen();
+  else requestAppFullscreen();
+}
+function syncFullscreenButton(){
+  var btn = byId('bottomFullscreen');
+  if(!btn) return;
+  var label = btn.querySelector('.label');
+  if(!label) return;
+  label.textContent = isFullscreenActive() ? 'Exit' : 'Full';
+}
+if(typeof document !== 'undefined'){
+  document.addEventListener('fullscreenchange', syncFullscreenButton);
+  document.addEventListener('webkitfullscreenchange', syncFullscreenButton);
+  document.addEventListener('mozfullscreenchange', syncFullscreenButton);
+  document.addEventListener('MSFullscreenChange', syncFullscreenButton);
+}
 
 var autoPullTimer=null, autoPushTimer=null;
 function startAutoSyncTimers(){
@@ -2061,7 +2121,7 @@ function init(){
     document.querySelectorAll('.section').forEach(s=>s.classList.remove('show'));
   var __nav = byId('bottomNav'); if(__nav) __nav.style.display='none';
   var __appTitleEl = byId('appTitle'); if(__appTitleEl) __appTitleEl.textContent = App.settings.appTitle || 'M&C-ATRD-scheduler --=Aspire Group=--';
-  var __logoBoxInit = byId('appLogoBox'); if(__logoBoxInit){ var __lu=App.settings.logoUrl||''; if(__lu){ __logoBoxInit.style.display='inline-block'; __logoBoxInit.style.backgroundImage='url("'+__lu+'")'; } else { __logoBoxInit.style.display='none'; __logoBoxInit.style.backgroundImage='none'; } }
+  var __logoBoxInit = byId('appLogoBox'); if(__logoBoxInit){ var __lu=App.settings.logoUrl||''; if(__lu){ __logoBoxInit.style.display='inline-block'; __logoBoxInit.style.backgroundImage='url("'+resolveLogoUrl(__lu)+'")'; } else { __logoBoxInit.style.display='none'; __logoBoxInit.style.backgroundImage='none'; } }
   initColorRecents();
   initTabs();
   initPlanner();
@@ -2118,7 +2178,7 @@ function init(){
     App.settings.targetHeadcount=parseInt(byId('optTargetHeadcount').value||'0',10);
     App.settings.staffSeeOthers = (byId('optStaffSeeOthers').value==='true');
     var __titleEl=document.querySelector('.appbar .title'); if(__titleEl) __titleEl.textContent=App.settings.appTitle;
-    var __logoBox=byId('appLogoBox'); if(__logoBox){ var __u=App.settings.logoUrl||''; if(__u){ __logoBox.style.display='inline-block'; __logoBox.style.backgroundImage='url("'+__u+'")'; } else { __logoBox.style.display='none'; __logoBox.style.backgroundImage='none'; } }
+    var __logoBox=byId('appLogoBox'); if(__logoBox){ var __u=App.settings.logoUrl||''; if(__u){ __logoBox.style.display='inline-block'; __logoBox.style.backgroundImage='url("'+resolveLogoUrl(__u)+'")'; } else { __logoBox.style.display='none'; __logoBox.style.backgroundImage='none'; } }
     saveLocal(); startAutoSyncTimers(); renderPlanner(); alert('Saved.');
   };
   byId('btnResetLocal').onclick = function(){ if(!isAdmin()) return alert('Admin only.'); if(confirm('Reset local cache?')){ localStorage.removeItem(App.cacheKey); location.reload(); } };
@@ -2160,6 +2220,9 @@ function init(){
   if(bottomPull) bottomPull.onclick=function(){ var btn=byId('btnPull'); if(btn && btn.onclick) btn.onclick(); };
   var bottomPush=byId('bottomPush');
   if(bottomPush) bottomPush.onclick=function(){ var btn=byId('btnPush'); if(btn && btn.onclick) btn.onclick(); };
+  var bottomFullscreen=byId('bottomFullscreen');
+  if(bottomFullscreen) bottomFullscreen.onclick=function(){ toggleAppFullscreen(); };
+  syncFullscreenButton();
   var bottomLogout=byId('bottomLogout');
   if(bottomLogout) bottomLogout.onclick=function(){ var lb=byId('btnLogout'); if(lb && lb.onclick) lb.onclick(); };
 
@@ -4086,7 +4149,7 @@ async function pullData(silent){
     var __lu2=App.settings.logoUrl||'';
     if(__lu2){
       __logo.style.display='inline-block';
-      __logo.style.backgroundImage='url("'+__lu2+'")';
+      __logo.style.backgroundImage='url("'+resolveLogoUrl(__lu2)+'")';
     }else{
       __logo.style.display='none';
       __logo.style.backgroundImage='none';
