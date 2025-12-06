@@ -1325,6 +1325,7 @@
           <div style="display:flex;align-items:flex-end;gap:8px;flex-wrap:wrap;">
             <button id="btnLogin" class="btn-primary">Login</button>
             <button id="btnContinueOffline" class="btn-outline">Bypass sync &amp; continue offline</button>
+            <button id="btnResetLocalLogin" class="btn-outline">Reset Local Cache</button>
           </div>
         </div>
         <div class="muted" id="loginMsg" style="margin-top:6px;"></div>
@@ -2033,6 +2034,15 @@ function resolveLogoUrl(raw){
 function saveLocal(){ try{ localStorage.setItem(App.cacheKey, JSON.stringify({settings:App.settings,staff:App.staff,weeks:App.weeks,availability:App.availability,absenceRequests:App.absenceRequests,absenceHistory:App.absenceHistory,shiftChangeRequests:App.shiftChangeRequests,payrollAdjustments:App.payrollAdjustments,payrollPaid:App.payrollPaid,version:App.version})); }catch(e){} }
 function loadLocal(){ try{ var raw=localStorage.getItem(App.cacheKey); if(!raw) return; var d=JSON.parse(raw)||{}; if(d.settings){ for(var k in d.settings){ App.settings[k]=d.settings[k]; } } App.staff=d.staff||App.staff; App.weeks=d.weeks||App.weeks; App.availability=d.availability||App.availability; App.absenceRequests=d.absenceRequests||App.absenceRequests; App.absenceHistory=d.absenceHistory||App.absenceHistory; App.shiftChangeRequests=d.shiftChangeRequests||App.shiftChangeRequests; App.payrollAdjustments=d.payrollAdjustments||App.payrollAdjustments||{}; App.payrollPaid=d.payrollPaid||App.payrollPaid||{}; }catch(e){} }
 
+// Shared helper for resetting local cache
+function resetLocalCache(allowAll){
+  if(!allowAll && !isAdmin()) return alert('Admin only.');
+  if(confirm('Reset local cache?')){
+    try{ localStorage.removeItem(App.cacheKey); }catch(e){}
+    location.reload();
+  }
+}
+
 // ---------- Firebase REST ----------
 function wsRoot(){ return App.settings.dbUrl.replace(/\/$/,'')+'/'+App.settings.workspace; }
 function withAuth(url){ return App.settings.authToken ? url+(url.indexOf('?')>=0?'&':'?')+'auth='+encodeURIComponent(App.settings.authToken) : url; }
@@ -2184,7 +2194,8 @@ function init(){
     var __logoBox=byId('appLogoBox'); if(__logoBox){ var __u=App.settings.logoUrl||''; if(__u){ __logoBox.style.display='inline-block'; __logoBox.style.backgroundImage='url("'+resolveLogoUrl(__u)+'")'; } else { __logoBox.style.display='none'; __logoBox.style.backgroundImage='none'; } }
     saveLocal(); startAutoSyncTimers(); renderPlanner(); alert('Saved.');
   };
-  byId('btnResetLocal').onclick = function(){ if(!isAdmin()) return alert('Admin only.'); if(confirm('Reset local cache?')){ localStorage.removeItem(App.cacheKey); location.reload(); } };
+  byId('btnResetLocal').onclick = function(){ resetLocalCache(false); };
+
 
   byId('btnExportSettings').onclick=function(){ var data={settings:App.settings,staff:App.staff,availability:App.availability,weeks:App.weeks,absenceRequests:App.absenceRequests}; var a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'})); a.download='munchandcrun_export.json'; a.click(); };
   byId('btnImportSettings').onclick=function(){ byId('importSettingsInput').click(); };
@@ -2193,6 +2204,10 @@ function init(){
   byId('btnLogin').onclick = login;
   var pwd=byId('loginPass'); if(pwd){ pwd.addEventListener('keydown',function(e){ if(e.key==='Enter'){ login(); } }); }
   byId('btnContinueOffline').onclick = function(){ var id=byId('loginStaffSelect').value; if(!id||!App.staff[id]){alert('Select a staff');return;} var s=App.staff[id]; App.currentUser={id:id, name:s.name, role:s.role||'staff', rate:s.rate||0}; enterApp(); startAutoSyncTimers(); };
+  var resetLoginBtn = byId('btnResetLocalLogin');
+  if(resetLoginBtn){
+    resetLoginBtn.onclick = function(){ resetLocalCache(true); };
+  }
 
   byId('btnPull').onclick = function(){
   splashShow('Pulling latest…');
