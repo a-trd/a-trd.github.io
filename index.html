@@ -3609,7 +3609,8 @@ function openRequestsModal(){
         row.innerHTML =
           '<div style="font-weight:800">'+escapeHtml(st.name||'')+'</div>'+
           '<div class="muted">'+fmtDMY(nd)+'</div>'+
-          '<div class="pill">'+escapeHtml(changes.join(', '))+'</div>';
+          '<div class="pill">'+escapeHtml(changes.join(', '))+'</div>'+
+          (req.reason ? '<div class="muted">Reason: '+escapeHtml(String(req.reason))+'</div>' : '');
 
         var appB=document.createElement('button'); appB.className='btn-good'; appB.textContent='Apply';
         var rejB=document.createElement('button'); rejB.className='btn-outline'; rejB.textContent='Discard';
@@ -3773,7 +3774,13 @@ function updateRequestsBadge(){
 // Mini-actions helpers
 function proposeAway(iso, staffId){
   staffId = String(staffId);
-  var reason = prompt('Reason/comment (optional):') || '';
+  var reason = '';
+  while(true){
+    reason = prompt('Please provide reason/comment for this shift edit request (Mandatory):');
+    if(reason === null) return;
+    reason = String(reason).trim();
+    if(reason) break;
+  }
 
   ensureRequestsStore();
   if(!App.currentUser) return;
@@ -3785,7 +3792,7 @@ function proposeAway(iso, staffId){
     var day = App.availability[iso] = App.availability[iso] || {};
     var rec = day[staffId] = day[staffId] || {};
     rec.unavailable = true;
-    if(reason) rec.reason = reason;
+    rec.reason = reason;
     saveLocal();
     renderPlanner();
     renderAbsenceCalendar();
@@ -3800,7 +3807,7 @@ function proposeAway(iso, staffId){
   }
   cur.unavailable = true;
   if(!Array.isArray(cur.blocks)) cur.blocks = [];
-  if((reason||'') && !cur.reason) cur.reason = reason;
+  cur.reason = reason;
   cur.status = 'pending';
   App.absenceRequests[iso][staffId] = cur;
   saveLocal();
@@ -3814,7 +3821,13 @@ function proposeAway(iso, staffId){
 }
 function proposePartial(iso, staffId, start, end){
   staffId = String(staffId);
-  var reason = prompt('Reason/comment for this partial away (optional):') || '';
+  var reason = '';
+  while(true){
+    reason = prompt('Please provide reason/comment for this shift edit request (Mandatory):');
+    if(reason === null) return;
+    reason = String(reason).trim();
+    if(reason) break;
+  }
 
   ensureRequestsStore();
   if(!App.currentUser) return;
@@ -3836,7 +3849,7 @@ function proposePartial(iso, staffId, start, end){
     var day = App.availability[iso] = App.availability[iso] || {};
     var rec = day[staffId] = day[staffId] || {};
     if(!Array.isArray(rec.blocks)) rec.blocks = [];
-    rec.blocks.push({start:start, end:end, reason:(reason||'')});
+    rec.blocks.push({start:start, end:end, reason:reason});
     saveLocal();
     renderPlanner();
     renderAbsenceCalendar();
@@ -3850,8 +3863,8 @@ function proposePartial(iso, staffId, start, end){
     return;
   }
   if(!Array.isArray(cur.blocks)) cur.blocks = [];
-  cur.blocks = cur.blocks.concat([{start:start, end:end, reason:(reason||'')}]);
-  if((reason||'') && !cur.reason) cur.reason = reason;
+  cur.blocks = cur.blocks.concat([{start:start, end:end, reason:reason}]);
+  cur.reason = reason;
   cur.status = 'pending';
   App.absenceRequests[iso][staffId] = cur;
   saveLocal();
@@ -4297,6 +4310,14 @@ window.proposeShiftEdit = async function(iso, staffId){
       return;
     }
 
+    var reason = '';
+    while(true){
+      reason = prompt('Please provide reason/comment for this shift edit request (Mandatory):');
+      if(reason === null) return;
+      reason = String(reason).trim();
+      if(reason) break;
+    }
+
     if(!App.shiftChangeRequests) App.shiftChangeRequests = {};
     if(!App.shiftChangeRequests[iso]) App.shiftChangeRequests[iso] = {};
 
@@ -4307,6 +4328,7 @@ window.proposeShiftEdit = async function(iso, staffId){
       dayIndex: selected.dayIndex,
       newStart: newStart || null,
       newEnd: newEnd || null,
+      reason: reason,
       status: 'pending'
     };
     saveLocal();
