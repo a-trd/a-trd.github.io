@@ -886,7 +886,65 @@
       box-shadow: var(--shadow-card);
     }
 
-    /* ---------- Splash overlay ---------- */
+    
+    /* ---------- Toast notifications ---------- */
+    .toast-host{
+      position:fixed;
+      top:72px;
+      right:12px;
+      z-index:3100;
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      pointer-events:none;
+    }
+    .toast{
+      pointer-events:auto;
+      width:min(340px, calc(100vw - 24px));
+      background:var(--card);
+      border:1px solid var(--border);
+      border-left:6px solid var(--accent2);
+      border-radius:14px;
+      padding:10px 12px;
+      box-shadow:var(--shadow-card);
+      color:var(--fg);
+    }
+    .toast.success{ border-left-color:var(--good); }
+    .toast.warn{ border-left-color:var(--warn); }
+    .toast.danger{ border-left-color:var(--bad); }
+    .toast .t-head{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom:2px;
+    }
+    .toast .t-title{
+      font-weight:900;
+      font-size:12px;
+      letter-spacing:.02em;
+    }
+    .toast .t-close{
+      border:none;
+      background:transparent;
+      color:var(--muted);
+      cursor:pointer;
+      font-size:14px;
+      line-height:1;
+      padding:0 2px;
+      margin-top:-1px;
+    }
+    .toast .t-msg{
+      font-size:12px;
+      opacity:.95;
+    }
+    .toast .t-meta{
+      margin-top:4px;
+      font-size:11px;
+      color:var(--muted);
+    }
+
+/* ---------- Splash overlay ---------- */
 
     #splashSync {
       position: fixed;
@@ -1300,6 +1358,9 @@
   <div id="splashSync">
     <div id="splashBox">Syncing…</div>
   </div>
+
+  <div id="toastHost" class="toast-host" aria-live="polite" aria-atomic="true"></div>
+
 
   <div class="wrap">
 
@@ -1795,6 +1856,18 @@
     </div>
   </div>
 
+  <!-- My request updates modal (shown to the request sender when status changes) -->
+  <div id="reqUpdatesModal" class="modal" style="z-index:2100;">
+    <div class="panel">
+      <h3>Request updates</h3>
+      <div id="reqUpdatesList" class="muted" style="margin:8px 0 12px;"></div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;">
+        <button id="btnCloseReqUpdates" class="btn-outline">Close</button>
+      </div>
+    </div>
+  </div>
+
+
     <nav id="bottomNav" class="bottom-nav" aria-label="Primary navigation">
     <button id="bottomMy">
       <span>🏠</span>
@@ -1858,7 +1931,7 @@ var App = {
     staffSeeOthers: true,
     publishedWeeks: {}
   },
-  staff:{}, availability:{}, weeks:{}, absenceRequests:{}, absenceHistory:{}, shiftChangeRequests:{}, payrollAdjustments:{}, payrollPaid:{},
+  staff:{}, availability:{}, weeks:{}, absenceRequests:{}, absenceHistory:{}, shiftChangeRequests:{}, shiftChangeHistory:{}, payrollAdjustments:{}, payrollPaid:{},
   currentUser:null,
   cacheKey:'mc_scheduler_cache_v14_23_3'
 };
@@ -2030,9 +2103,377 @@ function resolveLogoUrl(raw){
   return url;
 }
 
+
+// ---------- Toast + Request status acknowledgements ----------
+function showToast(title, message, kind, ms, meta){
+  try{
+    var host = byId('toastHost');
+    if(!host){
+      // Fallback: simple alert
+      if(title || message) alert((title?title:'') + (title&&message?'\n\n':'') + (message?message:''));
+      return;
+    }
+    var t = document.createElement('div');
+    t.className = 'toast ' + (kind||'');
+    var head = document.createElement('div');
+    head.className = 't-head';
+
+    var tt = document.createElement('div');
+    tt.className = 't-title';
+    tt.textContent = title || '';
+
+    var close = document.createElement('button');
+    close.className = 't-close';
+    close.type = 'button';
+    close.textContent = '×';
+    close.onclick = function(){ try{ t.remove(); }catch(e){} };
+
+    head.appendChild(tt);
+    head.appendChild(close);
+    t.appendChild(head);
+
+    if(message){
+      var msg = document.createElement('div');
+      msg.className = 't-msg';
+      msg.textContent = message;
+      t.appendChild(msg);
+    }
+    if(meta){
+      var m = document.createElement('div');
+      m.className = 't-meta';
+      m.textContent = meta;
+      t.appendChild(m);
+    }
+
+    host.appendChild(t);
+
+    var timeout = (ms==null ? 5500 : ms);
+    if(timeout > 0){
+      setTimeout(function(){ try{ t.remove(); }catch(e){} }, timeout);
+    }
+  }catch(e){}
+}
+
+function reqSeenStorageKey(){
+  try{
+    var ws = (App.settings && App.settings.workspace) ? App.settings.workspace : 'workspace';
+    var uid0 = (App.currentUser && App.currentUser.id!=null) ? String(App.currentUser.id) : 'user';
+    return 'mc_req_seen_v1_' + ws + '_' + uid0;
+  }catch(e){
+    return 'mc_req_seen_v1';
+  }
+}
+
+function reqSeedCutoffStorageKey(){
+  try{
+    var ws = (App.settings && App.settings.workspace) ? App.settings.workspace : 'workspace';
+    var uid0 = (App.currentUser && App.currentUser.id!=null) ? String(App.currentUser.id) : 'user';
+    return 'mc_req_seed_v1_' + ws + '_' + uid0;
+  }catch(e){
+    return 'mc_req_seed_v1';
+  }
+}
+function getReqSeedCutoff(){
+  try{
+    return parseInt(localStorage.getItem(reqSeedCutoffStorageKey())||'0', 10) || 0;
+  }catch(e){
+    return 0;
+  }
+}
+function setReqSeedCutoff(ts){
+  try{
+    localStorage.setItem(reqSeedCutoffStorageKey(), String(ts||0));
+  }catch(e){}
+}
+
+function loadReqSeen(){
+  try{
+    var raw = localStorage.getItem(reqSeenStorageKey());
+    if(!raw) return {};
+    var obj = JSON.parse(raw);
+    if(obj && typeof obj === 'object') return obj;
+  }catch(e){}
+  return {};
+}
+function saveReqSeen(map){
+  try{
+    map = map || {};
+    var keys = Object.keys(map);
+    if(keys.length > 250){
+      keys.sort(function(a,b){ return (map[a]||0) - (map[b]||0); }); // oldest first
+      for(var i=0;i<keys.length-200;i++){ delete map[keys[i]]; }
+    }
+    localStorage.setItem(reqSeenStorageKey(), JSON.stringify(map));
+  }catch(e){}
+}
+function makeAbsDecisionKey(iso, status, resolvedAt){
+  return 'abs|' + String(iso) + '|' + String(status||'') + '|' + String(resolvedAt||'');
+}
+function makeShiftDecisionKey(iso, key, status, resolvedAt){
+  return 'shc|' + String(iso) + '|' + String(key) + '|' + String(status||'') + '|' + String(resolvedAt||'');
+}
+
+function formatIsoForHuman(iso){
+  try{ return fmtDMY(fromISO(iso)); }catch(e){ return String(iso); }
+}
+function buildAbsDecisionMessage(iso, rec){
+  var date = formatIsoForHuman(iso);
+  var kind = '';
+  if(rec && rec.blocks && rec.blocks.length){
+    var b = rec.blocks[0] || {};
+    kind = 'Partial away ' + (b.start||'') + '–' + (b.end||'');
+  }else if(rec && rec.unavailable){
+    kind = 'Full day away';
+  }else{
+    kind = 'Away request';
+  }
+  var reason = '';
+  if(rec){
+    reason = rec.reason || '';
+    if(!reason && rec.blocks && rec.blocks[0] && rec.blocks[0].reason) reason = rec.blocks[0].reason;
+  }
+  return date + ' — ' + kind + (reason?(' — ' + reason):'');
+}
+function buildShiftDecisionMessage(rec, isoFallback){
+  var date = '';
+  try{
+    if(rec && rec.weekStartISO!=null && rec.dayIndex!=null){
+      var d = fromISO(rec.weekStartISO);
+      d.setDate(d.getDate() + parseInt(rec.dayIndex,10));
+      date = fmtDMY(d);
+    }else if(isoFallback){
+      date = formatIsoForHuman(isoFallback);
+    }
+  }catch(e){
+    date = (isoFallback ? String(isoFallback) : '');
+  }
+  var changes = [];
+  if(rec && rec.newStart) changes.push('start → ' + rec.newStart);
+  if(rec && rec.newEnd) changes.push('end → ' + rec.newEnd);
+  var msg = (date ? (date + ' — ') : '') + (changes.length ? changes.join(', ') : 'Shift edit');
+  if(rec && rec.reason) msg += ' — ' + rec.reason;
+  return msg;
+}
+
+function openReqUpdatesModal(items){
+  var modal = byId('reqUpdatesModal');
+  var list = byId('reqUpdatesList');
+  if(!modal || !list) return;
+  list.innerHTML = '';
+  for(var i=0;i<items.length;i++){
+    var it = items[i];
+    var row = document.createElement('div');
+    row.style.border = '1px solid var(--border)';
+    row.style.borderRadius = '12px';
+    row.style.padding = '10px';
+    row.style.marginBottom = '8px';
+    row.style.background = 'rgba(0,0,0,.06)';
+    var color = (it.kind==='success') ? 'var(--good)' : ((it.kind==='danger') ? 'var(--bad)' : 'var(--warn)');
+    row.innerHTML =
+      '<div style="font-weight:900;color:'+color+'">'+escapeHtml(it.title)+'</div>'+
+      '<div>'+escapeHtml(it.message)+'</div>';
+    list.appendChild(row);
+  }
+  modal.style.display = 'flex';
+  var btn = byId('btnCloseReqUpdates');
+  if(btn) btn.onclick = function(){ modal.style.display = 'none'; };
+}
+
+function collectMyDecisionUpdates(){
+  var out = [];
+  if(!App || !App.currentUser || App.currentUser.id==null) return out;
+  var uid0 = String(App.currentUser.id);
+  var seen = loadReqSeen();
+  var seedCutoff = getReqSeedCutoff();
+
+  // Absence decisions (approved/rejected) for this user
+  var hist = App.absenceHistory || {};
+  try{
+    Object.keys(hist).forEach(function(iso){
+      var day = hist[iso] || {};
+      var rec = day[uid0] || day[String(uid0)] || day[Number(uid0)];
+      if(!rec) return;
+      var st = String(rec.status || '').toLowerCase();
+      if(st !== 'approved' && st !== 'rejected') return;
+      var tRes = Date.parse(rec.resolvedAt || '') || Date.parse(iso) || 0;
+      if(seedCutoff && tRes && tRes < seedCutoff) return;
+      var key = makeAbsDecisionKey(iso, st, rec.resolvedAt || '');
+      if(seen[key]) return;
+      out.push({
+        seenKey: key,
+        kind: (st==='approved' ? 'success' : 'danger'),
+        title: (st==='approved' ? 'Away request accepted' : 'Away request declined'),
+        message: buildAbsDecisionMessage(iso, rec)
+      });
+    });
+  }catch(e){}
+
+  // Shift edit decisions history (approved/rejected) for this user
+  var sh = App.shiftChangeHistory || {};
+  try{
+    Object.keys(sh).forEach(function(iso2){
+      var bucket = sh[iso2] || {};
+      Object.keys(bucket).forEach(function(k){
+        var rec2 = bucket[k];
+        if(!rec2) return;
+        if(String(rec2.staffId) !== uid0) return;
+        var st2 = String(rec2.status || '').toLowerCase();
+        if(st2 !== 'approved' && st2 !== 'rejected') return;
+        var tRes2 = Date.parse(rec2.resolvedAt || '') || Date.parse(iso2) || 0;
+        if(seedCutoff && tRes2 && tRes2 < seedCutoff) return;
+        var key2 = makeShiftDecisionKey(iso2, k, st2, rec2.resolvedAt || '');
+        if(seen[key2]) return;
+        out.push({
+          seenKey: key2,
+          kind: (st2==='approved' ? 'success' : 'danger'),
+          title: (st2==='approved' ? 'Shift edit accepted' : 'Shift edit declined'),
+          message: buildShiftDecisionMessage(rec2, iso2)
+        });
+      });
+    });
+  }catch(e){}
+
+  return out;
+}
+function markDecisionUpdatesSeen(items){
+  try{
+    var seen = loadReqSeen();
+    var now = Date.now();
+    for(var i=0;i<items.length;i++){
+      if(items[i] && items[i].seenKey){
+        seen[items[i].seenKey] = now;
+      }
+    }
+    saveReqSeen(seen);
+  }catch(e){}
+}
+
+function countMyPendingRequests(){
+  if(!App || !App.currentUser || App.currentUser.id==null) return 0;
+  var uid0 = String(App.currentUser.id);
+  var total = 0;
+
+  // Absence requests pending for this user
+  if(App.absenceRequests){
+    try{
+      Object.keys(App.absenceRequests).forEach(function(iso){
+        var day = App.absenceRequests[iso] || {};
+        var rec = day[uid0] || day[String(uid0)] || day[Number(uid0)];
+        if(rec){
+          var st = String(rec.status || 'pending').toLowerCase();
+          if(st === 'pending' || !st) total += 1;
+        }
+      });
+    }catch(e){}
+  }
+
+  // Shift edit requests pending for this user
+  if(App.shiftChangeRequests){
+    try{
+      Object.keys(App.shiftChangeRequests).forEach(function(iso2){
+        var bucket = App.shiftChangeRequests[iso2] || {};
+        Object.keys(bucket).forEach(function(k){
+          var r = bucket[k];
+          if(!r) return;
+          if(String(r.staffId) !== uid0) return;
+          var st2 = String(r.status || 'pending').toLowerCase();
+          if(st2 === 'pending' || !st2) total += 1;
+        });
+      });
+    }catch(e){}
+  }
+
+  return total;
+}
+
+
+var REQ_ACK_LOOKBACK_DAYS = 14; // only show accepted/declined updates from the last N days on first run
+
+function seedReqSeenFromCurrentData(lookbackDays){
+  try{
+    if(!App || !App.currentUser || App.currentUser.id==null) return;
+    var uid0 = String(App.currentUser.id);
+    var now = Date.now();
+    var days = (lookbackDays==null ? REQ_ACK_LOOKBACK_DAYS : lookbackDays);
+    var cutoff = now - (Math.max(0, parseInt(days,10)||0) * 86400000);
+    setReqSeedCutoff(cutoff);
+    var seen = {};
+
+    var hist = App.absenceHistory || {};
+    Object.keys(hist).forEach(function(iso){
+      var day = hist[iso] || {};
+      var rec = day[uid0] || day[String(uid0)] || day[Number(uid0)];
+      if(!rec) return;
+      var st = String(rec.status || '').toLowerCase();
+      if(st !== 'approved' && st !== 'rejected') return;
+      var tRes = Date.parse(rec.resolvedAt || '') || Date.parse(iso) || 0;
+      if(tRes && tRes < cutoff){
+        var k = makeAbsDecisionKey(iso, st, rec.resolvedAt || '');
+        seen[k] = now;
+      }
+    });
+
+    var sh = App.shiftChangeHistory || {};
+    Object.keys(sh).forEach(function(iso2){
+      var bucket = sh[iso2] || {};
+      Object.keys(bucket).forEach(function(k2){
+        var rec2 = bucket[k2];
+        if(!rec2) return;
+        if(String(rec2.staffId) !== uid0) return;
+        var st2 = String(rec2.status || '').toLowerCase();
+        if(st2 !== 'approved' && st2 !== 'rejected') return;
+        var tRes2 = Date.parse(rec2.resolvedAt || '') || Date.parse(iso2) || 0;
+        if(tRes2 && tRes2 < cutoff){
+          var k3 = makeShiftDecisionKey(iso2, k2, st2, rec2.resolvedAt || '');
+          seen[k3] = now;
+        }
+      });
+    });
+
+    saveReqSeen(seen);
+  }catch(e){}
+}
+
+
+var __myPendingLast = null;
+var __myPendingToastAt = 0;
+
+function notifyMyRequestStatus(){
+  try{
+    if(!App || !App.currentUser || App.currentUser.id==null) return;
+
+    // Accepted/Declined updates since last time (deduped per-user)
+    var __seenRaw = null;
+    try{ __seenRaw = localStorage.getItem(reqSeenStorageKey()); }catch(e){}
+    if(!__seenRaw){
+      // First run on this device: mark older history as "seen" so we only pop recent items.
+      seedReqSeenFromCurrentData(REQ_ACK_LOOKBACK_DAYS);
+    }
+    var updates = collectMyDecisionUpdates();
+    if(updates && updates.length){
+      openReqUpdatesModal(updates);
+      markDecisionUpdatesSeen(updates);
+    }
+
+    // Pending summary (don't spam)
+    if(App.currentUser.role === 'staff'){
+      var p = countMyPendingRequests();
+      var now = Date.now();
+      if(p > 0){
+        if(__myPendingLast === null || p !== __myPendingLast || (now - __myPendingToastAt) > 600000){
+          showToast('Requests pending', 'You have ' + p + ' request' + (p===1?'':'s') + ' pending manager review.', 'warn', 7000);
+          __myPendingToastAt = now;
+        }
+      }
+      __myPendingLast = p;
+    }
+  }catch(e){}
+}
+
+
 // ---------- Local Storage ----------
-function saveLocal(){ try{ localStorage.setItem(App.cacheKey, JSON.stringify({settings:App.settings,staff:App.staff,weeks:App.weeks,availability:App.availability,absenceRequests:App.absenceRequests,absenceHistory:App.absenceHistory,shiftChangeRequests:App.shiftChangeRequests,payrollAdjustments:App.payrollAdjustments,payrollPaid:App.payrollPaid,version:App.version})); }catch(e){} }
-function loadLocal(){ try{ var raw=localStorage.getItem(App.cacheKey); if(!raw) return; var d=JSON.parse(raw)||{}; if(d.settings){ for(var k in d.settings){ App.settings[k]=d.settings[k]; } } App.staff=d.staff||App.staff; App.weeks=d.weeks||App.weeks; App.availability=d.availability||App.availability; App.absenceRequests=d.absenceRequests||App.absenceRequests; App.absenceHistory=d.absenceHistory||App.absenceHistory; App.shiftChangeRequests=d.shiftChangeRequests||App.shiftChangeRequests; App.payrollAdjustments=d.payrollAdjustments||App.payrollAdjustments||{}; App.payrollPaid=d.payrollPaid||App.payrollPaid||{}; }catch(e){} }
+function saveLocal(){ try{ localStorage.setItem(App.cacheKey, JSON.stringify({settings:App.settings,staff:App.staff,weeks:App.weeks,availability:App.availability,absenceRequests:App.absenceRequests,absenceHistory:App.absenceHistory,shiftChangeRequests:App.shiftChangeRequests,shiftChangeHistory:App.shiftChangeHistory,payrollAdjustments:App.payrollAdjustments,payrollPaid:App.payrollPaid,version:App.version})); }catch(e){} }
+function loadLocal(){ try{ var raw=localStorage.getItem(App.cacheKey); if(!raw) return; var d=JSON.parse(raw)||{}; if(d.settings){ for(var k in d.settings){ App.settings[k]=d.settings[k]; } } App.staff=d.staff||App.staff; App.weeks=d.weeks||App.weeks; App.availability=d.availability||App.availability; App.absenceRequests=d.absenceRequests||App.absenceRequests; App.absenceHistory=d.absenceHistory||App.absenceHistory; App.shiftChangeRequests=d.shiftChangeRequests||App.shiftChangeRequests; App.shiftChangeHistory=d.shiftChangeHistory||App.shiftChangeHistory||{}; App.payrollAdjustments=d.payrollAdjustments||App.payrollAdjustments||{}; App.payrollPaid=d.payrollPaid||App.payrollPaid||{}; }catch(e){} }
 
 // Shared helper for resetting local cache
 function resetLocalCache(allowAll){
@@ -2363,6 +2804,7 @@ function enterApp(){
   byId('loginSection').classList.remove('show');
   showTab('My');
   renderAfterLogin();
+  try{ if(typeof notifyMyRequestStatus==='function') notifyMyRequestStatus(); }catch(e){}
 
   // Auto-popup pending requests for Admin on login (only if any exist)
   try{
@@ -3732,6 +4174,13 @@ function approveShiftChange(iso,key,req){
       App.weeks[wsISO] = week;
     }
 
+    // Record decision for request sender acknowledgement
+    try{
+      if(!App.shiftChangeHistory) App.shiftChangeHistory = {};
+      if(!App.shiftChangeHistory[iso]) App.shiftChangeHistory[iso] = {};
+      App.shiftChangeHistory[iso][key] = Object.assign({}, req||{}, {status:'approved', resolvedAt:new Date().toISOString()});
+    }catch(e){}
+
     if(App.shiftChangeRequests && App.shiftChangeRequests[iso]){
       delete App.shiftChangeRequests[iso][key];
       if(Object.keys(App.shiftChangeRequests[iso]).length===0) delete App.shiftChangeRequests[iso];
@@ -3751,6 +4200,16 @@ function approveShiftChange(iso,key,req){
 
 function rejectShiftChange(iso,key){
   if(!canModerateAbsences()) return alert('Manager/Admin only.');
+
+  // Record decision for request sender acknowledgement
+  try{
+    var __req = (App.shiftChangeRequests && App.shiftChangeRequests[iso]) ? App.shiftChangeRequests[iso][key] : null;
+    if(__req){
+      if(!App.shiftChangeHistory) App.shiftChangeHistory = {};
+      if(!App.shiftChangeHistory[iso]) App.shiftChangeHistory[iso] = {};
+      App.shiftChangeHistory[iso][key] = Object.assign({}, __req, {status:'rejected', resolvedAt:new Date().toISOString()});
+    }
+  }catch(e){}
   if(App.shiftChangeRequests && App.shiftChangeRequests[iso]){
     delete App.shiftChangeRequests[iso][key];
     if(Object.keys(App.shiftChangeRequests[iso]).length===0) delete App.shiftChangeRequests[iso];
@@ -3888,7 +4347,7 @@ function proposeAway(iso, staffId){
   }catch(e){}
   if(typeof updateRequestsBadge==='function') updateRequestsBadge();
   if(typeof window._refreshSchedulerDebug==='function') window._refreshSchedulerDebug();
-  alert('Request sent.');
+  showToast('Away request submitted', 'Status: Pending', 'warn', 6500);
 }
 function proposePartial(iso, staffId, start, end){
   staffId = String(staffId);
@@ -3945,7 +4404,7 @@ function proposePartial(iso, staffId, start, end){
   }catch(e){}
   if(typeof updateRequestsBadge==='function') updateRequestsBadge();
   if(typeof window._refreshSchedulerDebug==='function') window._refreshSchedulerDebug();
-  alert('Request sent.');
+  showToast('Away request submitted', 'Status: Pending', 'warn', 6500);
 }
 function clearAway(iso, staffId){
   staffId = String(staffId);
@@ -4232,6 +4691,7 @@ async function pullData(silent){
     App.absenceHistory=data.absenceHistory||App.absenceHistory||{};
     App.weeks=data.weeks||App.weeks;
     App.shiftChangeRequests=data.shiftChangeRequests||App.shiftChangeRequests||{};
+    App.shiftChangeHistory=data.shiftChangeHistory||App.shiftChangeHistory||{};
     App.payrollAdjustments=data.payrollAdjustments||App.payrollAdjustments||{};
     App.payrollPaid=data.payrollPaid||App.payrollPaid||{};
     if(data.settings){
@@ -4243,6 +4703,7 @@ async function pullData(silent){
   saveLocal();
   if(typeof updateRequestsBadge==='function') updateRequestsBadge();
   if(typeof maybeAutoOpenRequestsModal==='function') maybeAutoOpenRequestsModal(true);
+  try{ if(App.currentUser && typeof notifyMyRequestStatus==='function') notifyMyRequestStatus(); }catch(e){}
   if(!silent){ populateLoginSelects(); populateExistingStaff(); }
   var __title=document.getElementById('appTitle');
   if(__title) __title.textContent = App.settings.appTitle || 'M&C-ATRD-scheduler --=Aspire Group=--';
@@ -4280,6 +4741,7 @@ async function pushData(){
     absenceHistory:App.absenceHistory||{},
     weeks:App.weeks,
     shiftChangeRequests:App.shiftChangeRequests||{},
+    shiftChangeHistory:App.shiftChangeHistory||{},
     payrollAdjustments:App.payrollAdjustments||{},
     payrollPaid:App.payrollPaid||{},
     settings:{
@@ -4405,17 +4867,23 @@ window.proposeShiftEdit = async function(iso, staffId){
     };
     saveLocal();
 
+    var pushedOk = true;
+
     try{
       var payload = {};
       payload[iso] = App.shiftChangeRequests[iso];
       await dbPatch('/shiftChangeRequests', payload);
     }catch(e){
+      pushedOk = false;
       console.error('Failed to push shiftChangeRequests', e);
-      alert('Saved locally. Could not send to server.');
+      showToast('Shift edit request saved', 'Status: Pending (not sent to server)', 'warn', 9000);
     }
 
     if(typeof updateRequestsBadge==='function') updateRequestsBadge();
-    alert('Shift edit request sent.');
+    if(pushedOk){
+      showToast('Shift edit request submitted', 'Status: Pending', 'warn', 6500);
+    }
+
   }catch(e){
     console.error('proposeShiftEdit error', e);
     alert('Could not create request: ' + e);
