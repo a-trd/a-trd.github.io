@@ -2359,7 +2359,25 @@ async function login(){
     var m=byId('loginMsg'); if(m) m.textContent='Incorrect passcode.';
   }
 }
-function enterApp(){ byId('loginSection').classList.remove('show'); showTab('My'); renderAfterLogin(); }
+function enterApp(){
+  byId('loginSection').classList.remove('show');
+  showTab('My');
+  renderAfterLogin();
+
+  // Auto-popup pending requests for Admin on login (only if any exist)
+  try{
+    if(isAdmin && isAdmin()){
+      armRequestsAutoPopupAfterLogin();
+      setTimeout(function(){
+        if(typeof updateRequestsBadge==='function') updateRequestsBadge();
+        var splash = byId('splashSync');
+        var syncing = !!(splash && splash.style && splash.style.display && splash.style.display!=='none');
+        // If not syncing, disarm if none to avoid surprise popups later.
+        maybeAutoOpenRequestsModal(!syncing);
+      }, 250);
+    }
+  }catch(e){}
+}
 function showLogin(){ var nodes=$$('.section'); for(var i=0;i<nodes.length;i++){ nodes[i].classList.remove('show'); } byId('loginSection').classList.add('show'); var nav=byId('bottomNav'); if(nav) nav.style.display='none'; }
 function populateLoginSelects(){
   var sel=byId('loginStaffSelect'); sel.innerHTML='<option value="">-- select --</option>';
@@ -2591,6 +2609,7 @@ function renderAfterLogin(){
   renderMyShifts();
   renderPlanner();
   renderPayroll();
+  if(typeof updateRequestsBadge==='function') updateRequestsBadge();
 }
 
 // ---------- Rates & OT helpers ----------
@@ -2699,7 +2718,7 @@ function fitPlanner(){
   var gnodes=document.querySelectorAll('.grid');
   for(var i=0;i<gnodes.length;i++){ gnodes[i].style.setProperty('--colW', colW+'px'); }
 }
-function shiftWeek(d){ var base=fromISO(Planner.weekStartISO); base.setDate(base.getDate()+d*7); Planner.weekStartISO=toISO(weekStart(base)); renderPlanner(); renderPayroll(); }
+function shiftWeek(d){ var base=fromISO(Planner.weekStartISO); base.setDate(base.getDate()+d*7); Planner.weekStartISO=toISO(weekStart(base)); renderPlanner(); renderPayroll(); if(typeof updateRequestsBadge==='function') updateRequestsBadge(); }
 function renderDayTabs(){
   var c = byId('dayTabs');
   if(!c) return;
@@ -3742,20 +3761,41 @@ function rejectShiftChange(iso,key){
 }
 
 function countPendingRequestsForWeek(){
-  if(!window.Planner || !Planner.weekStartISO) return 0;
-  var start = fromISO(Planner.weekStartISO);
-  if(!start) return 0;
+  // Absence requests: current planner week only
   var total = 0;
-  for(var i=0;i<7;i++){
-    var d = new Date(start); d.setDate(start.getDate()+i);
-    var iso = toISO(d);
-    if(App.absenceRequests && App.absenceRequests[iso]){
-      total += Object.keys(App.absenceRequests[iso]).length;
+  try{
+    if(!Planner || !Planner.weekStartISO) return 0;
+    var start = fromISO(Planner.weekStartISO);
+    if(!start) return 0;
+
+    for(var i=0;i<7;i++){
+      var d = new Date(start); d.setDate(start.getDate()+i);
+      var iso = toISO(d);
+      var bucket = (App.absenceRequests && App.absenceRequests[iso]) ? App.absenceRequests[iso] : null;
+      if(bucket){
+        Object.keys(bucket).forEach(function(sid){
+          var req = bucket[sid];
+          if(!req) return;
+          if(req.status && req.status!=='pending') return;
+          total += 1;
+        });
+      }
     }
-    if(App.shiftChangeRequests && App.shiftChangeRequests[iso]){
-      total += Object.keys(App.shiftChangeRequests[iso]).length;
+
+    // Shift edit requests: all pending (any week/day)
+    if(App.shiftChangeRequests){
+      Object.keys(App.shiftChangeRequests).forEach(function(iso2){
+        var b2 = App.shiftChangeRequests[iso2];
+        if(!b2) return;
+        Object.keys(b2).forEach(function(k){
+          var r2 = b2[k];
+          if(!r2) return;
+          if(r2.status && r2.status!=='pending') return;
+          total += 1;
+        });
+      });
     }
-  }
+  }catch(e){}
   return total;
 }
 function updateRequestsBadge(){
@@ -3767,6 +3807,37 @@ function updateRequestsBadge(){
     el.style.display = 'inline-block';
   }else{
     el.style.display = 'none';
+  }
+}
+
+// Auto-popup pending requests modal after ADMIN login (one-time, only if there are outstanding requests)
+var __requestsAutoPopupArmed = false;
+var __requestsAutoPopupTimer = null;
+function armRequestsAutoPopupAfterLogin(){
+  __requestsAutoPopupArmed = true;
+  if(__requestsAutoPopupTimer) clearTimeout(__requestsAutoPopupTimer);
+  // Safety: disarm after 2 minutes to avoid surprise popups later.
+  __requestsAutoPopupTimer = setTimeout(function(){
+    __requestsAutoPopupArmed = false;
+    __requestsAutoPopupTimer = null;
+  }, 120000);
+}
+function maybeAutoOpenRequestsModal(disarmIfNone){
+  if(!__requestsAutoPopupArmed) return;
+  try{
+    if(!App || !App.currentUser || App.currentUser.role !== 'admin'){
+      __requestsAutoPopupArmed = false;
+      return;
+    }
+    var count = countPendingRequestsForWeek();
+    if(count > 0){
+      __requestsAutoPopupArmed = false;
+      openRequestsModal();
+      return;
+    }
+    if(disarmIfNone) __requestsAutoPopupArmed = false;
+  }catch(e){
+    if(disarmIfNone) __requestsAutoPopupArmed = false;
   }
 }
 // Staff bar -> request (not publish) handled in renderAvailabilityBar()
@@ -4171,6 +4242,7 @@ async function pullData(silent){
   }
   saveLocal();
   if(typeof updateRequestsBadge==='function') updateRequestsBadge();
+  if(typeof maybeAutoOpenRequestsModal==='function') maybeAutoOpenRequestsModal(true);
   if(!silent){ populateLoginSelects(); populateExistingStaff(); }
   var __title=document.getElementById('appTitle');
   if(__title) __title.textContent = App.settings.appTitle || 'M&C-ATRD-scheduler --=Aspire Group=--';
