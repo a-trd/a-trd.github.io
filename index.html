@@ -474,6 +474,37 @@
       z-index: 4;
     }
 
+    .away-reason-tooltip{
+      position: fixed;
+      z-index: 9998;
+      max-width: min(340px, calc(100vw - 24px));
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: rgba(15,23,42,.96);
+      color: #f8fafc;
+      border: 1px solid rgba(148,163,184,.35);
+      box-shadow: 0 18px 40px rgba(0,0,0,.45);
+      font-size: 12px;
+      line-height: 1.35;
+      white-space: pre-line;
+      pointer-events: none;
+      opacity: 0;
+      transform: translateY(4px);
+      transition: opacity .12s ease, transform .12s ease;
+      display: none;
+    }
+    .away-reason-tooltip.show{
+      opacity: 1;
+      transform: translateY(0);
+    }
+    [data-theme="light"] .away-reason-tooltip{
+      background: rgba(255,255,255,.98);
+      color: #0f172a;
+      border-color: rgba(15,23,42,.12);
+      box-shadow: 0 18px 40px rgba(0,0,0,.18);
+    }
+
+
     .mini-actions {
       display: flex;
       flex-wrap: wrap;
@@ -1907,6 +1938,10 @@
       <span class="label">Logout</span>
     </button></nav>
 
+
+
+  <div id="awayReasonTooltip" class="away-reason-tooltip" aria-hidden="true"></div>
+
 <!-- Paste your original JavaScript here without changes.
        i.e. both <script>...</script> blocks from the original file. -->
 <script>
@@ -3232,6 +3267,7 @@ function renderPlanner(){
     var nameWrap=document.createElement('div'); nameWrap.style.display='flex'; nameWrap.style.alignItems='center'; nameWrap.style.gap='8px'; nameWrap.style.width='100%';
     var dot=document.createElement('div'); dot.className='dot'; dot.style.background=st.color||'#5A31F4';
     var name=document.createElement('div'); name.textContent=st.name;
+    try{ if(awayReasonTextFor(curISO, id)){ attachAwayReasonHover(name, curISO, id); name.style.cursor='help'; } }catch(e){}
     var badge=document.createElement('div'); badge.className='badge'; badge.textContent='0.00h wk';
     nameWrap.appendChild(dot); nameWrap.appendChild(name); nameWrap.appendChild(badge);
     sc.appendChild(nameWrap);
@@ -3878,6 +3914,176 @@ function drawAwayOverlays(wrapEl, iso, staffId){
   }catch(e){}
 }
 
+
+// ---------- Away reason hover tooltip (planner staff name) ----------
+var __awayReasonTimer = null;
+var __awayReasonHoverKey = null;
+var __awayReasonShownKey = null;
+var __awayReasonLastX = 0;
+var __awayReasonLastY = 0;
+
+function ensureAwayReasonTooltipEl(){
+  try{ return byId('awayReasonTooltip'); }catch(e){ return null; }
+}
+
+function awayReasonTextFor(iso, staffId){
+  try{
+    if(!iso) return '';
+    staffId = String(staffId);
+    var dayRec = (App.availability && App.availability[iso]) ? App.availability[iso] : null;
+    if(!dayRec) return '';
+    var rec = dayRec[staffId] || dayRec[String(staffId)] || dayRec[Number(staffId)];
+    if(!rec) return '';
+    var lines = [];
+
+    if(rec.unavailable){
+      var r0 = (rec.reason!=null ? String(rec.reason).trim() : '');
+      if(!r0) r0 = '(no reason recorded)';
+      lines.push('Full day away: ' + r0);
+    }
+
+    if(Array.isArray(rec.blocks) && rec.blocks.length){
+      rec.blocks.forEach(function(b){
+        if(!b) return;
+        var seg = 'Partial away';
+        if(b.start || b.end){
+          seg += ' ' + (b.start||'') + '–' + (b.end||'');
+        }
+        var r1 = (b.reason!=null ? String(b.reason).trim() : '');
+        if(!r1) r1 = '(no reason recorded)';
+        seg += ': ' + r1;
+        lines.push(seg);
+      });
+    }
+
+    if(!lines.length) return '';
+    return lines.join('\n');
+  }catch(e){
+    return '';
+  }
+}
+
+function positionAwayReasonTooltip(el, x, y){
+  try{
+    if(!el) return;
+    var pad = 12;
+    var vw = window.innerWidth || document.documentElement.clientWidth || 0;
+    var vh = window.innerHeight || document.documentElement.clientHeight || 0;
+
+    var left = (x||0) + 14;
+    var top  = (y||0) + 14;
+
+    el.style.left = '0px';
+    el.style.top  = '0px';
+    var r = el.getBoundingClientRect();
+
+    if(left + r.width + pad > vw) left = Math.max(pad, vw - r.width - pad);
+    if(top + r.height + pad > vh) top = Math.max(pad, vh - r.height - pad);
+
+    if(left < pad) left = pad;
+    if(top < pad) top = pad;
+
+    el.style.left = left + 'px';
+    el.style.top  = top + 'px';
+  }catch(e){}
+}
+
+function showAwayReasonTooltip(text, x, y){
+  try{
+    var el = ensureAwayReasonTooltipEl();
+    if(!el) return;
+    el.textContent = text || '';
+    el.style.display = 'block';
+    positionAwayReasonTooltip(el, x, y);
+    requestAnimationFrame(function(){
+      try{
+        el.classList.add('show');
+        positionAwayReasonTooltip(el, x, y);
+      }catch(e){}
+    });
+  }catch(e){}
+}
+
+function hideAwayReasonTooltip(){
+  try{
+    var el = ensureAwayReasonTooltipEl();
+    if(!el) return;
+    el.classList.remove('show');
+    setTimeout(function(){
+      try{
+        if(!el.classList.contains('show')) el.style.display = 'none';
+      }catch(e){}
+    }, 140);
+  }catch(e){}
+}
+
+function beginAwayReasonHover(iso, staffId, x, y){
+  try{
+    __awayReasonLastX = x||0;
+    __awayReasonLastY = y||0;
+    var key = String(iso) + '|' + String(staffId);
+    __awayReasonHoverKey = key;
+    __awayReasonShownKey = null;
+
+    if(__awayReasonTimer){ clearTimeout(__awayReasonTimer); __awayReasonTimer = null; }
+    hideAwayReasonTooltip();
+
+    __awayReasonTimer = setTimeout(function(){
+      try{
+        if(__awayReasonHoverKey !== key) return;
+        var t = awayReasonTextFor(iso, staffId);
+        if(!t) return;
+        __awayReasonShownKey = key;
+        showAwayReasonTooltip(t, __awayReasonLastX, __awayReasonLastY);
+      }catch(e){}
+    }, 500);
+  }catch(e){}
+}
+
+function moveAwayReasonHover(x, y){
+  try{
+    __awayReasonLastX = x||0;
+    __awayReasonLastY = y||0;
+    if(__awayReasonShownKey && __awayReasonHoverKey === __awayReasonShownKey){
+      var el = ensureAwayReasonTooltipEl();
+      if(el && el.style.display !== 'none'){
+        positionAwayReasonTooltip(el, __awayReasonLastX, __awayReasonLastY);
+      }
+    }
+  }catch(e){}
+}
+
+function endAwayReasonHover(){
+  try{
+    __awayReasonHoverKey = null;
+    __awayReasonShownKey = null;
+    if(__awayReasonTimer){ clearTimeout(__awayReasonTimer); __awayReasonTimer = null; }
+    hideAwayReasonTooltip();
+  }catch(e){}
+}
+
+function attachAwayReasonHover(el, iso, staffId){
+  try{
+    if(!el) return;
+
+    el.addEventListener('mouseenter', function(ev){
+      var x = (ev && ev.clientX!=null) ? ev.clientX : 0;
+      var y = (ev && ev.clientY!=null) ? ev.clientY : 0;
+      beginAwayReasonHover(iso, staffId, x, y);
+    });
+
+    el.addEventListener('mousemove', function(ev){
+      var x = (ev && ev.clientX!=null) ? ev.clientX : 0;
+      var y = (ev && ev.clientY!=null) ? ev.clientY : 0;
+      moveAwayReasonHover(x, y);
+    });
+
+    el.addEventListener('mouseleave', function(){
+      endAwayReasonHover();
+    });
+  }catch(e){}
+}
+
 function leaveOverlapHours(iso, staffId, shift){
   try{
     if(!App.availability || !shift) return 0;
@@ -4124,6 +4330,8 @@ function approveRequest(iso,sid,req){
   }
   saveLocal();
   renderPlanner();
+  renderPayroll();
+  renderMyShifts();
   renderAbsenceCalendar();
   openRequestsModal();
   if(typeof window._refreshSchedulerDebug==='function') window._refreshSchedulerDebug();
@@ -4325,6 +4533,8 @@ function proposeAway(iso, staffId){
     rec.reason = reason;
     saveLocal();
     renderPlanner();
+    renderPayroll();
+    renderMyShifts();
     renderAbsenceCalendar();
     if(typeof window._refreshSchedulerDebug==='function') window._refreshSchedulerDebug();
     return;
@@ -4382,6 +4592,8 @@ function proposePartial(iso, staffId, start, end){
     rec.blocks.push({start:start, end:end, reason:reason});
     saveLocal();
     renderPlanner();
+    renderPayroll();
+    renderMyShifts();
     renderAbsenceCalendar();
     if(typeof window._refreshSchedulerDebug==='function') window._refreshSchedulerDebug();
     return;
@@ -4415,11 +4627,13 @@ function clearAway(iso, staffId){
   }
   saveLocal();
   renderPlanner();
+  renderPayroll();
+  renderMyShifts();
   renderAbsenceCalendar();
   if(typeof window._refreshSchedulerDebug==='function') window._refreshSchedulerDebug();
 }
 // ---------- Copy & Payroll ----------
-function copyDayToNext(){ var f=Planner.activeDayIndex; var t=(f+1)%7; var wk=App.weeks[Planner.weekStartISO]||{}; var src=JSON.parse(JSON.stringify(wk[String(f)]||{})); wk[String(t)]={}; Object.keys(src).forEach(function(k){ var sh=src[k]; var id=uid(); wk[String(t)][id]={id:id,staffId:sh.staffId,day:t,start:sh.start,end:sh.end,breakMins:sh.breakMins,notes:sh.notes,penalty:sh.penalty}; }); App.weeks[Planner.weekStartISO]=wk; saveLocal(); Planner.activeDayIndex=t; renderPlanner(); }
+function copyDayToNext(){ var f=Planner.activeDayIndex; var t=(f+1)%7; var wk=App.weeks[Planner.weekStartISO]||{}; var src=JSON.parse(JSON.stringify(wk[String(f)]||{})); wk[String(t)]={}; Object.keys(src).forEach(function(k){ var sh=src[k]; var id=uid(); wk[String(t)][id]={id:id,staffId:sh.staffId,day:t,start:sh.start,end:sh.end,breakMins:sh.breakMins,notes:sh.notes,penalty:sh.penalty}; }); App.weeks[Planner.weekStartISO]=wk; saveLocal(); Planner.activeDayIndex=t; renderPlanner(); renderPayroll(); renderMyShifts(); }
 function copyWeekToNext(){ var from=Planner.weekStartISO; var d=fromISO(from); d.setDate(d.getDate()+7); var to=toISO(weekStart(d)); var src=JSON.parse(JSON.stringify(App.weeks[from]||{})); App.weeks[to]={}; Object.keys(src).forEach(function(k){ var shs=src[k]; App.weeks[to][k]={}; Object.keys(shs).forEach(function(sk){ var sh=shs[sk]; var id=uid(); App.weeks[to][k][id]={id:id,staffId:sh.staffId,day:sh.day,start:sh.start,end:sh.end,breakMins:sh.breakMins,notes:sh.notes,penalty:sh.penalty}; }); }); saveLocal(); Planner.weekStartISO=to; renderPlanner(); renderPayroll(); }
 
 function renderPayroll(){
@@ -4730,6 +4944,23 @@ async function pullData(silent){
     applyTheme(App.settings.themeName);
     if(typeof renderThemePicker==='function') renderThemePicker();
   }
+
+  try{
+    if(App.currentUser){
+      // Refresh UI immediately after pulling latest data (no week switch needed)
+      renderPlanner();
+      renderPayroll();
+      renderMyShifts();
+      try{
+        var absSec = byId('absencesSection');
+        if(absSec && absSec.classList && absSec.classList.contains('show')) renderAbsenceCalendar();
+      }catch(e){}
+      try{
+        var prSec = byId('printSection');
+        if(prSec && prSec.classList && prSec.classList.contains('show')){ try{ buildPrintView(); }catch(e){} }
+      }catch(e){}
+    }
+  }catch(e){}
   return true;
 }
 
