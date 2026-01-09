@@ -646,6 +646,40 @@
       text-align: left;
     }
 
+
+    .wo-day-head {
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:6px;
+      white-space:nowrap;
+    }
+
+    .wo-day-label {
+      font-weight:800;
+    }
+
+    .wo-badges {
+      display:inline-flex;
+      align-items:center;
+      gap:4px;
+    }
+
+    .wo-count-badge {
+      display:inline-flex;
+      align-items:center;
+      gap:4px;
+      border-radius:999px;
+      padding:2px 6px;
+      border:1px solid var(--border);
+      background: var(--chip);
+      font-size:10px;
+      font-weight:800;
+      line-height:1;
+    }
+
+    .wo-count-badge.zero { opacity:.55; }
+    .wo-ico { font-size:11px; line-height:1; }
     .wo-name {
       position: sticky;
       left: 0;
@@ -1738,7 +1772,31 @@
           <div>
             <label>Target headcount / slot</label>
             <input id="optTargetHeadcount" type="number" min="0" step="1" value="0">
+          
+        <div class="grid-2">
+          <div>
+            <label>Day shift start (for Week Overview)</label>
+            <input id="optDayShiftStart" type="time" step="300" value="09:00">
           </div>
+          <div>
+            <label>Day shift end</label>
+            <input id="optDayShiftEnd" type="time" step="300" value="17:00">
+          </div>
+        </div>
+        <div class="grid-2">
+          <div>
+            <label>Night shift start</label>
+            <input id="optNightShiftStart" type="time" step="300" value="17:00">
+          </div>
+          <div>
+            <label>Night shift end</label>
+            <input id="optNightShiftEnd" type="time" step="300" value="23:00">
+          </div>
+        </div>
+        <div class="muted small" style="margin-top:2px;">
+          These times control the Day/Night badges shown next to each weekday in the Week Overview.
+        </div>
+</div>
         </div>
         <div class="grid-2">
           <div>
@@ -1963,6 +2021,9 @@ var App = {
     autoPullMins: 0, autoPushMins: 0,
     // planner
     gridStartHour: 8, gridHours: 16, slotMins: 30, targetHeadcount: 0,
+    // week overview shift badge windows (24h HH:MM)
+    dayShiftStart:'09:00', dayShiftEnd:'17:00',
+    nightShiftStart:'17:00', nightShiftEnd:'23:00',
     staffSeeOthers: true,
     publishedWeeks: {}
   },
@@ -2012,6 +2073,13 @@ function renderThemePicker(){
 
 // ---------- Utils ----------
 function pad(n){ n=parseInt(n,10); if(isNaN(n)||n<0)n=0; return (n<10?'0':'')+n; }
+function to24hhmm(s, fallback){
+  var m = parse12(s);
+  if(isNaN(m) && fallback!=null) m = parse12(fallback);
+  if(isNaN(m)) m = 0;
+  m = ((m%1440)+1440)%1440;
+  return pad(Math.floor(m/60)%24)+':'+pad(m%60);
+}
 function fmtMoney(n){ return '$'+(n||0).toFixed(2); }
 function toISO(d){ return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
 function fmtDMY(d){ return pad(d.getDate())+'/'+pad(d.getMonth()+1)+'/'+d.getFullYear(); }
@@ -2634,6 +2702,12 @@ function init(){
   byId('optTargetHeadcount').value=App.settings.targetHeadcount||0;
   byId('optStaffSeeOthers').value=String(App.settings.staffSeeOthers);
 
+  // Shift badge windows
+  if(byId('optDayShiftStart')) byId('optDayShiftStart').value = to24hhmm(App.settings.dayShiftStart, '09:00');
+  if(byId('optDayShiftEnd')) byId('optDayShiftEnd').value = to24hhmm(App.settings.dayShiftEnd, '17:00');
+  if(byId('optNightShiftStart')) byId('optNightShiftStart').value = to24hhmm(App.settings.nightShiftStart, '17:00');
+  if(byId('optNightShiftEnd')) byId('optNightShiftEnd').value = to24hhmm(App.settings.nightShiftEnd, '23:00');
+
   // Initial pull with splash
   splashShow('Syncing…'); byId('splashSync').style.display='flex';
   pullData(true).then(function(){
@@ -2666,6 +2740,11 @@ function init(){
     App.settings.slotMins=parseInt(byId('optSlotMins').value||'30',10);
     App.settings.targetHeadcount=parseInt(byId('optTargetHeadcount').value||'0',10);
     App.settings.staffSeeOthers = (byId('optStaffSeeOthers').value==='true');
+    // Shift badge windows
+    App.settings.dayShiftStart = to24hhmm(byId('optDayShiftStart') && byId('optDayShiftStart').value, '09:00');
+    App.settings.dayShiftEnd = to24hhmm(byId('optDayShiftEnd') && byId('optDayShiftEnd').value, '17:00');
+    App.settings.nightShiftStart = to24hhmm(byId('optNightShiftStart') && byId('optNightShiftStart').value, '17:00');
+    App.settings.nightShiftEnd = to24hhmm(byId('optNightShiftEnd') && byId('optNightShiftEnd').value, '23:00');
     var __titleEl=document.querySelector('.appbar .title'); if(__titleEl) __titleEl.textContent=App.settings.appTitle;
     var __logoBox=byId('appLogoBox'); if(__logoBox){ var __u=App.settings.logoUrl||''; if(__u){ __logoBox.style.display='inline-block'; __logoBox.style.backgroundImage='url("'+resolveLogoUrl(__u)+'")'; } else { __logoBox.style.display='none'; __logoBox.style.backgroundImage='none'; } }
     saveLocal(); startAutoSyncTimers(); renderPlanner(); alert('Saved.');
@@ -3629,9 +3708,70 @@ function clearStaffForm(){
 function renderLegend(){ var el=byId('legend'); if(!el) return; el.innerHTML=''; el.style.display='none'; }
 function renderWeekOverview(){
   var el=byId('weekOverview'); if(!el) return; el.innerHTML='';
-  var title=document.createElement('div'); title.className='wo-head wo-title'; title.textContent='Week Overview'; el.appendChild(title);
-  for(var d=0; d<7; d++){ var h=document.createElement('div'); h.className='wo-head'; h.textContent=DAY[d]; el.appendChild(h); }
   var week=App.weeks[Planner.weekStartISO]||{};
+
+  function dayNightCounts(dayIndex){
+    var ds = week[String(dayIndex)] || {};
+    var daySet = {};
+    var nightSet = {};
+    var dayStart = parse12(App.settings.dayShiftStart||'09:00'); if(isNaN(dayStart)) dayStart = 9*60;
+    var dayEnd0 = parse12(App.settings.dayShiftEnd||'17:00'); if(isNaN(dayEnd0)) dayEnd0 = 17*60;
+    var nightStart = parse12(App.settings.nightShiftStart||'17:00'); if(isNaN(nightStart)) nightStart = 17*60;
+    var nightEnd0 = parse12(App.settings.nightShiftEnd||'23:00'); if(isNaN(nightEnd0)) nightEnd0 = 23*60;
+
+    function overlapsWindow(startM, endM, wStart, wEnd){
+      if(isNaN(startM)||isNaN(endM)||isNaN(wStart)||isNaN(wEnd)) return false;
+      if(wEnd > wStart){
+        return (startM < wEnd) && (endM > wStart);
+      }else if(wEnd < wStart){
+        // wraps midnight: [wStart, 24:00) U [0, wEnd)
+        return ((startM < 1440) && (endM > wStart)) || ((startM < wEnd) && (endM > 0));
+      }
+      return false;
+    }
+    Object.keys(ds).forEach(function(k){
+      var sh = ds[k]; if(!sh || sh.staffId==null) return;
+      var st = App.staff && App.staff[sh.staffId] ? App.staff[sh.staffId] : null;
+      if(!st) return;
+      if((st.role||'staff')==='admin' || st.hidden) return;
+      if(!sh.start || !sh.end) return;
+      var startM = parse12(sh.start);
+      var endM0 = parse12(sh.end);
+      if(isNaN(startM) || isNaN(endM0)) return;
+      var endM = (endM0<=startM) ? endM0 + 24*60 : endM0;
+      // overlap check
+      if(overlapsWindow(startM, endM, dayStart, dayEnd0)) daySet[String(sh.staffId)] = true;
+      if(overlapsWindow(startM, endM, nightStart, nightEnd0)) nightSet[String(sh.staffId)] = true;
+    });
+    var _dsLabel = 'Day shift: ' + times12(((dayStart%1440)+1440)%1440) + '–' + times12(((dayEnd0%1440)+1440)%1440);
+    var _nsLabel = 'Night shift: ' + times12(((nightStart%1440)+1440)%1440) + '–' + times12(((nightEnd0%1440)+1440)%1440);
+    return {day:Object.keys(daySet).length, night:Object.keys(nightSet).length, dayLabel:_dsLabel, nightLabel:_nsLabel};
+  }
+
+  var title=document.createElement('div'); title.className='wo-head wo-title'; title.textContent='Week Overview'; el.appendChild(title);
+  for(var d=0; d<7; d++){
+    var cts = dayNightCounts(d);
+    var h=document.createElement('div'); h.className='wo-head wo-day-head';
+    var label=document.createElement('span'); label.className='wo-day-label'; label.textContent=DAY[d];
+    var badges=document.createElement('span'); badges.className='wo-badges';
+
+    function mkBadge(kind, icon, count, title){
+      var b=document.createElement('span');
+      b.className='wo-count-badge' + (count===0 ? ' zero' : '');
+      b.title=title;
+      var ico=document.createElement('span'); ico.className='wo-ico'; ico.textContent=icon;
+      var n=document.createElement('span'); n.textContent=String(count);
+      b.appendChild(ico); b.appendChild(n);
+      return b;
+    }
+
+    badges.appendChild(mkBadge('day','☀',cts.day,cts.dayLabel||''));
+    badges.appendChild(mkBadge('night','🌙',cts.night,cts.nightLabel||''));
+
+    h.appendChild(label);
+    h.appendChild(badges);
+    el.appendChild(h);
+  }
   var startDate=fromISO(Planner.weekStartISO);
   Object.keys(App.staff).filter(function(id){
     var s = App.staff[id] || {};
