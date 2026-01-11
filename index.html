@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1"/>
-  <title>M&C-ATRD-scheduler --=Aspire Group=-- (v2.0.0)</title>
+  <title>M&C-ATRD-scheduler --=Aspire Group=-- (V3.0)</title>
   <meta name="theme-color" content="#22c55e"/>
 
   <style>
@@ -93,6 +93,147 @@
       overflow: hidden;
       text-overflow: ellipsis;
     }
+
+
+.titlewrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.version-pill {
+  padding: 3px 8px;
+  border-radius: var(--radius-pill);
+  background: rgba(255,255,255,.18);
+  color: #fff;
+  font-weight: 800;
+  font-size: 12px;
+  letter-spacing: .2px;
+  flex-shrink: 0;
+  border: 1px solid rgba(255,255,255,.25);
+  backdrop-filter: blur(6px);
+}
+
+[data-theme="light"] .version-pill {
+  background: rgba(255,255,255,.50);
+  color: #001927;
+  border-color: rgba(0,0,0,.12);
+}
+
+/* ---------- Admin Stats ---------- */
+.stats-toolbar {
+  display:flex;
+  gap:8px;
+  align-items:center;
+  flex-wrap:wrap;
+  margin-bottom:10px;
+}
+.stats-kpis {
+  display:grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap:10px;
+  margin-bottom:12px;
+}
+@media (max-width: 900px){
+  .stats-kpis{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+.kpi {
+  background: var(--grid);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 10px 12px;
+  box-shadow: var(--shadow-soft);
+}
+.kpi .label{ color: var(--muted); font-size: 12px; }
+.kpi .value{ font-size: 18px; font-weight: 900; margin-top: 4px; }
+.kpi .sub{ color: var(--muted); font-size: 12px; margin-top: 2px; }
+
+.stats-grid {
+  display:grid;
+  grid-template-columns: 1.1fr .9fr;
+  gap: 12px;
+}
+@media (max-width: 900px){
+  .stats-grid{ grid-template-columns: 1fr; }
+}
+
+.stats-card {
+  background: var(--grid);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 12px;
+  box-shadow: var(--shadow-card);
+}
+
+.pie-wrap{
+  display:flex;
+  gap:14px;
+  align-items:center;
+  flex-wrap:wrap;
+}
+.pie {
+  width: 170px;
+  height: 170px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-soft);
+  background: conic-gradient(var(--accent) 0deg 360deg);
+  position: relative;
+  flex-shrink: 0;
+}
+.pie::after{
+  content:'';
+  position:absolute;
+  inset: 38px;
+  border-radius: 50%;
+  background: var(--grid);
+  border: 1px solid var(--border);
+}
+
+.legend {
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  min-width: 220px;
+  max-width: 520px;
+}
+.legend-item{
+  display:flex;
+  gap:8px;
+  align-items:center;
+  justify-content:space-between;
+}
+.legend-left{ display:flex; gap:8px; align-items:center; min-width:0; }
+.swatch{ width:12px; height:12px; border-radius:4px; border:1px solid var(--border); flex-shrink:0; }
+.legend-name{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.legend-val{ color: var(--muted); font-variant-numeric: tabular-nums; }
+
+.barlist{ display:flex; flex-direction:column; gap:8px; }
+.barrow{ display:grid; grid-template-columns: 140px 1fr 70px; gap:10px; align-items:center; }
+@media (max-width: 600px){ .barrow{ grid-template-columns: 1fr; } }
+.bartrack{ height: 12px; border-radius: 999px; background: rgba(255,255,255,.08); border:1px solid var(--border); overflow:hidden; }
+[data-theme="light"] .bartrack{ background: rgba(0,0,0,.06); }
+.barfill{ height:100%; border-radius: 999px; }
+
+.stats-table {
+  width:100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  overflow:hidden;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+.stats-table th, .stats-table td{
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+  text-align:left;
+}
+.stats-table th{ color: var(--muted); font-weight: 800; background: rgba(255,255,255,.06); }
+[data-theme="light"] .stats-table th{ background: rgba(0,0,0,.04); }
+.stats-table tr:last-child td{ border-bottom:none; }
+
+.muted-small{ color: var(--muted); font-size: 12px; }
 
     .tabs {
       display: flex;
@@ -1402,13 +1543,17 @@
   <div class="appbar">
     <div class="appbar-brand">
       <div id="appLogoBox"></div>
-      <div class="title" id="appTitle">M&C-ATRD-scheduler --=Aspire Group=--</div>
+      <div class="titlewrap">
+        <div class="title" id="appTitle">M&C-ATRD-scheduler --=Aspire Group=--</div>
+        <div class="version-pill" id="appVersion">V3.0</div>
+      </div>
     </div>
     <div class="tabs">
       <div id="userChip" class="pill" style="background:#ffffff22;color:#fff;font-weight:700;"></div>
       <button id="tabMy" class="active">My Shifts</button>
       <button id="tabPlanner">Planner</button>
       <button id="tabPayroll">Payroll</button>
+      <button id="tabStats">Stats</button>
       <button id="tabPrint">Print View</button>
       <button id="tabAbsences">Absences</button>
       <button id="tabSettings">Settings</button>
@@ -1617,6 +1762,90 @@
         </div>
       </div>
     </section>
+
+
+
+<!-- Stats (Admin only) -->
+<section id="statsSection" class="section">
+  <div class="card">
+    <div class="stats-toolbar">
+      <h3 style="margin:0;">Stats</h3>
+      <div class="pill" id="statsWeekLabel"></div>
+      <button id="btnStatsPrevWeek" class="btn-outline">← Prev week</button>
+      <button id="btnStatsNextWeek" class="btn-outline">Next week →</button>
+      <div style="flex:1;"></div>
+      <label class="muted" style="font-weight:700;">Range</label>
+      <select id="statsRange" style="min-width:160px;">
+        <option value="week">This week</option>
+        <option value="4w">Last 4 weeks</option>
+        <option value="12w">Last 12 weeks</option>
+        <option value="all">All time</option>
+      </select>
+      <button id="btnStatsRefresh" class="btn-outline">Refresh</button>
+    </div>
+
+    <div id="statsKpis" class="stats-kpis"></div>
+
+    <div class="stats-grid">
+      <div class="stats-card">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+          <h3 style="margin:0;">Hours &amp; Shifts</h3>
+          <div class="muted-small" id="statsHoursNote"></div>
+        </div>
+        <div class="pie-wrap" style="margin-top:10px;">
+          <div class="pie" id="statsPieHours" aria-label="Hours distribution"></div>
+          <div class="legend" id="statsHoursLegend"></div>
+        </div>
+
+        <div style="height:12px"></div>
+        <h3 style="margin:0 0 8px;">Shifts per staff</h3>
+        <div class="barlist" id="statsShiftsBars"></div>
+      </div>
+
+      <div class="stats-card">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+          <h3 style="margin:0;">Pay</h3>
+          <div class="muted-small" id="statsPayNote"></div>
+        </div>
+        <div class="pie-wrap" style="margin-top:10px;">
+          <div class="pie" id="statsPiePay" aria-label="Pay distribution"></div>
+          <div class="legend" id="statsPayLegend"></div>
+        </div>
+
+        <div style="height:12px"></div>
+        <h3 style="margin:0 0 8px;">Requests</h3>
+        <div id="statsRequests" class="muted"></div>
+      </div>
+    </div>
+
+    <div style="height:12px"></div>
+    <div class="stats-card">
+      <h3 style="margin:0 0 10px;">Staff breakdown</h3>
+      <div class="table-wrapper">
+        <table class="stats-table" id="statsTable">
+          <thead>
+            <tr>
+              <th>Staff</th>
+              <th>Shifts</th>
+              <th>Work (hrs)</th>
+              <th>Payable (hrs)</th>
+              <th>OT (hrs)</th>
+              <th>Away (hrs)</th>
+              <th>Pay</th>
+              <th>Paid</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="muted-small" style="margin-top:8px;">
+        Notes: Work/Payable/OT account for approved Away (full-day &amp; partial) by subtracting overlap from shifts.
+        Pay includes per‑staff rates, penalties, overtime rules, and (for single-week view) payroll adjustments.
+      </div>
+    </div>
+
+  </div>
+</section>
 
     <!-- Settings -->
     <section id="settingsSection" class="section">
@@ -2014,6 +2243,10 @@
       <span>💰</span>
       <span class="label">Pay</span>
     </button>
+    <button id="bottomStats">
+      <span>📊</span>
+      <span class="label">Stats</span>
+    </button>
     <button id="bottomAbsences">
       <span>🌴</span>
       <span class="label">Away</span>
@@ -2058,7 +2291,8 @@ var DAY = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 
 // ---------- App state ----------
 var App = {
-  version: '2.0.0',
+  // IMPORTANT: Increment App.version whenever making functional changes to this file.
+  version: 'V3.0',
   settings: {
     dbUrl:'https://mnc-atrd-default-rtdb.asia-southeast1.firebasedatabase.app/', workspace:'mnc-atrd', authToken:'',
     theme:'light', themeName:'light-pastel-sky', recentColors:[], appTitle:'M&C-ATRD-scheduler --=Aspire Group=--', logoUrl:'',
@@ -2735,9 +2969,20 @@ function init(){
     document.querySelectorAll('.section').forEach(s=>s.classList.remove('show'));
   var __nav = byId('bottomNav'); if(__nav) __nav.style.display='none';
   var __appTitleEl = byId('appTitle'); if(__appTitleEl) __appTitleEl.textContent = App.settings.appTitle || 'M&C-ATRD-scheduler --=Aspire Group=--';
+  var __verEl = byId('appVersion'); if(__verEl) __verEl.textContent = App.version || 'V3.0';
+  try{ document.title = (App.settings.appTitle||'App')+' ('+App.version+')'; }catch(e){}
   var __logoBoxInit = byId('appLogoBox'); if(__logoBoxInit){ var __lu=App.settings.logoUrl||''; if(__lu){ __logoBoxInit.style.display='inline-block'; __logoBoxInit.style.backgroundImage='url("'+resolveLogoUrl(__lu)+'")'; } else { __logoBoxInit.style.display='none'; __logoBoxInit.style.backgroundImage='none'; } }
   initColorRecents();
   initTabs();
+
+  // Stats UI (admin only)
+  try{
+    var _sr=byId('statsRange'); if(_sr) _sr.onchange=function(){ try{ renderStats(); }catch(e){} };
+    var _br=byId('btnStatsRefresh'); if(_br) _br.onclick=function(){ try{ renderStats(); }catch(e){} };
+    var _bp=byId('btnStatsPrevWeek'); if(_bp) _bp.onclick=function(){ shiftWeek(-1); try{ renderStats(); }catch(e){} };
+    var _bn=byId('btnStatsNextWeek'); if(_bn) _bn.onclick=function(){ shiftWeek(1); try{ renderStats(); }catch(e){} };
+  }catch(e){}
+
   initPlanner();
   populateLoginSelects();
   applyTheme(App.settings.themeName||'dark-classic');
@@ -2803,6 +3048,7 @@ function init(){
     App.settings.nightShiftStart = to24hhmm(byId('optNightShiftStart') && byId('optNightShiftStart').value, '17:00');
     App.settings.nightShiftEnd = to24hhmm(byId('optNightShiftEnd') && byId('optNightShiftEnd').value, '23:00');
     var __titleEl=document.querySelector('.appbar .title'); if(__titleEl) __titleEl.textContent=App.settings.appTitle;
+    try{ document.title = (App.settings.appTitle||'App')+' ('+App.version+')'; }catch(e){}
     var __logoBox=byId('appLogoBox'); if(__logoBox){ var __u=App.settings.logoUrl||''; if(__u){ __logoBox.style.display='inline-block'; __logoBox.style.backgroundImage='url("'+resolveLogoUrl(__u)+'")'; } else { __logoBox.style.display='none'; __logoBox.style.backgroundImage='none'; } }
     saveLocal(); startAutoSyncTimers(); renderPlanner();
     dbPatch('', {settings:App.settings}).then(function(){
@@ -3152,6 +3398,7 @@ function initTabs(){
   byId('tabMy').onclick=function(){ showTab('My'); };
   byId('tabPlanner').onclick=function(){ showTab('Planner'); };
   byId('tabPayroll').onclick=function(){ showTab('Payroll'); };
+  var tStats = byId('tabStats'); if(tStats) tStats.onclick=function(){ showTab('Stats'); };
   byId('tabSettings').onclick=function(){ showTab('Settings'); };
   byId('tabPrint').onclick=function(){ showTab('Print'); };
   byId('tabAbsences').onclick=function(){ showTab('Absences'); };
@@ -3162,6 +3409,7 @@ function initTabs(){
   if(bPlanner) bPlanner.onclick=function(){ showTab('Planner'); };
   var bPayroll = byId('bottomPayroll');
   if(bPayroll) bPayroll.onclick=function(){ showTab('Payroll'); };
+  var bStats = byId('bottomStats'); if(bStats) bStats.onclick=function(){ showTab('Stats'); };
   var bAbs = byId('bottomAbsences');
   if(bAbs) bAbs.onclick=function(){ showTab('Absences'); };
   var bSettings = byId('bottomSettings');
@@ -3171,6 +3419,7 @@ function showTab(name){
   var role = App.currentUser ? App.currentUser.role : 'staff';
   if(name==='Settings' && role!=='admin') return;
   if(name==='Payroll' && role!=='admin') return;
+  if(name==='Stats' && role!=='admin') return;
 
   // top tabs
   var btns=$$('.tabs button');
@@ -3186,7 +3435,8 @@ function showTab(name){
     Planner:'bottomPlanner',
     Payroll:'bottomPayroll',
     Absences:'bottomAbsences',
-    Settings:'bottomSettings'
+    Settings:'bottomSettings',
+    Stats:'bottomStats'
   };
   var bId = bottomMap[name];
   if(bId){
@@ -3200,6 +3450,7 @@ function showTab(name){
   if(name==='My') byId('mySection').classList.add('show');
   if(name==='Planner') byId('plannerSection').classList.add('show');
   if(name==='Payroll') byId('payrollSection').classList.add('show');
+  if(name==='Stats'){ byId('statsSection').classList.add('show'); try{ renderStats(); }catch(e){} }
   if(name==='Settings'){ byId('settingsSection').classList.add('show'); try{ renderAdminHistory(); }catch(e){} }
   if(name==='Absences'){
     byId('absencesSection').classList.add('show');
@@ -3218,6 +3469,7 @@ function renderAfterLogin(){
   byId('tabPayroll').style.display='none';
   byId('tabSettings').style.display='none';
   byId('tabPrint').style.display='none';
+  var __tStats=byId('tabStats'); if(__tStats) __tStats.style.display='none';
 
   var pullTop=byId('btnPullTop'), pushTop=byId('btnPushTop');
   if(pullTop) pullTop.style.display='none';
@@ -3236,12 +3488,14 @@ function renderAfterLogin(){
   var bMy = byId('bottomMy'),
       bPlanner = byId('bottomPlanner'),
       bPayroll = byId('bottomPayroll'),
+      bStats = byId('bottomStats'),
       bAbs = byId('bottomAbsences'),
       bSettings = byId('bottomSettings');
 
   if(bMy) bMy.style.display='';
   if(bPlanner) bPlanner.style.display='none';
   if(bPayroll) bPayroll.style.display='none';
+  if(bStats) bStats.style.display='none';
   if(bAbs) bAbs.style.display='';
   if(bSettings) bSettings.style.display='none';
 
@@ -3262,11 +3516,13 @@ function renderAfterLogin(){
     byId('tabPlanner').style.display='inline-block';
     byId('tabPayroll').style.display='inline-block';
     byId('tabSettings').style.display='inline-block';
+    byId('tabStats').style.display='inline-block';
     byId('tabPrint').style.display='inline-block';
     if(pullTop) pullTop.style.display='inline-block';
     if(pushTop) pushTop.style.display='inline-block';
     if(bPlanner) bPlanner.style.display='';
     if(bPayroll) bPayroll.style.display='';
+    if(bStats) bStats.style.display='';
     if(bSettings) bSettings.style.display='';
   }
 
@@ -5284,8 +5540,365 @@ function renderPayroll(){
   byId('allPayable').textContent=aP.toFixed(2);
   byId('allOT').textContent=aOT.toFixed(2);
   byId('allPay').textContent=fmtMoney(aM);
+  try{ if(isAdmin && isAdmin()){ var sec=byId('statsSection'); if(sec && sec.classList.contains('show')) renderStats(); } }catch(e){}
 }
 
+
+
+function _weeksInRange(range){
+  var out=[];
+  try{
+    var base=fromISO(Planner.weekStartISO);
+    function addWeek(d){ var t=new Date(base); t.setDate(t.getDate()+d*7); out.push(toISO(weekStart(t))); }
+    if(range==='week'){
+      addWeek(0);
+    }else if(range==='4w'){
+      for(var i=0;i<4;i++) addWeek(-i);
+    }else if(range==='12w'){
+      for(var j=0;j<12;j++) addWeek(-j);
+    }else{
+      out = Object.keys(App.weeks||{}).filter(function(k){ return /^\d{4}-\d{2}-\d{2}$/.test(k); });
+      out.sort(function(a,b){ return fromISO(a)-fromISO(b); });
+    }
+  }catch(e){
+    out=[Planner.weekStartISO];
+  }
+  // de-dupe + keep only existing weeks (except single week view)
+  var seen={};
+  out=out.filter(function(w){ if(seen[w]) return false; seen[w]=1; return true; });
+  return out;
+}
+
+function _computeWeekStats(weekIso){
+  var staffIds = Object.keys(App.staff||{}).filter(function(id){
+    var st = App.staff[id]||{};
+    return (st.role||'staff')!=='admin' && !st.hidden;
+  });
+  var res={};
+  staffIds.forEach(function(id){ res[id]={work:0, payable:0, ot:0, away:0, pay:0, shiftsWorked:0, shiftsScheduled:0, paid:false}; });
+
+  var s=fromISO(weekIso);
+  staffIds.forEach(function(id){
+    var st=App.staff[id]||{};
+    var weekCum=0;
+    for(var j=0;j<7;j++){
+      var d=new Date(s); d.setDate(d.getDate()+j);
+      var iso=toISO(d);
+      var ds=(App.weeks[weekIso] && App.weeks[weekIso][String(j)]) ? App.weeks[weekIso][String(j)] : {};
+      var dayCum=0;
+      Object.keys(ds).forEach(function(k){
+        var sh=ds[k];
+        if(!sh || sh.staffId!==id) return;
+        var shiftDur=hoursBetweenAny(sh.start,sh.end);
+        var leaveH=leaveOverlapHours(iso, id, sh);
+        var workAfterLeave=Math.max(0, shiftDur - leaveH);
+        res[id].away += leaveH;
+
+        var br=(breakMinutesForShift(sh, st)||0)/60;
+        if(br>workAfterLeave) br=workAfterLeave;
+        var payH=Math.max(0, workAfterLeave - br);
+
+        var rate=effectiveRate(id, j, sh);
+        var mult=parseFloat(st.otMult||1.5)||1.5;
+        var split=splitOvertime(id, j, payH, {weekCum:weekCum, dayCum:dayCum});
+        var pay=(split.normal*rate) + (split.ot*rate*mult);
+
+        res[id].work += workAfterLeave;
+        res[id].payable += payH;
+        res[id].ot += split.ot;
+        res[id].pay += pay;
+        res[id].shiftsScheduled += 1;
+        if(workAfterLeave>0.0001) res[id].shiftsWorked += 1;
+
+        weekCum += (split.normal + split.ot);
+        dayCum += payH;
+      });
+    }
+  });
+
+  // Paid status (single-week marking)
+  try{
+    var paidBucket = (App.payrollPaid && App.payrollPaid[weekIso]) ? App.payrollPaid[weekIso] : {};
+    Object.keys(res).forEach(function(id){ res[id].paid = !!paidBucket[id]; });
+  }catch(e){}
+
+  return res;
+}
+
+function _mergeStats(into, add){
+  Object.keys(add).forEach(function(id){
+    if(!into[id]) into[id]={work:0,payable:0,ot:0,away:0,pay:0,shiftsWorked:0,shiftsScheduled:0,paid:false};
+    into[id].work += add[id].work||0;
+    into[id].payable += add[id].payable||0;
+    into[id].ot += add[id].ot||0;
+    into[id].away += add[id].away||0;
+    into[id].pay += add[id].pay||0;
+    into[id].shiftsWorked += add[id].shiftsWorked||0;
+    into[id].shiftsScheduled += add[id].shiftsScheduled||0;
+    // paid: only meaningful for single week; caller handles
+  });
+}
+
+function _setPie(el, series){
+  if(!el) return;
+  var total = 0;
+  series.forEach(function(s){ total += (s.value||0); });
+  if(!isFinite(total) || total<=0){
+    el.style.background = 'conic-gradient(rgba(255,255,255,.16) 0deg 360deg)';
+    return;
+  }
+  var acc=0;
+  var parts=[];
+  for(var i=0;i<series.length;i++){
+    var v=series[i].value||0;
+    if(v<=0) continue;
+    var a0 = (acc/total)*360;
+    acc += v;
+    var a1 = (acc/total)*360;
+    parts.push(series[i].color+' '+a0.toFixed(2)+'deg '+a1.toFixed(2)+'deg');
+  }
+  if(!parts.length){
+    el.style.background = 'conic-gradient(rgba(255,255,255,.16) 0deg 360deg)';
+  }else{
+    el.style.background = 'conic-gradient('+parts.join(',')+')';
+  }
+}
+
+function _renderLegend(el, series, fmt){
+  if(!el) return;
+  el.innerHTML='';
+  var total=0; series.forEach(function(s){ total += (s.value||0); });
+  series.filter(function(s){ return (s.value||0)>0; }).sort(function(a,b){ return (b.value||0)-(a.value||0); }).slice(0,20).forEach(function(s){
+    var row=document.createElement('div'); row.className='legend-item';
+    var left=document.createElement('div'); left.className='legend-left';
+    var sw=document.createElement('div'); sw.className='swatch'; sw.style.background=s.color;
+    var nm=document.createElement('div'); nm.className='legend-name'; nm.textContent=s.name;
+    left.appendChild(sw); left.appendChild(nm);
+    var right=document.createElement('div'); right.className='legend-val';
+    var pct = total>0 ? ((s.value/total)*100) : 0;
+    right.textContent = (fmt?fmt(s.value):String(s.value)) + ' · ' + pct.toFixed(0) + '%';
+    row.appendChild(left); row.appendChild(right);
+    el.appendChild(row);
+  });
+}
+
+function _renderBars(el, series){
+  if(!el) return;
+  el.innerHTML='';
+  var max=0; series.forEach(function(s){ if((s.value||0)>max) max=s.value; });
+  max = max||1;
+  series.filter(function(s){ return (s.value||0)>0; }).sort(function(a,b){ return (b.value||0)-(a.value||0); }).forEach(function(s){
+    var row=document.createElement('div'); row.className='barrow';
+    var name=document.createElement('div'); name.className='legend-left';
+    var sw=document.createElement('div'); sw.className='swatch'; sw.style.background=s.color;
+    var nm=document.createElement('div'); nm.className='legend-name'; nm.textContent=s.name;
+    name.appendChild(sw); name.appendChild(nm);
+    var track=document.createElement('div'); track.className='bartrack';
+    var fill=document.createElement('div'); fill.className='barfill'; fill.style.width=((s.value/max)*100).toFixed(1)+'%'; fill.style.background=s.color;
+    track.appendChild(fill);
+    var val=document.createElement('div'); val.className='legend-val'; val.textContent=String(s.value);
+    row.appendChild(name); row.appendChild(track); row.appendChild(val);
+    el.appendChild(row);
+  });
+}
+
+function _requestsSummary(rangeWeeks){
+  var pendingAbs=0, pendingShift=0;
+  try{
+    var ar=App.absenceRequests||{};
+    Object.keys(ar).forEach(function(iso){
+      var bucket=ar[iso]||{};
+      Object.keys(bucket).forEach(function(id){
+        var rec=bucket[id];
+        if(rec && (rec.status||'pending')==='pending') pendingAbs++;
+      });
+    });
+  }catch(e){}
+  try{
+    var sr=App.shiftChangeRequests||{};
+    Object.keys(sr).forEach(function(k){
+      var rec=sr[k];
+      if(rec && (rec.status||'pending')==='pending') pendingShift++;
+    });
+  }catch(e){}
+
+  // approvals/rejections in range (best effort based on iso date)
+  var rangeSet={}; rangeWeeks.forEach(function(w){ rangeSet[w]=1; });
+  var absAp=0, absRe=0, shAp=0, shRe=0;
+  try{
+    var hist=App.absenceHistory||{};
+    Object.keys(hist).forEach(function(iso){
+      if(!iso) return;
+      var w=toISO(weekStart(fromISO(iso)));
+      if(!rangeSet[w]) return;
+      var bucket=hist[iso]||{};
+      Object.keys(bucket).forEach(function(sid){
+        var rec=bucket[sid];
+        if(!rec) return;
+        var st=rec.status||'approved';
+        if(st==='approved') absAp++; else if(st==='rejected') absRe++;
+      });
+    });
+  }catch(e){}
+  try{
+    var sh=App.shiftChangeHistory||{};
+    Object.keys(sh).forEach(function(iso){
+      if(!iso) return;
+      var w=toISO(weekStart(fromISO(iso)));
+      if(!rangeSet[w]) return;
+      var bucket=sh[iso]||{};
+      Object.keys(bucket).forEach(function(key){
+        var rec=bucket[key];
+        if(!rec) return;
+        var st=rec.status||'approved';
+        if(st==='approved') shAp++; else if(st==='rejected') shRe++;
+      });
+    });
+  }catch(e){}
+
+  return {pendingAbs:pendingAbs, pendingShift:pendingShift, absApproved:absAp, absRejected:absRe, shApproved:shAp, shRejected:shRe};
+}
+
+function renderStats(){
+  if(!isAdmin()) return;
+  var sec=byId('statsSection');
+  if(!sec) return;
+
+  var rangeSel = byId('statsRange');
+  var range = rangeSel ? (rangeSel.value||'week') : 'week';
+  var weeks = _weeksInRange(range);
+
+  // Update header labels
+  try{
+    var s=fromISO(Planner.weekStartISO);
+    var end=new Date(s); end.setDate(end.getDate()+6);
+    var wl=byId('statsWeekLabel');
+    if(wl) wl.textContent = 'Week of '+fmtDMY(s)+' – '+fmtDMY(end);
+  }catch(e){}
+
+  // Aggregate stats across weeks
+  var agg={};
+  weeks.forEach(function(w){
+    var wStats=_computeWeekStats(w);
+    // apply adjustments only for single-week view
+    if(range==='week'){
+      try{
+        var adjBucket = (App.payrollAdjustments && App.payrollAdjustments[w]) ? App.payrollAdjustments[w] : {};
+        Object.keys(wStats).forEach(function(id){
+          var adjRec = adjBucket[id] || {amount:0};
+          var adjAmt = parseFloat(adjRec.amount||0); if(!isFinite(adjAmt)) adjAmt=0;
+          wStats[id].pay += adjAmt;
+        });
+      }catch(e){}
+    }
+    _mergeStats(agg, wStats);
+
+    // paid status for range view: only show when single week
+    if(range==='week'){
+      Object.keys(wStats).forEach(function(id){
+        if(!agg[id]) return;
+        agg[id].paid = !!wStats[id].paid;
+      });
+    }
+  });
+
+  // Build series arrays
+  var staffSeries=[];
+  Object.keys(agg).forEach(function(id){
+    var st=App.staff[id]||{};
+    staffSeries.push({id:id, name:st.name||id, color:st.color||'#5A31F4', hours:agg[id].payable||0, pay:agg[id].pay||0, shifts:agg[id].shiftsWorked||0});
+  });
+
+  // KPIs
+  var totalHours=0,totalPay=0,totalShifts=0,totalAway=0,activeStaff=0;
+  staffSeries.forEach(function(s){
+    totalHours += s.hours||0;
+    totalPay += s.pay||0;
+    totalShifts += s.shifts||0;
+    totalAway += (agg[s.id].away||0);
+    if((s.hours||0)>0.0001 || (s.shifts||0)>0) activeStaff++;
+  });
+  var avgShift = totalShifts>0 ? (totalHours/totalShifts) : 0;
+
+  // highest paid/hours
+  var topPay = staffSeries.slice().sort(function(a,b){ return (b.pay||0)-(a.pay||0); })[0]||null;
+  var topHours = staffSeries.slice().sort(function(a,b){ return (b.hours||0)-(a.hours||0); })[0]||null;
+
+  var kpiWrap=byId('statsKpis');
+  if(kpiWrap){
+    kpiWrap.innerHTML='';
+    function addKpi(label, value, sub){
+      var d=document.createElement('div'); d.className='kpi';
+      d.innerHTML = '<div class="label">'+escapeHtml(label)+'</div>'
+        + '<div class="value">'+escapeHtml(value)+'</div>'
+        + (sub?('<div class="sub">'+escapeHtml(sub)+'</div>'):'');
+      kpiWrap.appendChild(d);
+    }
+    addKpi('Total payable hours', totalHours.toFixed(2), (weeks.length>1?('Across '+weeks.length+' weeks'):'This week'));
+    addKpi('Total shifts', String(totalShifts), (avgShift?('Avg '+avgShift.toFixed(2)+' hrs/shift'):' '));
+    addKpi('Estimated payroll', fmtMoney(totalPay), (topPay?('Top: '+(topPay.name)+' '+fmtMoney(topPay.pay)):' '));
+    addKpi('Away (hrs overlap)', totalAway.toFixed(2), (topHours?('Top hours: '+topHours.name+' '+topHours.hours.toFixed(2)+'h'):' '));
+  }
+
+  // Pies + legends
+  var hoursSeries = staffSeries.map(function(s){ return {name:s.name, value:s.hours||0, color:s.color}; });
+  var paySeries = staffSeries.map(function(s){ return {name:s.name, value:s.pay||0, color:s.color}; });
+  _setPie(byId('statsPieHours'), hoursSeries);
+  _setPie(byId('statsPiePay'), paySeries);
+  _renderLegend(byId('statsHoursLegend'), hoursSeries, function(v){ return (v||0).toFixed(2)+'h'; });
+  _renderLegend(byId('statsPayLegend'), paySeries, function(v){ return fmtMoney(v||0); });
+
+  // Notes
+  var hn=byId('statsHoursNote');
+  if(hn) hn.textContent = (weeks.length>1 ? ('Aggregate over '+weeks.length+' weeks') : 'Current week');
+  var pn=byId('statsPayNote');
+  if(pn) pn.textContent = (range==='week' ? 'Includes payroll adjustments' : 'Excludes adjustments');
+
+  // Bars
+  var shiftsSeries = staffSeries.map(function(s){ return {name:s.name, value:s.shifts||0, color:s.color}; });
+  _renderBars(byId('statsShiftsBars'), shiftsSeries);
+
+  // Requests summary
+  var rq=_requestsSummary(weeks);
+  var rqEl=byId('statsRequests');
+  if(rqEl){
+    var parts=[];
+    parts.push('<div><b>Pending</b>: Away '+rq.pendingAbs+' · Shift edits '+rq.pendingShift+'</div>');
+    parts.push('<div class="muted-small"><b>In range</b>: Away approved '+rq.absApproved+' · rejected '+rq.absRejected+' · Shift edits approved '+rq.shApproved+' · rejected '+rq.shRejected+'</div>');
+    rqEl.innerHTML = parts.join('');
+  }
+
+  // Table
+  var tb=byId('statsTable');
+  if(tb){
+    var tbody=tb.querySelector('tbody');
+    if(tbody){
+      tbody.innerHTML='';
+      staffSeries.slice().sort(function(a,b){ return (b.pay||0)-(a.pay||0); }).forEach(function(s){
+        var rec=agg[s.id]||{};
+        var tr=document.createElement('tr');
+        // tint row using staff color
+        try{
+          var bg=(s.color||'#1f2937').replace('#','');
+          if(bg.length===3) bg=bg[0]+bg[0]+bg[1]+bg[1]+bg[2]+bg[2];
+          var r=parseInt(bg.substr(0,2),16), g=parseInt(bg.substr(2,2),16), b=parseInt(bg.substr(4,2),16);
+          tr.style.background='rgba('+r+','+g+','+b+',0.16)';
+        }catch(e){}
+
+        tr.innerHTML =
+          '<td>'+escapeHtml(s.name)+'</td>'+
+          '<td>'+String(rec.shiftsWorked||0)+'</td>'+
+          '<td>'+ (rec.work||0).toFixed(2) +'</td>'+
+          '<td>'+ (rec.payable||0).toFixed(2) +'</td>'+
+          '<td>'+ (rec.ot||0).toFixed(2) +'</td>'+
+          '<td>'+ (rec.away||0).toFixed(2) +'</td>'+
+          '<td>'+ fmtMoney(rec.pay||0) +'</td>'+
+          '<td>'+ (range==='week' ? ((rec.paid)?'Yes':'No') : '—') +'</td>';
+        tbody.appendChild(tr);
+      });
+    }
+  }
+}
 function exportPayrollCSV(){
   var rows = [['Staff','Rate','Work (hrs)','Break (hrs)','Payable (hrs)','OT (hrs)','Total Pay']];
   var tb=byId('payrollTable').querySelector('tbody');
