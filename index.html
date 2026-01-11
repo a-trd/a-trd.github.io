@@ -1819,7 +1819,7 @@
       <!-- Admin tools / history -->
       <div class="card">
         <h3>Admin Tools</h3>
-        <div class="muted">Manager/Admin-only tools for reviewing absence approvals and rejections.</div>
+        <div class="muted">Manager/Admin-only tools for reviewing request approvals and rejections (Away + Shift edits).</div>
         <div class="grid-2" style="margin-top:8px;">
           <div>
             <label>Staff filter</label>
@@ -1930,6 +1930,50 @@
       </div>
       <div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;">
         <button id="btnCloseDayTools" class="btn-outline">Close</button>
+      </div>
+    </div>
+  </div>
+
+
+
+  <!-- Multi-day Away modal (select days in week) -->
+  <div id="awayMultiModal" class="modal" style="z-index:1950;">
+    <div class="panel">
+      <h3 id="awayMultiTitle">Propose Away</h3>
+      <div id="awayMultiSubtitle" class="muted" style="margin:4px 0 12px;"></div>
+
+      <div>
+        <label>Days this week</label>
+        <div id="awayMultiDays" style="display:flex;flex-wrap:wrap;gap:10px;margin-top:6px;font-size:12px;">
+          <label><input class="away-multi-day" type="checkbox" value="0"> Mon</label>
+          <label><input class="away-multi-day" type="checkbox" value="1"> Tue</label>
+          <label><input class="away-multi-day" type="checkbox" value="2"> Wed</label>
+          <label><input class="away-multi-day" type="checkbox" value="3"> Thu</label>
+          <label><input class="away-multi-day" type="checkbox" value="4"> Fri</label>
+          <label><input class="away-multi-day" type="checkbox" value="5"> Sat</label>
+          <label><input class="away-multi-day" type="checkbox" value="6"> Sun</label>
+        </div>
+      </div>
+
+      <div id="awayMultiTimeWrap" class="grid-2" style="margin-top:10px;display:none;">
+        <div>
+          <label>Start</label>
+          <input id="awayMultiStart" type="time" step="300" placeholder="HH:MM">
+        </div>
+        <div>
+          <label>End</label>
+          <input id="awayMultiEnd" type="time" step="300" placeholder="HH:MM">
+        </div>
+      </div>
+
+      <div style="margin-top:10px;">
+        <label>Reason / comment (mandatory)</label>
+        <textarea id="awayMultiReason" placeholder="Add reason" style="min-height:72px;"></textarea>
+      </div>
+
+      <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;justify-content:flex-end;">
+        <button id="btnAwayMultiSubmit" class="btn-primary">Submit</button>
+        <button id="btnAwayMultiCancel" class="btn-outline">Cancel</button>
       </div>
     </div>
   </div>
@@ -2991,67 +3035,113 @@ function renderAdminHistory(){
   var tbody = byId('adminHistoryTbody');
   if(!wrap || !tbody || !empty) return;
   tbody.innerHTML = '';
+
   if(!isAdmin()){
     empty.textContent = 'Admin only.';
     empty.style.display = '';
     wrap.style.display = 'none';
     return;
   }
+
   var filterSel = byId('adminHistoryStaffFilter');
-  var filterId = filterSel ? filterSel.value : '';
-  var hist = App.absenceHistory || {};
+  var filterId = filterSel ? String(filterSel.value||'') : '';
+
   var rows = [];
-  Object.keys(hist).forEach(function(iso){
-    var day = hist[iso] || {};
-    Object.keys(day).forEach(function(sid){
-      if(filterId && String(sid)!==String(filterId)) return;
-      var rec = day[sid];
-      if(!rec) return;
-      var staff = (App.staff && App.staff[sid]) || {};
-      var name = staff.name || sid;
-      var status = rec.status || 'approved';
-      var type = (rec.blocks && rec.blocks.length ? 'Partial' : (rec.unavailable ? 'Full-day' : 'Other'));
-      var parts = [];
-      if(rec.blocks && rec.blocks.length){
-        rec.blocks.forEach(function(b){
-          if(!b) return;
-          var seg = (b.start||'') + '–' + (b.end||'');
-          if(b.reason) seg += ' — ' + b.reason;
+
+  // Absence approvals/rejections
+  try{
+    var hist = App.absenceHistory || {};
+    Object.keys(hist).forEach(function(iso){
+      var day = hist[iso] || {};
+      Object.keys(day).forEach(function(sid){
+        if(filterId && String(sid)!==String(filterId)) return;
+        var rec = day[sid];
+        if(!rec) return;
+        var staff = (App.staff && App.staff[sid]) || {};
+        var name = staff.name || sid;
+        var status = rec.status || 'approved';
+        var type = (rec.blocks && rec.blocks.length ? 'Away (partial)' : (rec.unavailable ? 'Away (full day)' : 'Away'));
+        var parts = [];
+        if(rec.blocks && rec.blocks.length){
+          rec.blocks.forEach(function(b){
+            if(!b) return;
+            var seg = (b.start||'') + '–' + (b.end||'');
+            if(b.reason) seg += ' — ' + b.reason;
+            parts.push(seg);
+          });
+        }else if(rec.unavailable){
+          var seg = 'Full-day';
+          if(rec.reason) seg += ' — ' + rec.reason;
           parts.push(seg);
-        });
-      }else if(rec.unavailable){
-        var seg = 'Full-day';
-        if(rec.reason) seg += ' — ' + rec.reason;
-        parts.push(seg);
-      }else if(rec.reason){
-        parts.push(rec.reason);
-      }
-      var details = parts.join(' | ');
-      var when = rec.resolvedAt || (iso + ' (no timestamp)');
-      rows.push({when:when, iso:iso, name:name, status:status, type:type, details:details});
+        }else if(rec.reason){
+          parts.push(rec.reason);
+        }
+        var details = parts.join(' | ');
+        var when = rec.resolvedAt || (iso + ' (no timestamp)');
+        rows.push({when:when, iso:iso, name:name, staffId:String(sid), status:status, type:type, details:details});
+      });
     });
-  });
+  }catch(e){}
+
+  // Shift change approvals/rejections
+  try{
+    var shHist = App.shiftChangeHistory || {};
+    Object.keys(shHist).forEach(function(iso){
+      var bucket = shHist[iso] || {};
+      Object.keys(bucket).forEach(function(key){
+        var rec = bucket[key];
+        if(!rec) return;
+        var sid = rec.staffId != null ? String(rec.staffId) : '';
+        if(filterId && sid && sid!==String(filterId)) return;
+        if(filterId && !sid) return;
+
+        var staff = (sid && App.staff && App.staff[sid]) ? App.staff[sid] : {};
+        var name = staff.name || sid || '(unknown)';
+        var status = rec.status || 'approved';
+
+        var when = rec.resolvedAt || (iso + ' (no timestamp)');
+
+        var detailsParts = [];
+        if(rec.weekStartISO!=null && rec.dayIndex!=null){
+          try{
+            var d0 = fromISO(rec.weekStartISO);
+            d0.setDate(d0.getDate()+parseInt(rec.dayIndex,10));
+            detailsParts.push('Day: '+DAY[parseInt(rec.dayIndex,10)]+' '+fmtDMY(d0));
+          }catch(e){}
+        }
+        if(rec.newStart) detailsParts.push('start → '+rec.newStart);
+        if(rec.newEnd) detailsParts.push('end → '+rec.newEnd);
+        if(rec.reason) detailsParts.push('Reason: '+rec.reason);
+
+        rows.push({when:when, iso:iso, name:name, staffId:sid, status:status, type:'Shift edit', details:detailsParts.join(' | ')});
+      });
+    });
+  }catch(e){}
+
   if(!rows.length){
     empty.textContent = 'No history for current filters.';
     empty.style.display = '';
     wrap.style.display = 'none';
     return;
   }
+
   rows.sort(function(a,b){
     var ta = Date.parse(a.when) || Date.parse(a.iso) || 0;
     var tb = Date.parse(b.when) || Date.parse(b.iso) || 0;
     return tb - ta;
   });
-  rows.slice(0,200).forEach(function(r){
+
+  rows.slice(0,500).forEach(function(r){
     var tr = document.createElement('tr');
     tr.innerHTML =
       '<td>'+escapeHtml(r.when)+'</td>'+
       '<td>'+escapeHtml(r.name)+'</td>'+
       '<td>'+escapeHtml(r.status)+'</td>'+
       '<td>'+escapeHtml(r.type)+'</td>'+
-      '<td>'+escapeHtml(r.details)+'</td>';
+      '<td>'+escapeHtml(r.details||'')+'</td>';
     tbody.appendChild(tr);
   });
+
   empty.style.display = 'none';
   wrap.style.display = '';
 }
@@ -3110,7 +3200,7 @@ function showTab(name){
   if(name==='My') byId('mySection').classList.add('show');
   if(name==='Planner') byId('plannerSection').classList.add('show');
   if(name==='Payroll') byId('payrollSection').classList.add('show');
-  if(name==='Settings') byId('settingsSection').classList.add('show');
+  if(name==='Settings'){ byId('settingsSection').classList.add('show'); try{ renderAdminHistory(); }catch(e){} }
   if(name==='Absences'){
     byId('absencesSection').classList.add('show');
     renderAbsenceCalendar();
@@ -4032,16 +4122,13 @@ function dayToolsEditShift(){
 function dayToolsProposeAway(){
   if(!DayToolsCtx || !DayToolsCtx.iso) return;
   closeDayTools();
-  proposeAway(DayToolsCtx.iso, DayToolsCtx.staffId);
+  openAwayMultiModal('full');
 }
 
 function dayToolsPartialAway(){
   if(!DayToolsCtx || !DayToolsCtx.iso) return;
   closeDayTools();
-  var rng = prompt('Enter time range for partial away (e.g. 09:00-12:00)');
-  if(!rng || rng.indexOf('-')<0) return;
-  var p = rng.split('-');
-  proposePartial(DayToolsCtx.iso, DayToolsCtx.staffId, (p[0]||'').trim(), (p[1]||'').trim());
+  openAwayMultiModal('partial');
 }
 
 function dayToolsClearAway(){
@@ -4064,6 +4151,185 @@ function dayToolsInfo(){
   if(window.openInfoForCell){
     window.openInfoForCell(DayToolsCtx.iso, DayToolsCtx.staffId);
   }
+}
+
+
+// ---------- Multi-day Away modal (select days in week) ----------
+var AwayMulti = { mode:'full' };
+
+function openAwayMultiModal(mode){
+  AwayMulti.mode = (mode==='partial' ? 'partial' : 'full');
+  if(!DayToolsCtx || DayToolsCtx.staffId==null) return;
+  var staffId = String(DayToolsCtx.staffId);
+  var staff = (App.staff && App.staff[staffId]) || {};
+  var modal = byId('awayMultiModal');
+  if(!modal) return;
+
+  var title = byId('awayMultiTitle');
+  var sub = byId('awayMultiSubtitle');
+  if(title) title.textContent = (AwayMulti.mode==='partial' ? 'Partial Away (multiple days)' : 'Propose Away (multiple days)');
+
+  // subtitle: staff + week range
+  try{
+    var start = fromISO(Planner.weekStartISO);
+    var end = new Date(start); end.setDate(end.getDate()+6);
+    if(sub) sub.textContent = (staff.name||staffId) + ' — Week of ' + fmtDMY(start) + ' – ' + fmtDMY(end);
+  }catch(e){
+    if(sub) sub.textContent = (staff.name||staffId);
+  }
+
+  // reset day checkboxes
+  var boxes = $$('#awayMultiDays input.away-multi-day');
+  for(var i=0;i<boxes.length;i++) boxes[i].checked = false;
+  // preselect the clicked day
+  var pre = DayToolsCtx.dayIndex;
+  for(var i2=0;i2<boxes.length;i2++){
+    if(String(boxes[i2].value)===String(pre)) boxes[i2].checked = true;
+  }
+
+  // time controls only for partial
+  var tw = byId('awayMultiTimeWrap');
+  if(tw) tw.style.display = (AwayMulti.mode==='partial' ? '' : 'none');
+  if(AwayMulti.mode==='partial'){
+    var st = byId('awayMultiStart');
+    var en = byId('awayMultiEnd');
+    if(st && !st.value) st.value = '09:00';
+    if(en && !en.value) en.value = '12:00';
+  }
+
+  var reason = byId('awayMultiReason');
+  if(reason) reason.value = '';
+
+  // wire buttons
+  var cancel = byId('btnAwayMultiCancel');
+  if(cancel) cancel.onclick = function(){ closeAwayMultiModal(); };
+  var submit = byId('btnAwayMultiSubmit');
+  if(submit) submit.onclick = function(){ submitAwayMultiModal(); };
+
+  modal.style.display = 'flex';
+}
+
+function closeAwayMultiModal(){
+  var modal = byId('awayMultiModal');
+  if(modal) modal.style.display = 'none';
+}
+
+function submitAwayMultiModal(){
+  if(!DayToolsCtx || DayToolsCtx.staffId==null) return;
+  var staffId = String(DayToolsCtx.staffId);
+
+  // reason mandatory
+  var reasonEl = byId('awayMultiReason');
+  var reason = reasonEl ? String(reasonEl.value||'').trim() : '';
+  if(!reason){ alert('Reason is mandatory.'); return; }
+
+  // selected days
+  var boxes = $$('#awayMultiDays input.away-multi-day');
+  var dayIdxs = [];
+  for(var i=0;i<boxes.length;i++) if(boxes[i].checked) dayIdxs.push(parseInt(boxes[i].value,10));
+  if(dayIdxs.length===0){ alert('Select at least one day.'); return; }
+
+  // Staff can only propose their own away
+  if(App.currentUser && App.currentUser.role==='staff' && String(App.currentUser.id)!==String(staffId)){
+    alert('Staff can only propose their own away.');
+    return;
+  }
+
+  var startVal = null, endVal = null;
+  if(AwayMulti.mode==='partial'){
+    startVal = byId('awayMultiStart') ? byId('awayMultiStart').value : '';
+    endVal = byId('awayMultiEnd') ? byId('awayMultiEnd').value : '';
+    if(!startVal || !endVal){ alert('Please set start and end times.'); return; }
+    var sm = parse12(startVal);
+    var em = parse12(endVal);
+    if(sm==null || em==null){ alert('Invalid start or end time.'); return; }
+    if(em <= sm){ alert('End time must be after start time.'); return; }
+  }
+
+  var ws = fromISO(Planner.weekStartISO);
+  var targets = [];
+  for(var j=0;j<dayIdxs.length;j++){
+    var idx = dayIdxs[j];
+    var dt = new Date(ws); dt.setDate(ws.getDate()+idx);
+    targets.push({idx:idx, iso:toISO(dt)});
+  }
+
+  // Pre-validate all selected days (avoid partial updates)
+  if(!canModerateAbsences()){
+    ensureRequestsStore();
+    for(var v=0; v<targets.length; v++){
+      var t = targets[v];
+      var isoV = t.iso;
+      var cur = (App.absenceRequests && App.absenceRequests[isoV] && App.absenceRequests[isoV][staffId]) ? App.absenceRequests[isoV][staffId] : null;
+      if(!cur) continue;
+      if(AwayMulti.mode==='partial'){
+        if(cur.unavailable && (!cur.blocks || !cur.blocks.length)){
+          alert('A full-day away request already exists for '+DAY[t.idx]+'. Clear it first to request partial away.');
+          return;
+        }
+      }else{
+        if(Array.isArray(cur.blocks) && cur.blocks.length){
+          alert('Partial away requests already exist for '+DAY[t.idx]+'. Clear them first to request a full day away.');
+          return;
+        }
+      }
+    }
+  }
+
+  // Apply
+  var patchPayload = {};
+  for(var a=0; a<targets.length; a++){
+    var t2 = targets[a];
+    var iso = t2.iso;
+
+    if(canModerateAbsences()){
+      if(!App.availability) App.availability = {};
+      var day = App.availability[iso] = App.availability[iso] || {};
+      var rec = day[staffId] = day[staffId] || {};
+      if(AwayMulti.mode==='partial'){
+        if(!Array.isArray(rec.blocks)) rec.blocks = [];
+        rec.blocks.push({start:startVal, end:endVal, reason:reason});
+      }else{
+        rec.unavailable = true;
+        rec.reason = reason;
+      }
+    }else{
+      ensureRequestsStore();
+      App.absenceRequests[iso] = App.absenceRequests[iso] || {};
+      var cur2 = (App.absenceRequests[iso][staffId] || {});
+      if(AwayMulti.mode==='partial'){
+        if(!Array.isArray(cur2.blocks)) cur2.blocks = [];
+        cur2.blocks = cur2.blocks.concat([{start:startVal, end:endVal, reason:reason}]);
+      }else{
+        cur2.unavailable = true;
+        if(!Array.isArray(cur2.blocks)) cur2.blocks = [];
+      }
+      cur2.reason = reason;
+      cur2.status = 'pending';
+      App.absenceRequests[iso][staffId] = cur2;
+      patchPayload[iso] = App.absenceRequests[iso];
+    }
+  }
+
+  saveLocal();
+
+  // push updates for staff requests only (managers/admins can Push normally)
+  try{
+    if(!canModerateAbsences() && Object.keys(patchPayload).length){
+      dbPatch('/absenceRequests', patchPayload).catch(function(e){ console.error('Push absenceRequests failed', e); });
+    }
+  }catch(e){}
+
+  // refresh UI
+  renderPlanner();
+  renderPayroll();
+  renderMyShifts();
+  try{ renderAbsenceCalendar(); }catch(e){}
+  if(typeof updateRequestsBadge==='function') updateRequestsBadge();
+  if(typeof window._refreshSchedulerDebug==='function') window._refreshSchedulerDebug();
+
+  closeAwayMultiModal();
+  showToast('Away request saved', (canModerateAbsences() ? 'Published' : 'Status: Pending'), (canModerateAbsences() ? 'good' : 'warn'), 6500);
 }
 
 function renderAvailabilityBar(){
@@ -4550,6 +4816,7 @@ function approveRequest(iso,sid,req){
   renderMyShifts();
   renderAbsenceCalendar();
   openRequestsModal();
+  try{ var stSec=byId('settingsSection'); if(stSec && stSec.classList && stSec.classList.contains('show')) renderAdminHistory(); }catch(e){}
   if(typeof window._refreshSchedulerDebug==='function') window._refreshSchedulerDebug();
 }
 function rejectRequest(iso,sid){
@@ -4571,6 +4838,7 @@ function rejectRequest(iso,sid){
   }
   saveLocal();
   openRequestsModal();
+  try{ var stSec=byId('settingsSection'); if(stSec && stSec.classList && stSec.classList.contains('show')) renderAdminHistory(); }catch(e){}
   if(typeof window._refreshSchedulerDebug==='function') window._refreshSchedulerDebug();
 }
 
@@ -4615,6 +4883,7 @@ function approveShiftChange(iso,key,req){
     renderPayroll();
     if(typeof updateRequestsBadge==='function') updateRequestsBadge();
     openRequestsModal();
+    try{ var stSec3=byId('settingsSection'); if(stSec3 && stSec3.classList && stSec3.classList.contains('show')) renderAdminHistory(); }catch(e){}
   }catch(e){
     console.error('approveShiftChange error', e);
     alert('Could not apply change: '+e);
@@ -4641,6 +4910,7 @@ function rejectShiftChange(iso,key){
   saveLocal();
   if(typeof updateRequestsBadge==='function') updateRequestsBadge();
   openRequestsModal();
+  try{ var stSec4=byId('settingsSection'); if(stSec4 && stSec4.classList && stSec4.classList.contains('show')) renderAdminHistory(); }catch(e){}
 }
 
 function countPendingRequestsForWeek(){
@@ -4850,7 +5120,52 @@ function clearAway(iso, staffId){
 }
 // ---------- Copy & Payroll ----------
 function copyDayToNext(){ var f=Planner.activeDayIndex; var t=(f+1)%7; var wk=App.weeks[Planner.weekStartISO]||{}; var src=JSON.parse(JSON.stringify(wk[String(f)]||{})); wk[String(t)]={}; Object.keys(src).forEach(function(k){ var sh=src[k]; var id=uid(); wk[String(t)][id]={id:id,staffId:sh.staffId,day:t,start:sh.start,end:sh.end,breakMins:sh.breakMins,notes:sh.notes,penalty:sh.penalty}; }); App.weeks[Planner.weekStartISO]=wk; saveLocal(); Planner.activeDayIndex=t; renderPlanner(); renderPayroll(); renderMyShifts(); }
-function copyWeekToNext(){ var from=Planner.weekStartISO; var d=fromISO(from); d.setDate(d.getDate()+7); var to=toISO(weekStart(d)); var src=JSON.parse(JSON.stringify(App.weeks[from]||{})); App.weeks[to]={}; Object.keys(src).forEach(function(k){ var shs=src[k]; App.weeks[to][k]={}; Object.keys(shs).forEach(function(sk){ var sh=shs[sk]; var id=uid(); App.weeks[to][k][id]={id:id,staffId:sh.staffId,day:sh.day,start:sh.start,end:sh.end,breakMins:sh.breakMins,notes:sh.notes,penalty:sh.penalty}; }); }); saveLocal(); Planner.weekStartISO=to; renderPlanner(); renderPayroll(); }
+function copyWeekToNext(){
+  var from = Planner.weekStartISO;
+  var d = fromISO(from);
+  d.setDate(d.getDate()+7);
+  var to = toISO(weekStart(d));
+
+  // copy shifts
+  var src = JSON.parse(JSON.stringify(App.weeks[from]||{}));
+  App.weeks[to] = {};
+  Object.keys(src).forEach(function(k){
+    var shs = src[k];
+    App.weeks[to][k] = {};
+    Object.keys(shs).forEach(function(sk){
+      var sh = shs[sk];
+      var id = uid();
+      App.weeks[to][k][id] = {id:id,staffId:sh.staffId,day:sh.day,start:sh.start,end:sh.end,breakMins:sh.breakMins,notes:sh.notes,penalty:sh.penalty};
+    });
+  });
+
+  // copy away status (full-day + partial blocks) for the whole week
+  try{
+    if(!App.availability) App.availability = {};
+    var srcStart = fromISO(from);
+    var dstStart = fromISO(to);
+    for(var i=0;i<7;i++){
+      var sdt = new Date(srcStart); sdt.setDate(srcStart.getDate()+i);
+      var ddt = new Date(dstStart); ddt.setDate(dstStart.getDate()+i);
+      var sIso = toISO(sdt);
+      var dIso = toISO(ddt);
+      var sDay = (App.availability && App.availability[sIso]) ? App.availability[sIso] : null;
+      if(!sDay) continue;
+      var dDay = (App.availability && App.availability[dIso]) ? App.availability[dIso] : {};
+      // merge: copy entries that don't already exist in destination
+      Object.keys(sDay).forEach(function(sid){
+        if(dDay && dDay[sid]) return;
+        dDay[sid] = JSON.parse(JSON.stringify(sDay[sid]));
+      });
+      App.availability[dIso] = dDay;
+    }
+  }catch(e){}
+
+  saveLocal();
+  Planner.weekStartISO = to;
+  renderPlanner();
+  renderPayroll();
+}
 
 function renderPayroll(){
   var tb=byId('payrollTable').querySelector('tbody'); tb.innerHTML='';
@@ -5195,6 +5510,10 @@ async function pullData(silent){
       try{
         var absSec = byId('absencesSection');
         if(absSec && absSec.classList && absSec.classList.contains('show')) renderAbsenceCalendar();
+      }catch(e){}
+      try{
+        var stSec = byId('settingsSection');
+        if(stSec && stSec.classList && stSec.classList.contains('show')){ try{ renderAdminHistory(); }catch(e){} }
       }catch(e){}
       try{
         var prSec = byId('printSection');
