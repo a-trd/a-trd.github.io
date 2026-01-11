@@ -2055,6 +2055,7 @@ function applyTheme(name){
     document.body.removeAttribute('data-theme');
   }
   App.settings.theme = t.mode; App.settings.themeName = name; saveLocal();
+  try{ if(typeof queueSettingsSync==='function') queueSettingsSync(); }catch(e){}
 }
 function renderThemePicker(){
   var grid=byId('themeGrid'); if(!grid) return;
@@ -2593,6 +2594,18 @@ function withAuth(url){ return App.settings.authToken ? url+(url.indexOf('?')>=0
 async function dbGet(p){ var r=await fetch(withAuth(wsRoot()+p+'.json')); if(!r.ok) throw new Error('GET '+r.status); return r.json(); }
 async function dbPatch(p,data){ var r=await fetch(withAuth(wsRoot()+p+'.json'),{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}); if(!r.ok) throw new Error('PATCH '+r.status); return r.json(); }
 
+// Debounced settings sync (Admin only)
+var __settingsSyncTimer = null;
+function queueSettingsSync(){
+  try{
+    if(!(App && App.currentUser && App.currentUser.role==='admin')) return;
+    if(__settingsSyncTimer) clearTimeout(__settingsSyncTimer);
+    __settingsSyncTimer = setTimeout(function(){
+      dbPatch('', {settings:App.settings}).catch(function(){});
+    }, 500);
+  }catch(e){}
+}
+
 // ---------- Roles ----------
 function isAdmin(){ return App.currentUser && App.currentUser.role==='admin'; }
 function canEdit(){ return App.currentUser && (App.currentUser.role==='manager' || App.currentUser.role==='admin'); }
@@ -2747,7 +2760,12 @@ function init(){
     App.settings.nightShiftEnd = to24hhmm(byId('optNightShiftEnd') && byId('optNightShiftEnd').value, '23:00');
     var __titleEl=document.querySelector('.appbar .title'); if(__titleEl) __titleEl.textContent=App.settings.appTitle;
     var __logoBox=byId('appLogoBox'); if(__logoBox){ var __u=App.settings.logoUrl||''; if(__u){ __logoBox.style.display='inline-block'; __logoBox.style.backgroundImage='url("'+resolveLogoUrl(__u)+'")'; } else { __logoBox.style.display='none'; __logoBox.style.backgroundImage='none'; } }
-    saveLocal(); startAutoSyncTimers(); renderPlanner(); alert('Saved.');
+    saveLocal(); startAutoSyncTimers(); renderPlanner();
+    dbPatch('', {settings:App.settings}).then(function(){
+      alert('Saved & synced.');
+    }).catch(function(e){
+      alert('Saved locally. Sync failed: '+(e&&e.message?e.message:e));
+    });
   };
   byId('btnResetLocal').onclick = function(){ resetLocalCache(false); };
 
@@ -3719,30 +3737,88 @@ function renderWeekOverview(){
     var nightStart = parse12(App.settings.nightShiftStart||'17:00'); if(isNaN(nightStart)) nightStart = 17*60;
     var nightEnd0 = parse12(App.settings.nightShiftEnd||'23:00'); if(isNaN(nightEnd0)) nightEnd0 = 23*60;
 
-    function overlapsWindow(startM, endM, wStart, wEnd){
-      if(isNaN(startM)||isNaN(endM)||isNaN(wStart)||isNaN(wEnd)) return false;
+    // ISO date for this weekday (used to check Away/Partial Away)
+    var base = fromISO(Planner.weekStartISO);
+    var dt0 = new Date(base);
+    dt0.setDate(base.getDate() + dayIndex);
+    var iso = toISO(dt0);
+
+    function getDayRec(map, staffId){
+      try{
+        var day = (map && map[iso]) ? map[iso] : null;
+        if(!day) return null;
+        return day[staffId] || day[String(staffId)] || day[Number(staffId)] || null;
+      }catch(e){ return null; }
+    }
+
+    function shiftWindowSegments(startM, endM, wStart, wEnd){
+      var segs = [];
+      if(isNaN(startM)||isNaN(endM)||isNaN(wStart)||isNaN(wEnd)) return segs;
+      // Only count the portion of a shift that belongs to THIS day (before midnight).
+      var sDay = Math.max(0, Math.min(1440, startM));
+      var eDay = Math.max(0, Math.min(1440, endM));
+      if(eDay <= sDay) return segs;
+
       if(wEnd > wStart){
-        return (startM < wEnd) && (endM > wStart);
+        var a = Math.max(sDay, wStart);
+        var b = Math.min(eDay, wEnd);
+        if(b > a) segs.push([a,b]);
       }else if(wEnd < wStart){
         // wraps midnight: [wStart, 24:00) U [0, wEnd)
-        return ((startM < 1440) && (endM > wStart)) || ((startM < wEnd) && (endM > 0));
+        var a1 = Math.max(sDay, wStart);
+        var b1 = Math.min(eDay, 1440);
+        if(b1 > a1) segs.push([a1,b1]);
+
+        var a2 = Math.max(sDay, 0);
+        var b2 = Math.min(eDay, wEnd);
+        if(b2 > a2) segs.push([a2,b2]);
       }
+      return segs;
+    }
+
+    function hasAwayDuringSegments(staffId, segs){
+      function segOverlap(a,b,c,d){ return (a < d) && (b > c); }
+      function checkRec(rec){
+        if(!rec) return false;
+        if(rec.unavailable === true) return true; // full-day away
+        if(Array.isArray(rec.blocks)){
+          for(var i=0;i<rec.blocks.length;i++){
+            var bl = rec.blocks[i]; if(!bl) continue;
+            var bs = parse12(bl.start||'');
+            var be = parse12(bl.end||'');
+            if(isNaN(bs) || isNaN(be) || be <= bs) continue;
+            for(var j=0;j<segs.length;j++){
+              if(segOverlap(bs, be, segs[j][0], segs[j][1])) return true;
+            }
+          }
+        }
+        return false;
+      }
+      // Treat both published (availability) and pending (absenceRequests) as "away status".
+      if(checkRec(getDayRec(App.availability, staffId))) return true;
+      if(checkRec(getDayRec(App.absenceRequests, staffId))) return true;
       return false;
     }
+
     Object.keys(ds).forEach(function(k){
       var sh = ds[k]; if(!sh || sh.staffId==null) return;
       var st = App.staff && App.staff[sh.staffId] ? App.staff[sh.staffId] : null;
       if(!st) return;
       if((st.role||'staff')==='admin' || st.hidden) return;
       if(!sh.start || !sh.end) return;
+
       var startM = parse12(sh.start);
       var endM0 = parse12(sh.end);
       if(isNaN(startM) || isNaN(endM0)) return;
       var endM = (endM0<=startM) ? endM0 + 24*60 : endM0;
-      // overlap check
-      if(overlapsWindow(startM, endM, dayStart, dayEnd0)) daySet[String(sh.staffId)] = true;
-      if(overlapsWindow(startM, endM, nightStart, nightEnd0)) nightSet[String(sh.staffId)] = true;
+
+      var dSegs = shiftWindowSegments(startM, endM, dayStart, dayEnd0);
+      if(dSegs.length && !hasAwayDuringSegments(sh.staffId, dSegs)) daySet[String(sh.staffId)] = true;
+
+      var nSegs = shiftWindowSegments(startM, endM, nightStart, nightEnd0);
+      if(nSegs.length && !hasAwayDuringSegments(sh.staffId, nSegs)) nightSet[String(sh.staffId)] = true;
     });
+
     var _dsLabel = 'Day shift: ' + times12(((dayStart%1440)+1440)%1440) + '–' + times12(((dayEnd0%1440)+1440)%1440);
     var _nsLabel = 'Night shift: ' + times12(((nightStart%1440)+1440)%1440) + '–' + times12(((nightEnd0%1440)+1440)%1440);
     return {day:Object.keys(daySet).length, night:Object.keys(nightSet).length, dayLabel:_dsLabel, nightLabel:_nsLabel};
@@ -5080,6 +5156,31 @@ async function pullData(silent){
   if(__auth) __auth.value = App.settings.authToken || '';
   var __wsLogin=document.getElementById('wsIdInput');
   if(__wsLogin) __wsLogin.value = App.settings.workspace || '';
+  var __titleInput=document.getElementById('appTitleInput');
+  if(__titleInput) __titleInput.value = App.settings.appTitle || 'M&C-ATRD-scheduler --=Aspire Group=--';
+  var __logoInput=document.getElementById('logoUrlInput');
+  if(__logoInput) __logoInput.value = App.settings.logoUrl || '';
+  var __ap=document.getElementById('autoPullMinsInput');
+  if(__ap) __ap.value = App.settings.autoPullMins||0;
+  var __aq=document.getElementById('autoPushMinsInput');
+  if(__aq) __aq.value = App.settings.autoPushMins||0;
+  var __oh=document.getElementById('optStartHour');
+  if(__oh) __oh.value = App.settings.gridStartHour;
+  var __hrs=document.getElementById('optHours');
+  if(__hrs) __hrs.value = App.settings.gridHours;
+  var __slot=document.getElementById('optSlotMins');
+  if(__slot) __slot.value = String(App.settings.slotMins);
+  var __tg=document.getElementById('optTargetHeadcount');
+  if(__tg) __tg.value = App.settings.targetHeadcount||0;
+  var __see=document.getElementById('optStaffSeeOthers');
+  if(__see) __see.value = String(!!App.settings.staffSeeOthers);
+  // Shift badge windows
+  var __ds=document.getElementById('optDayShiftStart'); if(__ds) __ds.value = to24hhmm(App.settings.dayShiftStart, '09:00');
+  var __de=document.getElementById('optDayShiftEnd'); if(__de) __de.value = to24hhmm(App.settings.dayShiftEnd, '17:00');
+  var __ns=document.getElementById('optNightShiftStart'); if(__ns) __ns.value = to24hhmm(App.settings.nightShiftStart, '17:00');
+  var __ne=document.getElementById('optNightShiftEnd'); if(__ne) __ne.value = to24hhmm(App.settings.nightShiftEnd, '23:00');
+  try{ startAutoSyncTimers(); }catch(e){}
+
   if(typeof applyTheme==='function' && App.settings.themeName){
     applyTheme(App.settings.themeName);
     if(typeof renderThemePicker==='function') renderThemePicker();
@@ -5115,22 +5216,7 @@ async function pushData(){
     shiftChangeHistory:App.shiftChangeHistory||{},
     payrollAdjustments:App.payrollAdjustments||{},
     payrollPaid:App.payrollPaid||{},
-    settings:{
-      dbUrl:App.settings.dbUrl,
-      workspace:App.settings.workspace,
-      authToken:App.settings.authToken||'',
-      theme:App.settings.theme,
-      themeName:App.settings.themeName,
-      recentColors:App.settings.recentColors,
-      appTitle:App.settings.appTitle,
-      logoUrl:App.settings.logoUrl||'',
-      gridStartHour:App.settings.gridStartHour,
-      gridHours:App.settings.gridHours,
-      slotMins:App.settings.slotMins,
-      targetHeadcount:App.settings.targetHeadcount,
-      staffSeeOthers:App.settings.staffSeeOthers,
-      publishedWeeks:App.settings.publishedWeeks
-    }
+    settings:App.settings
   });
   return true;
 }
