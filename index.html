@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1"/>
-  <title>M&C-ATRD-scheduler --=Aspire Group=-- (V3.0)</title>
+  <title>M&C-ATRD-scheduler --=Aspire Group=-- (V3.2)</title>
   <meta name="theme-color" content="#22c55e"/>
 
   <style>
@@ -925,6 +925,8 @@
       font-size: 11px;
       font-weight: 800;
       margin: 2px 2px 0 0;
+      cursor: pointer;
+      user-select: none;
     }
 
     .abs-chip.full {
@@ -1545,7 +1547,7 @@
       <div id="appLogoBox"></div>
       <div class="titlewrap">
         <div class="title" id="appTitle">M&C-ATRD-scheduler --=Aspire Group=--</div>
-        <div class="version-pill" id="appVersion">V3.0</div>
+        <div class="version-pill" id="appVersion">V3.2</div>
       </div>
     </div>
     <div class="tabs">
@@ -2165,6 +2167,18 @@
 
 
 
+
+  <!-- Info modal (Away reasons / day info) -->
+  <div id="infoModal" class="modal" style="z-index:2005;">
+    <div class="panel" style="max-width:520px;">
+      <h3 id="infoModalTitle">Info</h3>
+      <div id="infoModalBody" style="white-space:pre-wrap;margin-top:10px;"></div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;margin-top:14px;">
+        <button id="btnCloseInfoModal" class="btn-outline">Close</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Multi-day Away modal (select days in week) -->
   <div id="awayMultiModal" class="modal" style="z-index:1950;">
     <div class="panel">
@@ -2292,7 +2306,7 @@ var DAY = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 // ---------- App state ----------
 var App = {
   // IMPORTANT: Increment App.version whenever making functional changes to this file.
-  version: 'V3.0',
+  version: 'V3.2',
   settings: {
     dbUrl:'https://mnc-atrd-default-rtdb.asia-southeast1.firebasedatabase.app/', workspace:'mnc-atrd', authToken:'',
     theme:'light', themeName:'light-pastel-sky', recentColors:[], appTitle:'M&C-ATRD-scheduler --=Aspire Group=--', logoUrl:'',
@@ -2969,7 +2983,7 @@ function init(){
     document.querySelectorAll('.section').forEach(s=>s.classList.remove('show'));
   var __nav = byId('bottomNav'); if(__nav) __nav.style.display='none';
   var __appTitleEl = byId('appTitle'); if(__appTitleEl) __appTitleEl.textContent = App.settings.appTitle || 'M&C-ATRD-scheduler --=Aspire Group=--';
-  var __verEl = byId('appVersion'); if(__verEl) __verEl.textContent = App.version || 'V3.0';
+  var __verEl = byId('appVersion'); if(__verEl) __verEl.textContent = App.version || 'V3.2';
   try{ document.title = (App.settings.appTitle||'App')+' ('+App.version+')'; }catch(e){}
   var __logoBoxInit = byId('appLogoBox'); if(__logoBoxInit){ var __lu=App.settings.logoUrl||''; if(__lu){ __logoBoxInit.style.display='inline-block'; __logoBoxInit.style.backgroundImage='url("'+resolveLogoUrl(__lu)+'")'; } else { __logoBoxInit.style.display='none'; __logoBoxInit.style.backgroundImage='none'; } }
   initColorRecents();
@@ -4880,6 +4894,65 @@ function leaveOverlapHours(iso, staffId, shift){
 var AbsCal = { date: new Date() };
 function renderAbsenceCalendar(){
   var grid=byId('absCalGrid'); if(!grid) return;
+  if(!grid._boundAwayInfo){
+    grid._boundAwayInfo=true;
+    grid.addEventListener('click', function(ev){
+      try{
+        var t=ev.target; if(!t || !t.closest) return;
+        var chip=t.closest('.abs-chip'); if(!chip) return;
+        var iso2=chip.getAttribute('data-iso');
+        var sid2=chip.getAttribute('data-staff');
+        if(!iso2 || !sid2) return;
+
+        // Prefer showing the exact clicked entry's reason immediately.
+        var staffName = sid2;
+        try{ if(window.App && App.staff && App.staff[sid2] && App.staff[sid2].name) staffName = App.staff[sid2].name; }catch(e){}
+        var dateLabel = iso2;
+        try{ dateLabel = fmtDMY(fromISO(iso2)); }catch(e){}
+
+        var type = chip.getAttribute('data-type') || (chip.classList && chip.classList.contains('block') ? 'block' : 'full');
+        var reason = chip.getAttribute('data-reason');
+        reason = (reason!=null ? String(reason).trim() : '');
+        if(!reason) reason = '(no reason recorded)';
+
+        var title = 'Away reason — ' + staffName + ' — ' + dateLabel;
+        var body = '';
+        if(type === 'block'){
+          var s = chip.getAttribute('data-start') || '';
+          var e2 = chip.getAttribute('data-end') || '';
+          body = 'Partial away ' + s + '–' + e2 + ': ' + reason;
+        }else{
+          body = 'Away (full-day): ' + reason;
+        }
+
+        // Use the existing info modal if present, otherwise fall back to alert.
+        var m = byId('infoModal');
+        if(!m){
+          alert(title + '\n\n' + body);
+          return;
+        }
+        var tt = byId('infoModalTitle'); if(tt) tt.textContent = title;
+        var bb = byId('infoModalBody'); if(bb) bb.textContent = body;
+        m.style.display='flex';
+
+        // Close bindings (idempotent)
+        var btn=byId('btnCloseInfoModal');
+        if(btn && !btn._boundAbsCal){ btn._boundAbsCal=true; btn.onclick=function(){ try{ m.style.display='none'; }catch(e){} }; }
+        if(!m._boundAbsCal){ m._boundAbsCal=true; m.addEventListener('click', function(evv){ try{ if(evv && evv.target===m) m.style.display='none'; }catch(e){} }); }
+
+      }catch(e){
+        try{
+          // Fallback to the richer day-info lookup if anything above fails.
+          var chip2 = ev && ev.target && ev.target.closest ? ev.target.closest('.abs-chip') : null;
+          if(chip2){
+            var iso3=chip2.getAttribute('data-iso');
+            var sid3=chip2.getAttribute('data-staff');
+            if(iso3 && sid3 && window.openInfoForCell) window.openInfoForCell(iso3, sid3);
+          }
+        }catch(_e){}
+      }
+    });
+  }
   var lab=byId('absMonthLabel'); var staffSel=byId('absStaffFilter');
   if(staffSel && staffSel.options.length===0){
     var optAll=document.createElement('option'); optAll.value=''; optAll.textContent='All staff'; staffSel.appendChild(optAll);
@@ -4901,8 +4974,8 @@ function renderAbsenceCalendar(){
     for(var k=0;k<keys.length;k++){
       var sid=keys[k]; if(filterId && sid!==filterId) continue;
       var val=rec[sid]; var st=App.staff[sid]; if(!st) continue;
-      if(val.unavailable){ var ch=document.createElement('div'); ch.className='abs-chip full'; ch.textContent=(st.name||'')+' — AWAY'; cell.appendChild(ch); }
-      if(val.blocks && val.blocks.length){ for(var b=0;b<val.blocks.length;b++){ var bl=val.blocks[b]; var ch2=document.createElement('div'); ch2.className='abs-chip block'; ch2.textContent=(st.name||'')+' — '+(bl.start||'')+'–'+(bl.end||''); cell.appendChild(ch2); } }
+      if(val.unavailable){ var ch=document.createElement('div'); ch.className='abs-chip full'; ch.setAttribute('data-iso', iso); ch.setAttribute('data-staff', sid); ch.setAttribute('data-type','full'); ch.setAttribute('data-reason', (val.reason!=null?String(val.reason):'')); ch.title='Click to view reason'; ch.textContent=(st.name||'')+' — AWAY'; cell.appendChild(ch); }
+      if(val.blocks && val.blocks.length){ for(var b=0;b<val.blocks.length;b++){ var bl=val.blocks[b]; if(!bl) continue; var ch2=document.createElement('div'); ch2.className='abs-chip block'; ch2.setAttribute('data-iso', iso); ch2.setAttribute('data-staff', sid); ch2.setAttribute('data-type','block'); ch2.setAttribute('data-start', (bl.start!=null?String(bl.start):'')); ch2.setAttribute('data-end', (bl.end!=null?String(bl.end):'')); ch2.setAttribute('data-reason', (bl.reason!=null?String(bl.reason):'')); ch2.title='Click to view reason'; ch2.textContent=(st.name||'')+' — '+(bl.start||'')+'–'+(bl.end||''); cell.appendChild(ch2); } }
     }
     grid.appendChild(cell);
   }
@@ -6317,6 +6390,74 @@ window.proposeShiftEdit = async function(iso, staffId){
   }
   window.openInfoForCell = async function(iso, staffId){
     staffId = String(staffId);
+    var staffName = staffId;
+    try{
+      if(window.App && App.staff && App.staff[staffId] && App.staff[staffId].name) staffName = App.staff[staffId].name;
+    }catch(e){}
+    var dateLabel = iso;
+    try{ dateLabel = fmtDMY(fromISO(iso)); }catch(e){}
+    var title = 'Away info — ' + staffName + ' — ' + dateLabel;
+
+    function openInfoModalSafe(t, body){
+      try{
+        var m = byId('infoModal');
+        if(!m){
+          alert((t?t+'\n\n':'') + (body||''));
+          return;
+        }
+        var tt = byId('infoModalTitle'); if(tt) tt.textContent = t || 'Info';
+        var bb = byId('infoModalBody'); if(bb) bb.textContent = body || '';
+        m.style.display='flex';
+      }catch(e){
+        alert((t?t+'\n\n':'') + (body||''));
+      }
+    }
+    function closeInfoModalSafe(){
+      try{ var m=byId('infoModal'); if(m) m.style.display='none'; }catch(e){}
+    }
+    try{
+      var btn=byId('btnCloseInfoModal');
+      if(btn && !btn._bound){ btn._bound=true; btn.onclick=closeInfoModalSafe; }
+      var mm=byId('infoModal');
+      if(mm && !mm._bound){ mm._bound=true; mm.onclick=function(ev){ if(ev && ev.target===mm) closeInfoModalSafe(); }; }
+    }catch(e){}
+
+    function addLinesFromRec(rec, label, suffix){
+      if(!rec) return;
+      if(rec.unavailable){
+        var r0 = (rec.reason!=null ? String(rec.reason).trim() : '');
+        if(!r0) r0='(no reason recorded)';
+        var msg = label + ' away (full-day): ' + r0;
+        if(suffix) msg += ' ' + suffix;
+        lines.push(msg);
+      }
+      if(Array.isArray(rec.blocks) && rec.blocks.length){
+        rec.blocks.forEach(function(b){
+          if(!b) return;
+          var seg = label + ' away';
+          if(b.start || b.end) seg += ' ' + (b.start||'') + '–' + (b.end||'');
+          var r1 = (b.reason!=null ? String(b.reason).trim() : '');
+          if(!r1) r1='(no reason recorded)';
+          seg += ': ' + r1;
+          if(suffix) seg += ' ' + suffix;
+          lines.push(seg);
+        });
+      }
+    }
+
+    var lines=[];
+    try{
+      var localApproved = getDayRec(App.availability, iso, staffId);
+      addLinesFromRec(localApproved, 'Approved', '— on roster');
+      var localPending = getDayRec(App.absenceRequests, iso, staffId);
+      addLinesFromRec(localPending, 'Pending', '— requested');
+    }catch(e){}
+
+    if(lines.length){
+      openInfoModalSafe(title, lines.join('\n\n'));
+      return;
+    }
+
     try{
       var dbUrlEl = document.getElementById('dbUrlInput');
       var wsEl = document.getElementById('workspaceInput');
@@ -6327,7 +6468,7 @@ window.proposeShiftEdit = async function(iso, staffId){
       var auth = (authEl && authEl.value.trim()) || (window.App && App.settings && App.settings.authToken) || '';
 
       if(!dbUrl || !workspace){
-        alert('No info recorded for this day.');
+        openInfoModalSafe(title, 'No info recorded for this day.');
         return;
       }
 
@@ -6346,66 +6487,26 @@ window.proposeShiftEdit = async function(iso, staffId){
         }
       }
 
-      var lines = [];
-
       var dayAvail = await fetchJson('/availability/' + encodeURIComponent(iso));
       if(dayAvail){
         var rec = dayAvail[staffId] || dayAvail[String(staffId)] || dayAvail[Number(staffId)];
-        if(rec){
-          if(rec.unavailable){
-            var msg = 'Approved away (full-day)';
-            if(rec.reason) msg += ': ' + String(rec.reason);
-            msg += ' — published to roster';
-            lines.push(msg);
-          }
-          if(Array.isArray(rec.blocks)){
-            rec.blocks.forEach(function(b){
-              if(!b) return;
-              var seg = 'Approved away';
-              if(b.start || b.end){
-                seg += ' (' + (b.start || '') + '–' + (b.end || '') + ')';
-              }
-              if(b.reason) seg += ': ' + String(b.reason);
-              seg += ' — published to roster';
-              lines.push(seg);
-            });
-          }
-        }
+        addLinesFromRec(rec, 'Approved', '— on roster');
       }
 
       var dayReqs = await fetchJson('/absenceRequests/' + encodeURIComponent(iso));
       if(dayReqs){
         var req = dayReqs[staffId] || dayReqs[String(staffId)] || dayReqs[Number(staffId)];
-        if(req){
-          if(req.unavailable){
-            var msg2 = 'Pending away (full-day)';
-            if(req.reason) msg2 += ': ' + String(req.reason);
-            msg2 += ' — requested by staff';
-            lines.push(msg2);
-          }
-          if(Array.isArray(req.blocks)){
-            req.blocks.forEach(function(b){
-              if(!b) return;
-              var seg2 = 'Pending away';
-              if(b.start || b.end){
-                seg2 += ' (' + (b.start || '') + '–' + (b.end || '') + ')';
-              }
-              if(b.reason) seg2 += ': ' + String(b.reason);
-              seg2 += ' — requested by staff';
-              lines.push(seg2);
-            });
-          }
-        }
+        addLinesFromRec(req, 'Pending', '— requested');
       }
 
       if(!lines.length){
-        alert('No info recorded for this day.');
+        openInfoModalSafe(title, 'No info recorded for this day.');
       }else{
-        alert(lines.join('\n\n'));
+        openInfoModalSafe(title, lines.join('\n\n'));
       }
     }catch(e){
       console.error('INFO lookup failed', e);
-      alert('No info recorded for this day.');
+      openInfoModalSafe(title, 'No info recorded for this day.');
     }
   };
 })();</script>
