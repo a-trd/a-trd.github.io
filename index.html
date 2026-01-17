@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1"/>
-  <title>M&C-ATRD-scheduler --=Aspire Group=-- (V3.4.6)</title>
+  <title>M&C-ATRD-scheduler --=Aspire Group=-- (V3.4.7)</title>
   <meta name="theme-color" content="#22c55e"/>
 
   <style>
@@ -614,6 +614,35 @@
       color: #fff;
       z-index: 4;
     }
+
+    .unavail-band {
+      position: absolute;
+      top: 2px;
+      bottom: 2px;
+      border-radius: 8px;
+      border: 2px dashed rgba(148,163,184,.65);
+      background: repeating-linear-gradient(
+        135deg,
+        rgba(148,163,184,.25) 0 6px,
+        transparent 6px 12px
+      );
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .unavail-chip {
+      position: absolute;
+      top: 2px;
+      right: 2px;
+      font-size: 10px;
+      font-weight: 800;
+      padding: 2px 6px;
+      border-radius: 8px;
+      background: rgba(148,163,184,.92);
+      color: #0b1220;
+      z-index: 4;
+    }
+
 
     .away-reason-tooltip{
       position: fixed;
@@ -1561,7 +1590,7 @@
       <div id="appLogoBox"></div>
       <div class="titlewrap">
         <div class="title" id="appTitle">M&C-ATRD-scheduler --=Aspire Group=--</div>
-        <div class="version-pill" id="appVersion">V3.4.6</div>
+        <div class="version-pill" id="appVersion">V3.4.7</div>
       </div>
     </div>
     <div class="tabs">
@@ -2220,6 +2249,7 @@
         <button id="dtEditShift" class="btn-primary">Edit / Add shift</button>
         <button id="dtProposeAway" class="btn-outline dt-danger">Propose Away (full day)</button>
         <button id="dtPartialAway" class="btn-outline dt-warn">Partial Away</button>
+        <button id="dtRecurringUnavail" class="btn-outline dt-mute">Recurring Unavailability</button>
         <button id="dtClearAway" class="btn-outline dt-mute">Clear Away (manager)</button>
         <button id="dtProposeEdit" class="btn-outline dt-success">Propose Edit</button>
         <button id="dtInfo" class="btn-outline dt-info">Info for this day</button>
@@ -2302,6 +2332,54 @@
       <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;justify-content:flex-end;">
         <button id="btnAwayMultiSubmit" class="btn-primary">Submit</button>
         <button id="btnAwayMultiCancel" class="btn-outline">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Recurring unavailability modal (recurring days not available) -->
+  <div id="recUnavailModal" class="modal" style="z-index:1970;">
+    <div class="panel">
+      <h3 id="recUnavailTitle">Recurring unavailability</h3>
+      <div id="recUnavailSubtitle" class="muted" style="margin:4px 0 12px;"></div>
+
+      <div>
+        <label>Days of week</label>
+        <div id="recUnavailDays" style="display:flex;flex-wrap:wrap;gap:10px;margin-top:6px;font-size:12px;">
+          <label><input class="rec-unavail-day" type="checkbox" value="0"> Mon</label>
+          <label><input class="rec-unavail-day" type="checkbox" value="1"> Tue</label>
+          <label><input class="rec-unavail-day" type="checkbox" value="2"> Wed</label>
+          <label><input class="rec-unavail-day" type="checkbox" value="3"> Thu</label>
+          <label><input class="rec-unavail-day" type="checkbox" value="4"> Fri</label>
+          <label><input class="rec-unavail-day" type="checkbox" value="5"> Sat</label>
+          <label><input class="rec-unavail-day" type="checkbox" value="6"> Sun</label>
+        </div>
+      </div>
+
+      <div class="grid-2" style="margin-top:10px;">
+        <div>
+          <label>Start date</label>
+          <input id="recUnavailStart" type="date">
+        </div>
+        <div>
+          <label>End date (optional)</label>
+          <input id="recUnavailEnd" type="date">
+        </div>
+      </div>
+
+      <div style="margin-top:10px;">
+        <label>Reason / comment (mandatory)</label>
+        <textarea id="recUnavailReason" placeholder="e.g., Cannot work Mondays" style="min-height:72px;"></textarea>
+      </div>
+
+      <div style="margin-top:10px;">
+        <label>Existing rules</label>
+        <div id="recUnavailExisting" class="muted" style="margin-top:6px;"></div>
+      </div>
+
+      <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;justify-content:flex-end;">
+        <button id="btnRecUnavailSave" class="btn-primary">Save</button>
+        <button id="btnRecUnavailClose" class="btn-outline">Close</button>
       </div>
     </div>
   </div>
@@ -2393,7 +2471,7 @@ var DAY = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 // ---------- App state ----------
 var App = {
   // IMPORTANT: Increment App.version whenever making functional changes to this file.
-  version: 'V3.4.6',
+  version: 'V3.4.7',
   settings: {
     dbUrl:'https://mnc-atrd-default-rtdb.asia-southeast1.firebasedatabase.app/', workspace:'mnc-atrd', authToken:'',
     theme:'light', themeName:'light-pastel-sky', recentColors:[], appTitle:'M&C-ATRD-scheduler --=Aspire Group=--', logoUrl:'',
@@ -2408,6 +2486,7 @@ var App = {
   },
   staff:{}, availability:{}, weeks:{}, absenceRequests:{}, absenceHistory:{}, shiftChangeRequests:{}, shiftChangeHistory:{}, payrollAdjustments:{}, payrollPaid:{},
   payWithheld:{}, payWithheldByWeek:{}, payWithheldLog:[],
+  recurringUnavailability:{},
   currentUser:null,
   cacheKey:'mc_scheduler_cache_v14_23_3'
 };
@@ -2963,8 +3042,8 @@ function notifyMyRequestStatus(){
 
 
 // ---------- Local Storage ----------
-function saveLocal(){ try{ localStorage.setItem(App.cacheKey, JSON.stringify({settings:App.settings,staff:App.staff,weeks:App.weeks,availability:App.availability,absenceRequests:App.absenceRequests,absenceHistory:App.absenceHistory,shiftChangeRequests:App.shiftChangeRequests,shiftChangeHistory:App.shiftChangeHistory,payrollAdjustments:App.payrollAdjustments,payrollPaid:App.payrollPaid,payWithheld:App.payWithheld,payWithheldByWeek:App.payWithheldByWeek,payWithheldLog:App.payWithheldLog,version:App.version})); }catch(e){} }
-function loadLocal(){ try{ var raw=localStorage.getItem(App.cacheKey); if(!raw) return; var d=JSON.parse(raw)||{}; if(d.settings){ for(var k in d.settings){ App.settings[k]=d.settings[k]; } } App.staff=d.staff||App.staff; App.weeks=d.weeks||App.weeks; App.availability=d.availability||App.availability; App.absenceRequests=d.absenceRequests||App.absenceRequests||{}; App.absenceHistory=d.absenceHistory||App.absenceHistory||{}; App.shiftChangeRequests=d.shiftChangeRequests||App.shiftChangeRequests||{}; App.shiftChangeHistory=d.shiftChangeHistory||App.shiftChangeHistory||{}; App.payrollAdjustments=d.payrollAdjustments||App.payrollAdjustments||{}; App.payrollPaid=d.payrollPaid||App.payrollPaid||{}; App.payWithheld=d.payWithheld||App.payWithheld||{}; App.payWithheldByWeek=d.payWithheldByWeek||App.payWithheldByWeek||{}; App.payWithheldLog=d.payWithheldLog||App.payWithheldLog||[]; App.absenceHistory=d.absenceHistory||App.absenceHistory; App.shiftChangeRequests=d.shiftChangeRequests||App.shiftChangeRequests; App.shiftChangeHistory=d.shiftChangeHistory||App.shiftChangeHistory||{}; App.payrollAdjustments=d.payrollAdjustments||App.payrollAdjustments||{}; App.payrollPaid=d.payrollPaid||App.payrollPaid||{}; App.payWithheld=d.payWithheld||App.payWithheld||{}; App.payWithheldByWeek=d.payWithheldByWeek||App.payWithheldByWeek||{}; App.payWithheldLog=d.payWithheldLog||App.payWithheldLog||[]; }catch(e){} }
+function saveLocal(){ try{ localStorage.setItem(App.cacheKey, JSON.stringify({settings:App.settings,staff:App.staff,weeks:App.weeks,availability:App.availability,recurringUnavailability:App.recurringUnavailability,absenceRequests:App.absenceRequests,absenceHistory:App.absenceHistory,shiftChangeRequests:App.shiftChangeRequests,shiftChangeHistory:App.shiftChangeHistory,payrollAdjustments:App.payrollAdjustments,payrollPaid:App.payrollPaid,payWithheld:App.payWithheld,payWithheldByWeek:App.payWithheldByWeek,payWithheldLog:App.payWithheldLog,version:App.version})); }catch(e){} }
+function loadLocal(){ try{ var raw=localStorage.getItem(App.cacheKey); if(!raw) return; var d=JSON.parse(raw)||{}; if(d.settings){ for(var k in d.settings){ App.settings[k]=d.settings[k]; } } App.staff=d.staff||App.staff; App.weeks=d.weeks||App.weeks; App.availability=d.availability||App.availability; App.recurringUnavailability=d.recurringUnavailability||App.recurringUnavailability||{}; App.absenceRequests=d.absenceRequests||App.absenceRequests||{}; App.absenceHistory=d.absenceHistory||App.absenceHistory||{}; App.shiftChangeRequests=d.shiftChangeRequests||App.shiftChangeRequests||{}; App.shiftChangeHistory=d.shiftChangeHistory||App.shiftChangeHistory||{}; App.payrollAdjustments=d.payrollAdjustments||App.payrollAdjustments||{}; App.payrollPaid=d.payrollPaid||App.payrollPaid||{}; App.payWithheld=d.payWithheld||App.payWithheld||{}; App.payWithheldByWeek=d.payWithheldByWeek||App.payWithheldByWeek||{}; App.payWithheldLog=d.payWithheldLog||App.payWithheldLog||[]; App.absenceHistory=d.absenceHistory||App.absenceHistory; App.shiftChangeRequests=d.shiftChangeRequests||App.shiftChangeRequests; App.shiftChangeHistory=d.shiftChangeHistory||App.shiftChangeHistory||{}; App.payrollAdjustments=d.payrollAdjustments||App.payrollAdjustments||{}; App.payrollPaid=d.payrollPaid||App.payrollPaid||{}; App.payWithheld=d.payWithheld||App.payWithheld||{}; App.payWithheldByWeek=d.payWithheldByWeek||App.payWithheldByWeek||{}; App.payWithheldLog=d.payWithheldLog||App.payWithheldLog||[]; }catch(e){} }
 
 // Shared helper for resetting local cache
 function resetLocalCache(allowAll){
@@ -3078,7 +3157,7 @@ function init(){
     document.querySelectorAll('.section').forEach(s=>s.classList.remove('show'));
   var __nav = byId('bottomNav'); if(__nav) __nav.style.display='none';
   var __appTitleEl = byId('appTitle'); if(__appTitleEl) __appTitleEl.textContent = App.settings.appTitle || 'M&C-ATRD-scheduler --=Aspire Group=--';
-  var __verEl = byId('appVersion'); if(__verEl) __verEl.textContent = App.version || 'V3.4.6';
+  var __verEl = byId('appVersion'); if(__verEl) __verEl.textContent = App.version || 'V3.4.7';
   try{ document.title = (App.settings.appTitle||'App')+' ('+App.version+')'; }catch(e){}
   var __logoBoxInit = byId('appLogoBox'); if(__logoBoxInit){ var __lu=App.settings.logoUrl||''; if(__lu){ __logoBoxInit.style.display='inline-block'; __logoBoxInit.style.backgroundImage='url("'+resolveLogoUrl(__lu)+'")'; } else { __logoBoxInit.style.display='none'; __logoBoxInit.style.backgroundImage='none'; } }
   initColorRecents();
@@ -3169,9 +3248,9 @@ function init(){
   byId('btnResetLocal').onclick = function(){ resetLocalCache(false); };
 
 
-  byId('btnExportSettings').onclick=function(){ var data={settings:App.settings,staff:App.staff,availability:App.availability,weeks:App.weeks,absenceRequests:App.absenceRequests||{},absenceHistory:App.absenceHistory||{},shiftChangeRequests:App.shiftChangeRequests||{},shiftChangeHistory:App.shiftChangeHistory||{},payrollAdjustments:App.payrollAdjustments||{},payrollPaid:App.payrollPaid||{},payWithheld:App.payWithheld||{},payWithheldByWeek:App.payWithheldByWeek||{},payWithheldLog:App.payWithheldLog||[],version:App.version}; var a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'})); a.download='munchandcrun_export.json'; a.click(); };
+  byId('btnExportSettings').onclick=function(){ var data={settings:App.settings,staff:App.staff,availability:App.availability,weeks:App.weeks,absenceRequests:App.absenceRequests||{},absenceHistory:App.absenceHistory||{},shiftChangeRequests:App.shiftChangeRequests||{},shiftChangeHistory:App.shiftChangeHistory||{},payrollAdjustments:App.payrollAdjustments||{},payrollPaid:App.payrollPaid||{},payWithheld:App.payWithheld||{},payWithheldByWeek:App.payWithheldByWeek||{},payWithheldLog:App.payWithheldLog||[],recurringUnavailability:App.recurringUnavailability||{},version:App.version}; var a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'})); a.download='munchandcrun_export.json'; a.click(); };
   byId('btnImportSettings').onclick=function(){ byId('importSettingsInput').click(); };
-  byId('importSettingsInput').onchange=async function(e){ var f=e.target.files[0]; if(!f) return; try{ var d=JSON.parse(await f.text()); if(d.settings){ for(var k in d.settings){ App.settings[k]=d.settings[k]; } } App.staff=d.staff||App.staff; App.availability=d.availability||App.availability; App.weeks=d.weeks||App.weeks; App.absenceRequests=d.absenceRequests||App.absenceRequests||{}; App.absenceHistory=d.absenceHistory||App.absenceHistory||{}; App.shiftChangeRequests=d.shiftChangeRequests||App.shiftChangeRequests||{}; App.shiftChangeHistory=d.shiftChangeHistory||App.shiftChangeHistory||{}; App.payrollAdjustments=d.payrollAdjustments||App.payrollAdjustments||{}; App.payrollPaid=d.payrollPaid||App.payrollPaid||{}; App.payWithheld=d.payWithheld||App.payWithheld||{}; App.payWithheldByWeek=d.payWithheldByWeek||App.payWithheldByWeek||{}; App.payWithheldLog=d.payWithheldLog||App.payWithheldLog||[]; saveLocal(); populateLoginSelects(); populateExistingStaff(); renderAfterLogin(); startAutoSyncTimers(); alert('Imported. Use Push to sync.'); }catch(err){ alert('Invalid JSON'); } };
+  byId('importSettingsInput').onchange=async function(e){ var f=e.target.files[0]; if(!f) return; try{ var d=JSON.parse(await f.text()); if(d.settings){ for(var k in d.settings){ App.settings[k]=d.settings[k]; } } App.staff=d.staff||App.staff; App.availability=d.availability||App.availability; App.recurringUnavailability=d.recurringUnavailability||App.recurringUnavailability||{}; App.weeks=d.weeks||App.weeks; App.absenceRequests=d.absenceRequests||App.absenceRequests||{}; App.absenceHistory=d.absenceHistory||App.absenceHistory||{}; App.shiftChangeRequests=d.shiftChangeRequests||App.shiftChangeRequests||{}; App.shiftChangeHistory=d.shiftChangeHistory||App.shiftChangeHistory||{}; App.payrollAdjustments=d.payrollAdjustments||App.payrollAdjustments||{}; App.payrollPaid=d.payrollPaid||App.payrollPaid||{}; App.payWithheld=d.payWithheld||App.payWithheld||{}; App.payWithheldByWeek=d.payWithheldByWeek||App.payWithheldByWeek||{}; App.payWithheldLog=d.payWithheldLog||App.payWithheldLog||[]; saveLocal(); populateLoginSelects(); populateExistingStaff(); renderAfterLogin(); startAutoSyncTimers(); alert('Imported. Use Push to sync.'); }catch(err){ alert('Invalid JSON'); } };
 
   byId('btnLogin').onclick = login;
   var pwd=byId('loginPass'); if(pwd){ pwd.addEventListener('keydown',function(e){ if(e.key==='Enter'){ login(); } }); }
@@ -3219,10 +3298,10 @@ function init(){
 
   var logout=byId('btnLogout'); if(logout) logout.onclick=function(){ App.currentUser=null; showLogin(); byId('userChip').textContent=''; var nav=byId('bottomNav'); if(nav) nav.style.display='none'; startAutoSyncTimers(); };
 
-  byId('btnExportJSON').onclick=function(){ if(!isAdmin()) return alert('Admin only.'); var data={settings:App.settings,staff:App.staff,availability:App.availability,weeks:App.weeks,absenceRequests:App.absenceRequests||{},absenceHistory:App.absenceHistory||{},shiftChangeRequests:App.shiftChangeRequests||{},shiftChangeHistory:App.shiftChangeHistory||{},payrollAdjustments:App.payrollAdjustments||{},payrollPaid:App.payrollPaid||{},payWithheld:App.payWithheld||{},payWithheldByWeek:App.payWithheldByWeek||{},payWithheldLog:App.payWithheldLog||[],version:App.version}; var a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'})); a.download='munchandcrun_export.json'; a.click(); };
+  byId('btnExportJSON').onclick=function(){ if(!isAdmin()) return alert('Admin only.'); var data={settings:App.settings,staff:App.staff,availability:App.availability,weeks:App.weeks,absenceRequests:App.absenceRequests||{},absenceHistory:App.absenceHistory||{},shiftChangeRequests:App.shiftChangeRequests||{},shiftChangeHistory:App.shiftChangeHistory||{},payrollAdjustments:App.payrollAdjustments||{},payrollPaid:App.payrollPaid||{},payWithheld:App.payWithheld||{},payWithheldByWeek:App.payWithheldByWeek||{},payWithheldLog:App.payWithheldLog||[],recurringUnavailability:App.recurringUnavailability||{},version:App.version}; var a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'})); a.download='munchandcrun_export.json'; a.click(); };
   byId('btnExportCSV').onclick=function(){ if(!isAdmin()) return alert('Admin only.'); exportPayrollCSV(); };
   byId('btnImportJSON').onclick=function(){ if(!isAdmin()) return alert('Admin only.'); byId('importJSONInput').click(); };
-  byId('importJSONInput').onchange=async function(e){ if(!isAdmin()) return; var f=e.target.files[0]; if(!f) return; try{ var d=JSON.parse(await f.text()); if(d.settings){ for(var k in d.settings){ App.settings[k]=d.settings[k]; } } App.staff=d.staff||App.staff; App.availability=d.availability||App.availability; App.weeks=d.weeks||App.weeks; App.absenceRequests=d.absenceRequests||App.absenceRequests||{}; App.absenceHistory=d.absenceHistory||App.absenceHistory||{}; App.shiftChangeRequests=d.shiftChangeRequests||App.shiftChangeRequests||{}; App.shiftChangeHistory=d.shiftChangeHistory||App.shiftChangeHistory||{}; App.payrollAdjustments=d.payrollAdjustments||App.payrollAdjustments||{}; App.payrollPaid=d.payrollPaid||App.payrollPaid||{}; App.payWithheld=d.payWithheld||App.payWithheld||{}; App.payWithheldByWeek=d.payWithheldByWeek||App.payWithheldByWeek||{}; App.payWithheldLog=d.payWithheldLog||App.payWithheldLog||[]; saveLocal(); populateLoginSelects(); populateExistingStaff(); renderAfterLogin(); startAutoSyncTimers(); alert('Imported. Use Push to sync.'); }catch(err){ alert('Invalid JSON'); } };
+  byId('importJSONInput').onchange=async function(e){ if(!isAdmin()) return; var f=e.target.files[0]; if(!f) return; try{ var d=JSON.parse(await f.text()); if(d.settings){ for(var k in d.settings){ App.settings[k]=d.settings[k]; } } App.staff=d.staff||App.staff; App.availability=d.availability||App.availability; App.recurringUnavailability=d.recurringUnavailability||App.recurringUnavailability||{}; App.weeks=d.weeks||App.weeks; App.absenceRequests=d.absenceRequests||App.absenceRequests||{}; App.absenceHistory=d.absenceHistory||App.absenceHistory||{}; App.shiftChangeRequests=d.shiftChangeRequests||App.shiftChangeRequests||{}; App.shiftChangeHistory=d.shiftChangeHistory||App.shiftChangeHistory||{}; App.payrollAdjustments=d.payrollAdjustments||App.payrollAdjustments||{}; App.payrollPaid=d.payrollPaid||App.payrollPaid||{}; App.payWithheld=d.payWithheld||App.payWithheld||{}; App.payWithheldByWeek=d.payWithheldByWeek||App.payWithheldByWeek||{}; App.payWithheldLog=d.payWithheldLog||App.payWithheldLog||[]; saveLocal(); populateLoginSelects(); populateExistingStaff(); renderAfterLogin(); startAutoSyncTimers(); alert('Imported. Use Push to sync.'); }catch(err){ alert('Invalid JSON'); } };
 
   byId('btnPrevWeek').onclick=function(){ shiftWeek(-1); };
   byId('btnNextWeek').onclick=function(){ shiftWeek(1); };
@@ -3255,10 +3334,15 @@ function init(){
     _b = byId('dtEditShift'); if(_b) _b.onclick = dayToolsEditShift;
     _b = byId('dtProposeAway'); if(_b) _b.onclick = dayToolsProposeAway;
     _b = byId('dtPartialAway'); if(_b) _b.onclick = dayToolsPartialAway;
+    _b = byId('dtRecurringUnavail'); if(_b) _b.onclick = dayToolsRecurringUnavail;
     _b = byId('dtClearAway'); if(_b) _b.onclick = dayToolsClearAway;
     _b = byId('dtProposeEdit'); if(_b) _b.onclick = dayToolsProposeEdit;
     _b = byId('dtInfo'); if(_b) _b.onclick = dayToolsInfo;
   }
+
+  // Recurring unavailability modal
+  var ruSave = byId('btnRecUnavailSave'); if(ruSave) ruSave.onclick = saveRecurringUnavailFromModal;
+  var ruClose = byId('btnRecUnavailClose'); if(ruClose) ruClose.onclick = closeRecurringUnavailModal;
 
   
   var adminStaffSel = byId('adminHistoryStaffFilter');
@@ -4401,6 +4485,13 @@ function saveShiftFromModal(){
     if(!confirm(nm+' marked unavailable on '+fmtDMY(d0)+'. Create shift anyway?')) return;
   }
 
+  try{
+    if(isRecurringUnavailableOnDate(iso, staffId)){
+      var nm2=(App.staff[staffId]&&App.staff[staffId].name)||'Staff';
+      if(!confirm(nm2+' has recurring unavailability on '+DAY[dayIndex]+' ('+fmtDMY(d0)+'). Create shift anyway?')) return;
+    }
+  }catch(e){}
+
   if(!App.weeks[Planner.weekStartISO]) App.weeks[Planner.weekStartISO]={};
   if(!App.weeks[Planner.weekStartISO][String(dayIndex)]) App.weeks[Planner.weekStartISO][String(dayIndex)]={};
   var existing = App.weeks[Planner.weekStartISO][String(dayIndex)];
@@ -4875,6 +4966,13 @@ function dayToolsInfo(){
   }
 }
 
+function dayToolsRecurringUnavail(){
+  try{ if(!DayToolsCtx || !DayToolsCtx.iso) return; }catch(e){}
+  closeDayTools();
+  openRecurringUnavailModal();
+}
+
+
 
 // ---------- Multi-day Away modal (select days in week) ----------
 var AwayMulti = { mode:'full' };
@@ -4986,6 +5084,249 @@ function openAwayMultiModal(mode){
 function closeAwayMultiModal(){
   var modal = byId('awayMultiModal');
   if(modal) modal.style.display = 'none';
+}
+
+
+// ---------- Recurring unavailability (recurring days not available) ----------
+function openRecurringUnavailModal(){
+  try{
+    if(!App.currentUser){ alert('Please log in first.'); return; }
+    ensureRecurringUnavailabilityStore();
+    var sid = (DayToolsCtx && DayToolsCtx.staffId!=null) ? String(DayToolsCtx.staffId) : (App.currentUser ? String(App.currentUser.id) : '');
+    if(!sid) return;
+
+    // Staff can only edit their own recurring unavailability (admins/managers can edit anyone).
+    if(App.currentUser && App.currentUser.role==='staff' && String(App.currentUser.id)!==String(sid)){
+      alert('You can only edit your own recurring unavailability.');
+      return;
+    }
+
+    if(!App.recurringUnavailability[sid]) App.recurringUnavailability[sid] = {};
+
+    var staff = (App.staff && App.staff[sid]) || {};
+    var nm = staff.name || 'Staff';
+    var m = byId('recUnavailModal');
+    if(!m) return;
+
+    var title = byId('recUnavailTitle');
+    if(title) title.textContent = 'Recurring unavailability';
+
+    var sub = byId('recUnavailSubtitle');
+    if(sub){
+      var baseISO = (DayToolsCtx && DayToolsCtx.iso) ? String(DayToolsCtx.iso) : '';
+      var dayName = (DayToolsCtx && DayToolsCtx.dayIndex!=null) ? (DAY[parseInt(DayToolsCtx.dayIndex,10)]||'') : '';
+      sub.textContent = nm + (dayName ? (' — ' + dayName) : '') + (baseISO ? (' — ' + fmtDMY(fromISO(baseISO))) : '');
+    }
+
+    // reset inputs
+    var chks = $$('#recUnavailDays input[type=checkbox]');
+    for(var i=0;i<chks.length;i++) chks[i].checked = false;
+
+    // preselect clicked day (if any)
+    try{
+      if(DayToolsCtx && DayToolsCtx.dayIndex!=null){
+        var idx = String(parseInt(DayToolsCtx.dayIndex,10));
+        var el = document.querySelector('#recUnavailDays input[type=checkbox][value="'+idx+'"]');
+        if(el) el.checked = true;
+      }
+    }catch(e){}
+
+    var sEl = byId('recUnavailStart');
+    var eEl = byId('recUnavailEnd');
+    var rEl = byId('recUnavailReason');
+    var base = (DayToolsCtx && DayToolsCtx.iso) ? String(DayToolsCtx.iso) : (Planner && Planner.weekStartISO ? String(Planner.weekStartISO) : '');
+    if(sEl) sEl.value = base || '';
+    if(eEl) eEl.value = '';
+    if(rEl) rEl.value = '';
+
+    renderRecurringUnavailExisting(sid);
+    m.style.display='flex';
+  }catch(e){
+    console.error('openRecurringUnavailModal error', e);
+  }
+}
+
+function closeRecurringUnavailModal(){
+  try{ var m=byId('recUnavailModal'); if(m) m.style.display='none'; }catch(e){}
+}
+
+function renderRecurringUnavailExisting(staffId){
+  try{
+    ensureRecurringUnavailabilityStore();
+    staffId = String(staffId);
+    var wrap = byId('recUnavailExisting');
+    if(!wrap) return;
+    var map = (App.recurringUnavailability && App.recurringUnavailability[staffId]) ? App.recurringUnavailability[staffId] : {};
+    var keys = Object.keys(map||{});
+    if(!keys.length){
+      wrap.textContent = 'No recurring unavailability rules set.';
+      return;
+    }
+    keys.sort(function(a,b){
+      var ra = map[a]||{};
+      var rb = map[b]||{};
+      return String(ra.startISO||'').localeCompare(String(rb.startISO||''));
+    });
+    wrap.innerHTML='';
+
+    keys.forEach(function(k){
+      var r = map[k]; if(!r) return;
+      var days = Array.isArray(r.days) ? r.days.slice() : [];
+      days = days.map(function(x){ var n=parseInt(x,10); return isFinite(n)?n:null; }).filter(function(x){ return x!=null && x>=0 && x<=6; });
+      days.sort(function(a,b){ return a-b; });
+      var dayStr = days.map(function(di){ return DAY[di]||''; }).filter(Boolean).join(', ');
+      var s = r.startISO ? fmtDMY(fromISO(String(r.startISO))) : '?';
+      var e = r.endISO ? fmtDMY(fromISO(String(r.endISO))) : 'ongoing';
+      var reason = (r.reason!=null?String(r.reason).trim():'');
+      if(!reason) reason='(no reason recorded)';
+
+      var row = document.createElement('div');
+      row.style.display='flex';
+      row.style.alignItems='center';
+      row.style.justifyContent='space-between';
+      row.style.gap='8px';
+      row.style.padding='8px 10px';
+      row.style.border='1px solid var(--border)';
+      row.style.borderRadius='10px';
+      row.style.background='var(--grid)';
+      row.style.margin='6px 0';
+
+      var left = document.createElement('div');
+      left.style.display='flex';
+      left.style.flexDirection='column';
+      left.style.gap='2px';
+
+      var top = document.createElement('div');
+      top.style.fontWeight='800';
+      top.style.fontSize='12px';
+      top.textContent = (dayStr||'Day(s)') + ' — ' + s + ' → ' + e;
+
+      var sub = document.createElement('div');
+      sub.style.fontSize='12px';
+      sub.style.opacity='.9';
+      sub.textContent = reason;
+
+      left.appendChild(top);
+      left.appendChild(sub);
+
+      var btn = document.createElement('button');
+      btn.className='btn-outline';
+      btn.textContent='Remove';
+      btn.onclick=function(ev){
+        ev.stopPropagation();
+        if(!confirm('Remove this recurring unavailability rule?')) return;
+        deleteRecurringUnavailRule(staffId, k);
+      };
+
+      row.appendChild(left);
+      row.appendChild(btn);
+      wrap.appendChild(row);
+    });
+  }catch(e){
+    console.error('renderRecurringUnavailExisting error', e);
+  }
+}
+
+function saveRecurringUnavailFromModal(){
+  try{
+    if(!App.currentUser){ alert('Please log in first.'); return; }
+    ensureRecurringUnavailabilityStore();
+
+    var staffId = (DayToolsCtx && DayToolsCtx.staffId!=null) ? String(DayToolsCtx.staffId) : (App.currentUser ? String(App.currentUser.id) : '');
+    if(!staffId) return;
+
+    if(App.currentUser && App.currentUser.role==='staff' && String(App.currentUser.id)!==String(staffId)){
+      alert('You can only edit your own recurring unavailability.');
+      return;
+    }
+
+    if(!App.recurringUnavailability[staffId]) App.recurringUnavailability[staffId] = {};
+
+    var days = [];
+    var chks = $$('#recUnavailDays input[type=checkbox]');
+    for(var i=0;i<chks.length;i++){
+      if(chks[i].checked){
+        var di = parseInt(chks[i].value,10);
+        if(isFinite(di)) days.push(di);
+      }
+    }
+    if(!days.length){ alert('Select at least one day of week.'); return; }
+
+    var sEl = byId('recUnavailStart');
+    var eEl = byId('recUnavailEnd');
+    var rEl = byId('recUnavailReason');
+    var s = (sEl && sEl.value) ? String(sEl.value).trim() : '';
+    var e = (eEl && eEl.value) ? String(eEl.value).trim() : '';
+    var reason = (rEl && rEl.value!=null) ? String(rEl.value).trim() : '';
+
+    if(!s){ alert('Please select a start date.'); return; }
+    if(e && e < s){ alert('End date must be on or after start date.'); return; }
+    if(!reason){ alert('Reason is mandatory.'); return; }
+
+    var rid = uid();
+    App.recurringUnavailability[staffId][rid] = {
+      id: rid,
+      staffId: staffId,
+      days: days,
+      startISO: s,
+      endISO: e || '',
+      reason: reason,
+      createdAt: Date.now(),
+      createdBy: (App.currentUser && App.currentUser.id!=null) ? String(App.currentUser.id) : ''
+    };
+
+    saveLocal();
+
+    // Push to RTDB (same pattern as planner data)
+    try{
+      var payload = {};
+      payload[String(staffId)] = App.recurringUnavailability[staffId];
+      dbPatch('/recurringUnavailability', payload).catch(function(err){
+        console.error('recurringUnavailability push failed', err);
+      });
+    }catch(e){}
+
+    renderPlanner();
+    renderPayroll();
+    try{ renderMyShifts(); }catch(e){}
+    try{ renderWeekOverview(); }catch(e){}
+
+    renderRecurringUnavailExisting(staffId);
+    showToast('Recurring unavailability saved', 'Synced to server (push queued)', 'good', 4500);
+  }catch(e){
+    console.error('saveRecurringUnavailFromModal error', e);
+    alert('Could not save: ' + e);
+  }
+}
+
+function deleteRecurringUnavailRule(staffId, ruleId){
+  try{
+    ensureRecurringUnavailabilityStore();
+    staffId = String(staffId);
+    ruleId = String(ruleId);
+    if(!App.recurringUnavailability[staffId]) App.recurringUnavailability[staffId] = {};
+    delete App.recurringUnavailability[staffId][ruleId];
+    saveLocal();
+
+    try{
+      var p = {};
+      if(!p[staffId]) p[staffId] = {};
+      p[staffId][ruleId] = null;
+      dbPatch('/recurringUnavailability/' + encodeURIComponent(staffId), p[staffId]).catch(function(err){
+        console.error('recurringUnavailability delete push failed', err);
+      });
+    }catch(e){}
+
+    renderPlanner();
+    renderPayroll();
+    try{ renderMyShifts(); }catch(e){}
+    try{ renderWeekOverview(); }catch(e){}
+
+    renderRecurringUnavailExisting(staffId);
+    showToast('Recurring unavailability removed', '', 'good', 4200);
+  }catch(e){
+    console.error('deleteRecurringUnavailRule error', e);
+  }
 }
 
 function submitAwayMultiModal(){
@@ -5208,14 +5549,89 @@ function renderAvailabilityBar(){
 
 // ---------- Absences: overlays + calendar + requests ----------
 function ensureRequestsStore(){ if(!App.absenceRequests) App.absenceRequests={}; }
+function ensureRecurringUnavailabilityStore(){ if(!App.recurringUnavailability) App.recurringUnavailability={}; }
+
+function isoDayIndexMon0(iso){
+  try{ var d = fromISO(iso); return (d.getDay()+6)%7; }catch(e){ return 0; }
+}
+
+function getRecurringUnavailabilityForDate(iso, staffId){
+  try{
+    ensureRecurringUnavailabilityStore();
+    staffId = String(staffId);
+    var staffMap = (App.recurringUnavailability && App.recurringUnavailability[staffId]) ? App.recurringUnavailability[staffId] : null;
+    if(!staffMap) return [];
+    var idx = isoDayIndexMon0(iso);
+    var out = [];
+    Object.keys(staffMap).forEach(function(k){
+      var r = staffMap[k];
+      if(!r) return;
+      var days = r.days;
+      if(!Array.isArray(days)) days = [];
+      var has = false;
+      for(var i=0;i<days.length;i++){
+        var di = parseInt(days[i],10);
+        if(di===idx){ has=true; break; }
+      }
+      if(!has) return;
+      var s = (r.startISO!=null?String(r.startISO):'');
+      var e = (r.endISO!=null?String(r.endISO):'');
+      if(s && String(iso) < s) return;
+      if(e && String(iso) > e) return;
+      out.push(r);
+    });
+    return out;
+  }catch(e){
+    return [];
+  }
+}
+
+function recurringUnavailabilityLinesFor(iso, staffId){
+  var recs = getRecurringUnavailabilityForDate(iso, staffId);
+  if(!recs || !recs.length) return [];
+  var out = [];
+  recs.forEach(function(r){
+    var reason = (r && r.reason!=null ? String(r.reason).trim() : '');
+    if(!reason) reason='(no reason recorded)';
+    var s = (r && r.startISO) ? String(r.startISO) : '';
+    var e = (r && r.endISO) ? String(r.endISO) : '';
+    var range = '';
+    try{
+      if(s || e){
+        var sL = s ? fmtDMY(fromISO(s)) : '?';
+        var eL = e ? fmtDMY(fromISO(e)) : 'ongoing';
+        range = ' (range ' + sL + ' to ' + eL + ')';
+      }
+    }catch(err){}
+    out.push('Recurring unavailable: ' + reason + range);
+  });
+  return out;
+}
+
+function isRecurringUnavailableOnDate(iso, staffId){
+  try{ return getRecurringUnavailabilityForDate(iso, staffId).length>0; }catch(e){ return false; }
+}
+
 function drawAwayOverlays(wrapEl, iso, staffId){
   try{
     if(!wrapEl) return;
-    if(!App.availability) return;
-    var dayRec = App.availability[iso] || {};
+    var dayRec = (App.availability && App.availability[iso]) ? (App.availability[iso] || {}) : {};
     var state = dayRec[staffId];
-    var olds = wrapEl.querySelectorAll('.away-band, .away-chip'); for(var i=0;i<olds.length;i++) olds[i].remove();
-    if(!state) return;
+
+    var olds = wrapEl.querySelectorAll('.away-band, .away-chip, .unavail-band, .unavail-chip'); for(var i=0;i<olds.length;i++) olds[i].remove();
+
+    // recurring unavailability overlay (grey)
+    try{
+      if(isRecurringUnavailableOnDate(iso, staffId)){
+        var ub=document.createElement('div'); ub.className='unavail-band'; ub.style.left='0'; ub.style.width='100%';
+        var uc=document.createElement('div'); uc.className='unavail-chip'; uc.textContent='UNAVAIL';
+        wrapEl.appendChild(ub); wrapEl.appendChild(uc);
+      }
+    }catch(e){}
+    if(!state){
+      // If there is no published away/partial-away record, we may still have recurring unavailability drawn above.
+      return;
+    }
     var span = 16*60;
     function clamp(x,a,b){ return Math.max(a, Math.min(b, x)); }
     function blockSeg(start, end){
@@ -5260,31 +5676,41 @@ function awayReasonTextFor(iso, staffId){
   try{
     if(!iso) return '';
     staffId = String(staffId);
-    var dayRec = (App.availability && App.availability[iso]) ? App.availability[iso] : null;
-    if(!dayRec) return '';
-    var rec = dayRec[staffId] || dayRec[String(staffId)] || dayRec[Number(staffId)];
-    if(!rec) return '';
     var lines = [];
 
-    if(rec.unavailable){
-      var r0 = (rec.reason!=null ? String(rec.reason).trim() : '');
-      if(!r0) r0 = '(no reason recorded)';
-      lines.push('Full day away: ' + r0);
+    // Published away / partial-away (per-day records)
+    var dayRec = (App.availability && App.availability[iso]) ? App.availability[iso] : null;
+    if(dayRec){
+      var rec = dayRec[staffId] || dayRec[String(staffId)] || dayRec[Number(staffId)];
+      if(rec){
+        if(rec.unavailable){
+          var r0 = (rec.reason!=null ? String(rec.reason).trim() : '');
+          if(!r0) r0 = '(no reason recorded)';
+          lines.push('Full day away: ' + r0);
+        }
+        if(Array.isArray(rec.blocks) && rec.blocks.length){
+          rec.blocks.forEach(function(b){
+            if(!b) return;
+            var seg = 'Partial away';
+            if(b.start || b.end){
+              seg += ' ' + (b.start||'') + '–' + (b.end||'');
+            }
+            var r1 = (b.reason!=null ? String(b.reason).trim() : '');
+            if(!r1) r1 = '(no reason recorded)';
+            seg += ': ' + r1;
+            lines.push(seg);
+          });
+        }
+      }
     }
 
-    if(Array.isArray(rec.blocks) && rec.blocks.length){
-      rec.blocks.forEach(function(b){
-        if(!b) return;
-        var seg = 'Partial away';
-        if(b.start || b.end){
-          seg += ' ' + (b.start||'') + '–' + (b.end||'');
-        }
-        var r1 = (b.reason!=null ? String(b.reason).trim() : '');
-        if(!r1) r1 = '(no reason recorded)';
-        seg += ': ' + r1;
-        lines.push(seg);
-      });
-    }
+    // Recurring unavailability (e.g. cannot work Mondays)
+    try{
+      var recLines = recurringUnavailabilityLinesFor(iso, staffId);
+      if(recLines && recLines.length){
+        for(var i=0;i<recLines.length;i++) lines.push(recLines[i]);
+      }
+    }catch(e){}
 
     if(!lines.length) return '';
     return lines.join('\n');
@@ -6915,6 +7341,7 @@ async function pullData(silent){
   if(data){
     App.staff=data.staff||App.staff;
     App.availability=data.availability||App.availability;
+    App.recurringUnavailability=data.recurringUnavailability||App.recurringUnavailability||{};
     App.absenceRequests=data.absenceRequests||App.absenceRequests||{};
     App.absenceHistory=data.absenceHistory||App.absenceHistory||{};
     App.weeks=data.weeks||App.weeks;
@@ -7015,6 +7442,7 @@ async function pushData(){
   await dbPatch('', {
     staff:App.staff,
     availability:App.availability,
+    recurringUnavailability:App.recurringUnavailability||{},
     absenceRequests:App.absenceRequests||{},
     absenceHistory:App.absenceHistory||{},
     weeks:App.weeks,
@@ -7255,6 +7683,26 @@ window.proposeShiftEdit = async function(iso, staffId){
       addLinesFromRec(localApproved, 'Approved', '— on roster');
       var localPending = getDayRec(App.absenceRequests, iso, staffId);
       addLinesFromRec(localPending, 'Pending', '— requested');
+      try{
+        var recs = getRecurringUnavailabilityForDate(iso, staffId) || [];
+        if(recs.length){
+          recs.forEach(function(r){
+            var rr = (r && r.reason!=null ? String(r.reason).trim() : '');
+            if(!rr) rr='(no reason recorded)';
+            var s = (r && r.startISO) ? String(r.startISO) : '';
+            var e = (r && r.endISO) ? String(r.endISO) : '';
+            var range = '';
+            try{
+              if(s || e){
+                var sL = s ? fmtDMY(fromISO(s)) : '?';
+                var eL = e ? fmtDMY(fromISO(e)) : 'ongoing';
+                range = ' (range ' + sL + ' to ' + eL + ')';
+              }
+            }catch(err){}
+            lines.push('Recurring unavailable: ' + rr + range);
+          });
+        }
+      }catch(e){}
     }catch(e){}
 
     if(lines.length){
@@ -7302,6 +7750,35 @@ window.proposeShiftEdit = async function(iso, staffId){
         var req = dayReqs[staffId] || dayReqs[String(staffId)] || dayReqs[Number(staffId)];
         addLinesFromRec(req, 'Pending', '— requested');
       }
+
+      try{
+        var recMap = await fetchJson('/recurringUnavailability/' + encodeURIComponent(staffId));
+        if(recMap){
+          var idx = isoDayIndexMon0(iso);
+          Object.keys(recMap).forEach(function(k){
+            var r = recMap[k]; if(!r) return;
+            var days = r.days; if(!Array.isArray(days)) days=[];
+            var ok=false;
+            for(var i=0;i<days.length;i++){ if(parseInt(days[i],10)===idx){ ok=true; break; } }
+            if(!ok) return;
+            var s = (r.startISO!=null?String(r.startISO):'');
+            var e = (r.endISO!=null?String(r.endISO):'');
+            if(s && String(iso) < s) return;
+            if(e && String(iso) > e) return;
+            var rr = (r.reason!=null ? String(r.reason).trim() : '');
+            if(!rr) rr='(no reason recorded)';
+            var range='';
+            try{
+              if(s || e){
+                var sL = s ? fmtDMY(fromISO(s)) : '?';
+                var eL = e ? fmtDMY(fromISO(e)) : 'ongoing';
+                range = ' (range ' + sL + ' to ' + eL + ')';
+              }
+            }catch(err){}
+            lines.push('Recurring unavailable: ' + rr + range);
+          });
+        }
+      }catch(e){}
 
       if(!lines.length){
         openInfoModalSafe(title, 'No info recorded for this day.');
