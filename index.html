@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1"/>
-  <title>M&C-ATRD-scheduler --=Aspire Group=-- (V3.4.3)</title>
+  <title>M&C-ATRD-scheduler --=Aspire Group=-- (V3.4.4)</title>
   <meta name="theme-color" content="#22c55e"/>
 
   <style>
@@ -1547,7 +1547,7 @@
       <div id="appLogoBox"></div>
       <div class="titlewrap">
         <div class="title" id="appTitle">M&C-ATRD-scheduler --=Aspire Group=--</div>
-        <div class="version-pill" id="appVersion">V3.4.3</div>
+        <div class="version-pill" id="appVersion">V3.4.4</div>
       </div>
     </div>
     <div class="tabs">
@@ -1609,8 +1609,15 @@
     <!-- My Shifts -->
     <section id="mySection" class="section">
       <div class="card">
-        <h3>My Shifts &amp; Wages (This Week)</h3>
-        <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:space-between;">
+          <h3 style="margin:0;">My Shifts &amp; Wages</h3>
+          <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+            <button id="btnMyPrevWeek" class="btn-outline">← Prev week</button>
+            <div class="pill" id="myWeekLabel"></div>
+            <button id="btnMyNextWeek" class="btn-outline">Next week →</button>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;margin:10px 0 8px;flex-wrap:wrap;">
           <span class="pill" id="myHours"></span>
           <span class="pill" id="myWithheldPill" style="display:none;"></span>
           <button id="btnMyRequestAwayMulti" class="btn-outline" style="display:none;">Request days away</button>
@@ -1651,13 +1658,13 @@
               <div class="table-wrapper" style="margin-top:6px;">
                 <table class="table">
                   <tbody>
-                    <tr><td><b>Withheld (this week)</b></td><td id="myWithheldThisWeek">$0.00</td></tr>
+                    <tr><td><b>Withheld (shown week)</b></td><td id="myWithheldThisWeek">$0.00</td></tr>
                     <tr><td><b>Withheld balance</b></td><td id="myWithheldBalance">$0.00</td></tr>
-                    <tr><td><b>Net pay (this week)</b></td><td id="myWithheldNetPay">$0.00</td></tr>
+                    <tr><td><b>Net pay (shown week)</b></td><td id="myWithheldNetPay">$0.00</td></tr>
                   </tbody>
                 </table>
               </div>
-              <div class="muted small" style="margin-top:4px;">Withheld amounts are set by admin on Payroll. Net pay = gross pay − withheld (this week).</div>
+              <div class="muted small" style="margin-top:4px;">Withheld amounts are set by admin on Payroll. Net pay = gross pay − withheld (shown week).</div>
             </div>
           </div>
         </div>
@@ -2352,7 +2359,7 @@ var DAY = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 // ---------- App state ----------
 var App = {
   // IMPORTANT: Increment App.version whenever making functional changes to this file.
-  version: 'V3.4.3',
+  version: 'V3.4.4',
   settings: {
     dbUrl:'https://mnc-atrd-default-rtdb.asia-southeast1.firebasedatabase.app/', workspace:'mnc-atrd', authToken:'',
     theme:'light', themeName:'light-pastel-sky', recentColors:[], appTitle:'M&C-ATRD-scheduler --=Aspire Group=--', logoUrl:'',
@@ -3037,7 +3044,7 @@ function init(){
     document.querySelectorAll('.section').forEach(s=>s.classList.remove('show'));
   var __nav = byId('bottomNav'); if(__nav) __nav.style.display='none';
   var __appTitleEl = byId('appTitle'); if(__appTitleEl) __appTitleEl.textContent = App.settings.appTitle || 'M&C-ATRD-scheduler --=Aspire Group=--';
-  var __verEl = byId('appVersion'); if(__verEl) __verEl.textContent = App.version || 'V3.4.3';
+  var __verEl = byId('appVersion'); if(__verEl) __verEl.textContent = App.version || 'V3.4.4';
   try{ document.title = (App.settings.appTitle||'App')+' ('+App.version+')'; }catch(e){}
   var __logoBoxInit = byId('appLogoBox'); if(__logoBoxInit){ var __lu=App.settings.logoUrl||''; if(__lu){ __logoBoxInit.style.display='inline-block'; __logoBoxInit.style.backgroundImage='url("'+resolveLogoUrl(__lu)+'")'; } else { __logoBoxInit.style.display='none'; __logoBoxInit.style.backgroundImage='none'; } }
   initColorRecents();
@@ -3185,6 +3192,9 @@ function init(){
 
   byId('btnPrevWeek').onclick=function(){ shiftWeek(-1); };
   byId('btnNextWeek').onclick=function(){ shiftWeek(1); };
+
+  var myPrev=byId('btnMyPrevWeek'); if(myPrev) myPrev.onclick=function(){ shiftMyWeek(-1); };
+  var myNext=byId('btnMyNextWeek'); if(myNext) myNext.onclick=function(){ shiftMyWeek(1); };
   byId('btnPayrollPrevWeek').onclick=function(){ shiftWeek(-1); };
   byId('btnPayrollNextWeek').onclick=function(){ shiftWeek(1); };
   byId('btnCopyDay').onclick=function(){ if(!canEdit()) return alert('Manager/Admin only.'); copyDayToNext(); };
@@ -3519,7 +3529,7 @@ function showTab(name){
   // sections
   var sects=$$('.section, .login');
   for(var k=0;k<sects.length;k++){ sects[k].classList.remove('show'); }
-  if(name==='My') byId('mySection').classList.add('show');
+  if(name==='My'){ byId('mySection').classList.add('show'); try{ renderMyShifts(); }catch(e){} }
   if(name==='MyRequests'){ byId('myRequestsSection').classList.add('show'); try{ renderMyRequests(); }catch(e){} }
   if(name==='Planner') byId('plannerSection').classList.add('show');
   if(name==='Payroll') byId('payrollSection').classList.add('show');
@@ -3636,10 +3646,41 @@ function splitOvertime(staffId, dayIndex, hours, state){
 
 // ---------- My Shifts ----------
 
+var MyView = { weekStartISO: toISO(weekStart(new Date())) };
+
+function shiftMyWeek(delta){
+  try{
+    var base = fromISO(MyView.weekStartISO);
+    if(!(base instanceof Date) || isNaN(base)) base = weekStart(new Date());
+    base.setDate(base.getDate() + (delta*7));
+    MyView.weekStartISO = toISO(weekStart(base));
+  }catch(e){
+    MyView.weekStartISO = toISO(weekStart(new Date()));
+  }
+  renderMyShifts();
+}
+
+function setMyWeek(iso){
+  try{
+    var d = fromISO(String(iso||''));
+    if(d instanceof Date && !isNaN(d)){
+      MyView.weekStartISO = toISO(weekStart(d));
+    }
+  }catch(e){}
+  renderMyShifts();
+}
+
 function renderMyShifts(){
   if(!App.currentUser) return;
-  var start=weekStart(new Date());
-  var weekISO=toISO(start);
+  var weekISO = (MyView && MyView.weekStartISO) ? String(MyView.weekStartISO) : toISO(weekStart(new Date()));
+  var start = fromISO(weekISO);
+  if(!(start instanceof Date) || isNaN(start)) start = weekStart(new Date());
+  start = weekStart(start);
+  weekISO = toISO(start);
+  if(MyView) MyView.weekStartISO = weekISO;
+  var endLbl = new Date(start); endLbl.setDate(endLbl.getDate()+6);
+  var wl = byId('myWeekLabel');
+  if(wl) wl.textContent = 'Week of '+fmtDMY(start)+' – '+fmtDMY(endLbl);
   var days = DAY.map(function(_,i){ var d=new Date(start); d.setDate(d.getDate()+i); return d; });
   var list=byId('myShiftsList'); list.innerHTML='';
   var tw=0,tb=0,tp=0,py=0,totOT=0;
@@ -3699,7 +3740,7 @@ function renderMyShifts(){
   byId('myTotalPayable').textContent=tp.toFixed(2);
   byId('myTotalOT').textContent=totOT.toFixed(2);
   byId('myTotalPay').textContent=fmtMoney(py);
-  byId('myHours').textContent='This week: '+tp.toFixed(2)+' payable hours — '+fmtMoney(py);
+  byId('myHours').textContent='Week of '+fmtDMY(start)+' – '+fmtDMY(endLbl)+': '+tp.toFixed(2)+' payable hours — '+fmtMoney(py);
 
   // Withheld pay (staff view)
   try{
@@ -3731,7 +3772,7 @@ function renderMyShifts(){
     var twEl = byId('myWithheldThisWeek');
     var balEl = byId('myWithheldBalance');
     var netEl = byId('myWithheldNetPay');
-    if(twEl) twEl.textContent = fmtMoney(wWeek);
+    if(twEl) twEl.textContent = (wWeek > 0.0001 ? ('-'+fmtMoney(wWeek)) : fmtMoney(0));
     if(balEl) balEl.textContent = fmtMoney(wBal);
     if(netEl) netEl.textContent = fmtMoney(net);
     if(noneEl){
