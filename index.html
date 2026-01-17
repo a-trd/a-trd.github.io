@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1"/>
-  <title>M&C-ATRD-scheduler --=Aspire Group=-- (V3.4.4)</title>
+  <title>M&C-ATRD-scheduler --=Aspire Group=-- (V3.4.5)</title>
   <meta name="theme-color" content="#22c55e"/>
 
   <style>
@@ -1302,6 +1302,20 @@
       }
     }
 
+
+    /* My Shifts withheld table: keep values visible on mobile (no horizontal clip) */
+    @media (max-width: 768px) {
+      #myWithheldInfoWrap .kv-wrapper { overflow-x: visible; }
+      #myWithheldInfoWrap .kv-table { min-width: 0 !important; width: 100%; table-layout: fixed; }
+      #myWithheldInfoWrap .kv-table td { padding: 10px 10px; }
+      #myWithheldInfoWrap .kv-table td:last-child { text-align: right; font-weight: 900; white-space: nowrap; font-variant-numeric: tabular-nums; }
+      #myWithheldInfoWrap .kv-table td:first-child { width: 62%; }
+    }
+    @media (max-width: 420px) {
+      #myWithheldInfoWrap .kv-table td { padding: 10px 8px; }
+      #myWithheldInfoWrap .kv-table td:last-child { font-size: 14px; }
+    }
+
     @media print {
       .appbar,
       .tabs,
@@ -1547,7 +1561,7 @@
       <div id="appLogoBox"></div>
       <div class="titlewrap">
         <div class="title" id="appTitle">M&C-ATRD-scheduler --=Aspire Group=--</div>
-        <div class="version-pill" id="appVersion">V3.4.4</div>
+        <div class="version-pill" id="appVersion">V3.4.5</div>
       </div>
     </div>
     <div class="tabs">
@@ -1655,8 +1669,8 @@
             <div id="myWithheldInfoWrap" style="margin-top:10px;">
               <label>Withheld pay</label>
               <div id="myWithheldNone" class="muted small" style="margin-top:4px;">No pay is currently withheld.</div>
-              <div class="table-wrapper" style="margin-top:6px;">
-                <table class="table">
+              <div class="table-wrapper kv-wrapper" style="margin-top:6px;">
+                <table class="table kv-table" id="myWithheldTable">
                   <tbody>
                     <tr><td><b>Withheld (shown week)</b></td><td id="myWithheldThisWeek">$0.00</td></tr>
                     <tr><td><b>Withheld balance</b></td><td id="myWithheldBalance">$0.00</td></tr>
@@ -2359,7 +2373,7 @@ var DAY = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 // ---------- App state ----------
 var App = {
   // IMPORTANT: Increment App.version whenever making functional changes to this file.
-  version: 'V3.4.4',
+  version: 'V3.4.5',
   settings: {
     dbUrl:'https://mnc-atrd-default-rtdb.asia-southeast1.firebasedatabase.app/', workspace:'mnc-atrd', authToken:'',
     theme:'light', themeName:'light-pastel-sky', recentColors:[], appTitle:'M&C-ATRD-scheduler --=Aspire Group=--', logoUrl:'',
@@ -3044,7 +3058,7 @@ function init(){
     document.querySelectorAll('.section').forEach(s=>s.classList.remove('show'));
   var __nav = byId('bottomNav'); if(__nav) __nav.style.display='none';
   var __appTitleEl = byId('appTitle'); if(__appTitleEl) __appTitleEl.textContent = App.settings.appTitle || 'M&C-ATRD-scheduler --=Aspire Group=--';
-  var __verEl = byId('appVersion'); if(__verEl) __verEl.textContent = App.version || 'V3.4.4';
+  var __verEl = byId('appVersion'); if(__verEl) __verEl.textContent = App.version || 'V3.4.5';
   try{ document.title = (App.settings.appTitle||'App')+' ('+App.version+')'; }catch(e){}
   var __logoBoxInit = byId('appLogoBox'); if(__logoBoxInit){ var __lu=App.settings.logoUrl||''; if(__lu){ __logoBoxInit.style.display='inline-block'; __logoBoxInit.style.backgroundImage='url("'+resolveLogoUrl(__lu)+'")'; } else { __logoBoxInit.style.display='none'; __logoBoxInit.style.backgroundImage='none'; } }
   initColorRecents();
