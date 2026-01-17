@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1"/>
-  <title>M&C-ATRD-scheduler --=Aspire Group=-- (V3.4.2)</title>
+  <title>M&C-ATRD-scheduler --=Aspire Group=-- (V3.4.3)</title>
   <meta name="theme-color" content="#22c55e"/>
 
   <style>
@@ -1547,7 +1547,7 @@
       <div id="appLogoBox"></div>
       <div class="titlewrap">
         <div class="title" id="appTitle">M&C-ATRD-scheduler --=Aspire Group=--</div>
-        <div class="version-pill" id="appVersion">V3.4.2</div>
+        <div class="version-pill" id="appVersion">V3.4.3</div>
       </div>
     </div>
     <div class="tabs">
@@ -2352,7 +2352,7 @@ var DAY = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 // ---------- App state ----------
 var App = {
   // IMPORTANT: Increment App.version whenever making functional changes to this file.
-  version: 'V3.4.2',
+  version: 'V3.4.3',
   settings: {
     dbUrl:'https://mnc-atrd-default-rtdb.asia-southeast1.firebasedatabase.app/', workspace:'mnc-atrd', authToken:'',
     theme:'light', themeName:'light-pastel-sky', recentColors:[], appTitle:'M&C-ATRD-scheduler --=Aspire Group=--', logoUrl:'',
@@ -3037,7 +3037,7 @@ function init(){
     document.querySelectorAll('.section').forEach(s=>s.classList.remove('show'));
   var __nav = byId('bottomNav'); if(__nav) __nav.style.display='none';
   var __appTitleEl = byId('appTitle'); if(__appTitleEl) __appTitleEl.textContent = App.settings.appTitle || 'M&C-ATRD-scheduler --=Aspire Group=--';
-  var __verEl = byId('appVersion'); if(__verEl) __verEl.textContent = App.version || 'V3.4.2';
+  var __verEl = byId('appVersion'); if(__verEl) __verEl.textContent = App.version || 'V3.4.3';
   try{ document.title = (App.settings.appTitle||'App')+' ('+App.version+')'; }catch(e){}
   var __logoBoxInit = byId('appLogoBox'); if(__logoBoxInit){ var __lu=App.settings.logoUrl||''; if(__lu){ __logoBoxInit.style.display='inline-block'; __logoBoxInit.style.backgroundImage='url("'+resolveLogoUrl(__lu)+'")'; } else { __logoBoxInit.style.display='none'; __logoBoxInit.style.backgroundImage='none'; } }
   initColorRecents();
@@ -5983,6 +5983,24 @@ function copyWeekToNext(){
 
 
 // ---------- Pay withheld helpers ----------
+function numFromAnyWithheld(v){
+  try{
+    if(v==null) return 0;
+    if(typeof v==='number') return (isFinite(v)?v:0);
+    if(typeof v==='string'){
+      var n=parseFloat(v);
+      return (isFinite(n)?n:0);
+    }
+    if(typeof v==='object'){
+      if(v.amount!=null) return numFromAnyWithheld(v.amount);
+      if(v.balance!=null) return numFromAnyWithheld(v.balance);
+      if(v.value!=null) return numFromAnyWithheld(v.value);
+      if(v.total!=null) return numFromAnyWithheld(v.total);
+    }
+  }catch(e){}
+  return 0;
+}
+
 function ensureWithheldStores(){
   if(!App.payWithheld) App.payWithheld = {};
   if(!App.payWithheldByWeek) App.payWithheldByWeek = {};
@@ -5991,14 +6009,14 @@ function ensureWithheldStores(){
 function getWithheldBalance(staffId){
   ensureWithheldStores();
   var v = App.payWithheld[String(staffId)];
-  v = parseFloat(v||0);
+  v = numFromAnyWithheld(v);
   return (isFinite(v) ? v : 0);
 }
 function getWithheldForWeek(weekIso, staffId){
   ensureWithheldStores();
   var b = App.payWithheldByWeek[String(weekIso)] || {};
   var v = b[String(staffId)];
-  v = parseFloat(v||0);
+  v = numFromAnyWithheld(v);
   return (isFinite(v) ? v : 0);
 }
 function addWithheld(weekIso, staffId, amount, note){
@@ -6010,10 +6028,18 @@ function addWithheld(weekIso, staffId, amount, note){
   if(!weekIso || !staffId) return;
   if(!isFinite(amount) || amount<=0) return;
   if(!App.payWithheldByWeek[weekIso]) App.payWithheldByWeek[weekIso] = {};
-  App.payWithheldByWeek[weekIso][staffId] = (parseFloat(App.payWithheldByWeek[weekIso][staffId]||0)||0) + amount;
-  App.payWithheld[staffId] = (parseFloat(App.payWithheld[staffId]||0)||0) + amount;
+  App.payWithheldByWeek[weekIso][staffId] = (numFromAnyWithheld(App.payWithheldByWeek[weekIso][staffId])||0) + amount;
+  App.payWithheld[staffId] = (numFromAnyWithheld(App.payWithheld[staffId])||0) + amount;
   App.payWithheldLog.push({ts:new Date().toISOString(), type:'withhold', weekIso:weekIso, staffId:staffId, amount:amount, note:note||''});
   saveLocal();
+  // Push withheld to Firebase (best-effort)
+  try{
+    var p1={}; p1[staffId]=App.payWithheld[staffId];
+    var p2={}; p2[weekIso]=App.payWithheldByWeek[weekIso];
+    dbPatch('/payWithheld', p1).catch(function(){});
+    dbPatch('/payWithheldByWeek', p2).catch(function(){});
+    dbPatch('/payWithheldLog', App.payWithheldLog||[]).catch(function(){});
+  }catch(e){}
 }
 function clearWithheld(staffId, note){
   if(!isAdmin()) return alert('Admin only.');
@@ -6032,6 +6058,13 @@ function clearWithheld(staffId, note){
   App.payWithheld[staffId] = 0;
   App.payWithheldLog.push({ts:new Date().toISOString(), type:'paid', staffId:staffId, amount:bal, note:note||''});
   saveLocal();
+  // Push withheld to Firebase (best-effort)
+  try{
+    var p1={}; p1[staffId]=App.payWithheld[staffId];
+    dbPatch('/payWithheld', p1).catch(function(){});
+    dbPatch('/payWithheldByWeek', App.payWithheldByWeek||{}).catch(function(){});
+    dbPatch('/payWithheldLog', App.payWithheldLog||[]).catch(function(){});
+  }catch(e){}
 }
 function openPayrollWithholdPrompt(staffId){
   staffId = String(staffId||'');
@@ -6820,6 +6853,9 @@ async function pushData(){
     shiftChangeHistory:App.shiftChangeHistory||{},
     payrollAdjustments:App.payrollAdjustments||{},
     payrollPaid:App.payrollPaid||{},
+    payWithheld:App.payWithheld||{},
+    payWithheldByWeek:App.payWithheldByWeek||{},
+    payWithheldLog:App.payWithheldLog||[],
     settings:App.settings
   });
   return true;
