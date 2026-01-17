@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1"/>
-  <title>M&C-ATRD-scheduler --=Aspire Group=-- (V3.4.5)</title>
+  <title>M&C-ATRD-scheduler --=Aspire Group=-- (V3.4.6)</title>
   <meta name="theme-color" content="#22c55e"/>
 
   <style>
@@ -1561,7 +1561,7 @@
       <div id="appLogoBox"></div>
       <div class="titlewrap">
         <div class="title" id="appTitle">M&C-ATRD-scheduler --=Aspire Group=--</div>
-        <div class="version-pill" id="appVersion">V3.4.5</div>
+        <div class="version-pill" id="appVersion">V3.4.6</div>
       </div>
     </div>
     <div class="tabs">
@@ -2250,7 +2250,27 @@
       <h3 id="awayMultiTitle">Propose Away</h3>
       <div id="awayMultiSubtitle" class="muted" style="margin:4px 0 12px;"></div>
 
-      <div>
+      <div id="awayMultiPickWrap" style="margin-top:8px;">
+        <label style="font-size:12px;">Select</label>
+        <div style="display:flex;flex-wrap:wrap;gap:12px;margin-top:6px;font-size:12px;">
+          <label><input type="radio" name="awayMultiPick" value="week" checked> Days this week</label>
+          <label><input type="radio" name="awayMultiPick" value="range"> Date range</label>
+        </div>
+      </div>
+
+      <div id="awayMultiRangeWrap" class="grid-2" style="margin-top:10px;display:none;">
+        <div>
+          <label>Start date</label>
+          <input id="awayMultiRangeStart" type="date">
+        </div>
+        <div>
+          <label>End date</label>
+          <input id="awayMultiRangeEnd" type="date">
+        </div>
+      </div>
+
+
+      <div id="awayMultiWeekWrap">
         <label>Days this week</label>
         <div id="awayMultiDays" style="display:flex;flex-wrap:wrap;gap:10px;margin-top:6px;font-size:12px;">
           <label><input class="away-multi-day" type="checkbox" value="0"> Mon</label>
@@ -2373,7 +2393,7 @@ var DAY = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 // ---------- App state ----------
 var App = {
   // IMPORTANT: Increment App.version whenever making functional changes to this file.
-  version: 'V3.4.5',
+  version: 'V3.4.6',
   settings: {
     dbUrl:'https://mnc-atrd-default-rtdb.asia-southeast1.firebasedatabase.app/', workspace:'mnc-atrd', authToken:'',
     theme:'light', themeName:'light-pastel-sky', recentColors:[], appTitle:'M&C-ATRD-scheduler --=Aspire Group=--', logoUrl:'',
@@ -3058,7 +3078,7 @@ function init(){
     document.querySelectorAll('.section').forEach(s=>s.classList.remove('show'));
   var __nav = byId('bottomNav'); if(__nav) __nav.style.display='none';
   var __appTitleEl = byId('appTitle'); if(__appTitleEl) __appTitleEl.textContent = App.settings.appTitle || 'M&C-ATRD-scheduler --=Aspire Group=--';
-  var __verEl = byId('appVersion'); if(__verEl) __verEl.textContent = App.version || 'V3.4.5';
+  var __verEl = byId('appVersion'); if(__verEl) __verEl.textContent = App.version || 'V3.4.6';
   try{ document.title = (App.settings.appTitle||'App')+' ('+App.version+')'; }catch(e){}
   var __logoBoxInit = byId('appLogoBox'); if(__logoBoxInit){ var __lu=App.settings.logoUrl||''; if(__lu){ __logoBoxInit.style.display='inline-block'; __logoBoxInit.style.backgroundImage='url("'+resolveLogoUrl(__lu)+'")'; } else { __logoBoxInit.style.display='none'; __logoBoxInit.style.backgroundImage='none'; } }
   initColorRecents();
@@ -4267,6 +4287,20 @@ function renderCoverageBar(){
 function openShiftModal(opts){
   var m=byId('shiftModal'); m.style.display='flex';
 
+  // selection mode (week vs range)
+  try{
+    awayMultiSetPick('week');
+    var sEl = byId('awayMultiRangeStart');
+    var eEl = byId('awayMultiRangeEnd');
+    if(sEl) sEl.value = (DayToolsCtx && DayToolsCtx.iso) ? String(DayToolsCtx.iso) : (Planner.weekStartISO||'');
+    if(eEl) eEl.value = (DayToolsCtx && DayToolsCtx.iso) ? String(DayToolsCtx.iso) : (Planner.weekStartISO||'');
+    var radios = document.querySelectorAll('input[name="awayMultiPick"]');
+    for(var rr=0; rr<radios.length; rr++){
+      radios[rr].onchange = function(){ awayMultiUpdatePickUI(); };
+    }
+    awayMultiUpdatePickUI();
+  }catch(e){}
+
   // reset day checkboxes every time
   var chks=$$('#daysThisWeek input[type=checkbox]'); for(var ci=0;ci<chks.length;ci++){ chks[ci].checked=false; }
 
@@ -4845,6 +4879,45 @@ function dayToolsInfo(){
 // ---------- Multi-day Away modal (select days in week) ----------
 var AwayMulti = { mode:'full' };
 
+
+function awayMultiGetPick(){
+  try{
+    var r = document.querySelector('input[name="awayMultiPick"]:checked');
+    return r ? String(r.value||'week') : 'week';
+  }catch(e){
+    return 'week';
+  }
+}
+
+function awayMultiSetPick(v){
+  try{
+    var els = document.querySelectorAll('input[name="awayMultiPick"]');
+    for(var i=0;i<els.length;i++){
+      els[i].checked = (String(els[i].value)===String(v));
+    }
+  }catch(e){}
+}
+
+function awayMultiUpdatePickUI(){
+  try{
+    var pick = awayMultiGetPick();
+    var weekWrap = byId('awayMultiWeekWrap');
+    var rangeWrap = byId('awayMultiRangeWrap');
+    if(rangeWrap) rangeWrap.style.display = (pick==='range' ? 'grid' : 'none');
+    if(weekWrap) weekWrap.style.display = (pick==='range' ? 'none' : '');
+
+    // default range to clicked day (or current week start)
+    var sEl = byId('awayMultiRangeStart');
+    var eEl = byId('awayMultiRangeEnd');
+    var baseISO = (DayToolsCtx && DayToolsCtx.iso) ? String(DayToolsCtx.iso) : (Planner && Planner.weekStartISO ? String(Planner.weekStartISO) : '');
+    if(pick==='range' && baseISO){
+      if(sEl && !sEl.value) sEl.value = baseISO;
+      if(eEl && !eEl.value) eEl.value = baseISO;
+    }
+  }catch(e){}
+}
+
+
 function openAwayMultiModal(mode){
   AwayMulti.mode = (mode==='partial' ? 'partial' : 'full');
   if(!DayToolsCtx || DayToolsCtx.staffId==null) return;
@@ -4865,6 +4938,19 @@ function openAwayMultiModal(mode){
   }catch(e){
     if(sub) sub.textContent = (staff.name||staffId);
   }
+
+  // selection mode (this week vs date range)
+  try{
+    awayMultiSetPick('week');
+    var rs = document.querySelectorAll('input[name=\"awayMultiPick\"]');
+    for(var r=0;r<rs.length;r++) rs[r].onchange = function(){ awayMultiUpdatePickUI(); };
+    var sEl = byId('awayMultiRangeStart');
+    var eEl = byId('awayMultiRangeEnd');
+    var baseISO = (DayToolsCtx && DayToolsCtx.iso) ? String(DayToolsCtx.iso) : (Planner && Planner.weekStartISO ? String(Planner.weekStartISO) : '');
+    if(sEl) sEl.value = baseISO;
+    if(eEl) eEl.value = baseISO;
+    awayMultiUpdatePickUI();
+  }catch(e){}
 
   // reset day checkboxes
   var boxes = $$('#awayMultiDays input.away-multi-day');
@@ -4911,11 +4997,24 @@ function submitAwayMultiModal(){
   var reason = reasonEl ? String(reasonEl.value||'').trim() : '';
   if(!reason){ alert('Reason is mandatory.'); return; }
 
-  // selected days
-  var boxes = $$('#awayMultiDays input.away-multi-day');
+  // selected days or date range
+  var pick = awayMultiGetPick();
   var dayIdxs = [];
-  for(var i=0;i<boxes.length;i++) if(boxes[i].checked) dayIdxs.push(parseInt(boxes[i].value,10));
-  if(dayIdxs.length===0){ alert('Select at least one day.'); return; }
+  var rangeStartISO = '';
+  var rangeEndISO = '';
+
+  if(pick==='range'){
+    var sEl = byId('awayMultiRangeStart');
+    var eEl = byId('awayMultiRangeEnd');
+    rangeStartISO = sEl ? String(sEl.value||'').trim() : '';
+    rangeEndISO   = eEl ? String(eEl.value||'').trim() : '';
+    if(!rangeStartISO || !rangeEndISO){ alert('Select a start date and end date.'); return; }
+    if(rangeEndISO < rangeStartISO){ alert('End date must be on or after start date.'); return; }
+  }else{
+    var boxes = $$('#awayMultiDays input.away-multi-day');
+    for(var i=0;i<boxes.length;i++) if(boxes[i].checked) dayIdxs.push(parseInt(boxes[i].value,10));
+    if(dayIdxs.length===0){ alert('Select at least one day.'); return; }
+  }
 
   // Staff can only propose their own away
   if(App.currentUser && App.currentUser.role==='staff' && String(App.currentUser.id)!==String(staffId)){
@@ -4934,12 +5033,27 @@ function submitAwayMultiModal(){
     if(em <= sm){ alert('End time must be after start time.'); return; }
   }
 
-  var ws = fromISO(Planner.weekStartISO);
   var targets = [];
-  for(var j=0;j<dayIdxs.length;j++){
-    var idx = dayIdxs[j];
-    var dt = new Date(ws); dt.setDate(ws.getDate()+idx);
-    targets.push({idx:idx, iso:toISO(dt)});
+
+  if(pick==='range'){
+    var ds = fromISO(rangeStartISO);
+    var de = fromISO(rangeEndISO);
+    if(!ds || !de || isNaN(ds.getTime()) || isNaN(de.getTime())){ alert('Invalid date range.'); return; }
+    var maxDays = 120;
+    var count = 0;
+    for(var dt = new Date(ds); dt <= de; dt.setDate(dt.getDate()+1)){
+      var idx = (dt.getDay()+6)%7;
+      targets.push({idx:idx, iso:toISO(dt)});
+      count++;
+      if(count>maxDays){ alert('Date range is too long (max '+maxDays+' days).'); return; }
+    }
+  }else{
+    var ws = fromISO(Planner.weekStartISO);
+    for(var j=0;j<dayIdxs.length;j++){
+      var idx = dayIdxs[j];
+      var dt2 = new Date(ws); dt2.setDate(ws.getDate()+idx);
+      targets.push({idx:idx, iso:toISO(dt2)});
+    }
   }
 
   // Pre-validate all selected days (avoid partial updates)
@@ -4952,12 +5066,12 @@ function submitAwayMultiModal(){
       if(!cur) continue;
       if(AwayMulti.mode==='partial'){
         if(cur.unavailable && (!cur.blocks || !cur.blocks.length)){
-          alert('A full-day away request already exists for '+DAY[t.idx]+'. Clear it first to request partial away.');
+          alert('A full-day away request already exists for '+DAY[t.idx]+' ('+formatIsoForHuman(isoV)+'). Clear it first to request partial away.');
           return;
         }
       }else{
         if(Array.isArray(cur.blocks) && cur.blocks.length){
-          alert('Partial away requests already exist for '+DAY[t.idx]+'. Clear them first to request a full day away.');
+          alert('Partial away requests already exist for '+DAY[t.idx]+' ('+formatIsoForHuman(isoV)+'). Clear them first to request a full day away.');
           return;
         }
       }
