@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1"/>
-  <title>M&C-ATRD-scheduler --=Aspire Group=-- (V3.4.7)</title>
+  <title>M&C-ATRD-scheduler --=Aspire Group=-- (V3.4.8)</title>
   <meta name="theme-color" content="#22c55e"/>
 
   <style>
@@ -1590,7 +1590,7 @@
       <div id="appLogoBox"></div>
       <div class="titlewrap">
         <div class="title" id="appTitle">M&C-ATRD-scheduler --=Aspire Group=--</div>
-        <div class="version-pill" id="appVersion">V3.4.7</div>
+        <div class="version-pill" id="appVersion">V3.4.8</div>
       </div>
     </div>
     <div class="tabs">
@@ -2274,7 +2274,34 @@
     </div>
   </div>
 
-  <!-- Multi-day Away modal (select days in week) -->
+  
+
+  <!-- Withheld manage modal (Admin) -->
+  <div id="withholdManageModal" class="modal" style="z-index:2010;">
+    <div class="panel" style="max-width:720px;">
+      <h3 id="withholdManageTitle">Manage withheld pay</h3>
+      <div id="withholdManageSubtitle" class="muted" style="margin:4px 0 12px;"></div>
+
+      <div id="withholdManageSummary" style="margin-top:6px;"></div>
+
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;">
+        <button id="withholdManageSetWeek" class="btn-primary">Set withheld (shown week)</button>
+        <button id="withholdManageClearWeek" class="btn-outline">Clear withheld (shown week)</button>
+      </div>
+
+      <div style="margin-top:14px;">
+        <label>Withhold entries (shown week)</label>
+        <div id="withholdManageList" style="margin-top:8px;"></div>
+        <div class="muted small" style="margin-top:6px;">Tip: Use “Set withheld (shown week)” to correct a typo quickly. Removing an entry will update withheld totals immediately.</div>
+      </div>
+
+      <div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;margin-top:14px;">
+        <button id="btnCloseWithholdManage" class="btn-outline">Close</button>
+      </div>
+    </div>
+  </div>
+
+<!-- Multi-day Away modal (select days in week) -->
   <div id="awayMultiModal" class="modal" style="z-index:1950;">
     <div class="panel">
       <h3 id="awayMultiTitle">Propose Away</h3>
@@ -2471,7 +2498,7 @@ var DAY = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 // ---------- App state ----------
 var App = {
   // IMPORTANT: Increment App.version whenever making functional changes to this file.
-  version: 'V3.4.7',
+  version: 'V3.4.8',
   settings: {
     dbUrl:'https://mnc-atrd-default-rtdb.asia-southeast1.firebasedatabase.app/', workspace:'mnc-atrd', authToken:'',
     theme:'light', themeName:'light-pastel-sky', recentColors:[], appTitle:'M&C-ATRD-scheduler --=Aspire Group=--', logoUrl:'',
@@ -3157,7 +3184,7 @@ function init(){
     document.querySelectorAll('.section').forEach(s=>s.classList.remove('show'));
   var __nav = byId('bottomNav'); if(__nav) __nav.style.display='none';
   var __appTitleEl = byId('appTitle'); if(__appTitleEl) __appTitleEl.textContent = App.settings.appTitle || 'M&C-ATRD-scheduler --=Aspire Group=--';
-  var __verEl = byId('appVersion'); if(__verEl) __verEl.textContent = App.version || 'V3.4.7';
+  var __verEl = byId('appVersion'); if(__verEl) __verEl.textContent = App.version || 'V3.4.8';
   try{ document.title = (App.settings.appTitle||'App')+' ('+App.version+')'; }catch(e){}
   var __logoBoxInit = byId('appLogoBox'); if(__logoBoxInit){ var __lu=App.settings.logoUrl||''; if(__lu){ __logoBoxInit.style.display='inline-block'; __logoBoxInit.style.backgroundImage='url("'+resolveLogoUrl(__lu)+'")'; } else { __logoBoxInit.style.display='none'; __logoBoxInit.style.backgroundImage='none'; } }
   initColorRecents();
@@ -6691,6 +6718,237 @@ function openClearWithheldPrompt(staffId){
   renderMyShifts();
 }
 
+// ---------- Withheld pay: admin manage / undo helpers ----------
+var _withholdManageCtx = {staffId:null, weekIso:null};
+
+function adjustWithheldDelta(weekIso, staffId, delta, note){
+  if(!isAdmin()) return alert('Admin only.');
+  ensureWithheldStores();
+  weekIso = String(weekIso||'');
+  staffId = String(staffId||'');
+  delta = parseFloat(delta||0);
+  if(!weekIso || !staffId) return;
+  if(!isFinite(delta) || Math.abs(delta) < 0.0001) return;
+
+  var curWeek = getWithheldForWeek(weekIso, staffId);
+  var curBal = getWithheldBalance(staffId);
+
+  // Prevent negative totals
+  if(delta < 0){
+    var minDelta = Math.max(-curWeek, -curBal);
+    if(delta < minDelta) delta = minDelta;
+    if(Math.abs(delta) < 0.0001) return;
+  }
+
+  if(!App.payWithheldByWeek[weekIso]) App.payWithheldByWeek[weekIso] = {};
+  var newWeek = (numFromAnyWithheld(App.payWithheldByWeek[weekIso][staffId])||0) + delta;
+  if(newWeek <= 0.0001){
+    delete App.payWithheldByWeek[weekIso][staffId];
+    if(Object.keys(App.payWithheldByWeek[weekIso]).length===0) delete App.payWithheldByWeek[weekIso];
+  }else{
+    App.payWithheldByWeek[weekIso][staffId] = newWeek;
+  }
+
+  var newBal = (numFromAnyWithheld(App.payWithheld[staffId])||0) + delta;
+  if(newBal < 0) newBal = 0;
+  App.payWithheld[staffId] = newBal;
+
+  App.payWithheldLog.push({ts:new Date().toISOString(), type:'adjust', weekIso:weekIso, staffId:staffId, amount:delta, note:note||''});
+  saveLocal();
+
+  // Push withheld to Firebase (best-effort)
+  try{
+    var p1={}; p1[staffId]=App.payWithheld[staffId];
+    var p2={}; p2[weekIso]=App.payWithheldByWeek[weekIso] || null;
+    dbPatch('/payWithheld', p1).catch(function(){});
+    dbPatch('/payWithheldByWeek', p2).catch(function(){});
+    dbPatch('/payWithheldLog', App.payWithheldLog||[]).catch(function(){});
+  }catch(e){}
+}
+
+function removeWithheldLogEntry(idx){
+  if(!isAdmin()) return alert('Admin only.');
+  ensureWithheldStores();
+  idx = parseInt(idx, 10);
+  if(!isFinite(idx) || idx<0 || idx>= (App.payWithheldLog||[]).length) return;
+  var e = App.payWithheldLog[idx];
+  if(!e) return;
+  var type = String(e.type||'');
+  if(type !== 'withhold' && type !== 'adjust'){
+    return alert('Only withhold/adjust entries can be removed.');
+  }
+  var staffId = String(e.staffId||'');
+  var weekIso = String(e.weekIso||'');
+  var amt = parseFloat(e.amount||0);
+  if(!isFinite(amt)) amt = 0;
+
+  if(!confirm('Remove this entry?\n\n'+(staffId?('Staff: '+(App.staff[staffId]&&App.staff[staffId].name?App.staff[staffId].name:staffId)):'')+'\nAmount: '+(amt>=0?fmtMoney(amt):('-'+fmtMoney(Math.abs(amt))))+'\nNote: '+String(e.note||''))){
+    return;
+  }
+
+  // Reverse the effect of this entry
+  if(weekIso){
+    if(App.payWithheldByWeek[weekIso] && App.payWithheldByWeek[weekIso][staffId]!=null){
+      var curW = numFromAnyWithheld(App.payWithheldByWeek[weekIso][staffId])||0;
+      var nv = curW - amt;
+      if(nv <= 0.0001){
+        delete App.payWithheldByWeek[weekIso][staffId];
+        if(Object.keys(App.payWithheldByWeek[weekIso]).length===0) delete App.payWithheldByWeek[weekIso];
+      }else{
+        App.payWithheldByWeek[weekIso][staffId] = nv;
+      }
+    }
+  }
+
+  if(staffId){
+    var curB = getWithheldBalance(staffId);
+    var nb = curB - amt;
+    if(nb < 0) nb = 0;
+    App.payWithheld[staffId] = nb;
+  }
+
+  // Remove log entry
+  App.payWithheldLog.splice(idx, 1);
+  saveLocal();
+
+  // Push withheld to Firebase (best-effort)
+  try{
+    if(staffId){ var p1={}; p1[staffId]=App.payWithheld[staffId]; dbPatch('/payWithheld', p1).catch(function(){}); }
+    if(weekIso){ var p2={}; p2[weekIso]=App.payWithheldByWeek[weekIso] || null; dbPatch('/payWithheldByWeek', p2).catch(function(){}); }
+    dbPatch('/payWithheldLog', App.payWithheldLog||[]).catch(function(){});
+  }catch(e){}
+
+  renderPayroll();
+  renderMyShifts();
+  // Refresh modal list if open
+  try{ if(byId('withholdManageModal') && byId('withholdManageModal').style.display==='flex') openWithholdManageModal(_withholdManageCtx.staffId); }catch(e){}
+}
+
+function openWithholdManageModal(staffId){
+  if(!isAdmin()) return alert('Admin only.');
+  ensureWithheldStores();
+  staffId = String(staffId||'');
+  if(!staffId) return;
+  var weekIso = String(Planner.weekStartISO||'');
+  var modal = byId('withholdManageModal');
+  if(!modal) return;
+
+  _withholdManageCtx.staffId = staffId;
+  _withholdManageCtx.weekIso = weekIso;
+
+  var st = App.staff[staffId] || {};
+  var s = fromISO(weekIso);
+  var e = new Date(s); e.setDate(e.getDate()+6);
+
+  byId('withholdManageSubtitle').textContent = (st.name||('staff '+staffId))+' • Week of '+fmtDMY(s)+' – '+fmtDMY(e);
+
+  var wWeek = getWithheldForWeek(weekIso, staffId);
+  var wBal = getWithheldBalance(staffId);
+
+  byId('withholdManageSummary').innerHTML = ''
+    + '<div class="muted small">Withheld (shown week): <b>'+escapeHtml(fmtMoney(wWeek))+'</b></div>'
+    + '<div class="muted small">Withheld balance: <b>'+escapeHtml(fmtMoney(wBal))+'</b></div>';
+
+  // Build list
+  var rows = [];
+  for(var i=(App.payWithheldLog||[]).length-1; i>=0; i--){
+    var it = App.payWithheldLog[i];
+    if(!it) continue;
+    if(String(it.staffId||'') !== staffId) continue;
+    if(String(it.weekIso||'') !== weekIso) continue;
+    var tp = String(it.type||'');
+    if(tp !== 'withhold' && tp !== 'adjust') continue;
+    rows.push({idx:i, it:it});
+    if(rows.length>=30) break;
+  }
+
+  var html = '';
+  if(rows.length===0){
+    html = '<div class="muted small">No withhold entries recorded for this week.</div>';
+  }else{
+    html += '<div class="table-wrap" style="overflow-x:auto;">'
+      + '<table class="table" style="min-width:620px;">'
+      + '<thead><tr><th style="width:160px;">When</th><th>Type</th><th style="width:120px;">Amount</th><th>Note</th><th style="width:120px;">Action</th></tr></thead><tbody>';
+    rows.forEach(function(r){
+      var it=r.it;
+      var when='';
+      try{ when = new Date(it.ts||'').toLocaleString(); }catch(e){ when = String(it.ts||''); }
+      var amt = parseFloat(it.amount||0); if(!isFinite(amt)) amt=0;
+      var amtTxt = (amt<0?('-'+fmtMoney(Math.abs(amt))):fmtMoney(amt));
+      html += '<tr>'
+        + '<td>'+escapeHtml(when)+'</td>'
+        + '<td>'+escapeHtml(String(it.type||''))+'</td>'
+        + '<td style="white-space:nowrap;font-weight:800;">'+escapeHtml(amtTxt)+'</td>'
+        + '<td>'+escapeHtml(String(it.note||''))+'</td>'
+        + '<td><button type="button" class="btn-outline withhold-remove-entry-btn" data-idx="'+String(r.idx)+'">Remove</button></td>'
+        + '</tr>';
+    });
+    html += '</tbody></table></div>';
+  }
+  byId('withholdManageList').innerHTML = html;
+
+  modal.style.display = 'flex';
+}
+
+function closeWithholdManageModal(){
+  var modal = byId('withholdManageModal');
+  if(modal) modal.style.display = 'none';
+}
+
+// Manage modal button wiring
+(function(){
+  var closeBtn = byId('btnCloseWithholdManage');
+  if(closeBtn) closeBtn.onclick = function(){ closeWithholdManageModal(); };
+
+  var setBtn = byId('withholdManageSetWeek');
+  if(setBtn) setBtn.onclick = function(){
+    if(!_withholdManageCtx.staffId) return;
+    var sid = _withholdManageCtx.staffId;
+    var weekIso = String(Planner.weekStartISO||'');
+    var st = App.staff[sid]||{};
+    var cur = getWithheldForWeek(weekIso, sid);
+    var valStr = prompt('Set withheld amount for this week for '+(st.name||('staff '+sid))+' (replaces current week withheld):', String(cur||0));
+    if(valStr===null) return;
+    var val = parseFloat(valStr);
+    if(!isFinite(val) || val<0){ alert('Enter 0 or a positive amount.'); return; }
+    var delta = val - cur;
+    if(Math.abs(delta) < 0.0001) return;
+    var note = prompt('Note (optional):', 'Correction') || '';
+    if(delta>0) addWithheld(weekIso, sid, delta, note || 'Correction');
+    else adjustWithheldDelta(weekIso, sid, delta, note || 'Correction');
+    renderPayroll();
+    renderMyShifts();
+    openWithholdManageModal(sid);
+  };
+
+  var clrBtn = byId('withholdManageClearWeek');
+  if(clrBtn) clrBtn.onclick = function(){
+    if(!_withholdManageCtx.staffId) return;
+    var sid = _withholdManageCtx.staffId;
+    var weekIso = String(Planner.weekStartISO||'');
+    var cur = getWithheldForWeek(weekIso, sid);
+    if(cur<=0.0001) return alert('Nothing withheld for this week.');
+    if(!confirm('Clear withheld for this week only?\n\nThis keeps other weeks\' withheld amounts intact.')) return;
+    adjustWithheldDelta(weekIso, sid, -cur, 'Clear week withheld');
+    renderPayroll();
+    renderMyShifts();
+    openWithholdManageModal(sid);
+  };
+})();
+
+// Remove buttons inside manage modal list
+document.addEventListener('click', function(ev){
+  var t = ev.target;
+  if(!t || !t.closest) return;
+  var btn = t.closest('.withhold-remove-entry-btn');
+  if(btn){
+    var idx = btn.getAttribute('data-idx');
+    removeWithheldLogEntry(idx);
+  }
+});
+
+
+
 function renderPayroll(){
   var tb=byId('payrollTable').querySelector('tbody'); tb.innerHTML='';
 
@@ -6801,6 +7059,7 @@ function renderPayroll(){
         + withheldHtml
         + '<button type="button" class="btn-outline payroll-adjust-btn" data-staff="'+escapeHtml(String(id))+'" style="margin-top:4px;">Adjust</button>'
         + '<button type="button" class="btn-outline payroll-withhold-btn" data-staff="'+escapeHtml(String(id))+'" style="margin-top:4px;">Withhold</button>'
+        + '<button type=\"button\" class=\"btn-outline payroll-managewithheld-btn\" data-staff=\"'+escapeHtml(String(id))+'\" style=\"margin-top:4px;\">Fix / Undo withhold</button>'
         + (withheldBal>0.0001 ? ('<button type="button" class="btn-outline payroll-clearwithheld-btn" data-staff="'+escapeHtml(String(id))+'" style="margin-top:4px;">Mark withheld paid</button>') : '')
         + '<label class="muted small" style="display:flex;align-items:center;gap:4px;margin-top:4px;">'
           + '<input type="checkbox" class="payroll-paid-checkbox" data-staff="'+escapeHtml(String(id))+'"'+(isPaid?' checked':'')+'>'
@@ -7254,6 +7513,11 @@ document.addEventListener('click', function(ev){
   if(wbtn){
     var sid2 = wbtn.getAttribute('data-staff');
     openPayrollWithholdPrompt(sid2);
+  }
+  var mbtn = t.closest('.payroll-managewithheld-btn');
+  if(mbtn){
+    var sidM = mbtn.getAttribute('data-staff');
+    openWithholdManageModal(sidM);
   }
   var cbtn = t.closest('.payroll-clearwithheld-btn');
   if(cbtn){
