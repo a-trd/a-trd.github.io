@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1"/>
-  <title>M&C-ATRD-scheduler --=Aspire Group=-- (V3.4.8)</title>
+  <title>M&C-ATRD-scheduler --=Aspire Group=-- (V3.5.2)</title>
   <meta name="theme-color" content="#22c55e"/>
 
   <style>
@@ -1590,7 +1590,7 @@
       <div id="appLogoBox"></div>
       <div class="titlewrap">
         <div class="title" id="appTitle">M&C-ATRD-scheduler --=Aspire Group=--</div>
-        <div class="version-pill" id="appVersion">V3.4.8</div>
+        <div class="version-pill" id="appVersion">V3.5.2</div>
       </div>
     </div>
     <div class="tabs">
@@ -1599,7 +1599,7 @@
       <button id="tabMyRequests">My Requests</button>
       <button id="tabPlanner">Planner</button>
       <button id="tabPayroll">Payroll</button>
-      <button id="tabStats">Stats</button>
+      <button id="tabStats">Stats / Requests</button>
       <button id="tabPrint">Print View</button>
       <button id="tabAbsences">Absences</button>
       <button id="tabSettings">Settings</button>
@@ -1865,7 +1865,7 @@
 <section id="statsSection" class="section">
   <div class="card">
     <div class="stats-toolbar">
-      <h3 style="margin:0;">Stats</h3>
+      <h3 style="margin:0;">Stats / Requests</h3>
       <div class="pill" id="statsWeekLabel"></div>
       <button id="btnStatsPrevWeek" class="btn-outline">← Prev week</button>
       <button id="btnStatsNextWeek" class="btn-outline">Next week →</button>
@@ -1885,7 +1885,7 @@
     <div class="stats-grid">
       <div class="stats-card">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
-          <h3 style="margin:0;">Hours &amp; Shifts</h3>
+          <h3 id="statsLeftTitle" style="margin:0;">Hours &amp; Shifts</h3>
           <div class="muted-small" id="statsHoursNote"></div>
         </div>
         <div class="pie-wrap" style="margin-top:10px;">
@@ -1894,8 +1894,20 @@
         </div>
 
         <div style="height:12px"></div>
-        <h3 style="margin:0 0 8px;">Shifts per staff</h3>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+          <h3 style="margin:0 0 8px;" id="statsBarsTitle">Shifts per staff</h3>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+            <label class="muted" style="font-weight:700;">Show</label>
+            <select id="statsBarsMetric" style="min-width:210px;">
+              <option value="shifts">Shifts worked</option>
+              <option value="away">Away days requested</option>
+              <option value="shift">Shift edit requests</option>
+              <option value="all">All requests</option>
+            </select>
+          </div>
+        </div>
         <div class="barlist" id="statsShiftsBars"></div>
+        <div class="muted-small" id="statsBarsNote" style="margin-top:6px;"></div>
       </div>
 
       <div class="stats-card">
@@ -1913,34 +1925,44 @@
         <div id="statsRequests" class="muted"></div>
       </div>
     </div>
+  </div>
+
 
     <div style="height:12px"></div>
-    <div class="stats-card">
-      <h3 style="margin:0 0 10px;">Staff breakdown</h3>
-      <div class="table-wrapper">
-        <table class="stats-table" id="statsTable">
+    <div class="stats-card" id="adminRequestsLogCard">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+        <h3 style="margin:0;">Requests log</h3>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+          <label class="muted" style="font-weight:700;">Staff</label>
+          <select id="adminReqLogStaffFilter" style="min-width:160px;"></select>
+          <label class="muted" style="font-weight:700;">Status</label>
+          <select id="adminReqLogStatusFilter" style="min-width:150px;">
+            <option value="">All</option>
+            <option value="pending">Pending</option>
+            <option value="approved">Approved</option>
+            <option value="rejected">Rejected</option>
+          </select>
+          <button id="btnAdminReqLogRefresh" class="btn-outline">Refresh</button>
+        </div>
+      </div>
+      <div class="table-wrapper" style="margin-top:10px;">
+        <table class="stats-table" id="adminReqLogTable">
           <thead>
             <tr>
+              <th>Requested</th>
+              <th>Resolved</th>
+              <th>Day</th>
               <th>Staff</th>
-              <th>Shifts</th>
-              <th>Work (hrs)</th>
-              <th>Payable (hrs)</th>
-              <th>OT (hrs)</th>
-              <th>Away (hrs)</th>
-              <th>Pay</th>
-              <th>Paid</th>
+              <th>Status</th>
+              <th>Type</th>
+              <th>Details</th>
             </tr>
           </thead>
-          <tbody></tbody>
+          <tbody id="adminReqLogTbody"></tbody>
         </table>
       </div>
-      <div class="muted-small" style="margin-top:8px;">
-        Notes: Work/Payable/OT account for approved Away (full-day &amp; partial) by subtracting overlap from shifts.
-        Pay includes per‑staff rates, penalties, overtime rules, and (for single-week view) payroll adjustments.
-      </div>
+      <div id="adminReqLogEmpty" class="muted-small" style="margin-top:8px; display:none;"></div>
     </div>
-
-  </div>
 </section>
 
     <!-- Settings -->
@@ -2453,7 +2475,7 @@
     </button>
     <button id="bottomStats">
       <span>📊</span>
-      <span class="label">Stats</span>
+      <span class="label">Stats/Req</span>
     </button>
     <button id="bottomAbsences">
       <span>🌴</span>
@@ -2498,7 +2520,7 @@ var DAY = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 // ---------- App state ----------
 var App = {
   // IMPORTANT: Increment App.version whenever making functional changes to this file.
-  version: 'V3.4.8',
+  version: 'V3.5.2',
   settings: {
     dbUrl:'https://mnc-atrd-default-rtdb.asia-southeast1.firebasedatabase.app/', workspace:'mnc-atrd', authToken:'',
     theme:'light', themeName:'light-pastel-sky', recentColors:[], appTitle:'M&C-ATRD-scheduler --=Aspire Group=--', logoUrl:'',
@@ -2509,6 +2531,7 @@ var App = {
     dayShiftStart:'09:00', dayShiftEnd:'17:00',
     nightShiftStart:'17:00', nightShiftEnd:'23:00',
     staffSeeOthers: true,
+    statsBarsMetric: 'shifts',
     publishedWeeks: {}
   },
   staff:{}, availability:{}, weeks:{}, absenceRequests:{}, absenceHistory:{}, shiftChangeRequests:{}, shiftChangeHistory:{}, payrollAdjustments:{}, payrollPaid:{},
@@ -3184,7 +3207,7 @@ function init(){
     document.querySelectorAll('.section').forEach(s=>s.classList.remove('show'));
   var __nav = byId('bottomNav'); if(__nav) __nav.style.display='none';
   var __appTitleEl = byId('appTitle'); if(__appTitleEl) __appTitleEl.textContent = App.settings.appTitle || 'M&C-ATRD-scheduler --=Aspire Group=--';
-  var __verEl = byId('appVersion'); if(__verEl) __verEl.textContent = App.version || 'V3.4.8';
+  var __verEl = byId('appVersion'); if(__verEl) __verEl.textContent = App.version || 'V3.5.2';
   try{ document.title = (App.settings.appTitle||'App')+' ('+App.version+')'; }catch(e){}
   var __logoBoxInit = byId('appLogoBox'); if(__logoBoxInit){ var __lu=App.settings.logoUrl||''; if(__lu){ __logoBoxInit.style.display='inline-block'; __logoBoxInit.style.backgroundImage='url("'+resolveLogoUrl(__lu)+'")'; } else { __logoBoxInit.style.display='none'; __logoBoxInit.style.backgroundImage='none'; } }
   initColorRecents();
@@ -3196,6 +3219,14 @@ function init(){
     var _br=byId('btnStatsRefresh'); if(_br) _br.onclick=function(){ try{ renderStats(); }catch(e){} };
     var _bp=byId('btnStatsPrevWeek'); if(_bp) _bp.onclick=function(){ shiftWeek(-1); try{ renderStats(); }catch(e){} };
     var _bn=byId('btnStatsNextWeek'); if(_bn) _bn.onclick=function(){ shiftWeek(1); try{ renderStats(); }catch(e){} };
+    var _sm=byId('statsBarsMetric'); if(_sm){ try{ _sm.value = App.settings.statsBarsMetric || 'shifts'; }catch(e){} _sm.onchange=function(){ try{ App.settings.statsBarsMetric = _sm.value||'shifts'; saveLocal(); renderStats(); }catch(e){} }; }
+  }catch(e){}
+
+  // Requests log UI (admin only)
+  try{
+    var _r1=byId('adminReqLogStaffFilter'); if(_r1 && !_r1._bound){ _r1._bound=true; _r1.onchange=function(){ try{ renderAdminRequestsLog(); }catch(e){} }; }
+    var _r2=byId('adminReqLogStatusFilter'); if(_r2 && !_r2._bound){ _r2._bound=true; _r2.onchange=function(){ try{ renderAdminRequestsLog(); }catch(e){} }; }
+    var _r3=byId('btnAdminReqLogRefresh'); if(_r3 && !_r3._bound){ _r3._bound=true; _r3.onclick=function(){ try{ renderAdminRequestsLog(); }catch(e){} }; }
   }catch(e){}
 
   initPlanner();
@@ -3615,6 +3646,298 @@ function renderAdminHistory(){
   wrap.style.display = '';
 }
 
+
+
+
+// ---------- Admin requests log (all requests, filterable) ----------
+function populateAdminReqLogStaffFilter(){
+  var sel = byId('adminReqLogStaffFilter');
+  if(!sel) return;
+  var current = sel.value || '';
+  sel.innerHTML = '<option value="">All staff</option>';
+  try{
+    Object.keys(App.staff||{}).sort(function(a,b){
+      return (App.staff[a].name||'').localeCompare(App.staff[b].name||'');
+    }).forEach(function(id){
+      var s = App.staff[id] || {};
+      var o = document.createElement('option');
+      o.value = String(id);
+      o.textContent = s.name || id;
+      sel.appendChild(o);
+    });
+  }catch(e){}
+  if(current){
+    var opt = sel.querySelector('option[value="'+current+'"]');
+    if(opt) sel.value = current;
+  }
+}
+function _normReqStatus(v){
+  v = String(v||'').toLowerCase();
+  if(!v) return 'pending';
+  if(v==='approved' || v==='accept' || v==='accepted') return 'approved';
+  if(v==='rejected' || v==='reject' || v==='declined') return 'rejected';
+  if(v==='pending') return 'pending';
+  return v;
+}
+function _fmtTS(ts){
+  if(!ts) return '—';
+  try{
+    var d = new Date(ts);
+    if(!isNaN(d.getTime())) return d.toLocaleString();
+  }catch(e){}
+  return String(ts);
+}
+function _tintRowByStaffColor(tr, color){
+  try{
+    var c = (color||'').trim();
+    if(!c) return;
+    if(c[0] !== '#') return;
+    var bg=c.replace('#','');
+    if(bg.length===3) bg=bg[0]+bg[0]+bg[1]+bg[1]+bg[2]+bg[2];
+    if(bg.length!==6) return;
+    var r=parseInt(bg.substr(0,2),16), g=parseInt(bg.substr(2,2),16), b=parseInt(bg.substr(4,2),16);
+    if(!isFinite(r)||!isFinite(g)||!isFinite(b)) return;
+    tr.style.background='rgba('+r+','+g+','+b+',0.14)';
+  }catch(e){}
+}
+function _shiftReqDayLabel(req, isoFallback){
+  try{
+    var nd;
+    if(req && req.weekStartISO){
+      nd = fromISO(req.weekStartISO);
+      if(req.dayIndex!=null) nd.setDate(nd.getDate()+parseInt(req.dayIndex,10));
+    }else if(isoFallback){
+      nd = fromISO(isoFallback);
+    }
+    if(nd){
+      return nd.toLocaleDateString(undefined,{weekday:'short'}) + ' ' + fmtDMY(nd);
+    }
+  }catch(e){}
+  return String(isoFallback||'');
+}
+function renderAdminRequestsLog(){
+  var card = byId('adminRequestsLogCard');
+  var tbody = byId('adminReqLogTbody');
+  var empty = byId('adminReqLogEmpty');
+  if(!tbody || !empty) return;
+
+  if(!isAdmin()){
+    if(card) card.style.display='none';
+    return;
+  }
+  if(card) card.style.display='';
+
+  populateAdminReqLogStaffFilter();
+
+  var staffFilter = '';
+  var statusFilter = '';
+  try{ staffFilter = String((byId('adminReqLogStaffFilter')||{}).value||''); }catch(e){}
+  try{ statusFilter = _normReqStatus((byId('adminReqLogStatusFilter')||{}).value||''); }catch(e){}
+  if((byId('adminReqLogStatusFilter')||{}).value==='') statusFilter = '';
+
+  tbody.innerHTML='';
+  empty.style.display='none';
+  empty.textContent='';
+
+  var rows=[];
+  function addRow(r){ if(r) rows.push(r); }
+
+  // Pending absence requests
+  try{
+    var pend = App.absenceRequests || {};
+    Object.keys(pend).forEach(function(iso){
+      var day = pend[iso] || {};
+      Object.keys(day).forEach(function(sid){
+        var req = day[sid];
+        if(!req) return;
+        var st = _normReqStatus(req.status||'pending');
+        if(st !== 'pending') return;
+        var staff = (App.staff && App.staff[sid]) ? App.staff[sid] : {};
+        var name = staff.name || sid;
+
+        var type = (req.blocks && req.blocks.length) ? 'Away (partial)' : (req.unavailable ? 'Away (full day)' : 'Away');
+        var detailsParts=[];
+        if(req.blocks && req.blocks.length){
+          req.blocks.forEach(function(b){
+            if(!b) return;
+            var seg = (b.start||'') + '–' + (b.end||'');
+            if(b.reason) seg += ' — ' + b.reason;
+            detailsParts.push(seg);
+          });
+        }else if(req.unavailable){
+          var seg2 = 'Full-day';
+          if(req.reason) seg2 += ' — ' + req.reason;
+          detailsParts.push(seg2);
+        }else if(req.reason){
+          detailsParts.push(req.reason);
+        }
+
+        var requestedAt = req.createdAt || req.requestedAt || req.ts || req.submittedAt || iso;
+
+        addRow({
+          requestedAt: requestedAt,
+          resolvedAt: '',
+          dayLabel: formatIsoForHuman(iso),
+          staffId: String(sid),
+          staffName: name,
+          status: 'pending',
+          type: type,
+          details: detailsParts.join(' | '),
+          color: staff.color || ''
+        });
+      });
+    });
+  }catch(e){}
+
+  // Absence history (approved/rejected)
+  try{
+    var hist = App.absenceHistory || {};
+    Object.keys(hist).forEach(function(iso){
+      var day = hist[iso] || {};
+      Object.keys(day).forEach(function(sid){
+        var rec = day[sid];
+        if(!rec) return;
+        var st = _normReqStatus(rec.status||'approved');
+        var staff = (App.staff && App.staff[sid]) ? App.staff[sid] : {};
+        var name = staff.name || sid;
+
+        var type = (rec.blocks && rec.blocks.length) ? 'Away (partial)' : (rec.unavailable ? 'Away (full day)' : 'Away');
+        var detailsParts=[];
+        if(rec.blocks && rec.blocks.length){
+          rec.blocks.forEach(function(b){
+            if(!b) return;
+            var seg = (b.start||'') + '–' + (b.end||'');
+            if(b.reason) seg += ' — ' + b.reason;
+            detailsParts.push(seg);
+          });
+        }else if(rec.unavailable){
+          var seg2 = 'Full-day';
+          if(rec.reason) seg2 += ' — ' + rec.reason;
+          detailsParts.push(seg2);
+        }else if(rec.reason){
+          detailsParts.push(rec.reason);
+        }
+
+        addRow({
+          requestedAt: rec.createdAt || rec.requestedAt || rec.ts || '',
+          resolvedAt: rec.resolvedAt || rec.resolvedAt || '',
+          dayLabel: formatIsoForHuman(iso),
+          staffId: String(sid),
+          staffName: name,
+          status: st,
+          type: type,
+          details: detailsParts.join(' | '),
+          color: staff.color || ''
+        });
+      });
+    });
+  }catch(e){}
+
+  // Pending shift edit requests
+  try{
+    var sh = App.shiftChangeRequests || {};
+    Object.keys(sh).forEach(function(iso){
+      var bucket = sh[iso] || {};
+      Object.keys(bucket).forEach(function(key){
+        var req = bucket[key];
+        if(!req) return;
+        var st = _normReqStatus(req.status||'pending');
+        if(st !== 'pending') return;
+        var sid = (req.staffId!=null) ? String(req.staffId) : '';
+        var staff = (sid && App.staff && App.staff[sid]) ? App.staff[sid] : {};
+        var name = staff.name || sid || '(unknown)';
+
+        var detailsParts=[];
+        if(req.newStart) detailsParts.push('start → '+req.newStart);
+        if(req.newEnd) detailsParts.push('end → '+req.newEnd);
+        if(req.reason) detailsParts.push('Reason: '+req.reason);
+
+        var requestedAt = req.createdAt || req.requestedAt || req.ts || req.submittedAt || iso;
+
+        addRow({
+          requestedAt: requestedAt,
+          resolvedAt: '',
+          dayLabel: _shiftReqDayLabel(req, iso),
+          staffId: sid,
+          staffName: name,
+          status: 'pending',
+          type: 'Shift edit',
+          details: detailsParts.join(' | '),
+          color: staff.color || ''
+        });
+      });
+    });
+  }catch(e){}
+
+  // Shift edit history (approved/rejected)
+  try{
+    var shHist = App.shiftChangeHistory || {};
+    Object.keys(shHist).forEach(function(iso){
+      var bucket = shHist[iso] || {};
+      Object.keys(bucket).forEach(function(key){
+        var rec = bucket[key];
+        if(!rec) return;
+        var st = _normReqStatus(rec.status||'approved');
+        var sid = (rec.staffId!=null) ? String(rec.staffId) : '';
+        var staff = (sid && App.staff && App.staff[sid]) ? App.staff[sid] : {};
+        var name = staff.name || sid || '(unknown)';
+
+        var detailsParts=[];
+        if(rec.newStart) detailsParts.push('start → '+rec.newStart);
+        if(rec.newEnd) detailsParts.push('end → '+rec.newEnd);
+        if(rec.reason) detailsParts.push('Reason: '+rec.reason);
+
+        addRow({
+          requestedAt: rec.createdAt || rec.requestedAt || rec.ts || '',
+          resolvedAt: rec.resolvedAt || '',
+          dayLabel: _shiftReqDayLabel(rec, iso),
+          staffId: sid,
+          staffName: name,
+          status: st,
+          type: 'Shift edit',
+          details: detailsParts.join(' | '),
+          color: staff.color || ''
+        });
+      });
+    });
+  }catch(e){}
+
+  // Apply filters
+  var filtered = rows.filter(function(r){
+    if(staffFilter && String(r.staffId) !== String(staffFilter)) return false;
+    if(statusFilter && _normReqStatus(r.status) !== statusFilter) return false;
+    return true;
+  });
+
+  if(!filtered.length){
+    empty.textContent = 'No requests for current filters.';
+    empty.style.display = '';
+    return;
+  }
+
+  filtered.sort(function(a,b){
+    var ta = Date.parse(a.resolvedAt||'') || Date.parse(a.requestedAt||'') || 0;
+    var tb = Date.parse(b.resolvedAt||'') || Date.parse(b.requestedAt||'') || 0;
+    return tb - ta;
+  });
+
+  filtered.slice(0,2000).forEach(function(r){
+    var tr = document.createElement('tr');
+    _tintRowByStaffColor(tr, r.color);
+    tr.innerHTML =
+      '<td>'+escapeHtml(_fmtTS(r.requestedAt))+'</td>'+
+      '<td>'+escapeHtml(_fmtTS(r.resolvedAt))+'</td>'+
+      '<td>'+escapeHtml(String(r.dayLabel||''))+'</td>'+
+      '<td>'+escapeHtml(String(r.staffName||''))+'</td>'+
+      '<td>'+escapeHtml(String(r.status||''))+'</td>'+
+      '<td>'+escapeHtml(String(r.type||''))+'</td>'+
+      '<td>'+escapeHtml(String(r.details||''))+'</td>';
+    tbody.appendChild(tr);
+  });
+
+  empty.textContent = 'Showing '+Math.min(2000, filtered.length)+' of '+filtered.length+' matching requests.';
+  empty.style.display = '';
+}
 
 // ---------- Tabs & render ----------
 function initTabs(){
@@ -7302,6 +7625,119 @@ function _requestsSummary(rangeWeeks){
   }catch(e){}
 
   return {pendingAbs:pendingAbs, pendingShift:pendingShift, absApproved:absAp, absRejected:absRe, shApproved:shAp, shRejected:shRe};
+
+}
+
+function _requestCountsByStaff(rangeWeeks){
+  var rangeSet={};
+  (rangeWeeks||[]).forEach(function(w){ rangeSet[String(w)]=1; });
+  var counts={};
+
+  function initForStaff(id){
+    if(!id) return;
+    id=String(id);
+    if(counts[id]) return;
+    counts[id]={away:0,shift:0,total:0,awayPending:0,awayApproved:0,awayRejected:0,shiftPending:0,shiftApproved:0,shiftRejected:0};
+  }
+  try{
+    Object.keys(App.staff||{}).forEach(function(id){
+      var st=App.staff[id]||{};
+      if((st.role||'staff')==='admin') return;
+      if(st.hidden) return;
+      initForStaff(id);
+    });
+  }catch(e){}
+
+  function weekOf(isoLike){
+    try{
+      if(!isoLike) return '';
+      var d=fromISO(String(isoLike));
+      if(!d || isNaN(d.getTime())) return '';
+      return toISO(weekStart(d));
+    }catch(e){ return ''; }
+  }
+
+  function inc(id, field, status){
+    if(id==null || id==='') return;
+    id=String(id);
+    initForStaff(id);
+    var c=counts[id];
+    c[field]=(c[field]||0)+1;
+    c.total=(c.total||0)+1;
+    var st=_normReqStatus(status||'pending');
+    if(field==='away'){
+      if(st==='pending') c.awayPending=(c.awayPending||0)+1;
+      else if(st==='approved') c.awayApproved=(c.awayApproved||0)+1;
+      else if(st==='rejected') c.awayRejected=(c.awayRejected||0)+1;
+    }
+    if(field==='shift'){
+      if(st==='pending') c.shiftPending=(c.shiftPending||0)+1;
+      else if(st==='approved') c.shiftApproved=(c.shiftApproved||0)+1;
+      else if(st==='rejected') c.shiftRejected=(c.shiftRejected||0)+1;
+    }
+  }
+
+  // Away / partial away (pending)
+  try{
+    var ar=App.absenceRequests||{};
+    Object.keys(ar).forEach(function(iso){
+      var w=weekOf(iso);
+      if(!rangeSet[w]) return;
+      var bucket=ar[iso]||{};
+      Object.keys(bucket).forEach(function(sid){
+        var req=bucket[sid];
+        if(!req) return;
+        inc(sid,'away',req.status||'pending');
+      });
+    });
+  }catch(e){}
+
+  // Away / partial away (resolved)
+  try{
+    var ah=App.absenceHistory||{};
+    Object.keys(ah).forEach(function(iso){
+      var w=weekOf(iso);
+      if(!rangeSet[w]) return;
+      var bucket=ah[iso]||{};
+      Object.keys(bucket).forEach(function(sid){
+        var rec=bucket[sid];
+        if(!rec) return;
+        inc(sid,'away',rec.status||'approved');
+      });
+    });
+  }catch(e){}
+
+  // Shift edits (pending)
+  try{
+    var sr=App.shiftChangeRequests||{};
+    Object.keys(sr).forEach(function(k){
+      var bucket=sr[k]||{};
+      Object.keys(bucket).forEach(function(key){
+        var req=bucket[key];
+        if(!req) return;
+        var w=weekOf(req.weekStartISO||k);
+        if(!rangeSet[w]) return;
+        inc(req.staffId,'shift',req.status||'pending');
+      });
+    });
+  }catch(e){}
+
+  // Shift edits (resolved)
+  try{
+    var sh=App.shiftChangeHistory||{};
+    Object.keys(sh).forEach(function(k){
+      var bucket=sh[k]||{};
+      Object.keys(bucket).forEach(function(key){
+        var rec=bucket[key];
+        if(!rec) return;
+        var w=weekOf(rec.weekStartISO||k);
+        if(!rangeSet[w]) return;
+        inc(rec.staffId,'shift',rec.status||'approved');
+      });
+    });
+  }catch(e){}
+
+  return counts;
 }
 
 function renderStats(){
@@ -7383,25 +7819,110 @@ function renderStats(){
     addKpi('Total shifts', String(totalShifts), (avgShift?('Avg '+avgShift.toFixed(2)+' hrs/shift'):' '));
     addKpi('Estimated payroll', fmtMoney(totalPay), (topPay?('Top: '+(topPay.name)+' '+fmtMoney(topPay.pay)):' '));
     addKpi('Away (hrs overlap)', totalAway.toFixed(2), (topHours?('Top hours: '+topHours.name+' '+topHours.hours.toFixed(2)+'h'):' '));
+    // Request-frequency KPIs (range-aware)
+    try{
+      var rc=_requestCountsByStaff(weeks);
+      var totalReq=0, topId='', topTotal=-1;
+      Object.keys(rc||{}).forEach(function(id){
+        var t=(rc[id].total||0);
+        totalReq += t;
+        if(t>topTotal){ topTotal=t; topId=id; }
+      });
+      var topName = '';
+      if(topId){ topName = ((App.staff && App.staff[topId]) ? (App.staff[topId].name||topId) : topId); }
+      addKpi('Total requests', String(totalReq), (weeks.length>1?('Across '+weeks.length+' weeks'):'This week'));
+      if(topId && topTotal>0){
+        var c=rc[topId]||{};
+        addKpi('Top requester', topName+' ('+String(topTotal)+')', 'Away '+(c.away||0)+' · Shift edits '+(c.shift||0));
+      }else{
+        addKpi('Top requester', '—', 'No requests in range');
+      }
+    }catch(e){}
   }
 
-  // Pies + legends
-  var hoursSeries = staffSeries.map(function(s){ return {name:s.name, value:s.hours||0, color:s.color}; });
+  // Metric (drives request/frequency views)
+  var metric = 'shifts';
+  var metricSel = byId('statsBarsMetric');
+  if(metricSel){
+    metric = metricSel.value || (App.settings.statsBarsMetric||'shifts') || 'shifts';
+    try{ if(!metricSel.value) metricSel.value = metric; }catch(e){}
+  }else{
+    metric = (App.settings.statsBarsMetric||'shifts') || 'shifts';
+  }
+
+  var reqCounts = _requestCountsByStaff(weeks);
+
+  // Left pie (hours OR requests, depending on selected metric)
+  var leftTitleEl = byId('statsLeftTitle');
+  var leftSeries = [];
+  var leftFmt = null;
+
+  if(metric==='shifts'){
+    if(leftTitleEl) leftTitleEl.textContent = 'Hours & Shifts';
+    leftSeries = staffSeries.map(function(s){ return {name:s.name, value:s.hours||0, color:s.color}; });
+    leftFmt = function(v){ return (v||0).toFixed(2)+'h'; };
+  }else{
+    if(leftTitleEl){
+      if(metric==='away') leftTitleEl.textContent = 'Away requests';
+      else if(metric==='shift') leftTitleEl.textContent = 'Shift edit requests';
+      else leftTitleEl.textContent = 'All requests';
+    }
+    leftSeries = staffSeries.map(function(s){
+      var c = reqCounts[s.id] || {};
+      var v = 0;
+      if(metric==='away') v = (c.away||0);
+      else if(metric==='shift') v = (c.shift||0);
+      else v = (c.total||0);
+      return {name:s.name, value:v, color:s.color};
+    });
+    leftFmt = function(v){ return String(Math.round(v||0)); };
+  }
+
+  _setPie(byId('statsPieHours'), leftSeries);
+  _renderLegend(byId('statsHoursLegend'), leftSeries, leftFmt);
+
+  // Pay pie always shows payroll distribution
   var paySeries = staffSeries.map(function(s){ return {name:s.name, value:s.pay||0, color:s.color}; });
-  _setPie(byId('statsPieHours'), hoursSeries);
   _setPie(byId('statsPiePay'), paySeries);
-  _renderLegend(byId('statsHoursLegend'), hoursSeries, function(v){ return (v||0).toFixed(2)+'h'; });
   _renderLegend(byId('statsPayLegend'), paySeries, function(v){ return fmtMoney(v||0); });
 
   // Notes
   var hn=byId('statsHoursNote');
-  if(hn) hn.textContent = (weeks.length>1 ? ('Aggregate over '+weeks.length+' weeks') : 'Current week');
+  if(hn){
+    if(metric==='shifts') hn.textContent = (weeks.length>1 ? ('Aggregate over '+weeks.length+' weeks') : 'Current week');
+    else hn.textContent = (weeks.length>1 ? ('Requests across '+weeks.length+' weeks') : 'Requests (current week)');
+  }
   var pn=byId('statsPayNote');
   if(pn) pn.textContent = (range==='week' ? 'Includes payroll adjustments' : 'Excludes adjustments');
 
   // Bars
-  var shiftsSeries = staffSeries.map(function(s){ return {name:s.name, value:s.shifts||0, color:s.color}; });
-  _renderBars(byId('statsShiftsBars'), shiftsSeries);
+
+  var barsTitle = byId('statsBarsTitle');
+  var barsNote = byId('statsBarsNote');
+
+  var barSeries = staffSeries.map(function(s){
+    var v=0;
+    if(metric==='shifts'){ v = s.shifts||0; }
+    else if(metric==='away'){ v = (reqCounts[s.id] ? (reqCounts[s.id].away||0) : 0); }
+    else if(metric==='shift'){ v = (reqCounts[s.id] ? (reqCounts[s.id].shift||0) : 0); }
+    else { v = (reqCounts[s.id] ? (reqCounts[s.id].total||0) : 0); }
+    return {name:s.name, value:v, color:s.color};
+  });
+
+  if(barsTitle){
+    if(metric==='shifts') barsTitle.textContent = 'Shifts per staff';
+    else if(metric==='away') barsTitle.textContent = 'Away requested (days)';
+    else if(metric==='shift') barsTitle.textContent = 'Shift edit requests';
+    else barsTitle.textContent = 'All requests';
+  }
+  if(barsNote){
+    if(metric==='shifts') barsNote.textContent = 'Counts days where a staff member worked at least one scheduled shift (after approved Away overlap).';
+    else if(metric==='away') barsNote.textContent = 'Counts per-day Away requests (full-day + partial), across pending + approved + rejected in the selected range.';
+    else if(metric==='shift') barsNote.textContent = 'Counts shift-edit requests across pending + approved + rejected in the selected range.';
+    else barsNote.textContent = 'Away days requested + shift-edit requests (pending + resolved) in the selected range.';
+  }
+
+  _renderBars(byId('statsShiftsBars'), barSeries);
 
   // Requests summary
   var rq=_requestsSummary(weeks);
@@ -7412,37 +7933,8 @@ function renderStats(){
     parts.push('<div class="muted-small"><b>In range</b>: Away approved '+rq.absApproved+' · rejected '+rq.absRejected+' · Shift edits approved '+rq.shApproved+' · rejected '+rq.shRejected+'</div>');
     rqEl.innerHTML = parts.join('');
   }
+  try{ renderAdminRequestsLog(); }catch(e){}
 
-  // Table
-  var tb=byId('statsTable');
-  if(tb){
-    var tbody=tb.querySelector('tbody');
-    if(tbody){
-      tbody.innerHTML='';
-      staffSeries.slice().sort(function(a,b){ return (b.pay||0)-(a.pay||0); }).forEach(function(s){
-        var rec=agg[s.id]||{};
-        var tr=document.createElement('tr');
-        // tint row using staff color
-        try{
-          var bg=(s.color||'#1f2937').replace('#','');
-          if(bg.length===3) bg=bg[0]+bg[0]+bg[1]+bg[1]+bg[2]+bg[2];
-          var r=parseInt(bg.substr(0,2),16), g=parseInt(bg.substr(2,2),16), b=parseInt(bg.substr(4,2),16);
-          tr.style.background='rgba('+r+','+g+','+b+',0.16)';
-        }catch(e){}
-
-        tr.innerHTML =
-          '<td>'+escapeHtml(s.name)+'</td>'+
-          '<td>'+String(rec.shiftsWorked||0)+'</td>'+
-          '<td>'+ (rec.work||0).toFixed(2) +'</td>'+
-          '<td>'+ (rec.payable||0).toFixed(2) +'</td>'+
-          '<td>'+ (rec.ot||0).toFixed(2) +'</td>'+
-          '<td>'+ (rec.away||0).toFixed(2) +'</td>'+
-          '<td>'+ fmtMoney(rec.pay||0) +'</td>'+
-          '<td>'+ (range==='week' ? ((rec.paid)?'Yes':'No') : '—') +'</td>';
-        tbody.appendChild(tr);
-      });
-    }
-  }
 }
 function exportPayrollCSV(){
   var rows = [['Staff','Rate','Work (hrs)','Break (hrs)','Payable (hrs)','OT (hrs)','Total Pay']];
@@ -7688,6 +8180,10 @@ async function pullData(silent){
       try{
         var absSec = byId('absencesSection');
         if(absSec && absSec.classList && absSec.classList.contains('show')) renderAbsenceCalendar();
+      }catch(e){}
+      try{
+        var statsSec = byId('statsSection');
+        if(statsSec && statsSec.classList && statsSec.classList.contains('show')){ try{ renderStats(); }catch(e){} }
       }catch(e){}
       try{
         var stSec = byId('settingsSection');
