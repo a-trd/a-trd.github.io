@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1"/>
-  <title>M&C-ATRD-scheduler --=Aspire Group=-- (V3.5.2)</title>
+  <title>M&C-ATRD-scheduler --=Aspire Group=-- (V3.6.3)</title>
   <meta name="theme-color" content="#22c55e"/>
 
   <style>
@@ -1255,6 +1255,12 @@
       white-space: nowrap;
     }
 
+    .bottom-nav button.nav-mini {
+      flex: 0 0 72px;
+      max-width: 78px;
+    }
+
+
     .bottom-nav button span.label {
       font-size: 10px;
       letter-spacing: .12em;
@@ -1590,7 +1596,7 @@
       <div id="appLogoBox"></div>
       <div class="titlewrap">
         <div class="title" id="appTitle">M&C-ATRD-scheduler --=Aspire Group=--</div>
-        <div class="version-pill" id="appVersion">V3.5.2</div>
+        <div class="version-pill" id="appVersion">V3.6.3</div>
       </div>
     </div>
     <div class="tabs">
@@ -1603,6 +1609,8 @@
       <button id="tabPrint">Print View</button>
       <button id="tabAbsences">Absences</button>
       <button id="tabSettings">Settings</button>
+      <button id="btnUndoTop" class="btn-outline">↶ Undo</button>
+      <button id="btnRedoTop" class="btn-outline">↷ Redo</button>
       <button id="btnPullTop" class="btn-good">⬇ Pull</button>
       <button id="btnPushTop" class="btn-primary">⬆ Push</button>
       <button id="btnLogout" class="btn-outline">Logout</button>
@@ -2485,6 +2493,15 @@
       <span>⚙️</span>
       <span class="label">Settings</span>
     </button>
+
+    <button id="bottomUndo" class="nav-mini">
+      <span>↶</span>
+      <span class="label">Undo</span>
+    </button>
+    <button id="bottomRedo" class="nav-mini">
+      <span>↷</span>
+      <span class="label">Redo</span>
+    </button>
   
     <button id="bottomPull">
       <span>⬇</span>
@@ -2520,7 +2537,7 @@ var DAY = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 // ---------- App state ----------
 var App = {
   // IMPORTANT: Increment App.version whenever making functional changes to this file.
-  version: 'V3.5.2',
+  version: 'V3.6.3',
   settings: {
     dbUrl:'https://mnc-atrd-default-rtdb.asia-southeast1.firebasedatabase.app/', workspace:'mnc-atrd', authToken:'',
     theme:'light', themeName:'light-pastel-sky', recentColors:[], appTitle:'M&C-ATRD-scheduler --=Aspire Group=--', logoUrl:'',
@@ -3091,8 +3108,244 @@ function notifyMyRequestStatus(){
 }
 
 
+
+// ---------- Global Undo / Redo ----------
+var History = {
+  max: 80,
+  undo: [],
+  redo: [],
+  current: null,
+  applying: false,
+  enabled: true
+};
+
+function historySnapshotObj(){
+  return {
+    settings: App.settings,
+    staff: App.staff,
+    weeks: App.weeks,
+    availability: App.availability,
+    recurringUnavailability: App.recurringUnavailability,
+    absenceRequests: App.absenceRequests,
+    absenceHistory: App.absenceHistory,
+    shiftChangeRequests: App.shiftChangeRequests,
+    shiftChangeHistory: App.shiftChangeHistory,
+    payrollAdjustments: App.payrollAdjustments,
+    payrollPaid: App.payrollPaid,
+    payWithheld: App.payWithheld,
+    payWithheldByWeek: App.payWithheldByWeek,
+    payWithheldLog: App.payWithheldLog,
+    version: App.version
+  };
+}
+
+function historySnapshotString(){
+  try{ return JSON.stringify(historySnapshotObj()); }catch(e){ return null; }
+}
+
+function historyUpdateControls(){
+  try{
+    var canU = History.undo && History.undo.length > 0;
+    var canR = History.redo && History.redo.length > 0;
+    var u1 = byId('btnUndoTop'); if(u1) u1.disabled = !canU;
+    var r1 = byId('btnRedoTop'); if(r1) r1.disabled = !canR;
+    var u2 = byId('bottomUndo'); if(u2) u2.disabled = !canU;
+    var r2 = byId('bottomRedo'); if(r2) r2.disabled = !canR;
+  }catch(e){}
+}
+
+function historyResetToCurrent(){
+  try{
+    History.undo = [];
+    History.redo = [];
+    History.current = historySnapshotString();
+    historyUpdateControls();
+  }catch(e){}
+}
+
+function historyCapture(label){
+  try{
+    if(!History.enabled || History.applying) return;
+    var nowStr = historySnapshotString();
+    if(!nowStr) return;
+    if(History.current === null){
+      History.current = nowStr;
+      historyUpdateControls();
+      return;
+    }
+    if(nowStr === History.current) return;
+    History.undo.push({s: History.current, label: label || '', ts: Date.now()});
+    if(History.undo.length > History.max) History.undo.shift();
+    History.current = nowStr;
+    History.redo = [];
+    historyUpdateControls();
+  }catch(e){}
+}
+
+function syncSettingsUIFromApp(){
+  try{
+    var __title=document.getElementById('appTitle');
+    if(__title) __title.textContent = App.settings.appTitle || 'M&C-ATRD-scheduler --=Aspire Group=--';
+    var __verEl = byId('appVersion'); if(__verEl) __verEl.textContent = App.version || '';
+    try{ document.title = (App.settings.appTitle||'App')+' ('+App.version+')'; }catch(e){}
+
+    var __logo=document.getElementById('appLogoBox');
+    if(__logo){
+      var __lu2=App.settings.logoUrl||'';
+      if(__lu2){
+        __logo.style.display='inline-block';
+        __logo.style.backgroundImage='url("'+resolveLogoUrl(__lu2)+'")';
+      }else{
+        __logo.style.display='none';
+        __logo.style.backgroundImage='none';
+      }
+    }
+
+    var __db=document.getElementById('dbUrlInput');
+    if(__db) __db.value = App.settings.dbUrl || '';
+    var __ws=document.getElementById('workspaceInput');
+    if(__ws) __ws.value = App.settings.workspace || '';
+    var __auth=document.getElementById('authTokenInput');
+    if(__auth) __auth.value = App.settings.authToken || '';
+    var __wsLogin=document.getElementById('wsIdInput');
+    if(__wsLogin) __wsLogin.value = App.settings.workspace || '';
+    var __titleInput=document.getElementById('appTitleInput');
+    if(__titleInput) __titleInput.value = App.settings.appTitle || 'M&C-ATRD-scheduler --=Aspire Group=--';
+    var __logoInput=document.getElementById('logoUrlInput');
+    if(__logoInput) __logoInput.value = App.settings.logoUrl || '';
+    var __ap=document.getElementById('autoPullMinsInput');
+    if(__ap) __ap.value = App.settings.autoPullMins||0;
+    var __aq=document.getElementById('autoPushMinsInput');
+    if(__aq) __aq.value = App.settings.autoPushMins||0;
+    var __oh=document.getElementById('optStartHour');
+    if(__oh) __oh.value = App.settings.gridStartHour;
+    var __hrs=document.getElementById('optHours');
+    if(__hrs) __hrs.value = App.settings.gridHours;
+    var __slot=document.getElementById('optSlotMins');
+    if(__slot) __slot.value = String(App.settings.slotMins);
+    var __tg=document.getElementById('optTargetHeadcount');
+    if(__tg) __tg.value = App.settings.targetHeadcount||0;
+    var __see=document.getElementById('optStaffSeeOthers');
+    if(__see) __see.value = String(!!App.settings.staffSeeOthers);
+
+    var __ds=document.getElementById('optDayShiftStart'); if(__ds) __ds.value = to24hhmm(App.settings.dayShiftStart, '09:00');
+    var __de=document.getElementById('optDayShiftEnd'); if(__de) __de.value = to24hhmm(App.settings.dayShiftEnd, '17:00');
+    var __ns=document.getElementById('optNightShiftStart'); if(__ns) __ns.value = to24hhmm(App.settings.nightShiftStart, '17:00');
+    var __ne=document.getElementById('optNightShiftEnd'); if(__ne) __ne.value = to24hhmm(App.settings.nightShiftEnd, '23:00');
+
+    if(typeof applyTheme==='function' && App.settings.themeName){
+      applyTheme(App.settings.themeName);
+      if(typeof renderThemePicker==='function') renderThemePicker();
+    }
+  }catch(e){}
+}
+
+function historyApplySnapshotString(s){
+  if(!s) return;
+  var d=null;
+  try{ d = JSON.parse(s) || {}; }catch(e){ return; }
+
+  History.applying = true;
+  try{
+    if(d.settings){ for(var k in d.settings){ App.settings[k]=d.settings[k]; } }
+    if(d.staff) App.staff = d.staff;
+    if(d.weeks) App.weeks = d.weeks;
+    if(d.availability) App.availability = d.availability;
+    if(d.recurringUnavailability) App.recurringUnavailability = d.recurringUnavailability;
+    if(d.absenceRequests) App.absenceRequests = d.absenceRequests;
+    if(d.absenceHistory) App.absenceHistory = d.absenceHistory;
+    if(d.shiftChangeRequests) App.shiftChangeRequests = d.shiftChangeRequests;
+    if(d.shiftChangeHistory) App.shiftChangeHistory = d.shiftChangeHistory;
+    if(d.payrollAdjustments) App.payrollAdjustments = d.payrollAdjustments;
+    if(d.payrollPaid) App.payrollPaid = d.payrollPaid;
+    if(d.payWithheld) App.payWithheld = d.payWithheld;
+    if(d.payWithheldByWeek) App.payWithheldByWeek = d.payWithheldByWeek;
+    if(d.payWithheldLog) App.payWithheldLog = d.payWithheldLog;
+    if(d.version) App.version = d.version;
+
+    // If current user no longer exists, force logout to avoid broken state
+    try{
+      if(App.currentUser && (!App.staff || !App.staff[String(App.currentUser.id)])){
+        App.currentUser = null;
+      }
+    }catch(e){}
+
+    // Persist without recording a new history entry
+    saveLocal(true);
+
+    // Refresh UI
+    syncSettingsUIFromApp();
+
+    if(!App.currentUser){
+      try{ populateLoginSelects(); populateExistingStaff(); }catch(e){}
+      try{ showLogin(); }catch(e){}
+    }else{
+      try{ renderAfterLogin(); }catch(e){}
+      var tab = (App.ui && App.ui.activeTab) ? App.ui.activeTab : 'My';
+      try{ showTab(tab); }catch(e){ try{ showTab('My'); }catch(e2){} }
+      try{ if(typeof updateRequestsBadge==='function') updateRequestsBadge(); }catch(e){}
+    }
+  }finally{
+    History.applying = false;
+  }
+}
+
+function historyUndo(){
+  try{
+    if(!History.undo || History.undo.length===0) return;
+    var prev = History.undo.pop();
+    if(!prev || !prev.s) return;
+    var cur = History.current;
+    if(cur) History.redo.push({s: cur, label:'', ts: Date.now()});
+    History.current = prev.s;
+    historyApplySnapshotString(prev.s);
+    historyUpdateControls();
+    showToast('Undo', prev.label ? prev.label : 'Reverted last change', 'good', 2000);
+  }catch(e){}
+}
+
+function historyRedo(){
+  try{
+    if(!History.redo || History.redo.length===0) return;
+    var nxt = History.redo.pop();
+    if(!nxt || !nxt.s) return;
+    var cur = History.current;
+    if(cur) History.undo.push({s: cur, label:'', ts: Date.now()});
+    if(History.undo.length > History.max) History.undo.shift();
+    History.current = nxt.s;
+    historyApplySnapshotString(nxt.s);
+    historyUpdateControls();
+    showToast('Redo', 'Re-applied change', 'good', 2000);
+  }catch(e){}
+}
+
+function bindUndoRedoShortcuts(){
+  document.addEventListener('keydown', function(e){
+    try{
+      var tag = (e.target && e.target.tagName) ? e.target.tagName.toLowerCase() : '';
+      var isTyping = (tag==='input' || tag==='textarea' || tag==='select' || (e.target && e.target.isContentEditable));
+      if(isTyping) return;
+      if(!(e.ctrlKey || e.metaKey)) return;
+      var key = String(e.key||'').toLowerCase();
+      if(key==='z' && !e.shiftKey){
+        e.preventDefault();
+        historyUndo();
+      }else if((key==='y') || (key==='z' && e.shiftKey)){
+        e.preventDefault();
+        historyRedo();
+      }
+    }catch(err){}
+  }, {passive:false});
+}
+
 // ---------- Local Storage ----------
-function saveLocal(){ try{ localStorage.setItem(App.cacheKey, JSON.stringify({settings:App.settings,staff:App.staff,weeks:App.weeks,availability:App.availability,recurringUnavailability:App.recurringUnavailability,absenceRequests:App.absenceRequests,absenceHistory:App.absenceHistory,shiftChangeRequests:App.shiftChangeRequests,shiftChangeHistory:App.shiftChangeHistory,payrollAdjustments:App.payrollAdjustments,payrollPaid:App.payrollPaid,payWithheld:App.payWithheld,payWithheldByWeek:App.payWithheldByWeek,payWithheldLog:App.payWithheldLog,version:App.version})); }catch(e){} }
+function saveLocal(skipHistory){
+  try{
+    localStorage.setItem(App.cacheKey, JSON.stringify({settings:App.settings,staff:App.staff,weeks:App.weeks,availability:App.availability,recurringUnavailability:App.recurringUnavailability,absenceRequests:App.absenceRequests,absenceHistory:App.absenceHistory,shiftChangeRequests:App.shiftChangeRequests,shiftChangeHistory:App.shiftChangeHistory,payrollAdjustments:App.payrollAdjustments,payrollPaid:App.payrollPaid,payWithheld:App.payWithheld,payWithheldByWeek:App.payWithheldByWeek,payWithheldLog:App.payWithheldLog,version:App.version}));
+  }catch(e){}
+  try{ if(!skipHistory) historyCapture(); }catch(e){}
+}
+
 function loadLocal(){ try{ var raw=localStorage.getItem(App.cacheKey); if(!raw) return; var d=JSON.parse(raw)||{}; if(d.settings){ for(var k in d.settings){ App.settings[k]=d.settings[k]; } } App.staff=d.staff||App.staff; App.weeks=d.weeks||App.weeks; App.availability=d.availability||App.availability; App.recurringUnavailability=d.recurringUnavailability||App.recurringUnavailability||{}; App.absenceRequests=d.absenceRequests||App.absenceRequests||{}; App.absenceHistory=d.absenceHistory||App.absenceHistory||{}; App.shiftChangeRequests=d.shiftChangeRequests||App.shiftChangeRequests||{}; App.shiftChangeHistory=d.shiftChangeHistory||App.shiftChangeHistory||{}; App.payrollAdjustments=d.payrollAdjustments||App.payrollAdjustments||{}; App.payrollPaid=d.payrollPaid||App.payrollPaid||{}; App.payWithheld=d.payWithheld||App.payWithheld||{}; App.payWithheldByWeek=d.payWithheldByWeek||App.payWithheldByWeek||{}; App.payWithheldLog=d.payWithheldLog||App.payWithheldLog||[]; App.absenceHistory=d.absenceHistory||App.absenceHistory; App.shiftChangeRequests=d.shiftChangeRequests||App.shiftChangeRequests; App.shiftChangeHistory=d.shiftChangeHistory||App.shiftChangeHistory||{}; App.payrollAdjustments=d.payrollAdjustments||App.payrollAdjustments||{}; App.payrollPaid=d.payrollPaid||App.payrollPaid||{}; App.payWithheld=d.payWithheld||App.payWithheld||{}; App.payWithheldByWeek=d.payWithheldByWeek||App.payWithheldByWeek||{}; App.payWithheldLog=d.payWithheldLog||App.payWithheldLog||[]; }catch(e){} }
 
 // Shared helper for resetting local cache
@@ -3203,15 +3456,17 @@ function startAutoSyncTimers(){
 // ---------- Init ----------
 function init(){
   loadLocal();
+  try{ historyResetToCurrent(); }catch(e){}
     // Safety: ensure only login is shown until user enters app
     document.querySelectorAll('.section').forEach(s=>s.classList.remove('show'));
   var __nav = byId('bottomNav'); if(__nav) __nav.style.display='none';
   var __appTitleEl = byId('appTitle'); if(__appTitleEl) __appTitleEl.textContent = App.settings.appTitle || 'M&C-ATRD-scheduler --=Aspire Group=--';
-  var __verEl = byId('appVersion'); if(__verEl) __verEl.textContent = App.version || 'V3.5.2';
+  var __verEl = byId('appVersion'); if(__verEl) __verEl.textContent = App.version || 'V3.6.3';
   try{ document.title = (App.settings.appTitle||'App')+' ('+App.version+')'; }catch(e){}
   var __logoBoxInit = byId('appLogoBox'); if(__logoBoxInit){ var __lu=App.settings.logoUrl||''; if(__lu){ __logoBoxInit.style.display='inline-block'; __logoBoxInit.style.backgroundImage='url("'+resolveLogoUrl(__lu)+'")'; } else { __logoBoxInit.style.display='none'; __logoBoxInit.style.backgroundImage='none'; } }
   initColorRecents();
   initTabs();
+  try{ bindUndoRedoShortcuts(); }catch(e){}
 
   // Stats UI (admin only)
   try{
@@ -3272,6 +3527,7 @@ function init(){
       saveLocal(); populateLoginSelects(); populateExistingStaff();
     } else { populateExistingStaff(); populateLoginSelects(); }
     setTimeout(function(){ pullData(false).then(function(){ populateLoginSelects(); populateExistingStaff(); }); }, 2000);
+    try{ historyResetToCurrent(); }catch(e){}
   });
 
   byId('btnSaveSettings').onclick = function(){
@@ -3343,10 +3599,14 @@ function init(){
   var pullPlanner=byId('btnPullPlanner'), pushPlanner=byId('btnPushPlanner');
   if(pullPlanner) pullPlanner.onclick=function(){ byId('btnPull').onclick(); };
   if(pushPlanner) pushPlanner.onclick=function(){ byId('btnPush').onclick(); };
+  var undoTop=byId('btnUndoTop'); if(undoTop) undoTop.onclick=function(){ historyUndo(); };
+  var redoTop=byId('btnRedoTop'); if(redoTop) redoTop.onclick=function(){ historyRedo(); };
   var bottomPull=byId('bottomPull');
   if(bottomPull) bottomPull.onclick=function(){ var btn=byId('btnPull'); if(btn && btn.onclick) btn.onclick(); };
   var bottomPush=byId('bottomPush');
   if(bottomPush) bottomPush.onclick=function(){ var btn=byId('btnPush'); if(btn && btn.onclick) btn.onclick(); };
+  var bottomUndo=byId('bottomUndo'); if(bottomUndo) bottomUndo.onclick=function(){ historyUndo(); };
+  var bottomRedo=byId('bottomRedo'); if(bottomRedo) bottomRedo.onclick=function(){ historyRedo(); };
   var bottomFullscreen=byId('bottomFullscreen');
   if(bottomFullscreen) bottomFullscreen.onclick=function(){ toggleAppFullscreen(); };
   syncFullscreenButton();
@@ -3965,6 +4225,7 @@ function initTabs(){
   if(bSettings) bSettings.onclick=function(){ showTab('Settings'); };
 }
 function showTab(name){
+  try{ App.ui = App.ui || {}; App.ui.activeTab = name; }catch(e){}
   var role = App.currentUser ? App.currentUser.role : 'staff';
   if(name==='Settings' && role!=='admin') return;
   if(name==='Payroll' && role!=='admin') return;
@@ -4307,8 +4568,7 @@ async function cancelAbsenceRequest(iso, staffId, blockIndex){
   }
 
   saveLocal();
-
-  try{
+try{
     var payload = {};
     payload[staffId] = (App.absenceRequests[iso] && App.absenceRequests[iso][staffId]) ? App.absenceRequests[iso][staffId] : null;
     await dbPatch('/absenceRequests/'+iso, payload);
@@ -4333,7 +4593,7 @@ async function cancelShiftEditRequest(reqIso, key){
     if(Object.keys(App.shiftChangeRequests[reqIso]).length===0) delete App.shiftChangeRequests[reqIso];
   }
   saveLocal();
-  try{ var payload={}; payload[key]=null; await dbPatch('/shiftChangeRequests/'+reqIso, payload); }catch(e){ console.error('cancelShiftEditRequest sync failed', e); }
+try{ var payload={}; payload[key]=null; await dbPatch('/shiftChangeRequests/'+reqIso, payload); }catch(e){ console.error('cancelShiftEditRequest sync failed', e); }
   renderPlanner();
   renderPayroll();
   renderMyShifts();
@@ -5626,8 +5886,7 @@ function saveRecurringUnavailFromModal(){
     };
 
     saveLocal();
-
-    // Push to RTDB (same pattern as planner data)
+// Push to RTDB (same pattern as planner data)
     try{
       var payload = {};
       payload[String(staffId)] = App.recurringUnavailability[staffId];
@@ -5657,8 +5916,7 @@ function deleteRecurringUnavailRule(staffId, ruleId){
     if(!App.recurringUnavailability[staffId]) App.recurringUnavailability[staffId] = {};
     delete App.recurringUnavailability[staffId][ruleId];
     saveLocal();
-
-    try{
+try{
       var p = {};
       if(!p[staffId]) p[staffId] = {};
       p[staffId][ruleId] = null;
@@ -5798,6 +6056,7 @@ function submitAwayMultiModal(){
         if(!Array.isArray(cur2.blocks)) cur2.blocks = [];
       }
       cur2.reason = reason;
+      cur2.createdAt = new Date().toISOString();
       cur2.status = 'pending';
       App.absenceRequests[iso][staffId] = cur2;
       patchPayload[iso] = App.absenceRequests[iso];
@@ -5805,8 +6064,7 @@ function submitAwayMultiModal(){
   }
 
   saveLocal();
-
-  // push updates for staff requests only (managers/admins can Push normally)
+// push updates for staff requests only (managers/admins can Push normally)
   try{
     if(!canModerateAbsences() && Object.keys(patchPayload).length){
       dbPatch('/absenceRequests', patchPayload).catch(function(e){ console.error('Push absenceRequests failed', e); });
@@ -5876,7 +6134,7 @@ function renderAvailabilityBar(){
               if(Object.keys(App.absenceRequests[iso]).length===0) delete App.absenceRequests[iso];
             }
             saveLocal();
-            try{ dbPatch('/absenceRequests/'+iso, (function(){ var o={}; o[String(u.id)]=null; return o; })()).catch(function(e){ console.error('Cancel request push failed', e); }); }catch(e){}
+try{ dbPatch('/absenceRequests/'+iso, (function(){ var o={}; o[String(u.id)]=null; return o; })()).catch(function(e){ console.error('Cancel request push failed', e); }); }catch(e){}
             renderAvailabilityBar();
             try{ renderMyRequests(); }catch(e){}
             if(typeof updateRequestsBadge==='function') updateRequestsBadge();
@@ -6416,6 +6674,7 @@ function openRequestsModal(){
       row.innerHTML=
         '<div style="font-weight:800;min-width:160px">'+escapeHtml(st.name||'')+'</div>'+
         '<div class="muted" style="min-width:150px">'+escapeHtml(formatIsoForHuman(iso))+'</div>'+
+        '<div class="muted" style="min-width:200px">Requested: '+escapeHtml(_fmtTS(req.createdAt||req.requestedAt||req.ts||req.submittedAt||''))+'</div>'+
         '<div class="pill">'+escapeHtml(label)+'</div>'+
         (reason ? '<div class="muted">Reason: '+escapeHtml(String(reason))+'</div>' : '');
 
@@ -6483,6 +6742,7 @@ function openRequestsModal(){
         row.innerHTML =
           '<div style="font-weight:800;min-width:160px">'+escapeHtml(st.name||'')+'</div>'+
           '<div class="muted" style="min-width:150px">'+escapeHtml(String(dateStr))+'</div>'+
+          '<div class="muted" style="min-width:200px">Requested: '+escapeHtml(_fmtTS(req.createdAt||req.requestedAt||req.ts||req.submittedAt||''))+'</div>'+
           '<div class="pill">'+escapeHtml(changes.join(', '))+'</div>'+
           (req.reason ? '<div class="muted">Reason: '+escapeHtml(String(req.reason))+'</div>' : '');
 
@@ -6547,7 +6807,7 @@ function approveRequest(iso,sid,req){
     if(Object.keys(App.absenceRequests[iso]).length===0) delete App.absenceRequests[iso];
   }
   saveLocal();
-  renderPlanner();
+renderPlanner();
   renderPayroll();
   try{ byId('tabMyRequests').style.display='inline-block'; }catch(e){}
   renderMyShifts();
@@ -6574,7 +6834,7 @@ function rejectRequest(iso,sid){
     if(Object.keys(App.absenceRequests[iso]).length===0) delete App.absenceRequests[iso];
   }
   saveLocal();
-  openRequestsModal();
+openRequestsModal();
   try{ var stSec=byId('settingsSection'); if(stSec && stSec.classList && stSec.classList.contains('show')) renderAdminHistory(); }catch(e){}
   if(typeof window._refreshSchedulerDebug==='function') window._refreshSchedulerDebug();
 }
@@ -6615,7 +6875,7 @@ function approveShiftChange(iso,key,req){
       if(Object.keys(App.shiftChangeRequests[iso]).length===0) delete App.shiftChangeRequests[iso];
     }
     saveLocal();
-    renderPlanner();
+renderPlanner();
     try{ byId('tabMyRequests').style.display='inline-block'; }catch(e){}
   renderMyShifts();
     renderPayroll();
@@ -6646,7 +6906,7 @@ function rejectShiftChange(iso,key){
     if(Object.keys(App.shiftChangeRequests[iso]).length===0) delete App.shiftChangeRequests[iso];
   }
   saveLocal();
-  if(typeof updateRequestsBadge==='function') updateRequestsBadge();
+if(typeof updateRequestsBadge==='function') updateRequestsBadge();
   openRequestsModal();
   try{ var stSec4=byId('settingsSection'); if(stSec4 && stSec4.classList && stSec4.classList.contains('show')) renderAdminHistory(); }catch(e){}
 }
@@ -6772,7 +7032,7 @@ function proposeAway(iso, staffId){
     rec.unavailable = true;
     rec.reason = reason;
     saveLocal();
-    renderPlanner();
+renderPlanner();
     renderPayroll();
     try{ byId('tabMyRequests').style.display='inline-block'; }catch(e){}
   renderMyShifts();
@@ -6789,10 +7049,11 @@ function proposeAway(iso, staffId){
   cur.unavailable = true;
   if(!Array.isArray(cur.blocks)) cur.blocks = [];
   cur.reason = reason;
+  cur.createdAt = new Date().toISOString();
   cur.status = 'pending';
   App.absenceRequests[iso][staffId] = cur;
   saveLocal();
-  try{
+try{
     var payload={}; payload[iso]=App.absenceRequests[iso];
     dbPatch('/absenceRequests', payload).catch(function(e){ console.error('Push absenceRequests failed', e); });
   }catch(e){}
@@ -6832,7 +7093,7 @@ function proposePartial(iso, staffId, start, end){
     if(!Array.isArray(rec.blocks)) rec.blocks = [];
     rec.blocks.push({start:start, end:end, reason:reason});
     saveLocal();
-    renderPlanner();
+renderPlanner();
     renderPayroll();
     try{ byId('tabMyRequests').style.display='inline-block'; }catch(e){}
   renderMyShifts();
@@ -6849,10 +7110,11 @@ function proposePartial(iso, staffId, start, end){
   if(!Array.isArray(cur.blocks)) cur.blocks = [];
   cur.blocks = cur.blocks.concat([{start:start, end:end, reason:reason}]);
   cur.reason = reason;
+  cur.createdAt = new Date().toISOString();
   cur.status = 'pending';
   App.absenceRequests[iso][staffId] = cur;
   saveLocal();
-  try{
+try{
     var payload2={}; payload2[iso]=App.absenceRequests[iso];
     dbPatch('/absenceRequests', payload2).catch(function(e){ console.error('Push partial absenceRequests failed', e); });
   }catch(e){}
@@ -6868,7 +7130,7 @@ function clearAway(iso, staffId){
     if(Object.keys(App.availability[iso]).length===0) delete App.availability[iso];
   }
   saveLocal();
-  renderPlanner();
+renderPlanner();
   renderPayroll();
   try{ byId('tabMyRequests').style.display='inline-block'; }catch(e){}
   renderMyShifts();
@@ -6920,7 +7182,7 @@ function copyWeekToNext(){
   }catch(e){}
 
   saveLocal();
-  Planner.weekStartISO = to;
+Planner.weekStartISO = to;
   renderPlanner();
   renderPayroll();
 }
@@ -6977,7 +7239,7 @@ function addWithheld(weekIso, staffId, amount, note){
   App.payWithheld[staffId] = (numFromAnyWithheld(App.payWithheld[staffId])||0) + amount;
   App.payWithheldLog.push({ts:new Date().toISOString(), type:'withhold', weekIso:weekIso, staffId:staffId, amount:amount, note:note||''});
   saveLocal();
-  // Push withheld to Firebase (best-effort)
+// Push withheld to Firebase (best-effort)
   try{
     var p1={}; p1[staffId]=App.payWithheld[staffId];
     var p2={}; p2[weekIso]=App.payWithheldByWeek[weekIso];
@@ -7003,7 +7265,7 @@ function clearWithheld(staffId, note){
   App.payWithheld[staffId] = 0;
   App.payWithheldLog.push({ts:new Date().toISOString(), type:'paid', staffId:staffId, amount:bal, note:note||''});
   saveLocal();
-  // Push withheld to Firebase (best-effort)
+// Push withheld to Firebase (best-effort)
   try{
     var p1={}; p1[staffId]=App.payWithheld[staffId];
     dbPatch('/payWithheld', p1).catch(function(){});
@@ -7078,8 +7340,7 @@ function adjustWithheldDelta(weekIso, staffId, delta, note){
 
   App.payWithheldLog.push({ts:new Date().toISOString(), type:'adjust', weekIso:weekIso, staffId:staffId, amount:delta, note:note||''});
   saveLocal();
-
-  // Push withheld to Firebase (best-effort)
+// Push withheld to Firebase (best-effort)
   try{
     var p1={}; p1[staffId]=App.payWithheld[staffId];
     var p2={}; p2[weekIso]=App.payWithheldByWeek[weekIso] || null;
@@ -7133,8 +7394,7 @@ function removeWithheldLogEntry(idx){
   // Remove log entry
   App.payWithheldLog.splice(idx, 1);
   saveLocal();
-
-  // Push withheld to Firebase (best-effort)
+// Push withheld to Firebase (best-effort)
   try{
     if(staffId){ var p1={}; p1[staffId]=App.payWithheld[staffId]; dbPatch('/payWithheld', p1).catch(function(){}); }
     if(weekIso){ var p2={}; p2[weekIso]=App.payWithheldByWeek[weekIso] || null; dbPatch('/payWithheldByWeek', p2).catch(function(){}); }
@@ -8087,7 +8347,7 @@ function togglePublishWeek(){
   var next = !cur;
   App.settings.publishedWeeks[Planner.weekStartISO] = next;
   saveLocal();
-  alert(next?'Marked week as Published (staff cannot add new shifts)':'Unpublished week (editable).');
+alert(next?'Marked week as Published (staff cannot add new shifts)':'Unpublished week (editable).');
   renderPlanner();
 }
 
@@ -8115,7 +8375,7 @@ async function pullData(silent){
     }
   }
   saveLocal();
-  if(typeof updateRequestsBadge==='function') updateRequestsBadge();
+if(typeof updateRequestsBadge==='function') updateRequestsBadge();
   if(typeof maybeAutoOpenRequestsModal==='function') maybeAutoOpenRequestsModal(true);
   try{ if(App.currentUser && typeof notifyMyRequestStatus==='function') notifyMyRequestStatus(); }catch(e){}
   if(!silent){ populateLoginSelects(); populateExistingStaff(); }
@@ -8317,11 +8577,11 @@ window.proposeShiftEdit = async function(iso, staffId){
       newStart: newStart || null,
       newEnd: newEnd || null,
       reason: reason,
+      createdAt: new Date().toISOString(),
       status: 'pending'
     };
     saveLocal();
-
-    var pushedOk = true;
+var pushedOk = true;
 
     try{
       var payload = {};
