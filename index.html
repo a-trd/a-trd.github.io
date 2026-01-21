@@ -2013,6 +2013,46 @@
           </div>
         </div>
 
+        <!-- Request pop-ups -->
+        <div class="card">
+          <h3>Request pop-ups</h3>
+
+          <label style="display:flex;align-items:center;gap:8px;">
+            <input id="optRequestsPopupEnabled" type="checkbox">
+            <span>Enable pop-up when receiving requests</span>
+          </label>
+
+          <div class="grid-2" style="margin-top:10px;">
+            <div>
+              <label>Pop-up behaviour</label>
+              <select id="optRequestsPopupMode">
+                <option value="onNew">Only when new requests arrive</option>
+                <option value="always">Whenever pending requests exist (throttled)</option>
+              </select>
+            </div>
+            <div>
+              <label>Cooldown (seconds)</label>
+              <input id="optRequestsPopupCooldown" type="number" min="5" step="5" value="60">
+            </div>
+          </div>
+
+          <div style="margin-top:10px;display:flex;flex-direction:column;gap:8px;">
+            <label style="display:flex;align-items:center;gap:8px;">
+              <input id="optRequestsPopupOnLogin" type="checkbox">
+              <span>Show pop-up after login if requests are pending</span>
+            </label>
+
+            <label style="display:flex;align-items:center;gap:8px;">
+              <input id="optRequestsPopupSuppressWhenRequestsTab" type="checkbox">
+              <span>Don’t auto pop-up while I’m on the Requests tab</span>
+            </label>
+
+            <div class="muted" style="margin-top:2px;">
+              Pop-ups are triggered after Pull/Auto Pull updates (manager/admin only). The Requests badge still updates regardless.
+            </div>
+          </div>
+        </div>
+
         <!-- Staff -->
         <div class="card">
           <h3>Staff</h3>
@@ -2537,7 +2577,7 @@ var DAY = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 // ---------- App state ----------
 var App = {
   // IMPORTANT: Increment App.version whenever making functional changes to this file.
-  version: 'V3.6.3',
+  version: 'V3.6.4',
   settings: {
     dbUrl:'https://mnc-atrd-default-rtdb.asia-southeast1.firebasedatabase.app/', workspace:'mnc-atrd', authToken:'',
     theme:'light', themeName:'light-pastel-sky', recentColors:[], appTitle:'M&C-ATRD-scheduler --=Aspire Group=--', logoUrl:'',
@@ -2549,7 +2589,18 @@ var App = {
     nightShiftStart:'17:00', nightShiftEnd:'23:00',
     staffSeeOthers: true,
     statsBarsMetric: 'shifts',
-    publishedWeeks: {}
+    
+    // Requests popup (manager/admin)
+    requestsPopupEnabled: true,
+    // 'onNew' = open only when pending count increases; 'always' = open whenever there are pending (throttled)
+    requestsPopupMode: 'onNew',
+    // Also show popup immediately after login if there are pending requests
+    requestsPopupOnLogin: true,
+    // Throttle (seconds) between auto-popups to avoid spam
+    requestsPopupCooldownSecs: 60,
+    // If true, do not auto-popup while you are already on the Requests tab
+    requestsPopupSuppressWhenRequestsTab: true,
+publishedWeeks: {}
   },
   staff:{}, availability:{}, weeks:{}, absenceRequests:{}, absenceHistory:{}, shiftChangeRequests:{}, shiftChangeHistory:{}, payrollAdjustments:{}, payrollPaid:{},
   payWithheld:{}, payWithheldByWeek:{}, payWithheldLog:[],
@@ -3237,6 +3288,16 @@ function syncSettingsUIFromApp(){
       applyTheme(App.settings.themeName);
       if(typeof renderThemePicker==='function') renderThemePicker();
     }
+
+    // Request pop-ups
+    try{
+      var e1=byId('optRequestsPopupEnabled'); if(e1) e1.checked = !!App.settings.requestsPopupEnabled;
+      var e2=byId('optRequestsPopupMode'); if(e2) e2.value = (App.settings.requestsPopupMode || 'onNew');
+      var e3=byId('optRequestsPopupOnLogin'); if(e3) e3.checked = (App.settings.requestsPopupOnLogin !== false);
+      var e4=byId('optRequestsPopupCooldown'); if(e4) e4.value = String(Math.max(5, parseInt(App.settings.requestsPopupCooldownSecs||60,10)||60));
+      var e5=byId('optRequestsPopupSuppressWhenRequestsTab'); if(e5) e5.checked = (App.settings.requestsPopupSuppressWhenRequestsTab !== false);
+    }catch(e){}
+
   }catch(e){}
 }
 
@@ -3544,7 +3605,14 @@ function init(){
     App.settings.slotMins=parseInt(byId('optSlotMins').value||'30',10);
     App.settings.targetHeadcount=parseInt(byId('optTargetHeadcount').value||'0',10);
     App.settings.staffSeeOthers = (byId('optStaffSeeOthers').value==='true');
-    // Shift badge windows
+    
+    // Request pop-ups
+    App.settings.requestsPopupEnabled = !!(byId('optRequestsPopupEnabled') && byId('optRequestsPopupEnabled').checked);
+    App.settings.requestsPopupMode = (byId('optRequestsPopupMode') && byId('optRequestsPopupMode').value) || 'onNew';
+    App.settings.requestsPopupOnLogin = !!(byId('optRequestsPopupOnLogin') && byId('optRequestsPopupOnLogin').checked);
+    App.settings.requestsPopupCooldownSecs = Math.max(5, parseInt((byId('optRequestsPopupCooldown') && byId('optRequestsPopupCooldown').value) || '60', 10) || 60);
+    App.settings.requestsPopupSuppressWhenRequestsTab = !!(byId('optRequestsPopupSuppressWhenRequestsTab') && byId('optRequestsPopupSuppressWhenRequestsTab').checked);
+// Shift badge windows
     App.settings.dayShiftStart = to24hhmm(byId('optDayShiftStart') && byId('optDayShiftStart').value, '09:00');
     App.settings.dayShiftEnd = to24hhmm(byId('optDayShiftEnd') && byId('optDayShiftEnd').value, '17:00');
     App.settings.nightShiftStart = to24hhmm(byId('optNightShiftStart') && byId('optNightShiftStart').value, '17:00');
@@ -3744,7 +3812,7 @@ function enterApp(){
 
   // Auto-popup pending requests for Admin on login (only if any exist)
   try{
-    if(isAdmin && isAdmin()){
+    if(typeof canModerateAbsences==='function' ? canModerateAbsences() : (isAdmin&&isAdmin())){
       armRequestsAutoPopupAfterLogin();
       setTimeout(function(){
         if(typeof updateRequestsBadge==='function') updateRequestsBadge();
@@ -6975,38 +7043,90 @@ function updateRequestsBadge(){
   }else{
     el.style.display = 'none';
   }
+
+  try{ __maybeAutoPopupRequests('badge'); }catch(e){}
 }
 
-// Auto-popup pending requests modal after ADMIN login (one-time, only if there are outstanding requests)
-var __requestsAutoPopupArmed = false;
-var __requestsAutoPopupTimer = null;
+// Auto-popup pending requests modal (manager/admin) — can continue after login
+var __requestsPopupLastCount = null;
+var __requestsPopupLastAt = 0;
+
+function __isRequestsModalOpen(){
+  try{
+    var m = byId('requestsModal');
+    return !!(m && m.style && m.style.display && m.style.display !== 'none');
+  }catch(e){ return false; }
+}
+
+function __canAutoPopupRequests(){
+  try{
+    if(!App || !App.currentUser) return false;
+    if(!(App.currentUser.role==='admin' || App.currentUser.role==='manager')) return false;
+    if(!App.settings || App.settings.requestsPopupEnabled===false) return false;
+    if(App.settings.requestsPopupSuppressWhenRequestsTab){
+      try{
+        if(App.ui && App.ui.activeTab === 'MyRequests') return false;
+      }catch(e){}
+    }
+    return true;
+  }catch(e){ return false; }
+}
+
+function __maybeAutoPopupRequests(reason){
+  try{
+    if(!__canAutoPopupRequests()) return;
+
+    var count = countPendingRequestsForWeek();
+    if(__requestsPopupLastCount === null){
+      __requestsPopupLastCount = count;
+      // On first run after login (or page reload), optionally open if pending.
+      if(count > 0 && (App.settings.requestsPopupOnLogin !== false)){
+        // Respect cooldown
+        var cd0 = Math.max(5, parseInt(App.settings.requestsPopupCooldownSecs||60,10)||60) * 1000;
+        if((Date.now() - __requestsPopupLastAt) >= cd0){
+          __requestsPopupLastAt = Date.now();
+          if(!__isRequestsModalOpen()) openRequestsModal();
+        }
+      }
+      return;
+    }
+
+    var prev = __requestsPopupLastCount;
+    __requestsPopupLastCount = count;
+
+    if(count <= 0) return;
+
+    var mode = (App.settings.requestsPopupMode || 'onNew');
+    var should = false;
+    if(mode === 'always'){
+      should = true;
+    }else{
+      // default: only when count increases (new request arrives)
+      should = (count > prev);
+    }
+
+    if(!should) return;
+
+    var cooldown = Math.max(5, parseInt(App.settings.requestsPopupCooldownSecs||60,10)||60) * 1000;
+    if((Date.now() - __requestsPopupLastAt) < cooldown) return;
+
+    __requestsPopupLastAt = Date.now();
+    if(!__isRequestsModalOpen()) openRequestsModal();
+  }catch(e){}
+}
+
+// Keep behaviour from previous versions, but broaden it (not just first login/admin).
 function armRequestsAutoPopupAfterLogin(){
-  __requestsAutoPopupArmed = true;
-  if(__requestsAutoPopupTimer) clearTimeout(__requestsAutoPopupTimer);
-  // Safety: disarm after 2 minutes to avoid surprise popups later.
-  __requestsAutoPopupTimer = setTimeout(function(){
-    __requestsAutoPopupArmed = false;
-    __requestsAutoPopupTimer = null;
-  }, 120000);
+  // Reset counters on each login so "on login" can fire if configured.
+  __requestsPopupLastCount = null;
+  __requestsPopupLastAt = 0;
+  __maybeAutoPopupRequests('login');
 }
 function maybeAutoOpenRequestsModal(disarmIfNone){
-  if(!__requestsAutoPopupArmed) return;
-  try{
-    if(!App || !App.currentUser || App.currentUser.role !== 'admin'){
-      __requestsAutoPopupArmed = false;
-      return;
-    }
-    var count = countPendingRequestsForWeek();
-    if(count > 0){
-      __requestsAutoPopupArmed = false;
-      openRequestsModal();
-      return;
-    }
-    if(disarmIfNone) __requestsAutoPopupArmed = false;
-  }catch(e){
-    if(disarmIfNone) __requestsAutoPopupArmed = false;
-  }
+  // Legacy hook used elsewhere — now routes to the new logic.
+  __maybeAutoPopupRequests('legacy');
 }
+
 // Staff bar -> request (not publish) handled in renderAvailabilityBar()
 
 // Mini-actions helpers
