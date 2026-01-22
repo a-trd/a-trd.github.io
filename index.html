@@ -2655,7 +2655,7 @@ var DAY = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 // ---------- App state ----------
 var App = {
   // IMPORTANT: Increment App.version whenever making functional changes to this file.
-  version: 'V3.6.6',
+  version: 'V3.6.7',
   settings: {
     dbUrl:'https://mnc-atrd-default-rtdb.asia-southeast1.firebasedatabase.app/', workspace:'mnc-atrd', authToken:'',
     theme:'light', themeName:'light-pastel-sky', recentColors:[], appTitle:'M&C-ATRD-scheduler --=Aspire Group=--', logoUrl:'',
@@ -3386,19 +3386,6 @@ function syncSettingsUIFromApp(){
       var e4=byId('optRequestsPopupCooldown'); if(e4) e4.value = String(Math.max(5, parseInt(App.settings.requestsPopupCooldownSecs||60,10)||60));
       var e5=byId('optRequestsPopupSuppressWhenRequestsTab'); if(e5) e5.checked = (App.settings.requestsPopupSuppressWhenRequestsTab !== false);
 
-    // Request notifications
-    App.settings.requestsNotifyBrowserEnabled = !!(byId('optReqNotifyBrowser') && byId('optReqNotifyBrowser').checked);
-    App.settings.requestsNotifySoundEnabled = !!(byId('optReqNotifySound') && byId('optReqNotifySound').checked);
-    App.settings.requestsNotifyOnlyWhenHidden = ((byId('optReqNotifyOnlyHidden') && byId('optReqNotifyOnlyHidden').value) === 'true');
-    App.settings.requestsNotifySoundVolume = Math.max(0, Math.min(1, parseFloat((byId('optReqNotifySoundVolume') && byId('optReqNotifySoundVolume').value) || '0.7') || 0.7));
-
-    // EmailJS
-    App.settings.requestsNotifyEmailEnabled = !!(byId('optReqNotifyEmailEnabled') && byId('optReqNotifyEmailEnabled').checked);
-    App.settings.requestsNotifyEmailTo = (byId('optEmailTo') && byId('optEmailTo').value) ? String(byId('optEmailTo').value).trim() : '';
-    App.settings.emailjsPublicKey = (byId('optEmailJsPublicKey') && byId('optEmailJsPublicKey').value) ? String(byId('optEmailJsPublicKey').value).trim() : '';
-    App.settings.emailjsServiceId = (byId('optEmailJsServiceId') && byId('optEmailJsServiceId').value) ? String(byId('optEmailJsServiceId').value).trim() : '';
-    App.settings.emailjsTemplateId = (byId('optEmailJsTemplateId') && byId('optEmailJsTemplateId').value) ? String(byId('optEmailJsTemplateId').value).trim() : '';
-    
       // Request notifications
       var nb=byId('optReqNotifyBrowser'); if(nb) nb.checked = !!App.settings.requestsNotifyBrowserEnabled;
       var ns=byId('optReqNotifySound'); if(ns) ns.checked = !!App.settings.requestsNotifySoundEnabled;
@@ -3691,7 +3678,7 @@ function init(){
     var _br=byId('btnStatsRefresh'); if(_br) _br.onclick=function(){ try{ renderStats(); }catch(e){} };
     var _bp=byId('btnStatsPrevWeek'); if(_bp) _bp.onclick=function(){ shiftWeek(-1); try{ renderStats(); }catch(e){} };
     var _bn=byId('btnStatsNextWeek'); if(_bn) _bn.onclick=function(){ shiftWeek(1); try{ renderStats(); }catch(e){} };
-    var _sm=byId('statsBarsMetric'); if(_sm){ try{ _sm.value = App.settings.statsBarsMetric || 'shifts'; }catch(e){} _sm.onchange=function(){ try{ App.settings.statsBarsMetric = _sm.value||'shifts'; saveLocal(); renderStats(); }catch(e){} }; }
+    var _sm=byId('statsBarsMetric'); if(_sm){ try{ _sm.value = App.settings.statsBarsMetric || 'shifts'; }catch(e){} _sm.onchange=function(){ try{ App.settings.statsBarsMetric = _sm.value||'shifts'; saveLocal(); try{ if(typeof queueSettingsSync==='function') queueSettingsSync(); }catch(e){} renderStats(); }catch(e){} }; }
   }catch(e){}
 
   // Requests log UI (admin only)
@@ -3770,6 +3757,20 @@ function init(){
     App.settings.requestsPopupOnLogin = !!(byId('optRequestsPopupOnLogin') && byId('optRequestsPopupOnLogin').checked);
     App.settings.requestsPopupCooldownSecs = Math.max(5, parseInt((byId('optRequestsPopupCooldown') && byId('optRequestsPopupCooldown').value) || '60', 10) || 60);
     App.settings.requestsPopupSuppressWhenRequestsTab = !!(byId('optRequestsPopupSuppressWhenRequestsTab') && byId('optRequestsPopupSuppressWhenRequestsTab').checked);
+
+    // Request notifications (browser + sound)
+    App.settings.requestsNotifyBrowserEnabled = !!(byId('optReqNotifyBrowser') && byId('optReqNotifyBrowser').checked);
+    App.settings.requestsNotifySoundEnabled = !!(byId('optReqNotifySound') && byId('optReqNotifySound').checked);
+    App.settings.requestsNotifyOnlyWhenHidden = ((byId('optReqNotifyOnlyHidden') && byId('optReqNotifyOnlyHidden').value) === 'true');
+    App.settings.requestsNotifySoundVolume = Math.max(0, Math.min(1, parseFloat((byId('optReqNotifySoundVolume') && byId('optReqNotifySoundVolume').value) || '0.7') || 0.7));
+
+    // Email notifications (EmailJS)
+    App.settings.requestsNotifyEmailEnabled = !!(byId('optReqNotifyEmailEnabled') && byId('optReqNotifyEmailEnabled').checked);
+    App.settings.requestsNotifyEmailTo = (byId('optEmailTo') && byId('optEmailTo').value) ? String(byId('optEmailTo').value).trim() : '';
+    App.settings.emailjsPublicKey = (byId('optEmailJsPublicKey') && byId('optEmailJsPublicKey').value) ? String(byId('optEmailJsPublicKey').value).trim() : '';
+    App.settings.emailjsServiceId = (byId('optEmailJsServiceId') && byId('optEmailJsServiceId').value) ? String(byId('optEmailJsServiceId').value).trim() : '';
+    App.settings.emailjsTemplateId = (byId('optEmailJsTemplateId') && byId('optEmailJsTemplateId').value) ? String(byId('optEmailJsTemplateId').value).trim() : '';
+
 // Shift badge windows
     App.settings.dayShiftStart = to24hhmm(byId('optDayShiftStart') && byId('optDayShiftStart').value, '09:00');
     App.settings.dayShiftEnd = to24hhmm(byId('optDayShiftEnd') && byId('optDayShiftEnd').value, '17:00');
