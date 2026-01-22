@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1"/>
-  <title>M&C-ATRD-scheduler --=Aspire Group=-- (V3.6.3)</title>
+  <title>M&C-ATRD-scheduler --=Aspire Group=-- (V3.7.0)</title>
   <meta name="theme-color" content="#22c55e"/>
 
   <style>
@@ -1596,7 +1596,7 @@
       <div id="appLogoBox"></div>
       <div class="titlewrap">
         <div class="title" id="appTitle">M&C-ATRD-scheduler --=Aspire Group=--</div>
-        <div class="version-pill" id="appVersion">V3.6.3</div>
+        <div class="version-pill" id="appVersion">V3.7.0</div>
       </div>
     </div>
     <div class="tabs">
@@ -2049,6 +2049,75 @@
 
             <div class="muted" style="margin-top:2px;">
               Pop-ups are triggered after Pull/Auto Pull updates (manager/admin only). The Requests badge still updates regardless.
+
+<div style="height:1px;background:var(--border);margin:10px 0;"></div>
+
+<div style="display:flex;flex-direction:column;gap:8px;">
+  <div style="font-weight:800;font-size:12px;">Instant request notifications</div>
+
+  <label style="display:flex;align-items:center;gap:8px;">
+    <input id="optRequestsRealtimeEnabled" type="checkbox">
+    <span>Enable live updates (no refresh needed)</span>
+  </label>
+
+  <label style="display:flex;align-items:center;gap:8px;">
+    <input id="optRequestsNotifyBrowser" type="checkbox">
+    <span>Browser notifications (while app is open)</span>
+  </label>
+
+  <label style="display:flex;align-items:center;gap:8px;">
+    <input id="optRequestsNotifySound" type="checkbox">
+    <span>Play sound on new request</span>
+  </label>
+
+  <div style="display:flex;gap:8px;flex-wrap:wrap;">
+    <button id="btnNotifPermission" class="btn-outline" type="button">Request permission</button>
+    <button id="btnNotifTest" class="btn-outline" type="button">Test</button>
+  </div>
+
+  <div class="muted" style="margin-top:2px;">
+    Live updates use the Realtime Database streaming endpoint and will refresh Requests/Logs automatically.
+  </div>
+</div>
+
+<div style="height:1px;background:var(--border);margin:10px 0;"></div>
+
+<div style="display:flex;flex-direction:column;gap:8px;">
+  <div style="font-weight:800;font-size:12px;">Email notifications (optional)</div>
+
+  <label style="display:flex;align-items:center;gap:8px;">
+    <input id="optRequestsNotifyEmailEnabled" type="checkbox">
+    <span>Send email to admin when a request is submitted</span>
+  </label>
+
+  <div class="grid-2">
+    <div>
+      <label>Admin email(s) (comma separated)</label>
+      <input id="optRequestsNotifyEmailTo" type="text" placeholder="owner@company.com, manager@company.com">
+    </div>
+    <div>
+      <label>EmailJS Public Key</label>
+      <input id="optEmailjsPublicKey" type="text" placeholder="public_...">
+    </div>
+    <div>
+      <label>EmailJS Service ID</label>
+      <input id="optEmailjsServiceId" type="text" placeholder="service_...">
+    </div>
+    <div>
+      <label>EmailJS Template ID</label>
+      <input id="optEmailjsTemplateId" type="text" placeholder="template_...">
+    </div>
+  </div>
+
+  <div style="display:flex;gap:8px;flex-wrap:wrap;">
+    <button id="btnNotifEmailTest" class="btn-outline" type="button">Send test email</button>
+  </div>
+
+  <div class="muted" style="margin-top:2px;">
+    Requires an EmailJS template with params: <b>to_email</b>, <b>subject</b>, <b>message</b>.
+  </div>
+</div>
+
             </div>
           </div>
         </div>
@@ -2577,7 +2646,7 @@ var DAY = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 // ---------- App state ----------
 var App = {
   // IMPORTANT: Increment App.version whenever making functional changes to this file.
-  version: 'V3.6.4',
+  version: 'V3.7.0',
   settings: {
     dbUrl:'https://mnc-atrd-default-rtdb.asia-southeast1.firebasedatabase.app/', workspace:'mnc-atrd', authToken:'',
     theme:'light', themeName:'light-pastel-sky', recentColors:[], appTitle:'M&C-ATRD-scheduler --=Aspire Group=--', logoUrl:'',
@@ -2600,6 +2669,18 @@ var App = {
     requestsPopupCooldownSecs: 60,
     // If true, do not auto-popup while you are already on the Requests tab
     requestsPopupSuppressWhenRequestsTab: true,
+// Notifications (instant)
+requestsRealtimeEnabled: true,
+requestsNotifyBrowser: false,
+requestsNotifySound: true,
+
+// Email notifications (optional, via EmailJS)
+requestsNotifyEmailEnabled: false,
+requestsNotifyEmailTo: '',
+emailjsPublicKey: '',
+emailjsServiceId: '',
+emailjsTemplateId: '',
+
 publishedWeeks: {}
   },
   staff:{}, availability:{}, weeks:{}, absenceRequests:{}, absenceHistory:{}, shiftChangeRequests:{}, shiftChangeHistory:{}, payrollAdjustments:{}, payrollPaid:{},
@@ -3296,6 +3377,16 @@ function syncSettingsUIFromApp(){
       var e3=byId('optRequestsPopupOnLogin'); if(e3) e3.checked = (App.settings.requestsPopupOnLogin !== false);
       var e4=byId('optRequestsPopupCooldown'); if(e4) e4.value = String(Math.max(5, parseInt(App.settings.requestsPopupCooldownSecs||60,10)||60));
       var e5=byId('optRequestsPopupSuppressWhenRequestsTab'); if(e5) e5.checked = (App.settings.requestsPopupSuppressWhenRequestsTab !== false);
+// Notifications
+var n1=byId('optRequestsRealtimeEnabled'); if(n1) n1.checked = (App.settings.requestsRealtimeEnabled !== false);
+var n2=byId('optRequestsNotifyBrowser'); if(n2) n2.checked = !!App.settings.requestsNotifyBrowser;
+var n3=byId('optRequestsNotifySound'); if(n3) n3.checked = (App.settings.requestsNotifySound !== false);
+var n4=byId('optRequestsNotifyEmailEnabled'); if(n4) n4.checked = !!App.settings.requestsNotifyEmailEnabled;
+var n5=byId('optRequestsNotifyEmailTo'); if(n5) n5.value = String(App.settings.requestsNotifyEmailTo||'');
+var n6=byId('optEmailjsPublicKey'); if(n6) n6.value = String(App.settings.emailjsPublicKey||'');
+var n7=byId('optEmailjsServiceId'); if(n7) n7.value = String(App.settings.emailjsServiceId||'');
+var n8=byId('optEmailjsTemplateId'); if(n8) n8.value = String(App.settings.emailjsTemplateId||'');
+
     }catch(e){}
 
   }catch(e){}
@@ -3522,7 +3613,7 @@ function init(){
     document.querySelectorAll('.section').forEach(s=>s.classList.remove('show'));
   var __nav = byId('bottomNav'); if(__nav) __nav.style.display='none';
   var __appTitleEl = byId('appTitle'); if(__appTitleEl) __appTitleEl.textContent = App.settings.appTitle || 'M&C-ATRD-scheduler --=Aspire Group=--';
-  var __verEl = byId('appVersion'); if(__verEl) __verEl.textContent = App.version || 'V3.6.3';
+  var __verEl = byId('appVersion'); if(__verEl) __verEl.textContent = App.version || 'V3.7.0';
   try{ document.title = (App.settings.appTitle||'App')+' ('+App.version+')'; }catch(e){}
   var __logoBoxInit = byId('appLogoBox'); if(__logoBoxInit){ var __lu=App.settings.logoUrl||''; if(__lu){ __logoBoxInit.style.display='inline-block'; __logoBoxInit.style.backgroundImage='url("'+resolveLogoUrl(__lu)+'")'; } else { __logoBoxInit.style.display='none'; __logoBoxInit.style.backgroundImage='none'; } }
   initColorRecents();
@@ -3543,6 +3634,22 @@ function init(){
     var _r1=byId('adminReqLogStaffFilter'); if(_r1 && !_r1._bound){ _r1._bound=true; _r1.onchange=function(){ try{ renderAdminRequestsLog(); }catch(e){} }; }
     var _r2=byId('adminReqLogStatusFilter'); if(_r2 && !_r2._bound){ _r2._bound=true; _r2.onchange=function(){ try{ renderAdminRequestsLog(); }catch(e){} }; }
     var _r3=byId('btnAdminReqLogRefresh'); if(_r3 && !_r3._bound){ _r3._bound=true; _r3.onclick=function(){ try{ renderAdminRequestsLog(); }catch(e){} }; }
+
+// Notifications UI
+try{
+  var pBtn=byId('btnNotifPermission'); if(pBtn && !pBtn._bound){ pBtn._bound=true; pBtn.onclick=function(){ requestNotifPermission(); }; }
+  var tBtn=byId('btnNotifTest'); if(tBtn && !tBtn._bound){ tBtn._bound=true; tBtn.onclick=function(){ try{ _notifyNewRequests([{staffName:'Test', label:'Test notification', iso:toISO(new Date()), reason:'', ms:Date.now()}]); }catch(e){} }; }
+  var eBtn=byId('btnNotifEmailTest'); if(eBtn && !eBtn._bound){ eBtn._bound=true; eBtn.onclick=async function(){
+    try{
+      var to=(byId('optRequestsNotifyEmailTo')||{}).value||'';
+      await sendEmailJS(to, 'Test email', 'This is a test notification from '+(App.settings.appTitle||'App')+'.');
+      showToast('Email', 'Test email sent (if EmailJS is configured)', 'good', 6500);
+    }catch(err){
+      console.error(err);
+      alert('Could not send test email: '+err);
+    }
+  }; }
+}catch(e){}
   }catch(e){}
 
   initPlanner();
@@ -3571,6 +3678,8 @@ function init(){
   if(byId('optDayShiftEnd')) byId('optDayShiftEnd').value = to24hhmm(App.settings.dayShiftEnd, '17:00');
   if(byId('optNightShiftStart')) byId('optNightShiftStart').value = to24hhmm(App.settings.nightShiftStart, '17:00');
   if(byId('optNightShiftEnd')) byId('optNightShiftEnd').value = to24hhmm(App.settings.nightShiftEnd, '23:00');
+
+  try{ syncSettingsUIFromApp(); }catch(e){}
 
   // Initial pull with splash
   splashShow('Syncing…'); byId('splashSync').style.display='flex';
@@ -3612,6 +3721,16 @@ function init(){
     App.settings.requestsPopupOnLogin = !!(byId('optRequestsPopupOnLogin') && byId('optRequestsPopupOnLogin').checked);
     App.settings.requestsPopupCooldownSecs = Math.max(5, parseInt((byId('optRequestsPopupCooldown') && byId('optRequestsPopupCooldown').value) || '60', 10) || 60);
     App.settings.requestsPopupSuppressWhenRequestsTab = !!(byId('optRequestsPopupSuppressWhenRequestsTab') && byId('optRequestsPopupSuppressWhenRequestsTab').checked);
+App.settings.requestsRealtimeEnabled = !!(byId('optRequestsRealtimeEnabled') && byId('optRequestsRealtimeEnabled').checked);
+App.settings.requestsNotifyBrowser = !!(byId('optRequestsNotifyBrowser') && byId('optRequestsNotifyBrowser').checked);
+App.settings.requestsNotifySound = !!(byId('optRequestsNotifySound') && byId('optRequestsNotifySound').checked);
+
+App.settings.requestsNotifyEmailEnabled = !!(byId('optRequestsNotifyEmailEnabled') && byId('optRequestsNotifyEmailEnabled').checked);
+App.settings.requestsNotifyEmailTo = String((byId('optRequestsNotifyEmailTo')||{}).value||'').trim();
+App.settings.emailjsPublicKey = String((byId('optEmailjsPublicKey')||{}).value||'').trim();
+App.settings.emailjsServiceId = String((byId('optEmailjsServiceId')||{}).value||'').trim();
+App.settings.emailjsTemplateId = String((byId('optEmailjsTemplateId')||{}).value||'').trim();
+
 // Shift badge windows
     App.settings.dayShiftStart = to24hhmm(byId('optDayShiftStart') && byId('optDayShiftStart').value, '09:00');
     App.settings.dayShiftEnd = to24hhmm(byId('optDayShiftEnd') && byId('optDayShiftEnd').value, '17:00');
@@ -3682,7 +3801,7 @@ function init(){
   if(bottomLogout) bottomLogout.onclick=function(){ var lb=byId('btnLogout'); if(lb && lb.onclick) lb.onclick(); };
 
 
-  var logout=byId('btnLogout'); if(logout) logout.onclick=function(){ App.currentUser=null; showLogin(); byId('userChip').textContent=''; var nav=byId('bottomNav'); if(nav) nav.style.display='none'; startAutoSyncTimers(); };
+  var logout=byId('btnLogout'); if(logout) logout.onclick=function(){ App.currentUser=null; try{ stopRequestsRealtime && stopRequestsRealtime(); }catch(e){} showLogin(); byId('userChip').textContent=''; var nav=byId('bottomNav'); if(nav) nav.style.display='none'; startAutoSyncTimers(); };
 
   byId('btnExportJSON').onclick=function(){ if(!isAdmin()) return alert('Admin only.'); var data={settings:App.settings,staff:App.staff,availability:App.availability,weeks:App.weeks,absenceRequests:App.absenceRequests||{},absenceHistory:App.absenceHistory||{},shiftChangeRequests:App.shiftChangeRequests||{},shiftChangeHistory:App.shiftChangeHistory||{},payrollAdjustments:App.payrollAdjustments||{},payrollPaid:App.payrollPaid||{},payWithheld:App.payWithheld||{},payWithheldByWeek:App.payWithheldByWeek||{},payWithheldLog:App.payWithheldLog||[],recurringUnavailability:App.recurringUnavailability||{},version:App.version}; var a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'})); a.download='munchandcrun_export.json'; a.click(); };
   byId('btnExportCSV').onclick=function(){ if(!isAdmin()) return alert('Admin only.'); exportPayrollCSV(); };
@@ -3809,6 +3928,7 @@ function enterApp(){
   showTab('My');
   renderAfterLogin();
   try{ if(typeof notifyMyRequestStatus==='function') notifyMyRequestStatus(); }catch(e){}
+  try{ maybeRestartRequestsRealtime && maybeRestartRequestsRealtime('login'); }catch(e){}
 
   // Auto-popup pending requests for Admin on login (only if any exist)
   try{
@@ -6135,7 +6255,7 @@ function submitAwayMultiModal(){
 // push updates for staff requests only (managers/admins can Push normally)
   try{
     if(!canModerateAbsences() && Object.keys(patchPayload).length){
-      dbPatch('/absenceRequests', patchPayload).catch(function(e){ console.error('Push absenceRequests failed', e); });
+      dbPatch('/absenceRequests', patchPayload).then(function(){ try{ var _isos=Object.keys(patchPayload||{}).slice().sort(); var _lines=[]; for(var ii=0;ii<_isos.length;ii++){ var _i=_isos[ii]; var _lbl=(AwayMulti.mode==='partial' ? ('Partial away '+startVal+'–'+endVal) : 'Full day away'); _lines.push(_fmtReqLine(_lbl, _i, reason, new Date().toISOString())); } maybeSendAdminEmailForRequest({kind:'absenceMulti', staffId:staffId, staffName:(App.staff&&App.staff[String(staffId)]?App.staff[String(staffId)].name:''), lines:_lines}); }catch(e){} }).catch(function(e){ console.error('Push absenceRequests failed', e); });
     }
   }catch(e){}
 
@@ -7127,6 +7247,325 @@ function maybeAutoOpenRequestsModal(disarmIfNone){
   __maybeAutoPopupRequests('legacy');
 }
 
+
+// ---------- Instant request notifications (live + browser + email) ----------
+var RequestsRT = {
+  started: false,
+  absES: null,
+  shiftES: null,
+  timer: null,
+  lastPullAt: 0,
+  lastSeenMs: 0
+};
+
+function _tsToMs(v){
+  try{
+    if(!v) return 0;
+    if(typeof v==='number') return isFinite(v)?v:0;
+    var t = Date.parse(String(v));
+    return isFinite(t)?t:0;
+  }catch(e){ return 0; }
+}
+
+function _pendingRequestItems(){
+  var out=[];
+  try{
+    // Absence requests
+    if(App.absenceRequests){
+      Object.keys(App.absenceRequests).forEach(function(iso){
+        var bucket=App.absenceRequests[iso];
+        if(!bucket) return;
+        Object.keys(bucket).forEach(function(sid){
+          var req=bucket[sid];
+          if(!req) return;
+          var st=String(req.status||'pending').toLowerCase();
+          if(st!=='pending') return;
+          var staff=(App.staff && App.staff[String(sid)])?App.staff[String(sid)]:{};
+          var label='Away request';
+          if(req.blocks && req.blocks.length){
+            var b=req.blocks[0]||{};
+            label='Partial away '+(b.start||'')+'–'+(b.end||'');
+          }else if(req.unavailable){
+            label='Full day away';
+          }
+          var reason=req.reason||'';
+          if(!reason && req.blocks && req.blocks[0] && req.blocks[0].reason) reason=req.blocks[0].reason;
+          var ms=_tsToMs(req.createdAt||req.requestedAt||req.ts||req.submittedAt);
+          out.push({kind:'absence', iso:String(iso), sid:String(sid), staffName:String(staff.name||sid), label:label, reason:String(reason||''), ms:ms});
+        });
+      });
+    }
+    // Shift edit requests
+    if(App.shiftChangeRequests){
+      Object.keys(App.shiftChangeRequests).forEach(function(iso){
+        var bucket=App.shiftChangeRequests[iso];
+        if(!bucket) return;
+        Object.keys(bucket).forEach(function(k){
+          var req=bucket[k];
+          if(!req) return;
+          var st=String(req.status||'pending').toLowerCase();
+          if(st!=='pending') return;
+          var sid=req.staffId!=null?String(req.staffId):'';
+          var staff=(App.staff && App.staff[String(sid)])?App.staff[String(sid)]:{};
+          var label='Shift edit request';
+          var ns=req.newStart?String(req.newStart):'';
+          var ne=req.newEnd?String(req.newEnd):'';
+          if(ns||ne) label='Shift edit '+(ns||'?')+'–'+(ne||'?');
+          var reason=String(req.reason||'');
+          var ms=_tsToMs(req.createdAt||req.requestedAt||req.ts||req.submittedAt);
+          out.push({kind:'shift', iso:String(iso), sid:String(sid), staffName:String(staff.name||sid), label:label, reason:reason, ms:ms});
+        });
+      });
+    }
+  }catch(e){}
+  out.sort(function(a,b){ return (b.ms||0)-(a.ms||0); });
+  return out;
+}
+
+function _newPendingItemsSince(ms){
+  var items=_pendingRequestItems();
+  return items.filter(function(it){ return (it.ms||0) > (ms||0); });
+}
+
+function _playNotifySound(){
+  try{
+    if(!App.settings || App.settings.requestsNotifySound===false) return;
+    var Ctx = window.AudioContext || window.webkitAudioContext;
+    if(!Ctx) return;
+    var ctx=new Ctx();
+    var o=ctx.createOscillator();
+    var g=ctx.createGain();
+    o.type='sine';
+    o.frequency.value=880;
+    g.gain.value=0.06;
+    o.connect(g); g.connect(ctx.destination);
+    o.start();
+    setTimeout(function(){ try{o.stop();}catch(e){} try{ctx.close();}catch(e){} }, 220);
+  }catch(e){}
+}
+
+function _browserNotify(title, body){
+  try{
+    if(!App.settings || !App.settings.requestsNotifyBrowser) return;
+    if(!('Notification' in window)) return;
+    if(Notification.permission !== 'granted') return;
+    new Notification(title||'New request', { body: body||'' });
+  }catch(e){}
+}
+
+function _notifyNewRequests(items){
+  try{
+    if(!items || !items.length) return;
+    var it=items[0];
+    var title='New request';
+    var body=(it.staffName||'Staff')+' — '+(it.label||'')+' — '+(formatIsoForHuman?formatIsoForHuman(it.iso):it.iso);
+    if(it.reason) body += ' — '+it.reason;
+    try{ showToast(title, body, 'warn', 9000); }catch(e){}
+    _playNotifySound();
+    _browserNotify(title, body);
+  }catch(e){}
+}
+
+function requestsStreamUrl(path){
+  try{
+    var url = wsRoot() + String(path||'') + '.json';
+    var qs = [];
+    if(App.settings && App.settings.authToken){ qs.push('auth='+encodeURIComponent(App.settings.authToken)); }
+    qs.push('print=silent');
+    return url + (url.indexOf('?')>=0 ? '&' : '?') + qs.join('&');
+  }catch(e){ return ''; }
+}
+
+async function pullRequestsOnlyNoHistory(){
+  var abs = await dbGet('/absenceRequests');
+  var shc = await dbGet('/shiftChangeRequests');
+  var abh = await dbGet('/absenceHistory');
+  var sch = await dbGet('/shiftChangeHistory');
+  App.absenceRequests = abs || {};
+  App.shiftChangeRequests = shc || {};
+  App.absenceHistory = abh || (App.absenceHistory||{});
+  App.shiftChangeHistory = sch || (App.shiftChangeHistory||{});
+  // Persist without polluting Undo/Redo
+  try{ saveLocal(true); }catch(e){}
+  try{ if(typeof updateRequestsBadge==='function') updateRequestsBadge(); }catch(e){}
+  try{ if(typeof maybeAutoOpenRequestsModal==='function') maybeAutoOpenRequestsModal(true); }catch(e){}
+  // Refresh visible UI pieces
+  try{ if(typeof __isRequestsModalOpen==='function' && __isRequestsModalOpen()) openRequestsModal(); }catch(e){}
+  try{ var stSec=byId('settingsSection'); if(stSec && stSec.classList && stSec.classList.contains('show')) renderAdminHistory(); }catch(e){}
+  try{ if(typeof renderAdminRequestsLog==='function') renderAdminRequestsLog(); }catch(e){}
+}
+
+function canUseRequestsRealtime(){
+  try{
+    if(!App || !App.currentUser) return false;
+    if(!(App.currentUser.role==='admin' || App.currentUser.role==='manager')) return false;
+    if(App.settings && App.settings.requestsRealtimeEnabled===false) return false;
+    if(!App.settings || !App.settings.dbUrl || !App.settings.workspace) return false;
+    return true;
+  }catch(e){ return false; }
+}
+
+function stopRequestsRealtime(){
+  RequestsRT.started=false;
+  try{ if(RequestsRT.timer){ clearTimeout(RequestsRT.timer); RequestsRT.timer=null; } }catch(e){}
+  try{ if(RequestsRT.absES){ RequestsRT.absES.close(); } }catch(e){}
+  try{ if(RequestsRT.shiftES){ RequestsRT.shiftES.close(); } }catch(e){}
+  RequestsRT.absES=null; RequestsRT.shiftES=null;
+}
+
+function startRequestsRealtime(){
+  stopRequestsRealtime();
+  if(!canUseRequestsRealtime()) return;
+  RequestsRT.started=true;
+  RequestsRT.lastPullAt=0;
+  // initialize lastSeen to latest pending request (avoid notifying old backlog)
+  var base = Date.now();
+  try{
+    var items=_pendingRequestItems();
+    for(var i=0;i<items.length;i++){ if(items[i].ms && items[i].ms>base) base=items[i].ms; }
+  }catch(e){}
+  RequestsRT.lastSeenMs=base;
+
+  var onAny = function(){
+    try{ queueRequestsRealtimePull(); }catch(e){}
+  };
+
+  try{
+    RequestsRT.absES = new EventSource(requestsStreamUrl('/absenceRequests'));
+    RequestsRT.absES.onmessage = onAny;
+    RequestsRT.absES.onerror = function(){ /* keep trying; browser auto-reconnects */ };
+  }catch(e){ RequestsRT.absES=null; }
+
+  try{
+    RequestsRT.shiftES = new EventSource(requestsStreamUrl('/shiftChangeRequests'));
+    RequestsRT.shiftES.onmessage = onAny;
+    RequestsRT.shiftES.onerror = function(){ /* keep trying; browser auto-reconnects */ };
+  }catch(e){ RequestsRT.shiftES=null; }
+}
+
+function queueRequestsRealtimePull(){
+  if(!RequestsRT.started) return;
+  try{ if(RequestsRT.timer) clearTimeout(RequestsRT.timer); }catch(e){}
+  RequestsRT.timer = setTimeout(async function(){
+    RequestsRT.timer=null;
+    if(!RequestsRT.started) return;
+    var now=Date.now();
+    if(RequestsRT.lastPullAt && (now-RequestsRT.lastPullAt) < 1400) return;
+    RequestsRT.lastPullAt=now;
+
+    var since = RequestsRT.lastSeenMs || 0;
+    try{
+      await pullRequestsOnlyNoHistory();
+      var newItems=_newPendingItemsSince(since);
+      if(newItems && newItems.length){
+        var max=since;
+        for(var i=0;i<newItems.length;i++){ if(newItems[i].ms && newItems[i].ms>max) max=newItems[i].ms; }
+        RequestsRT.lastSeenMs=max;
+        _notifyNewRequests(newItems);
+      }
+    }catch(e){
+      console.error('Realtime requests pull failed', e);
+    }
+  }, 650);
+}
+
+function maybeRestartRequestsRealtime(reason){
+  try{
+    if(!App || !App.currentUser){ stopRequestsRealtime(); return; }
+    if(canUseRequestsRealtime()) startRequestsRealtime();
+    else stopRequestsRealtime();
+  }catch(e){}
+}
+
+function requestNotifPermission(){
+  try{
+    if(!('Notification' in window)) return alert('Browser notifications are not supported on this device/browser.');
+    Notification.requestPermission().then(function(p){
+      try{ showToast('Notifications', 'Permission: '+p, (p==='granted'?'good':'warn'), 6500); }catch(e){}
+    });
+  }catch(e){}
+}
+
+// ---------- EmailJS (optional) ----------
+function _normalizeEmailList(s){
+  try{
+    s=String(s||'');
+    return s.split(',').map(function(x){return String(x||'').trim();}).filter(Boolean).join(',');
+  }catch(e){ return ''; }
+}
+
+async function sendEmailJS(toEmail, subject, message){
+  var to=_normalizeEmailList(toEmail);
+  if(!to) throw new Error('No recipient');
+  var pk=String((App.settings&&App.settings.emailjsPublicKey)||'').trim();
+  var sid=String((App.settings&&App.settings.emailjsServiceId)||'').trim();
+  var tid=String((App.settings&&App.settings.emailjsTemplateId)||'').trim();
+  if(!pk||!sid||!tid) throw new Error('EmailJS not configured');
+
+  var payload={
+    service_id: sid,
+    template_id: tid,
+    user_id: pk,
+    template_params: {
+      to_email: to,
+      subject: subject||'New request',
+      message: message||''
+    }
+  };
+
+  var res = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+
+  if(!res.ok){
+    var t=''+res.status;
+    throw new Error('EmailJS failed ('+t+')');
+  }
+  return true;
+}
+
+function _fmtReqLine(label, iso, reason, createdAt){
+  try{
+    var d=(typeof formatIsoForHuman==='function') ? formatIsoForHuman(iso) : String(iso);
+    var ts=(typeof _fmtTS==='function') ? _fmtTS(createdAt||'') : String(createdAt||'');
+    var s = (label||'Request') + ' — ' + d;
+    if(ts) s += ' — Requested: ' + ts;
+    if(reason) s += '\nReason: ' + reason;
+    return s;
+  }catch(e){ return String(label||'Request'); }
+}
+
+function maybeSendAdminEmailForRequest(evt){
+  try{
+    if(!evt) return;
+    if(!App || !App.settings) return;
+    if(!App.settings.requestsNotifyEmailEnabled) return;
+    var to = App.settings.requestsNotifyEmailTo || '';
+    if(!String(to||'').trim()) return;
+
+    var staffName = evt.staffName || '';
+    try{ if(!staffName && evt.staffId && App.staff && App.staff[String(evt.staffId)]) staffName = App.staff[String(evt.staffId)].name||''; }catch(e){}
+
+    var subj = 'New request' + (staffName ? (': '+staffName) : '');
+    var msg = '';
+    if(evt.lines && evt.lines.length){
+      msg = evt.lines.join('\n\n');
+    }else{
+      msg = _fmtReqLine(evt.label||'Request', evt.iso||'', evt.reason||'', evt.createdAt||'');
+    }
+    msg += '\n\nWorkspace: ' + String(App.settings.workspace||'');
+
+    // Fire and forget
+    sendEmailJS(to, subj, msg).then(function(){
+      try{ /* silent */ }catch(e){}
+    }).catch(function(e){
+      console.error('Email notify failed', e);
+    });
+  }catch(e){}
+}
+
 // Staff bar -> request (not publish) handled in renderAvailabilityBar()
 
 // Mini-actions helpers
@@ -7175,7 +7614,7 @@ renderPlanner();
   saveLocal();
 try{
     var payload={}; payload[iso]=App.absenceRequests[iso];
-    dbPatch('/absenceRequests', payload).catch(function(e){ console.error('Push absenceRequests failed', e); });
+    dbPatch('/absenceRequests', payload).then(function(){ try{ maybeSendAdminEmailForRequest({kind:'absence', staffId:staffId, staffName:(App.staff&&App.staff[String(staffId)]?App.staff[String(staffId)].name:''), iso:iso, label:'Full day away', reason:reason, createdAt:cur.createdAt}); }catch(e){} }).catch(function(e){ console.error('Push absenceRequests failed', e); });
   }catch(e){}
   if(typeof updateRequestsBadge==='function') updateRequestsBadge();
   if(typeof window._refreshSchedulerDebug==='function') window._refreshSchedulerDebug();
@@ -7236,7 +7675,7 @@ renderPlanner();
   saveLocal();
 try{
     var payload2={}; payload2[iso]=App.absenceRequests[iso];
-    dbPatch('/absenceRequests', payload2).catch(function(e){ console.error('Push partial absenceRequests failed', e); });
+    dbPatch('/absenceRequests', payload2).then(function(){ try{ maybeSendAdminEmailForRequest({kind:'absence', staffId:staffId, staffName:(App.staff&&App.staff[String(staffId)]?App.staff[String(staffId)].name:''), iso:iso, label:'Partial away '+start+'–'+end, reason:reason, createdAt:cur.createdAt}); }catch(e){} }).catch(function(e){ console.error('Push partial absenceRequests failed', e); });
   }catch(e){}
   if(typeof updateRequestsBadge==='function') updateRequestsBadge();
   if(typeof window._refreshSchedulerDebug==='function') window._refreshSchedulerDebug();
@@ -8544,6 +8983,7 @@ if(typeof updateRequestsBadge==='function') updateRequestsBadge();
   var __ns=document.getElementById('optNightShiftStart'); if(__ns) __ns.value = to24hhmm(App.settings.nightShiftStart, '17:00');
   var __ne=document.getElementById('optNightShiftEnd'); if(__ne) __ne.value = to24hhmm(App.settings.nightShiftEnd, '23:00');
   try{ startAutoSyncTimers(); }catch(e){}
+  try{ if(typeof maybeRestartRequestsRealtime==='function') maybeRestartRequestsRealtime('pull'); }catch(e){}
 
   if(typeof applyTheme==='function' && App.settings.themeName){
     applyTheme(App.settings.themeName);
@@ -8716,6 +9156,7 @@ var pushedOk = true;
     if(typeof updateRequestsBadge==='function') updateRequestsBadge();
     if(pushedOk){
       showToast('Shift edit request submitted', 'Status: Pending', 'warn', 6500);
+      try{ maybeSendAdminEmailForRequest({kind:'shift', staffId:staffId, staffName:(App.staff&&App.staff[String(staffId)]?App.staff[String(staffId)].name:''), iso:iso, label:'Shift edit '+(newStart||origStart||'?')+'–'+(newEnd||origEnd||'?'), reason:reason, createdAt:(new Date().toISOString())}); }catch(e){}
     }
 
   }catch(e){
