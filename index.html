@@ -2542,6 +2542,25 @@
         </div>
       </div>
 
+
+      <div style="margin-top:10px;">
+        <label>Unavailable hours (optional)</label>
+        <div style="display:flex;flex-wrap:wrap;gap:12px;margin-top:6px;font-size:12px;align-items:center;">
+          <label><input id="recUnavailAllDay" type="checkbox" checked> All day</label>
+          <span class="muted">Uncheck to block only a time window (e.g., 09:00–17:00).</span>
+        </div>
+        <div id="recUnavailTimeWrap" class="grid-2" style="margin-top:10px;display:none;">
+          <div>
+            <label>Start</label>
+            <input id="recUnavailTimeStart" type="time" step="300" placeholder="HH:MM">
+          </div>
+          <div>
+            <label>End</label>
+            <input id="recUnavailTimeEnd" type="time" step="300" placeholder="HH:MM">
+          </div>
+        </div>
+      </div>
+
       <div style="margin-top:10px;">
         <label>Reason / comment (mandatory)</label>
         <textarea id="recUnavailReason" placeholder="e.g., Cannot work Mondays" style="min-height:72px;"></textarea>
@@ -2655,7 +2674,7 @@ var DAY = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 // ---------- App state ----------
 var App = {
   // IMPORTANT: Increment App.version whenever making functional changes to this file.
-  version: 'V3.6.7',
+  version: 'V3.6.8',
   settings: {
     dbUrl:'https://mnc-atrd-default-rtdb.asia-southeast1.firebasedatabase.app/', workspace:'mnc-atrd', authToken:'',
     theme:'light', themeName:'light-pastel-sky', recentColors:[], appTitle:'M&C-ATRD-scheduler --=Aspire Group=--', logoUrl:'',
@@ -5371,7 +5390,7 @@ function saveShiftFromModal(){
   }
 
   try{
-    if(isRecurringUnavailableOnDate(iso, staffId)){
+    if(isRecurringUnavailableForShift(iso, staffId, start12, end12)){
       var nm2=(App.staff[staffId]&&App.staff[staffId].name)||'Staff';
       if(!confirm(nm2+' has recurring unavailability on '+DAY[dayIndex]+' ('+fmtDMY(d0)+'). Create shift anyway?')) return;
     }
@@ -6024,6 +6043,25 @@ function openRecurringUnavailModal(){
     if(eEl) eEl.value = '';
     if(rEl) rEl.value = '';
 
+    // hours (optional)
+    var allDayEl = byId('recUnavailAllDay');
+    var tWrap = byId('recUnavailTimeWrap');
+    var tS = byId('recUnavailTimeStart');
+    var tE = byId('recUnavailTimeEnd');
+    function recUnavailUpdateTimeUI(){
+      try{
+        var allDay = allDayEl ? !!allDayEl.checked : true;
+        if(tWrap) tWrap.style.display = (allDay ? 'none' : 'grid');
+      }catch(e){}
+    }
+    if(allDayEl){
+      allDayEl.checked = true;
+      allDayEl.onchange = recUnavailUpdateTimeUI;
+    }
+    if(tS) tS.value = '09:00';
+    if(tE) tE.value = '17:00';
+    recUnavailUpdateTimeUI();
+
     renderRecurringUnavailExisting(sid);
     m.style.display='flex';
   }catch(e){
@@ -6084,7 +6122,16 @@ function renderRecurringUnavailExisting(staffId){
       var top = document.createElement('div');
       top.style.fontWeight='800';
       top.style.fontSize='12px';
-      top.textContent = (dayStr||'Day(s)') + ' — ' + s + ' → ' + e;
+      var timePart = '';
+      try{
+        var allDay = (r && r.allDay===false) ? false : true;
+        if(!allDay){
+          var ts = (r && r.timeStart) ? String(r.timeStart) : '';
+          var te = (r && r.timeEnd) ? String(r.timeEnd) : '';
+          if(ts && te) timePart = ' · ' + ts + '–' + te;
+        }
+      }catch(e){}
+      top.textContent = (dayStr||'Day(s)') + ' — ' + s + ' → ' + e + timePart;
 
       var sub = document.createElement('div');
       sub.style.fontSize='12px';
@@ -6148,6 +6195,18 @@ function saveRecurringUnavailFromModal(){
     if(e && e < s){ alert('End date must be on or after start date.'); return; }
     if(!reason){ alert('Reason is mandatory.'); return; }
 
+    var allDayEl = byId('recUnavailAllDay');
+    var tS = byId('recUnavailTimeStart');
+    var tE = byId('recUnavailTimeEnd');
+    var allDay = allDayEl ? !!allDayEl.checked : true;
+    var timeStart = (!allDay && tS && tS.value) ? String(tS.value).trim() : '';
+    var timeEnd   = (!allDay && tE && tE.value) ? String(tE.value).trim() : '';
+    if(!allDay){
+      if(!timeStart || !timeEnd){ alert('Please enter Start and End time (or tick All day).'); return; }
+      // basic validation: end must be after start (same-day window)
+      if(timeEnd <= timeStart){ alert('End time must be after start time.'); return; }
+    }
+
     var rid = uid();
     App.recurringUnavailability[staffId][rid] = {
       id: rid,
@@ -6156,6 +6215,9 @@ function saveRecurringUnavailFromModal(){
       startISO: s,
       endISO: e || '',
       reason: reason,
+      allDay: allDay,
+      timeStart: timeStart,
+      timeEnd: timeEnd,
       createdAt: Date.now(),
       createdBy: (App.currentUser && App.currentUser.id!=null) ? String(App.currentUser.id) : ''
     };
@@ -6486,7 +6548,16 @@ function recurringUnavailabilityLinesFor(iso, staffId){
         range = ' (range ' + sL + ' to ' + eL + ')';
       }
     }catch(err){}
-    out.push('Recurring unavailable: ' + reason + range);
+    var timePart = '';
+    try{
+      var allDay = (r && r.allDay===false) ? false : true;
+      if(!allDay){
+        var ts = (r && r.timeStart) ? String(r.timeStart) : '';
+        var te = (r && r.timeEnd) ? String(r.timeEnd) : '';
+        if(ts && te) timePart = ' ('+ts+'–'+te+')';
+      }
+    }catch(e){}
+    out.push('Recurring unavailable: ' + reason + timePart + range);
   });
   return out;
 }
@@ -6494,6 +6565,60 @@ function recurringUnavailabilityLinesFor(iso, staffId){
 function isRecurringUnavailableOnDate(iso, staffId){
   try{ return getRecurringUnavailabilityForDate(iso, staffId).length>0; }catch(e){ return false; }
 }
+
+function recurringUnavailabilityBlocksFor(iso, staffId){
+  try{
+    var recs = getRecurringUnavailabilityForDate(iso, staffId);
+    if(!recs || !recs.length) return [];
+    var blocks = [];
+    recs.forEach(function(r){
+      if(!r) return;
+      var allDay = (r.allDay===false) ? false : true;
+      if(allDay){
+        blocks.push({startM:0, endM:1440, rule:r});
+        return;
+      }
+      var ts = (r.timeStart!=null) ? String(r.timeStart) : '';
+      var te = (r.timeEnd!=null) ? String(r.timeEnd) : '';
+      if(!ts || !te) { blocks.push({startM:0, endM:1440, rule:r}); return; }
+      var p1 = ts.split(':'), p2 = te.split(':');
+      if(p1.length<2 || p2.length<2) { blocks.push({startM:0, endM:1440, rule:r}); return; }
+      var sm = (parseInt(p1[0],10)||0)*60 + (parseInt(p1[1],10)||0);
+      var em = (parseInt(p2[0],10)||0)*60 + (parseInt(p2[1],10)||0);
+      if(!isFinite(sm) || !isFinite(em)) { blocks.push({startM:0, endM:1440, rule:r}); return; }
+      if(em<=sm) { blocks.push({startM:0, endM:1440, rule:r}); return; }
+      blocks.push({startM:Math.max(0,Math.min(1440,sm)), endM:Math.max(0,Math.min(1440,em)), rule:r});
+    });
+    return blocks;
+  }catch(e){
+    return [];
+  }
+}
+
+function isRecurringUnavailableForShift(iso, staffId, start12, end12){
+  try{
+    var blocks = recurringUnavailabilityBlocksFor(iso, staffId);
+    if(!blocks || !blocks.length) return false;
+    var s = parse12(start12), e0 = parse12(end12);
+    if(isNaN(s) || isNaN(e0)) return blocks.length>0;
+    var e = (e0<=s) ? e0+1440 : e0;
+    // Only evaluate overlap within this calendar date (0..1440)
+    var sDay = Math.max(0, Math.min(1440, s));
+    var eDay = Math.max(0, Math.min(1440, e));
+    if(eDay<=sDay) return false;
+    for(var i=0;i<blocks.length;i++){
+      var b=blocks[i];
+      if(!b) continue;
+      var bs = b.startM!=null ? b.startM : 0;
+      var be = b.endM!=null ? b.endM : 1440;
+      if(sDay < be && eDay > bs) return true;
+    }
+    return false;
+  }catch(e){
+    return false;
+  }
+}
+
 
 function drawAwayOverlays(wrapEl, iso, staffId){
   try{
@@ -6505,10 +6630,28 @@ function drawAwayOverlays(wrapEl, iso, staffId){
 
     // recurring unavailability overlay (grey)
     try{
-      if(isRecurringUnavailableOnDate(iso, staffId)){
-        var ub=document.createElement('div'); ub.className='unavail-band'; ub.style.left='0'; ub.style.width='100%';
-        var uc=document.createElement('div'); uc.className='unavail-chip'; uc.textContent='UNAVAIL';
-        wrapEl.appendChild(ub); wrapEl.appendChild(uc);
+      var blocks = recurringUnavailabilityBlocksFor(iso, staffId) || [];
+      if(blocks.length){
+        var spanRU = 16*60;
+        function clampRU(x,a,b){ return Math.max(a, Math.min(b, x)); }
+        blocks.forEach(function(b){
+          if(!b) return;
+          var bs = clampRU(b.startM!=null?b.startM:0, 8*60, 24*60);
+          var be = clampRU(b.endM!=null?b.endM:24*60, 8*60, 24*60);
+          if(be<=bs) return;
+          var left = ((bs - 8*60)/spanRU)*100;
+          var width = Math.max(0.5, ((be - bs)/spanRU)*100);
+          var ub=document.createElement('div'); ub.className='unavail-band'; ub.style.left=left+'%'; ub.style.width=width+'%';
+          var uc=document.createElement('div'); uc.className='unavail-chip';
+          var allDay = (b.rule && b.rule.allDay===false) ? false : true;
+          if(allDay) uc.textContent='UNAVAIL';
+          else{
+            var ts = (b.rule && b.rule.timeStart) ? String(b.rule.timeStart) : '';
+            var te = (b.rule && b.rule.timeEnd) ? String(b.rule.timeEnd) : '';
+            uc.textContent = 'UNAVAIL ' + (ts&&te ? (ts+'–'+te) : '');
+          }
+          wrapEl.appendChild(ub); wrapEl.appendChild(uc);
+        });
       }
     }catch(e){}
     if(!state){
