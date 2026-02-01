@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1"/>
-  <title>M&C-ATRD-scheduler --=Aspire Group=-- (V3.6.3)</title>
+  <title>M&C-ATRD-scheduler --=Aspire Group=-- (V3.7.2)</title>
   <meta name="theme-color" content="#22c55e"/>
 
   <style>
@@ -1597,7 +1597,7 @@
       <div id="appLogoBox"></div>
       <div class="titlewrap">
         <div class="title" id="appTitle">M&C-ATRD-scheduler --=Aspire Group=--</div>
-        <div class="version-pill" id="appVersion">V3.6.3</div>
+        <div class="version-pill" id="appVersion">V3.7.2</div>
       </div>
     </div>
     <div class="tabs">
@@ -2673,9 +2673,11 @@ var DAY = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 
 // ---------- App state ----------
 var App = {
-  // IMPORTANT: Increment App.version whenever making functional changes to this file.
-  version: 'V3.6.8',
-  settings: {
+  // IMPORTANT: Increment App.version *and* App.buildId whenever making functional changes to this file.
+  // SAFETY NET: This build performs an automatic runtime check against the file name; if mismatched, it shows a blocking warning so it can't be overlooked.
+  version: 'V3.7.2',
+    buildId: '2026-02-01.1',
+settings: {
     dbUrl:'https://mnc-atrd-default-rtdb.asia-southeast1.firebasedatabase.app/', workspace:'mnc-atrd', authToken:'',
     theme:'light', themeName:'light-pastel-sky', recentColors:[], appTitle:'M&C-ATRD-scheduler --=Aspire Group=--', logoUrl:'',
     autoPullMins: 0, autoPushMins: 0,
@@ -2718,6 +2720,39 @@ publishedWeeks: {}
   cacheKey:'mc_scheduler_cache_v14_23_3'
 };
 
+
+// ---------- Build / Version safety ----------
+function versionFromFilename(){
+  try{
+    var p = (location && location.pathname) ? String(location.pathname) : '';
+    var m = p.match(/V\d+\.\d+\.\d+/);
+    return m ? m[0] : '';
+  }catch(e){ return ''; }
+}
+function enforceVersionConsistency(){
+  try{
+    var fileVer = versionFromFilename();
+    if(!fileVer) return;
+    var appVer = String(App.version||'').trim();
+    if(fileVer && appVer && fileVer !== appVer){
+      var msg =
+        'VERSION MISMATCH\n\n' +
+        'File name version: ' + fileVer + '\n' +
+        'In-app version: ' + appVer + '\n\n' +
+        'Fix required: update App.version (and buildId) to match the file name, then reload.';
+      try{ console.error(msg); }catch(e){}
+      alert(msg);
+    }
+  }catch(e){}
+}
+function recordBuildSeen(){
+  try{
+    var k = 'mc_last_build_id_v1';
+    var last = localStorage.getItem(k);
+    var cur = String(App.version||'') + '|' + String(App.buildId||'');
+    if(last !== cur) localStorage.setItem(k, cur);
+  }catch(e){}
+}
 // ---------- Themes ----------
 var THEMES = {
   'light-classic': {mode:'light', vars:{bg:'#f7f8fd', fg:'#0a0f1a', card:'#ffffff', muted:'#59677a', accent:'#5A31F4', accent2:'#00D4FF', accent3:'#FF3D71', good:'#16a34a', warn:'#ca8a04', bad:'#dc2626', grid:'#ffffff', staff:'#fafbff', alt:'transparent', chip:'#00000033', border:'rgba(0,0,0,.15)'}},
@@ -3685,7 +3720,7 @@ function init(){
     document.querySelectorAll('.section').forEach(s=>s.classList.remove('show'));
   var __nav = byId('bottomNav'); if(__nav) __nav.style.display='none';
   var __appTitleEl = byId('appTitle'); if(__appTitleEl) __appTitleEl.textContent = App.settings.appTitle || 'M&C-ATRD-scheduler --=Aspire Group=--';
-  var __verEl = byId('appVersion'); if(__verEl) __verEl.textContent = App.version || 'V3.6.3';
+  var __verEl = byId('appVersion'); if(__verEl) __verEl.textContent = App.version || 'V3.7.2';
   try{ document.title = (App.settings.appTitle||'App')+' ('+App.version+')'; }catch(e){}
   var __logoBoxInit = byId('appLogoBox'); if(__logoBoxInit){ var __lu=App.settings.logoUrl||''; if(__lu){ __logoBoxInit.style.display='inline-block'; __logoBoxInit.style.backgroundImage='url("'+resolveLogoUrl(__lu)+'")'; } else { __logoBoxInit.style.display='none'; __logoBoxInit.style.backgroundImage='none'; } }
   initColorRecents();
@@ -7546,6 +7581,22 @@ function approveRequest(iso,sid,req){
     if(Object.keys(App.absenceRequests[iso]).length===0) delete App.absenceRequests[iso];
   }
   saveLocal();
+  // Sync decision + request state to Firebase (prevents "accepted but comes back" due to stale remote data)
+  try{
+    // history snapshot for this day
+    var _hist = (App.absenceHistory && App.absenceHistory[iso]) ? App.absenceHistory[iso] : {};
+    dbPatch('/absenceHistory/' + encodeURIComponent(iso), _hist).catch(function(e){ console.error('Push absenceHistory failed', e); });
+  }catch(e){}
+  try{
+    // remove the request (or delete day bucket if empty)
+    if(App.absenceRequests && App.absenceRequests[iso]){
+      dbPatch('/absenceRequests/' + encodeURIComponent(iso), App.absenceRequests[iso]).catch(function(e){ console.error('Push absenceRequests day failed', e); });
+    }else{
+      var _del = {}; _del[String(iso)] = null;
+      dbPatch('/absenceRequests', _del).catch(function(e){ console.error('Delete absenceRequests day failed', e); });
+    }
+  }catch(e){}
+
   try{ dbPatch('/availability/' + encodeURIComponent(iso), (App.availability && App.availability[iso]) ? App.availability[iso] : null).catch(function(e){ console.error('Push availability clear failed', e); }); }catch(e){}
 renderPlanner();
   renderPayroll();
@@ -7574,6 +7625,20 @@ function rejectRequest(iso,sid){
     if(Object.keys(App.absenceRequests[iso]).length===0) delete App.absenceRequests[iso];
   }
   saveLocal();
+  // Sync rejection + request state to Firebase
+  try{
+    var _hist = (App.absenceHistory && App.absenceHistory[iso]) ? App.absenceHistory[iso] : {};
+    dbPatch('/absenceHistory/' + encodeURIComponent(iso), _hist).catch(function(e){ console.error('Push absenceHistory failed', e); });
+  }catch(e){}
+  try{
+    if(App.absenceRequests && App.absenceRequests[iso]){
+      dbPatch('/absenceRequests/' + encodeURIComponent(iso), App.absenceRequests[iso]).catch(function(e){ console.error('Push absenceRequests day failed', e); });
+    }else{
+      var _del = {}; _del[String(iso)] = null;
+      dbPatch('/absenceRequests', _del).catch(function(e){ console.error('Delete absenceRequests day failed', e); });
+    }
+  }catch(e){}
+
 openRequestsModal();
   try{ var stSec=byId('settingsSection'); if(stSec && stSec.classList && stSec.classList.contains('show')) renderAdminHistory(); }catch(e){}
   if(typeof window._refreshSchedulerDebug==='function') window._refreshSchedulerDebug();
@@ -7615,6 +7680,34 @@ function approveShiftChange(iso,key,req){
       if(Object.keys(App.shiftChangeRequests[iso]).length===0) delete App.shiftChangeRequests[iso];
     }
     saveLocal();
+    // Sync shift update + decision to Firebase
+    try{
+      // push updated shift only (smallest payload)
+      if(wsISO!=null && dayIndex!=null){
+        var dayKey = String(dayIndex);
+        var shiftId = String(req.shiftId || key);
+        var wk = App.weeks[wsISO] || {};
+        var dayB = wk[dayKey] || {};
+        var sh = dayB[shiftId] || null;
+        if(sh){
+          dbPatch('/weeks/' + encodeURIComponent(wsISO) + '/' + encodeURIComponent(dayKey) + '/' + encodeURIComponent(shiftId), sh)
+            .catch(function(e){ console.error('Push weeks shift failed', e); });
+        }
+      }
+    }catch(e){}
+    try{
+      var _hist = (App.shiftChangeHistory && App.shiftChangeHistory[iso]) ? App.shiftChangeHistory[iso] : {};
+      dbPatch('/shiftChangeHistory/' + encodeURIComponent(iso), _hist).catch(function(e){ console.error('Push shiftChangeHistory failed', e); });
+    }catch(e){}
+    try{
+      if(App.shiftChangeRequests && App.shiftChangeRequests[iso]){
+        dbPatch('/shiftChangeRequests/' + encodeURIComponent(iso), App.shiftChangeRequests[iso]).catch(function(e){ console.error('Push shiftChangeRequests day failed', e); });
+      }else{
+        var _del2 = {}; _del2[String(iso)] = null;
+        dbPatch('/shiftChangeRequests', _del2).catch(function(e){ console.error('Delete shiftChangeRequests day failed', e); });
+      }
+    }catch(e){}
+
     try{ dbPatch('/availability/' + encodeURIComponent(iso), App.availability[iso]||{}).catch(function(e){ console.error('Push availability failed', e); }); }catch(e){}
 renderPlanner();
     try{ byId('tabMyRequests').style.display='inline-block'; }catch(e){}
@@ -7647,6 +7740,20 @@ function rejectShiftChange(iso,key){
     if(Object.keys(App.shiftChangeRequests[iso]).length===0) delete App.shiftChangeRequests[iso];
   }
   saveLocal();
+  // Sync rejection to Firebase
+  try{
+    var _hist = (App.shiftChangeHistory && App.shiftChangeHistory[iso]) ? App.shiftChangeHistory[iso] : {};
+    dbPatch('/shiftChangeHistory/' + encodeURIComponent(iso), _hist).catch(function(e){ console.error('Push shiftChangeHistory failed', e); });
+  }catch(e){}
+  try{
+    if(App.shiftChangeRequests && App.shiftChangeRequests[iso]){
+      dbPatch('/shiftChangeRequests/' + encodeURIComponent(iso), App.shiftChangeRequests[iso]).catch(function(e){ console.error('Push shiftChangeRequests day failed', e); });
+    }else{
+      var _del2 = {}; _del2[String(iso)] = null;
+      dbPatch('/shiftChangeRequests', _del2).catch(function(e){ console.error('Delete shiftChangeRequests day failed', e); });
+    }
+  }catch(e){}
+
 if(typeof updateRequestsBadge==='function') updateRequestsBadge();
   openRequestsModal();
   try{ var stSec4=byId('settingsSection'); if(stSec4 && stSec4.classList && stSec4.classList.contains('show')) renderAdminHistory(); }catch(e){}
