@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1"/>
-  <title>M&C-ATRD-scheduler --=Aspire Group=-- (V3.7.2)</title>
+  <title>M&C-ATRD-scheduler --=Aspire Group=-- (V3.7.9)</title>
   <meta name="theme-color" content="#22c55e"/>
 
   <style>
@@ -1597,7 +1597,7 @@
       <div id="appLogoBox"></div>
       <div class="titlewrap">
         <div class="title" id="appTitle">M&C-ATRD-scheduler --=Aspire Group=--</div>
-        <div class="version-pill" id="appVersion">V3.7.2</div>
+        <div class="version-pill" id="appVersion">V3.7.4</div>
       </div>
     </div>
     <div class="tabs">
@@ -2675,8 +2675,8 @@ var DAY = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 var App = {
   // IMPORTANT: Increment App.version *and* App.buildId whenever making functional changes to this file.
   // SAFETY NET: This build performs an automatic runtime check against the file name; if mismatched, it shows a blocking warning so it can't be overlooked.
-  version: 'V3.7.2',
-    buildId: '2026-02-01.1',
+  version: 'V3.7.9',
+    buildId: '2026-02-03.3',
 settings: {
     dbUrl:'https://mnc-atrd-default-rtdb.asia-southeast1.firebasedatabase.app/', workspace:'mnc-atrd', authToken:'',
     theme:'light', themeName:'light-pastel-sky', recentColors:[], appTitle:'M&C-ATRD-scheduler --=Aspire Group=--', logoUrl:'',
@@ -2717,8 +2717,34 @@ publishedWeeks: {}
   recurringUnavailability:{},
   editRequests:{},
   currentUser:null,
-  cacheKey:'mc_scheduler_cache_v14_23_3'
+  cacheKey:'mc_scheduler_cache_v14_23_3',
+  connKey:'mc_scheduler_conn_v1'
 };
+
+
+function ensureSettingsDefaults(){
+  try{
+    if(!App.settings) App.settings = {};
+    if(App.settings.requestsPopupEnabled === undefined) App.settings.requestsPopupEnabled = true;
+    if(!App.settings.requestsPopupMode) App.settings.requestsPopupMode = 'onNew';
+    if(App.settings.requestsPopupOnLogin === undefined) App.settings.requestsPopupOnLogin = true;
+    if(App.settings.requestsPopupCooldownSecs == null || isNaN(parseInt(App.settings.requestsPopupCooldownSecs,10))) App.settings.requestsPopupCooldownSecs = 60;
+    if(App.settings.requestsPopupSuppressWhenRequestsTab === undefined) App.settings.requestsPopupSuppressWhenRequestsTab = false;
+
+    if(App.settings.requestsNotifyBrowserEnabled === undefined) App.settings.requestsNotifyBrowserEnabled = false;
+    if(App.settings.requestsNotifySoundEnabled === undefined) App.settings.requestsNotifySoundEnabled = false;
+    if(App.settings.requestsNotifySoundVolume == null || isNaN(parseFloat(App.settings.requestsNotifySoundVolume))) App.settings.requestsNotifySoundVolume = 0.7;
+    if(App.settings.requestsNotifyOnlyWhenHidden === undefined) App.settings.requestsNotifyOnlyWhenHidden = false;
+
+    if(App.settings.requestsNotifyEmailEnabled === undefined) App.settings.requestsNotifyEmailEnabled = false;
+    if(App.settings.requestsNotifyEmailTo === undefined) App.settings.requestsNotifyEmailTo = '';
+    if(App.settings.emailjsPublicKey === undefined) App.settings.emailjsPublicKey = '';
+    if(App.settings.emailjsServiceId === undefined) App.settings.emailjsServiceId = '';
+    if(App.settings.emailjsTemplateId === undefined) App.settings.emailjsTemplateId = '';
+  }catch(e){}
+}
+
+
 
 
 // ---------- Build / Version safety ----------
@@ -3435,7 +3461,7 @@ function syncSettingsUIFromApp(){
 
     // Request pop-ups
     try{
-      var e1=byId('optRequestsPopupEnabled'); if(e1) e1.checked = !!App.settings.requestsPopupEnabled;
+      var e1=byId('optRequestsPopupEnabled'); if(e1) e1.checked = (App.settings.requestsPopupEnabled !== false);
       var e2=byId('optRequestsPopupMode'); if(e2) e2.value = (App.settings.requestsPopupMode || 'onNew');
       var e3=byId('optRequestsPopupOnLogin'); if(e3) e3.checked = (App.settings.requestsPopupOnLogin !== false);
       var e4=byId('optRequestsPopupCooldown'); if(e4) e4.value = String(Math.max(5, parseInt(App.settings.requestsPopupCooldownSecs||60,10)||60));
@@ -3564,7 +3590,18 @@ function saveLocal(skipHistory){
   try{ if(!skipHistory) historyCapture(); }catch(e){}
 }
 
-function loadLocal(){ try{ var raw=localStorage.getItem(App.cacheKey); if(!raw) return; var d=JSON.parse(raw)||{}; if(d.settings){ for(var k in d.settings){ App.settings[k]=d.settings[k]; } } App.staff=d.staff||App.staff; App.weeks=d.weeks||App.weeks; App.availability=d.availability||App.availability; App.recurringUnavailability=d.recurringUnavailability||App.recurringUnavailability||{}; App.editRequests=d.editRequests||App.editRequests||{}; App.absenceRequests=d.absenceRequests||App.absenceRequests||{}; App.absenceHistory=d.absenceHistory||App.absenceHistory||{}; App.shiftChangeRequests=d.shiftChangeRequests||App.shiftChangeRequests||{}; App.shiftChangeHistory=d.shiftChangeHistory||App.shiftChangeHistory||{}; App.payrollAdjustments=d.payrollAdjustments||App.payrollAdjustments||{}; App.payrollPaid=d.payrollPaid||App.payrollPaid||{}; App.payWithheld=d.payWithheld||App.payWithheld||{}; App.payWithheldByWeek=d.payWithheldByWeek||App.payWithheldByWeek||{}; App.payWithheldLog=d.payWithheldLog||App.payWithheldLog||[]; App.absenceHistory=d.absenceHistory||App.absenceHistory; App.shiftChangeRequests=d.shiftChangeRequests||App.shiftChangeRequests; App.shiftChangeHistory=d.shiftChangeHistory||App.shiftChangeHistory||{}; App.payrollAdjustments=d.payrollAdjustments||App.payrollAdjustments||{}; App.payrollPaid=d.payrollPaid||App.payrollPaid||{}; App.payWithheld=d.payWithheld||App.payWithheld||{}; App.payWithheldByWeek=d.payWithheldByWeek||App.payWithheldByWeek||{}; App.payWithheldLog=d.payWithheldLog||App.payWithheldLog||[]; }catch(e){} }
+function loadLocal(){ try{
+    // Always restore Firebase connection details even if main cache was reset.
+    try{
+      var cRaw = localStorage.getItem(App.connKey);
+      if(cRaw){
+        var c = JSON.parse(cRaw)||{};
+        if(c.dbUrl) App.settings.dbUrl = c.dbUrl;
+        if(c.workspace) App.settings.workspace = c.workspace;
+        if(c.authToken!=null) App.settings.authToken = c.authToken;
+      }
+    }catch(e){}
+    var raw=localStorage.getItem(App.cacheKey); if(!raw) return; var d=JSON.parse(raw)||{}; if(d.settings){ for(var k in d.settings){ App.settings[k]=d.settings[k]; } } App.staff=d.staff||App.staff; App.weeks=d.weeks||App.weeks; App.availability=d.availability||App.availability; App.recurringUnavailability=d.recurringUnavailability||App.recurringUnavailability||{}; App.editRequests=d.editRequests||App.editRequests||{}; App.absenceRequests=d.absenceRequests||App.absenceRequests||{}; App.absenceHistory=d.absenceHistory||App.absenceHistory||{}; App.shiftChangeRequests=d.shiftChangeRequests||App.shiftChangeRequests||{}; App.shiftChangeHistory=d.shiftChangeHistory||App.shiftChangeHistory||{}; App.payrollAdjustments=d.payrollAdjustments||App.payrollAdjustments||{}; App.payrollPaid=d.payrollPaid||App.payrollPaid||{}; App.payWithheld=d.payWithheld||App.payWithheld||{}; App.payWithheldByWeek=d.payWithheldByWeek||App.payWithheldByWeek||{}; App.payWithheldLog=d.payWithheldLog||App.payWithheldLog||[]; App.absenceHistory=d.absenceHistory||App.absenceHistory; App.shiftChangeRequests=d.shiftChangeRequests||App.shiftChangeRequests; App.shiftChangeHistory=d.shiftChangeHistory||App.shiftChangeHistory||{}; App.payrollAdjustments=d.payrollAdjustments||App.payrollAdjustments||{}; App.payrollPaid=d.payrollPaid||App.payrollPaid||{}; App.payWithheld=d.payWithheld||App.payWithheld||{}; App.payWithheldByWeek=d.payWithheldByWeek||App.payWithheldByWeek||{}; App.payWithheldLog=d.payWithheldLog||App.payWithheldLog||[]; }catch(e){} }
 
 // Shared helper for resetting local cache
 function resetLocalCache(allowAll){
@@ -3621,9 +3658,117 @@ function withAuth(url){ return App.settings.authToken ? url+(url.indexOf('?')>=0
 async function dbGet(p){ var r=await fetch(withAuth(wsRoot()+p+'.json')); if(!r.ok) throw new Error('GET '+r.status); return r.json(); }
 async function dbPatch(p,data){ var r=await fetch(withAuth(wsRoot()+p+'.json'),{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}); if(!r.ok) throw new Error('PATCH '+r.status); return r.json(); }
 
+
+// ---------- User preferences (per-user; stored in Firebase) ----------
+
+// Push request pop-up related user preferences to Firebase (per-user)
+async function pushUserPrefsRequestPopups(){
+  if(!App.currentUser || !App.currentUser.id) throw new Error('Not logged in');
+  var uid = String(App.currentUser.id);
+  App.userPrefs = App.userPrefs || {};
+  App.userPrefs.requestPopups = App.userPrefs.requestPopups || {};
+  var rp = App.userPrefs.requestPopups;
+
+  // Mirror from App.settings into userPrefs.requestPopups so UI + runtime stay consistent
+  rp.requestsPopupEnabled = !!App.settings.requestsPopupEnabled;
+  rp.requestsPopupMode = App.settings.requestsPopupMode || 'modal';
+  rp.requestsPopupOnLogin = !!App.settings.requestsPopupOnLogin;
+  rp.requestsPopupCooldownSecs = Number(App.settings.requestsPopupCooldownSecs||0);
+  rp.requestsPopupSuppressWhenRequestsTab = !!App.settings.requestsPopupSuppressWhenRequestsTab;
+
+  rp.requestsNotifyBrowserEnabled = !!App.settings.requestsNotifyBrowserEnabled;
+  rp.requestsNotifySoundEnabled = !!App.settings.requestsNotifySoundEnabled;
+  rp.requestsNotifySoundVolume = Number(App.settings.requestsNotifySoundVolume||1);
+  rp.requestsNotifyOnlyWhenHidden = !!App.settings.requestsNotifyOnlyWhenHidden;
+
+  rp.requestsNotifyEmailEnabled = !!App.settings.requestsNotifyEmailEnabled;
+  rp.requestsNotifyEmailTo = App.settings.requestsNotifyEmailTo || '';
+  rp.emailjsPublicKey = App.settings.emailjsPublicKey || '';
+  rp.emailjsServiceId = App.settings.emailjsServiceId || '';
+  rp.emailjsTemplateId = App.settings.emailjsTemplateId || '';
+
+  // Save only the request pop-up subtree to avoid overwriting other userPrefs
+  await dbPatch('/userPrefs/'+uid, { requestPopups: rp });
+  return true;
+}
+
+App.userPrefs = App.userPrefs || {};
+
+function applyUserPrefsToSettings(){
+  try{
+    var rp = (App.userPrefs && App.userPrefs.requestPopups) ? App.userPrefs.requestPopups : null;
+    if(!rp) return;
+    var keys = [
+      'requestsPopupEnabled','requestsPopupMode','requestsPopupOnLogin','requestsPopupCooldownSecs','requestsPopupSuppressWhenRequestsTab',
+      'requestsNotifyBrowserEnabled','requestsNotifySoundEnabled','requestsNotifySoundVolume','requestsNotifyOnlyWhenHidden',
+      'requestsNotifyEmailEnabled','requestsNotifyEmailTo','emailjsPublicKey','emailjsServiceId','emailjsTemplateId'
+    ];
+    for(var i=0;i<keys.length;i++){
+      var k = keys[i];
+      if(rp[k] !== undefined) App.settings[k] = rp[k];
+    }
+  }catch(e){}
+}
+
+async function pullUserPrefs(){
+  try{
+    if(!App.currentUser || !App.currentUser.id) return null;
+    var uid = String(App.currentUser.id);
+    var up = await dbGet('/userPrefs/'+uid);
+    if(up && typeof up === 'object'){
+      App.userPrefs = up;
+      applyUserPrefsToSettings();
+      ensureSettingsDefaults();
+      saveLocal(true);
+      try{ syncSettingsUIFromApp(); }catch(e){}
+    }
+    return up;
+  }catch(e){ return null; }
+}
+
+async function saveMyRequestPopupPrefs(){
+  if(!App.currentUser || !App.currentUser.id) throw new Error('No user');
+  var uid = String(App.currentUser.id);
+  App.userPrefs = App.userPrefs || {};
+  App.userPrefs.requestPopups = App.userPrefs.requestPopups || {};
+  var rp = App.userPrefs.requestPopups;
+  // Mirror from App.settings (already read from UI into App.settings)
+  rp.requestsPopupEnabled = App.settings.requestsPopupEnabled;
+  rp.requestsPopupMode = App.settings.requestsPopupMode;
+  rp.requestsPopupOnLogin = App.settings.requestsPopupOnLogin;
+  rp.requestsPopupCooldownSecs = App.settings.requestsPopupCooldownSecs;
+  rp.requestsPopupSuppressWhenRequestsTab = App.settings.requestsPopupSuppressWhenRequestsTab;
+  rp.requestsNotifyBrowserEnabled = App.settings.requestsNotifyBrowserEnabled;
+  rp.requestsNotifySoundEnabled = App.settings.requestsNotifySoundEnabled;
+  rp.requestsNotifySoundVolume = App.settings.requestsNotifySoundVolume;
+  rp.requestsNotifyOnlyWhenHidden = App.settings.requestsNotifyOnlyWhenHidden;
+  rp.requestsNotifyEmailEnabled = App.settings.requestsNotifyEmailEnabled;
+  rp.requestsNotifyEmailTo = App.settings.requestsNotifyEmailTo;
+  rp.emailjsPublicKey = App.settings.emailjsPublicKey;
+  rp.emailjsServiceId = App.settings.emailjsServiceId;
+  rp.emailjsTemplateId = App.settings.emailjsTemplateId;
+  await dbPatch('/userPrefs/'+uid, { requestPopups: rp });
+  saveLocal(true);
+  return true;
+}
+
+
+// ---------- Connection settings persistence ----------
+function saveConnLocal(){
+  try{
+    localStorage.setItem(App.connKey, JSON.stringify({
+      dbUrl: (App.settings && App.settings.dbUrl) ? App.settings.dbUrl : '',
+      workspace: (App.settings && App.settings.workspace) ? App.settings.workspace : '',
+      authToken: (App.settings && (App.settings.authToken!=null)) ? App.settings.authToken : ''
+    }));
+  }catch(e){}
+}
+
+
 // Debounced settings sync (Admin only)
 var __settingsSyncTimer = null;
 function queueSettingsSync(){
+
   try{
     if(!(App && App.currentUser && App.currentUser.role==='admin')) return;
     if(__settingsSyncTimer) clearTimeout(__settingsSyncTimer);
@@ -3720,7 +3865,7 @@ function init(){
     document.querySelectorAll('.section').forEach(s=>s.classList.remove('show'));
   var __nav = byId('bottomNav'); if(__nav) __nav.style.display='none';
   var __appTitleEl = byId('appTitle'); if(__appTitleEl) __appTitleEl.textContent = App.settings.appTitle || 'M&C-ATRD-scheduler --=Aspire Group=--';
-  var __verEl = byId('appVersion'); if(__verEl) __verEl.textContent = App.version || 'V3.7.2';
+  var __verEl = byId('appVersion'); if(__verEl) __verEl.textContent = App.version || 'V3.7.8';
   try{ document.title = (App.settings.appTitle||'App')+' ('+App.version+')'; }catch(e){}
   var __logoBoxInit = byId('appLogoBox'); if(__logoBoxInit){ var __lu=App.settings.logoUrl||''; if(__lu){ __logoBoxInit.style.display='inline-block'; __logoBoxInit.style.backgroundImage='url("'+resolveLogoUrl(__lu)+'")'; } else { __logoBoxInit.style.display='none'; __logoBoxInit.style.backgroundImage='none'; } }
   initColorRecents();
@@ -3746,7 +3891,7 @@ function init(){
   initPlanner();
   populateLoginSelects();
   // Fresh sync on app load to reduce stale cached data
-  try{ pullData(false).catch(function(){}); }catch(e){}
+  try{ pullData(false).then(function(){ try{ populateLoginSelects(); }catch(e){} try{ syncSettingsUIFromSettings(); }catch(e){} try{ var __appTitleEl2=byId('appTitle'); if(__appTitleEl2) __appTitleEl2.textContent = App.settings.appTitle || __appTitleEl2.textContent; }catch(e){} try{ var __titleEl2=document.querySelector('.appbar .title'); if(__titleEl2) __titleEl2.textContent = App.settings.appTitle || __titleEl2.textContent; }catch(e){} try{ document.title = (App.settings.appTitle||'App')+' ('+App.version+')'; }catch(e){} try{ if(App.settings && App.settings.themeName){ applyTheme(App.settings.themeName); if(typeof renderThemePicker==='function') renderThemePicker(); } }catch(e){} }).catch(function(){}); }catch(e){}
   applyTheme(App.settings.themeName||'dark-classic');
   renderThemePicker();
 
@@ -3765,8 +3910,7 @@ function init(){
   byId('optSlotMins').value=App.settings.slotMins;
   byId('optTargetHeadcount').value=App.settings.targetHeadcount||0;
   byId('optStaffSeeOthers').value=String(App.settings.staffSeeOthers);
-
-  // Shift badge windows
+// Shift badge windows
   if(byId('optDayShiftStart')) byId('optDayShiftStart').value = to12hStr(to24hhmm(App.settings.dayShiftStart, '09:00'));
   if(byId('optDayShiftEnd')) byId('optDayShiftEnd').value = to12hStr(to24hhmm(App.settings.dayShiftEnd, '17:00'));
   if(byId('optNightShiftStart')) byId('optNightShiftStart').value = to12hStr(to24hhmm(App.settings.nightShiftStart, '17:00'));
@@ -3792,7 +3936,11 @@ function init(){
   });
 
   byId('btnSaveSettings').onclick = function(){
-    if(!isAdmin()) return alert('Admin only.');
+    // Admin: saves all settings globally. Non-admin: saves only personal Request pop-up/notification preferences.
+    var __isAdmin = (typeof isAdmin==='function' && isAdmin());
+    if(!__isAdmin){
+      if(!App.currentUser){ return alert('Please log in first.'); }
+    }
     App.settings.dbUrl=byId('dbUrlInput').value.trim();
     App.settings.workspace=byId('workspaceInput').value.trim();
     App.settings.authToken=(byId('authTokenInput').value||'').trim();
@@ -3834,9 +3982,19 @@ function init(){
     var __titleEl=document.querySelector('.appbar .title'); if(__titleEl) __titleEl.textContent=App.settings.appTitle;
     try{ document.title = (App.settings.appTitle||'App')+' ('+App.version+')'; }catch(e){}
     var __logoBox=byId('appLogoBox'); if(__logoBox){ var __u=App.settings.logoUrl||''; if(__u){ __logoBox.style.display='inline-block'; __logoBox.style.backgroundImage='url("'+resolveLogoUrl(__u)+'")'; } else { __logoBox.style.display='none'; __logoBox.style.backgroundImage='none'; } }
+    saveConnLocal();
     saveLocal(); startAutoSyncTimers(); renderPlanner();
-    dbPatch('', {settings:App.settings}).then(function(){
-      alert('Saved & synced.');
+        // Persist settings:
+    // - Admin can write global settings to Firebase root.
+    // - All users (including admin) persist Request pop-up/notification preferences under /userPrefs/<uid>.
+    var __saveChain = Promise.resolve(true);
+    if(__isAdmin){
+      __saveChain = dbPatch('', {settings:App.settings});
+    }
+    __saveChain.then(function(){
+      return pushUserPrefsRequestPopups();
+    }).then(function(){
+      alert(__isAdmin ? 'Saved & synced.' : 'Saved.');
     }).catch(function(e){
       alert('Saved locally. Sync failed: '+(e&&e.message?e.message:e));
     });
@@ -3907,6 +4065,9 @@ function init(){
   byId('btnPull').onclick = function(){
   splashShow('Pulling latest…');
   pullData(false).then(function(){
+    // Also pull per-user prefs (does not overwrite planner data)
+    return pullUserPrefs();
+  }).then(function(){
     splashHide('Pulled latest ✓');
   }).catch(function(e){
     splashHide('Pull failed');
@@ -3914,9 +4075,22 @@ function init(){
   });
 };
   byId('btnPush').onclick = function(){
-  if(!canEdit()) return alert('Only manager or admin can push.');
+  // Managers/Admins: push full dataset. Staff: push only personal prefs (e.g. Request pop-ups).
+  if(!canEdit()){
+    if(!App.currentUser) return alert('Please log in first.');
+    splashShow('Syncing your preferences…');
+    pushUserPrefsRequestPopups().then(function(){
+      splashHide('Preferences synced ✓');
+    }).catch(function(e){
+      splashHide('Sync failed');
+      alert('Sync failed: '+(e&&e.message?e.message:e));
+    });
+    return;
+  }
   splashShow('Pushing changes…');
   pushData().then(function(){
+    return pushUserPrefsRequestPopups();
+  }).then(function(){
     splashHide('Pushed successfully ✓');
   }).catch(function(e){
     splashHide('Push failed');
@@ -4070,6 +4244,8 @@ function enterApp(){
   byId('loginSection').classList.remove('show');
   showTab('My');
   renderAfterLogin();
+  // Load per-user notification/popup preferences
+  try{ pullUserPrefs(); }catch(e){}
   try{ if(typeof notifyMyRequestStatus==='function') notifyMyRequestStatus(); }catch(e){}
 
   // Auto-popup pending requests for Admin on login (only if any exist)
@@ -7918,6 +8094,7 @@ function __maybeAutoPopupRequests(reason){
 // ---------- Live request notifications (manager/admin) ----------
 var __liveReqESAbs = null;
 var __liveReqESShift = null;
+var __liveReqPollTimer = null;
 var __liveReqDebounce = null;
 var __liveReqLastSyncedAt = 0;
 var __liveReqLastPendingCount = null;
@@ -8032,17 +8209,18 @@ function __pullRequestsNodesOnly(){
   return Promise.all([
     dbGet('/absenceRequests').catch(function(){ return null; }),
     dbGet('/shiftChangeRequests').catch(function(){ return null; }),
+    dbGet('/recurringUnavailability').catch(function(){ return null; }),
+    dbGet('/editRequests').catch(function(){ return null; }),
     dbGet('/absenceHistory').catch(function(){ return null; }),
     dbGet('/shiftChangeHistory').catch(function(){ return null; })
   ]).then(function(res){
-    var ar = res[0] || {};
-    var sr = res[1] || {};
-    var ah = res[2] || {};
-    var sh = res[3] || {};
-    App.absenceRequests = ar || {};
-    App.shiftChangeRequests = sr || {};
-    App.absenceHistory = ah || {};
-    App.shiftChangeHistory = sh || {};
+    App.absenceRequests = (res[0] || {}) || {};
+    App.shiftChangeRequests = (res[1] || {}) || {};
+    App.recurringUnavailability = (res[2] || {}) || {};
+    App.editRequests = (res[3] || {}) || {};
+    App.absenceHistory = (res[4] || {}) || {};
+    App.shiftChangeHistory = (res[5] || {}) || {};
+    try{ saveLocal(true); }catch(e){}
   });
 }
 
@@ -8092,7 +8270,16 @@ function startLiveRequestListener(){
 
     // prime baseline
     try{ __liveReqLastPendingCount = countPendingRequestsForWeek(); }catch(e){ __liveReqLastPendingCount = null; }
-  }catch(e){}
+  
+
+    // Fallback: periodic requests-only pull (avoids overwriting unsynced planner edits)
+    try{
+      if(__liveReqPollTimer){ try{ clearInterval(__liveReqPollTimer); }catch(e){} }
+      __liveReqPollTimer = setInterval(function(){
+        try{ __scheduleLiveRequestsRefresh(); }catch(e){}
+      }, 12000);
+    }catch(e){}
+}catch(e){}
 }
 
 function stopLiveRequestListener(){
@@ -9465,7 +9652,78 @@ alert(next?'Marked week as Published (staff cannot add new shifts)':'Unpublished
 
 // ---------- Absences Sync ----------
 async function pullData(silent){
-  var data=await dbGet('');
+  var data = await dbGet('');
+  // Fallback: if workspace node is empty/misaligned, attempt to read from DB root and/or nested workspace key.
+  try{
+    var looksEmpty = (!data) || (typeof data==='object' && !Array.isArray(data) &&
+      data.staff===undefined && data.settings===undefined && data.weeks===undefined &&
+      data.availability===undefined && data.recurringUnavailability===undefined);
+    if(looksEmpty && App.settings && App.settings.dbUrl){
+      var rootUrl = App.settings.dbUrl.replace(/\/$/,'') + '/.json';
+      var rr = await fetch(withAuth(rootUrl));
+      if(rr && rr.ok){
+        var rootData = await rr.json();
+        if(rootData){
+          var ws = (App.settings.workspace||'').trim();
+          // If root contains the workspace node, use it.
+          if(ws && rootData[ws] && (rootData[ws].staff || rootData[ws].settings || rootData[ws].weeks)){
+            data = rootData[ws];
+          }
+          // If root itself is an exported payload, use it and (best-effort) migrate into workspace.
+          else if(rootData.staff || rootData.settings || rootData.weeks){
+            data = rootData;
+
+// If root isn't directly the export (common when imported under a single node), scan one level deep.
+if(!(rootData.staff||rootData.settings||rootData.weeks||rootData.availability||rootData.recurringUnavailability)){
+  try{
+    var rk = Object.keys(rootData||{});
+    for(var i=0;i<rk.length;i++){
+      var kk = rk[i];
+      var vv = rootData[kk];
+      if(vv && typeof vv==='object' && (vv.staff||vv.settings||vv.weeks||vv.availability||vv.recurringUnavailability)){
+        data = vv;
+        break;
+      }
+    }
+  }catch(e){}
+}
+            try{
+              if(ws && typeof dbPatch==='function'){
+                await dbPatch('', data);
+              }
+            }catch(e){}
+          }
+        }
+      }
+    }
+  }catch(e){}
+
+
+// If the downloaded payload is wrapped under a single key (common after console JSON import),
+// unwrap it by searching one level deep for the first object that looks like an app export.
+try{
+  function __looksLikeExport(o){
+    if(!o || typeof o!=='object') return false;
+    return (o.staff!==undefined) || (o.settings!==undefined) || (o.weeks!==undefined) ||
+           (o.availability!==undefined) || (o.recurringUnavailability!==undefined) ||
+           (o.absenceRequests!==undefined) || (o.shiftChangeRequests!==undefined);
+  }
+  if(data && typeof data==='object' && !Array.isArray(data) && !__looksLikeExport(data)){
+    // common wrapper keys
+    if(data.data && __looksLikeExport(data.data)) data = data.data;
+    else if(data.export && __looksLikeExport(data.export)) data = data.export;
+    else{
+      var ks = Object.keys(data||{});
+      if(ks.length===1 && __looksLikeExport(data[ks[0]])) data = data[ks[0]];
+      else{
+        for(var i=0;i<ks.length;i++){
+          var k = ks[i];
+          if(__looksLikeExport(data[k])){ data = data[k]; break; }
+        }
+      }
+    }
+  }
+}catch(e){}
   if(data){
     App.staff=data.staff||App.staff;
     App.availability=data.availability||App.availability;
@@ -9488,10 +9746,12 @@ async function pullData(silent){
     }
   }
   saveLocal();
-if(typeof updateRequestsBadge==='function') updateRequestsBadge();
+  if(typeof updateRequestsBadge==='function') updateRequestsBadge();
   if(typeof maybeAutoOpenRequestsModal==='function') maybeAutoOpenRequestsModal(true);
   try{ if(App.currentUser && typeof notifyMyRequestStatus==='function') notifyMyRequestStatus(); }catch(e){}
-  if(!silent){ populateLoginSelects(); populateExistingStaff(); }
+  // Always rehydrate login UI when logged out, even for silent pulls.
+  if(!silent || !App.currentUser){ try{ populateLoginSelects(); populateExistingStaff(); }catch(e){} }
+
   var __title=document.getElementById('appTitle');
   if(__title) __title.textContent = App.settings.appTitle || 'M&C-ATRD-scheduler --=Aspire Group=--';
   var __logo=document.getElementById('appLogoBox');
@@ -9549,7 +9809,7 @@ if(typeof updateRequestsBadge==='function') updateRequestsBadge();
       renderPlanner();
       renderPayroll();
       try{ byId('tabMyRequests').style.display='inline-block'; }catch(e){}
-  renderMyShifts();
+      renderMyShifts();
       try{
         var absSec = byId('absencesSection');
         if(absSec && absSec.classList && absSec.classList.contains('show')) renderAbsenceCalendar();
@@ -9568,6 +9828,15 @@ if(typeof updateRequestsBadge==='function') updateRequestsBadge();
       }catch(e){}
     }
   }catch(e){}
+  return true;
+}
+
+
+async function pullRequestsOnly(silent){
+  // Requests-only pull: updates request stores without overwriting weeks/planner.
+  await __pullRequestsNodesOnly();
+  try{ if(typeof updateRequestsBadge==='function') updateRequestsBadge(); }catch(e){}
+  try{ __maybeAutoPopupRequests('requests-only'); }catch(e){}
   return true;
 }
 
