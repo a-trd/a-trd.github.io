@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1"/>
-  <title>M&C-ATRD-scheduler --=Aspire Group=-- (V3.7.9)</title>
+  <title>M&C-ATRD-scheduler --=Aspire Group=-- (V3.9.0)</title>
   <meta name="theme-color" content="#22c55e"/>
 
   <style>
@@ -1759,6 +1759,7 @@
           <div style="flex:1;"></div>
           <button id="btnCopyDay" class="btn-outline">Copy Day →</button>
           <button id="btnCopyWeek" class="btn-outline">Copy Week →</button>
+          <button id="btnTemplates" class="btn-outline">Templates…</button>
           <button id="btnRecurring" class="btn-outline">Add Recurring</button>
           <button id="btnPublish" class="btn-outline">Toggle Publish</button>
           <button id="btnPrint" class="btn-outline">Print (current)</button>
@@ -2003,13 +2004,14 @@
           <div style="height:8px"></div>
           <div style="display:flex;gap:8px;flex-wrap:wrap;">
             <button id="btnSaveSettings" class="btn-primary">Save</button>
+            <button id="btnPushPlannerAndSettings" class="btn-outline" title="Admin only: pushes planner + settings (use with care)">Push Planner + Settings</button>
             <button id="btnResetLocal" class="btn-outline">Reset Local Cache</button>
             <button id="btnExportSettings" class="btn-outline">Export Data</button>
             <input id="importSettingsInput" type="file" accept="application/json" style="display:none">
             <button id="btnImportSettings" class="btn-outline">Import Data</button>
           </div>
           <div class="muted" style="margin-top:6px;">
-            Syncs automatically on startup. Use global Push/Pull to force.
+            Syncs automatically on startup. Use global Push/Pull to force. Use “Push Planner + Settings” only when you intend to update settings on the server (admin only).
             Auto Pull/Push run when set &amp; you’re logged in (Push requires manager/admin).
           </div>
         </div>
@@ -2578,6 +2580,56 @@
     </div>
   </div>
 
+
+  <!-- Weekly roster templates modal -->
+  <div id="templatesModal" class="modal" style="z-index:2050;">
+    <div class="panel" style="max-width:720px;">
+      <h3>Weekly roster templates</h3>
+
+      <div class="muted" style="margin-top:4px;">
+        Create a template from the current week’s roster, then apply it to any week.
+      </div>
+
+      <div style="margin-top:12px;">
+        <label>New template name</label>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+          <input id="tplNameInput" type="text" placeholder="e.g., Standard Week A" style="flex:1;min-width:220px;">
+          <button id="btnTplCreateFromCurrent" class="btn-primary">Create from this week</button>
+        </div>
+      </div>
+
+      <div style="margin-top:14px;">
+        <label>Saved templates</label>
+        <div id="tplList" class="muted" style="margin-top:8px;"></div>
+      </div>
+
+      <div style="margin-top:14px;">
+        <label>Apply to week</label>
+        <div class="grid-2" style="margin-top:6px;">
+          <div>
+            <label>Week start (any date in week)</label>
+            <input id="tplTargetDate" type="date">
+          </div>
+          <div>
+            <label>Apply mode</label>
+            <select id="tplApplyMode">
+              <option value="replace">Replace week roster</option>
+              <option value="merge">Merge into week (keep existing)</option>
+            </select>
+          </div>
+        </div>
+        <div class="muted" style="margin-top:6px;">
+          Replace overwrites that week’s shifts. Merge only adds shifts where that staff has no shift on that day.
+        </div>
+      </div>
+
+      <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;justify-content:flex-end;">
+        <button id="btnTplClose" class="btn-outline">Close</button>
+      </div>
+    </div>
+  </div>
+
+
   <!-- Requests modal -->
   <div id="requestsModal" class="modal" style="z-index:2000;">
     <div class="panel">
@@ -2675,8 +2727,8 @@ var DAY = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 var App = {
   // IMPORTANT: Increment App.version *and* App.buildId whenever making functional changes to this file.
   // SAFETY NET: This build performs an automatic runtime check against the file name; if mismatched, it shows a blocking warning so it can't be overlooked.
-  version: 'V3.7.9',
-    buildId: '2026-02-03.3',
+  version: 'V3.9.0',
+    buildId: '2026-02-08.1',
 settings: {
     dbUrl:'https://mnc-atrd-default-rtdb.asia-southeast1.firebasedatabase.app/', workspace:'mnc-atrd', authToken:'',
     theme:'light', themeName:'light-pastel-sky', recentColors:[], appTitle:'M&C-ATRD-scheduler --=Aspire Group=--', logoUrl:'',
@@ -2716,6 +2768,7 @@ publishedWeeks: {}
   payWithheld:{}, payWithheldByWeek:{}, payWithheldLog:[],
   recurringUnavailability:{},
   editRequests:{},
+  rosterTemplates:{},
   currentUser:null,
   cacheKey:'mc_scheduler_cache_v14_23_3',
   connKey:'mc_scheduler_conn_v1'
@@ -3585,7 +3638,7 @@ function bindUndoRedoShortcuts(){
 // ---------- Local Storage ----------
 function saveLocal(skipHistory){
   try{
-    localStorage.setItem(App.cacheKey, JSON.stringify({settings:App.settings,staff:App.staff,weeks:App.weeks,availability:App.availability,recurringUnavailability:App.recurringUnavailability,editRequests:App.editRequests,absenceRequests:App.absenceRequests,absenceHistory:App.absenceHistory,shiftChangeRequests:App.shiftChangeRequests,shiftChangeHistory:App.shiftChangeHistory,payrollAdjustments:App.payrollAdjustments,payrollPaid:App.payrollPaid,payWithheld:App.payWithheld,payWithheldByWeek:App.payWithheldByWeek,payWithheldLog:App.payWithheldLog,version:App.version}));
+    localStorage.setItem(App.cacheKey, JSON.stringify({settings:App.settings,staff:App.staff,weeks:App.weeks,availability:App.availability,recurringUnavailability:App.recurringUnavailability,editRequests:App.editRequests,rosterTemplates:App.rosterTemplates||{},absenceRequests:App.absenceRequests,absenceHistory:App.absenceHistory,shiftChangeRequests:App.shiftChangeRequests,shiftChangeHistory:App.shiftChangeHistory,payrollAdjustments:App.payrollAdjustments,payrollPaid:App.payrollPaid,payWithheld:App.payWithheld,payWithheldByWeek:App.payWithheldByWeek,payWithheldLog:App.payWithheldLog,version:App.version}));
   }catch(e){}
   try{ if(!skipHistory) historyCapture(); }catch(e){}
 }
@@ -3853,7 +3906,7 @@ function startAutoSyncTimers(){
   var p=parseInt(App.settings.autoPullMins||0,10);
   var q=parseInt(App.settings.autoPushMins||0,10);
   if(p>0){ autoPullTimer=setInterval(function(){ pullData(false).catch(function(){}); }, p*60000); }
-  if(q>0){ autoPushTimer=setInterval(function(){ if(canEdit()) pushData().catch(function(){}); }, q*60000); }
+  if(q>0){ autoPushTimer=setInterval(function(){ if(canEdit()) pushPlannerData().catch(function(){}); }, q*60000); }
 }
 
 // ---------- Init ----------
@@ -3989,7 +4042,7 @@ function init(){
     // - All users (including admin) persist Request pop-up/notification preferences under /userPrefs/<uid>.
     var __saveChain = Promise.resolve(true);
     if(__isAdmin){
-      __saveChain = dbPatch('', {settings:App.settings});
+      __saveChain = dbPatch('', {settings:App.settings, staff:App.staff});
     }
     __saveChain.then(function(){
       return pushUserPrefsRequestPopups();
@@ -4049,10 +4102,33 @@ function init(){
 
   byId('btnResetLocal').onclick = function(){ resetLocalCache(false); };
 
+  // Admin-only: Push planner + settings in one action (use with care).
+  var __btnPushPlannerAndSettings = byId('btnPushPlannerAndSettings');
+  if(__btnPushPlannerAndSettings){
+    __btnPushPlannerAndSettings.onclick = function(){
+      if(!(typeof isAdmin==='function' && isAdmin())){
+        alert('Admin only.');
+        return;
+      }
+      splashShow('Pushing planner + settings…');
+      pushPlannerAndSettingsAdmin().then(function(){
+        return pushUserPrefsRequestPopups();
+      }).then(function(){
+        splashHide('Pushed planner + settings ✓');
+      }).catch(function(e){
+        splashHide('Push failed');
+        alert('Push failed: '+(e && e.message ? e.message : e));
+      });
+    };
+  }
 
-  byId('btnExportSettings').onclick=function(){ var data={settings:App.settings,staff:App.staff,availability:App.availability,weeks:App.weeks,absenceRequests:App.absenceRequests||{},absenceHistory:App.absenceHistory||{},shiftChangeRequests:App.shiftChangeRequests||{},shiftChangeHistory:App.shiftChangeHistory||{},payrollAdjustments:App.payrollAdjustments||{},payrollPaid:App.payrollPaid||{},payWithheld:App.payWithheld||{},payWithheldByWeek:App.payWithheldByWeek||{},payWithheldLog:App.payWithheldLog||[],recurringUnavailability:App.recurringUnavailability||{},editRequests:App.editRequests||{},version:App.version}; var a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'})); a.download='munchandcrun_export.json'; a.click(); };
+
+
+  byId('btnExportSettings').onclick=function(){ var data={settings:App.settings,staff:App.staff,availability:App.availability,weeks:App.weeks,absenceRequests:App.absenceRequests||{},absenceHistory:App.absenceHistory||{},shiftChangeRequests:App.shiftChangeRequests||{},shiftChangeHistory:App.shiftChangeHistory||{},payrollAdjustments:App.payrollAdjustments||{},payrollPaid:App.payrollPaid||{},payWithheld:App.payWithheld||{},payWithheldByWeek:App.payWithheldByWeek||{},payWithheldLog:App.payWithheldLog||[],recurringUnavailability:App.recurringUnavailability||{},editRequests:App.editRequests||{},rosterTemplates:App.rosterTemplates||{},version:App.version}; var a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'})); a.download='munchandcrun_export.json'; a.click(); };
   byId('btnImportSettings').onclick=function(){ byId('importSettingsInput').click(); };
-  byId('importSettingsInput').onchange=async function(e){ var f=e.target.files[0]; if(!f) return; try{ var d=JSON.parse(await f.text()); if(d.settings){ for(var k in d.settings){ App.settings[k]=d.settings[k]; } } App.staff=d.staff||App.staff; App.availability=d.availability||App.availability; App.recurringUnavailability=d.recurringUnavailability||App.recurringUnavailability||{}; App.editRequests=d.editRequests||App.editRequests||{}; App.weeks=d.weeks||App.weeks; App.absenceRequests=d.absenceRequests||App.absenceRequests||{}; App.absenceHistory=d.absenceHistory||App.absenceHistory||{}; App.shiftChangeRequests=d.shiftChangeRequests||App.shiftChangeRequests||{}; App.shiftChangeHistory=d.shiftChangeHistory||App.shiftChangeHistory||{}; App.payrollAdjustments=d.payrollAdjustments||App.payrollAdjustments||{}; App.payrollPaid=d.payrollPaid||App.payrollPaid||{}; App.payWithheld=d.payWithheld||App.payWithheld||{}; App.payWithheldByWeek=d.payWithheldByWeek||App.payWithheldByWeek||{}; App.payWithheldLog=d.payWithheldLog||App.payWithheldLog||[]; saveLocal(); populateLoginSelects(); populateExistingStaff(); renderAfterLogin(); startAutoSyncTimers(); alert('Imported. Use Push to sync.'); }catch(err){ alert('Invalid JSON'); } };
+  byId('importSettingsInput').onchange=async function(e){ var f=e.target.files[0]; if(!f) return; try{ var d=JSON.parse(await f.text()); if(d.settings){ for(var k in d.settings){ App.settings[k]=d.settings[k]; } } App.staff=d.staff||App.staff; App.availability=d.availability||App.availability; App.recurringUnavailability=d.recurringUnavailability||App.recurringUnavailability||{}; App.editRequests=d.editRequests||App.editRequests||{};
+    App.rosterTemplates=d.rosterTemplates||App.rosterTemplates||{};
+    App.weeks=d.weeks||App.weeks; App.absenceRequests=d.absenceRequests||App.absenceRequests||{}; App.absenceHistory=d.absenceHistory||App.absenceHistory||{}; App.shiftChangeRequests=d.shiftChangeRequests||App.shiftChangeRequests||{}; App.shiftChangeHistory=d.shiftChangeHistory||App.shiftChangeHistory||{}; App.payrollAdjustments=d.payrollAdjustments||App.payrollAdjustments||{}; App.payrollPaid=d.payrollPaid||App.payrollPaid||{}; App.payWithheld=d.payWithheld||App.payWithheld||{}; App.payWithheldByWeek=d.payWithheldByWeek||App.payWithheldByWeek||{}; App.payWithheldLog=d.payWithheldLog||App.payWithheldLog||[]; saveLocal(); populateLoginSelects(); populateExistingStaff(); renderAfterLogin(); startAutoSyncTimers(); alert('Imported. Use Push to sync.'); }catch(err){ alert('Invalid JSON'); } };
 
   byId('btnLogin').onclick = login;
   var pwd=byId('loginPass'); if(pwd){ pwd.addEventListener('keydown',function(e){ if(e.key==='Enter'){ login(); } }); }
@@ -4088,7 +4164,7 @@ function init(){
     return;
   }
   splashShow('Pushing changes…');
-  pushData().then(function(){
+  pushPlannerData().then(function(){
     return pushUserPrefsRequestPopups();
   }).then(function(){
     splashHide('Pushed successfully ✓');
@@ -4123,7 +4199,7 @@ function init(){
   byId('btnExportJSON').onclick=function(){ if(!isAdmin()) return alert('Admin only.'); var data={settings:App.settings,staff:App.staff,availability:App.availability,weeks:App.weeks,absenceRequests:App.absenceRequests||{},absenceHistory:App.absenceHistory||{},shiftChangeRequests:App.shiftChangeRequests||{},shiftChangeHistory:App.shiftChangeHistory||{},payrollAdjustments:App.payrollAdjustments||{},payrollPaid:App.payrollPaid||{},payWithheld:App.payWithheld||{},payWithheldByWeek:App.payWithheldByWeek||{},payWithheldLog:App.payWithheldLog||[],recurringUnavailability:App.recurringUnavailability||{},editRequests:App.editRequests||{},version:App.version}; var a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'})); a.download='munchandcrun_export.json'; a.click(); };
   byId('btnExportCSV').onclick=function(){ if(!isAdmin()) return alert('Admin only.'); exportPayrollCSV(); };
   byId('btnImportJSON').onclick=function(){ if(!isAdmin()) return alert('Admin only.'); byId('importJSONInput').click(); };
-  byId('importJSONInput').onchange=async function(e){ if(!isAdmin()) return; var f=e.target.files[0]; if(!f) return; try{ var d=JSON.parse(await f.text()); if(d.settings){ for(var k in d.settings){ App.settings[k]=d.settings[k]; } } App.staff=d.staff||App.staff; App.availability=d.availability||App.availability; App.recurringUnavailability=d.recurringUnavailability||App.recurringUnavailability||{}; App.editRequests=d.editRequests||App.editRequests||{}; App.weeks=d.weeks||App.weeks; App.absenceRequests=d.absenceRequests||App.absenceRequests||{}; App.absenceHistory=d.absenceHistory||App.absenceHistory||{}; App.shiftChangeRequests=d.shiftChangeRequests||App.shiftChangeRequests||{}; App.shiftChangeHistory=d.shiftChangeHistory||App.shiftChangeHistory||{}; App.payrollAdjustments=d.payrollAdjustments||App.payrollAdjustments||{}; App.payrollPaid=d.payrollPaid||App.payrollPaid||{}; App.payWithheld=d.payWithheld||App.payWithheld||{}; App.payWithheldByWeek=d.payWithheldByWeek||App.payWithheldByWeek||{}; App.payWithheldLog=d.payWithheldLog||App.payWithheldLog||[]; saveLocal(); populateLoginSelects(); populateExistingStaff(); renderAfterLogin(); startAutoSyncTimers(); alert('Imported. Use Push to sync.'); }catch(err){ alert('Invalid JSON'); } };
+  byId('importJSONInput').onchange=async function(e){ if(!isAdmin()) return; var f=e.target.files[0]; if(!f) return; try{ var d=JSON.parse(await f.text()); if(d.settings){ for(var k in d.settings){ App.settings[k]=d.settings[k]; } } App.staff=d.staff||App.staff; App.availability=d.availability||App.availability; App.recurringUnavailability=d.recurringUnavailability||App.recurringUnavailability||{}; App.editRequests=d.editRequests||App.editRequests||{}; App.rosterTemplates=d.rosterTemplates||App.rosterTemplates||{}; App.weeks=d.weeks||App.weeks; App.absenceRequests=d.absenceRequests||App.absenceRequests||{}; App.absenceHistory=d.absenceHistory||App.absenceHistory||{}; App.shiftChangeRequests=d.shiftChangeRequests||App.shiftChangeRequests||{}; App.shiftChangeHistory=d.shiftChangeHistory||App.shiftChangeHistory||{}; App.payrollAdjustments=d.payrollAdjustments||App.payrollAdjustments||{}; App.payrollPaid=d.payrollPaid||App.payrollPaid||{}; App.payWithheld=d.payWithheld||App.payWithheld||{}; App.payWithheldByWeek=d.payWithheldByWeek||App.payWithheldByWeek||{}; App.payWithheldLog=d.payWithheldLog||App.payWithheldLog||[]; saveLocal(); populateLoginSelects(); populateExistingStaff(); renderAfterLogin(); startAutoSyncTimers(); alert('Imported. Use Push to sync.'); }catch(err){ alert('Invalid JSON'); } };
 
   byId('btnPrevWeek').onclick=function(){ shiftWeek(-1); };
   byId('btnNextWeek').onclick=function(){ shiftWeek(1); };
@@ -4134,6 +4210,7 @@ function init(){
   byId('btnPayrollNextWeek').onclick=function(){ shiftWeek(1); };
   byId('btnCopyDay').onclick=function(){ if(!canEdit()) return alert('Manager/Admin only.'); copyDayToNext(); };
   byId('btnCopyWeek').onclick=function(){ if(!canEdit()) return alert('Manager/Admin only.'); copyWeekToNext(); };
+  var __btnTpl=byId('btnTemplates'); if(__btnTpl) __btnTpl.onclick=function(){ if(!canEdit()) return alert('Manager/Admin only.'); openTemplatesModal(); };
   byId('btnRecurring').onclick=function(){ if(!canEdit()) return alert('Manager/Admin only.'); openShiftModal({repeatOpen:true}); };
   byId('btnPublish').onclick=function(){ if(!canEdit()) return alert('Manager/Admin only.'); togglePublishWeek(); };
   byId('btnPrint').onclick=function(){ window.print(); };
@@ -9729,6 +9806,7 @@ try{
     App.availability=data.availability||App.availability;
     App.recurringUnavailability=data.recurringUnavailability||App.recurringUnavailability||{};
     App.editRequests=data.editRequests||App.editRequests||{};
+    App.rosterTemplates=data.rosterTemplates||App.rosterTemplates||{};
     App.absenceRequests=data.absenceRequests||App.absenceRequests||{};
     App.absenceHistory=data.absenceHistory||App.absenceHistory||{};
     App.weeks=data.weeks||App.weeks;
@@ -9840,9 +9918,267 @@ async function pullRequestsOnly(silent){
   return true;
 }
 
-async function pushData(){
+
+// ---------- Weekly roster templates ----------
+function ensureRosterTemplatesStore(){
+  if(!App.rosterTemplates) App.rosterTemplates = {};
+}
+function __tplFmtDate(ts){
+  try{ return new Date(ts).toLocaleString(); }catch(e){ return ''; }
+}
+function __tplDeepClone(obj){
+  return JSON.parse(JSON.stringify(obj||{}));
+}
+function __tplWeekIsoFromAnyDateInput(val){
+  try{
+    if(!val) return Planner.weekStartISO;
+    var d = new Date(val+'T00:00:00');
+    return toISO(weekStart(d));
+  }catch(e){
+    return Planner.weekStartISO;
+  }
+}
+function __tplCloneWeekWithNewIds(weekData){
+  var out = {};
+  weekData = weekData || {};
+  for(var di=0; di<7; di++){
+    var dk = String(di);
+    var day = weekData[dk];
+    if(!day) continue;
+    var nd = {};
+    Object.keys(day).forEach(function(k){
+      var sh = day[k];
+      if(!sh) return;
+      var nid = uid();
+      // Copy only shift fields (defensive)
+      nd[nid] = {
+        id: nid,
+        staffId: sh.staffId,
+        day: sh.day!=null ? sh.day : di,
+        start: sh.start,
+        end: sh.end,
+        breakMins: sh.breakMins!=null ? sh.breakMins : '',
+        notes: sh.notes||'',
+        penalty: !!sh.penalty
+      };
+    });
+    if(Object.keys(nd).length) out[dk] = nd;
+  }
+  return out;
+}
+function __tplHasShiftForStaffOnDay(weekIso, dayIndex, staffId){
+  try{
+    var wk = App.weeks[weekIso] || {};
+    var day = wk[String(dayIndex)] || {};
+    var keys = Object.keys(day);
+    for(var i=0;i<keys.length;i++){
+      var sh = day[keys[i]];
+      if(sh && String(sh.staffId)===String(staffId)) return true;
+    }
+  }catch(e){}
+  return false;
+}
+function createRosterTemplateFromCurrentWeek(name){
+  ensureRosterTemplatesStore();
+  name = String(name||'').trim();
+  if(!name) throw new Error('Enter a template name');
+  var ws = Planner.weekStartISO;
+  var wk = __tplDeepClone(App.weeks[ws] || {});
+  var key = 'tpl_' + uid();
+  App.rosterTemplates[key] = {
+    id: key,
+    name: name,
+    createdAt: Date.now(),
+    sourceWeekISO: ws,
+    week: wk
+  };
+  saveLocal(true);
+  return key;
+}
+function deleteRosterTemplate(key){
+  ensureRosterTemplatesStore();
+  key = String(key||'');
+  if(!key || !App.rosterTemplates[key]) return;
+  delete App.rosterTemplates[key];
+  saveLocal(true);
+}
+function applyRosterTemplateToWeek(key, targetWeekISO, mode){
+  ensureRosterTemplatesStore();
+  key = String(key||'');
+  if(!App.rosterTemplates[key]) throw new Error('Template not found');
+  targetWeekISO = String(targetWeekISO||Planner.weekStartISO);
+  mode = (mode==='merge') ? 'merge' : 'replace';
+
+  if(!App.weeks) App.weeks = {};
+  if(!App.weeks[targetWeekISO]) App.weeks[targetWeekISO] = {};
+
+  var sourceWeek = App.rosterTemplates[key].week || {};
+  var cloned = __tplCloneWeekWithNewIds(sourceWeek);
+
+  if(mode === 'replace'){
+    App.weeks[targetWeekISO] = cloned;
+  }else{
+    // Merge: only add shifts when that staff has no shift on that day in target
+    var target = App.weeks[targetWeekISO] || {};
+    Object.keys(cloned).forEach(function(dk){
+      if(!target[dk]) target[dk] = {};
+      var srcDay = cloned[dk] || {};
+      Object.keys(srcDay).forEach(function(shiftId){
+        var sh = srcDay[shiftId];
+        if(!sh) return;
+        if(__tplHasShiftForStaffOnDay(targetWeekISO, parseInt(dk,10), sh.staffId)) return;
+        target[dk][shiftId] = sh;
+      });
+    });
+    App.weeks[targetWeekISO] = target;
+  }
+
+  saveLocal();
+  renderPlanner();
+  renderPayroll();
+  renderMyShifts();
+}
+function renderTemplatesModal(){
+  ensureRosterTemplatesStore();
+  var list = byId('tplList');
+  if(!list) return;
+
+  var keys = Object.keys(App.rosterTemplates||{});
+  keys.sort(function(a,b){
+    var A = App.rosterTemplates[a]||{};
+    var B = App.rosterTemplates[b]||{};
+    return (B.createdAt||0) - (A.createdAt||0);
+  });
+
+  if(keys.length===0){
+    list.textContent = 'No templates yet.';
+    return;
+  }
+
+  list.innerHTML = '';
+  keys.forEach(function(k){
+    var t = App.rosterTemplates[k] || {};
+    var row = document.createElement('div');
+    row.style.display='flex';
+    row.style.gap='8px';
+    row.style.alignItems='center';
+    row.style.flexWrap='wrap';
+    row.style.marginBottom='8px';
+
+    var left = document.createElement('div');
+    left.style.flex='1';
+    left.style.minWidth='220px';
+    left.innerHTML =
+      '<div style="font-weight:800">'+escapeHtml(t.name||'')+'</div>'+
+      '<div class="muted" style="font-size:12px;">Created '+escapeHtml(__tplFmtDate(t.createdAt||0))+(t.sourceWeekISO?(' · from '+escapeHtml(t.sourceWeekISO)):'')+'</div>';
+
+    var applyBtn = document.createElement('button');
+    applyBtn.className='btn-good';
+    applyBtn.textContent='Apply';
+    applyBtn.onclick=function(){
+      var dt = byId('tplTargetDate');
+      var targetISO = __tplWeekIsoFromAnyDateInput(dt?dt.value:'');
+      var modeEl = byId('tplApplyMode');
+      var mode = modeEl ? modeEl.value : 'replace';
+      if(mode==='replace'){
+        if(!confirm('Replace roster for week starting '+targetISO+'? This will overwrite shifts for that week.')) return;
+      }
+      try{
+        applyRosterTemplateToWeek(k, targetISO, mode);
+        showToast('Template applied', 'Applied "'+(t.name||'')+'" to week '+targetISO+'.', 'good', 5000);
+      }catch(e){
+        alert(e.message||e);
+      }
+    };
+
+    var delBtn = document.createElement('button');
+    delBtn.className='btn-outline';
+    delBtn.textContent='Delete';
+    delBtn.onclick=function(){
+      if(!confirm('Delete template "'+(t.name||'')+'"?')) return;
+      deleteRosterTemplate(k);
+      renderTemplatesModal();
+      // best-effort push if manager/admin
+      if(canEdit()){
+        pushPlannerData().catch(function(){});
+      }
+    };
+
+    row.appendChild(left);
+    row.appendChild(applyBtn);
+    row.appendChild(delBtn);
+    list.appendChild(row);
+  });
+}
+function openTemplatesModal(){
+  ensureRosterTemplatesStore();
+  var modal = byId('templatesModal');
+  if(!modal) return;
+  // default target date = current planner week start
+  try{
+    var d = fromISO(Planner.weekStartISO);
+    var inp = byId('tplTargetDate');
+    if(inp){
+      var yyyy = d.getFullYear();
+      var mm = ('0'+(d.getMonth()+1)).slice(-2);
+      var dd = ('0'+d.getDate()).slice(-2);
+      inp.value = yyyy+'-'+mm+'-'+dd;
+    }
+  }catch(e){}
+  renderTemplatesModal();
+  modal.style.display='flex';
+
+  var closeBtn = byId('btnTplClose');
+  if(closeBtn) closeBtn.onclick=function(){ modal.style.display='none'; };
+
+  var createBtn = byId('btnTplCreateFromCurrent');
+  if(createBtn){
+    createBtn.onclick=function(){
+      try{
+        var name = (byId('tplNameInput') && byId('tplNameInput').value) ? byId('tplNameInput').value : '';
+        var key = createRosterTemplateFromCurrentWeek(name);
+        if(byId('tplNameInput')) byId('tplNameInput').value='';
+        renderTemplatesModal();
+        showToast('Template created', 'Saved "'+ (App.rosterTemplates[key] && App.rosterTemplates[key].name ? App.rosterTemplates[key].name : '') + '".', 'good', 4500);
+        // Immediately push templates (planner push)
+        if(canEdit()){
+          pushPlannerData().catch(function(){});
+        }
+      }catch(e){
+        alert(e.message||e);
+      }
+    };
+  }
+}
+
+
+async function pushPlannerData(){
+  // Planner/operational push only (safe to use frequently).
+  // Intentionally excludes: staff + settings (those are saved via Settings→Save, or via the Admin-only push below).
+  await dbPatch('', {
+    availability:App.availability,
+    recurringUnavailability:App.recurringUnavailability||{},
+    editRequests:App.editRequests||{},
+    rosterTemplates:App.rosterTemplates||{},
+    absenceRequests:App.absenceRequests||{},
+    absenceHistory:App.absenceHistory||{},
+    weeks:App.weeks,
+    shiftChangeRequests:App.shiftChangeRequests||{},
+    shiftChangeHistory:App.shiftChangeHistory||{},
+    payrollAdjustments:App.payrollAdjustments||{},
+    payrollPaid:App.payrollPaid||{},
+    payWithheld:App.payWithheld||{},
+    payWithheldByWeek:App.payWithheldByWeek||{},
+    payWithheldLog:App.payWithheldLog||[]
+  });
+  return true;
+}
+
+async function pushPlannerAndSettingsAdmin(){
+  // Admin-only push that includes settings + staff.
   await dbPatch('', {
     staff:App.staff,
+    settings:App.settings,
     availability:App.availability,
     recurringUnavailability:App.recurringUnavailability||{},
     editRequests:App.editRequests||{},
@@ -9855,8 +10191,7 @@ async function pushData(){
     payrollPaid:App.payrollPaid||{},
     payWithheld:App.payWithheld||{},
     payWithheldByWeek:App.payWithheldByWeek||{},
-    payWithheldLog:App.payWithheldLog||[],
-    settings:App.settings
+    payWithheldLog:App.payWithheldLog||[]
   });
   return true;
 }
