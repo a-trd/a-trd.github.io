@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1"/>
-  <title>M&C-ATRD-scheduler --=Aspire Group=-- (V3.9.3)</title>
+  <title>M&C-ATRD-scheduler --=Aspire Group=-- (V3.9.4)</title>
   <meta name="theme-color" content="#22c55e"/>
 
   <style>
@@ -1416,6 +1416,8 @@
       display:inline-block;
       width:18px;
     }
+    .reqlog-month-head td{ background: rgba(0,0,0,0.08); }
+    .reqlog-day-head td{ background: rgba(0,0,0,0.05); padding-left:22px; }
 </style>
 
   <style>
@@ -1612,7 +1614,7 @@
       <div id="appLogoBox"></div>
       <div class="titlewrap">
         <div class="title" id="appTitle">M&C-ATRD-scheduler --=Aspire Group=--</div>
-        <div class="version-pill" id="appVersion">V3.7.4</div>
+        <div class="version-pill" id="appVersion">V3.9.4</div>
       </div>
     </div>
     <div class="tabs">
@@ -2742,7 +2744,7 @@ var DAY = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 var App = {
   // IMPORTANT: Increment App.version *and* App.buildId whenever making functional changes to this file.
   // SAFETY NET: This build performs an automatic runtime check against the file name; if mismatched, it shows a blocking warning so it can't be overlooked.
-  version: 'V3.9.3',
+  version: 'V3.9.4',
     buildId: '2026-02-08.1',
 settings: {
     dbUrl:'https://mnc-atrd-default-rtdb.asia-southeast1.firebasedatabase.app/', workspace:'mnc-atrd', authToken:'',
@@ -4805,35 +4807,65 @@ function renderAdminRequestsLog(){
     return rb - ra;
   });
 
-  // Group by day
-  var groups = {}; // dayISO -> {label,count,items}
+  // Group by month -> day
+  function _monthKeyFromISO(iso){
+    iso = String(iso||'');
+    if(iso.length>=7) return iso.slice(0,7); // YYYY-MM
+    return 'Unknown';
+  }
+  function _monthLabelFromKey(k){
+    if(!k || k==='Unknown') return 'Unknown month';
+    try{
+      var d = new Date(k + '-01T00:00:00');
+      if(isNaN(d.getTime())) return k;
+      return d.toLocaleString(undefined,{month:'long',year:'numeric'});
+    }catch(e){ return k; }
+  }
+
+  var months = {}; // monthKey -> {label, days:{dayISO:{label,items:[]}}}
   filtered.forEach(function(r){
-    var key = String(r.dayISO || r.dayLabel || '');
-    if(!key) key = 'Unknown';
-    if(!groups[key]) groups[key] = {key:key, label:String(r.dayLabel||key), items:[]};
-    groups[key].items.push(r);
+    var dayISO = String(r.dayISO || r.dayLabel || '');
+    if(!dayISO) dayISO = 'Unknown';
+    var mkey = _monthKeyFromISO(dayISO);
+    if(!months[mkey]) months[mkey] = {key:mkey, label:_monthLabelFromKey(mkey), days:{}};
+    if(!months[mkey].days[dayISO]) months[mkey].days[dayISO] = {key:dayISO, label:String(r.dayLabel||dayISO), items:[]};
+    months[mkey].days[dayISO].items.push(r);
   });
-  var keys = Object.keys(groups).sort(function(a,b){
-    var ta = Date.parse(a) || 0;
-    var tb = Date.parse(b) || 0;
+
+  var monthKeys = Object.keys(months).sort(function(a,b){
+    var ta = Date.parse(a+'-01') || 0;
+    var tb = Date.parse(b+'-01') || 0;
     return tb - ta;
   });
 
-  var initiallyOpenKey = keys.length ? keys[0] : '';
+  var initiallyOpenMonth = monthKeys.length ? monthKeys[0] : '';
+  var initiallyOpenDayByMonth = {}; // monthKey -> dayISO
+  monthKeys.forEach(function(mk){
+    var dkeys = Object.keys(months[mk].days).sort(function(a,b){
+      var ta = Date.parse(a) || 0;
+      var tb = Date.parse(b) || 0;
+      return tb - ta;
+    });
+    initiallyOpenDayByMonth[mk] = dkeys.length ? dkeys[0] : '';
+  });
 
-  function mkGroupHead(k, label, n, open){
+  function mkHead(kind, key, label, n, open, monthKey){
     var tr = document.createElement('tr');
-    tr.className = 'reqlog-group-head' + (open ? ' open' : '');
-    tr.setAttribute('data-group', k);
+    tr.className = 'reqlog-group-head reqlog-'+kind+'-head' + (open ? ' open' : '');
+    tr.setAttribute('data-kind', kind);
+    tr.setAttribute('data-key', key);
+    if(monthKey) tr.setAttribute('data-month', monthKey);
     tr.innerHTML = '<td colspan="7"><span class="reqlog-caret">'+(open?'▼':'▶')+'</span> '
       + escapeHtml(label) + ' <span class="muted-small">(' + n + ')</span></td>';
     return tr;
   }
 
-  function mkRow(r, groupKey){
+  function mkRow(r, dayKey, monthKey){
     var tr = document.createElement('tr');
     tr.className = 'reqlog-group-row';
-    tr.setAttribute('data-parent', groupKey);
+    tr.setAttribute('data-kind','row');
+    tr.setAttribute('data-day', dayKey);
+    tr.setAttribute('data-month', monthKey);
     _tintRowByStaffColor(tr, r.color);
     tr.innerHTML =
       '<td>'+escapeHtml(_fmtTS(r.requestedAt))+'</td>'+
@@ -4846,38 +4878,91 @@ function renderAdminRequestsLog(){
     return tr;
   }
 
-  keys.forEach(function(k){
-    var g = groups[k];
-    var open = (k === initiallyOpenKey);
-    tbody.appendChild(mkGroupHead(k, g.label, g.items.length, open));
-    g.items.sort(function(a,b){
-      var ta = Date.parse(a.resolvedAt||'') || Date.parse(a.requestedAt||'') || 0;
-      var tb = Date.parse(b.resolvedAt||'') || Date.parse(b.requestedAt||'') || 0;
+  monthKeys.forEach(function(mk){
+    var m = months[mk];
+    var monthOpen = (mk === initiallyOpenMonth);
+    var dayCount = Object.keys(m.days).reduce(function(acc,dk){ return acc + (m.days[dk].items||[]).length; }, 0);
+    tbody.appendChild(mkHead('month', mk, m.label, dayCount, monthOpen, ''));
+
+    var dayKeys = Object.keys(m.days).sort(function(a,b){
+      var ta = Date.parse(a) || 0;
+      var tb = Date.parse(b) || 0;
       return tb - ta;
     });
-    g.items.slice(0,2000).forEach(function(r){
-      var row = mkRow(r, k);
-      if(!open) row.style.display='none';
-      tbody.appendChild(row);
+
+    dayKeys.forEach(function(dk){
+      var d = m.days[dk];
+      var dayOpen = monthOpen && (dk === initiallyOpenDayByMonth[mk]);
+      var dayHead = mkHead('day', dk, d.label, (d.items||[]).length, dayOpen, mk);
+      if(!monthOpen) dayHead.style.display='none';
+      tbody.appendChild(dayHead);
+
+      d.items.sort(function(a,b){
+        var ta = Date.parse(a.resolvedAt||'') || Date.parse(a.requestedAt||'') || 0;
+        var tb = Date.parse(b.resolvedAt||'') || Date.parse(b.requestedAt||'') || 0;
+        return tb - ta;
+      });
+
+      d.items.slice(0,2000).forEach(function(r){
+        var row = mkRow(r, dk, mk);
+        if(!(monthOpen && dayOpen)) row.style.display='none';
+        tbody.appendChild(row);
+      });
     });
   });
 
   // toggle behaviour
   tbody.onclick = function(ev){
     var t = ev.target;
-    while(t && t !== tbody && !(t.tagName==='TR' && (t.classList||{}).contains && t.classList.contains('reqlog-group-head'))){
+    while(t && t !== tbody && !(t.tagName==='TR' && (t.classList||{}).contains && (t.classList.contains('reqlog-month-head') || t.classList.contains('reqlog-day-head')))){
       t = t.parentNode;
     }
     if(!t || t===tbody) return;
-    var key = t.getAttribute('data-group') || '';
-    if(!key) return;
+
     var isOpen = t.classList.contains('open');
     var nextOpen = !isOpen;
     t.classList.toggle('open', nextOpen);
     var caret = t.querySelector('.reqlog-caret');
     if(caret) caret.textContent = nextOpen ? '▼' : '▶';
-    var rows = tbody.querySelectorAll('tr.reqlog-group-row[data-parent="'+key+'"]');
-    for(var i=0;i<rows.length;i++){ rows[i].style.display = nextOpen ? '' : 'none'; }
+
+    if(t.classList.contains('reqlog-month-head')){
+      var mk = t.getAttribute('data-key') || '';
+      if(!mk) return;
+
+      // show/hide day heads for this month
+      var dayHeads = tbody.querySelectorAll('tr.reqlog-day-head[data-month="'+mk+'"]');
+      for(var i=0;i<dayHeads.length;i++){
+        dayHeads[i].style.display = nextOpen ? '' : 'none';
+      }
+
+      // show/hide rows for this month (respect day open state when opening)
+      var rows = tbody.querySelectorAll('tr.reqlog-group-row[data-month="'+mk+'"]');
+      if(!nextOpen){
+        for(var r=0;r<rows.length;r++) rows[r].style.display='none';
+      }else{
+        // for each day, if its day head is open, show rows; otherwise hide
+        for(var r2=0;r2<rows.length;r2++){
+          var dk = rows[r2].getAttribute('data-day') || '';
+          var dh = tbody.querySelector('tr.reqlog-day-head[data-month="'+mk+'"][data-key="'+dk+'"]');
+          var dayOpen = dh && dh.classList.contains('open');
+          rows[r2].style.display = dayOpen ? '' : 'none';
+        }
+      }
+      return;
+    }
+
+    if(t.classList.contains('reqlog-day-head')){
+      var dk2 = t.getAttribute('data-key') || '';
+      var mk2 = t.getAttribute('data-month') || '';
+      if(!dk2) return;
+
+      // only toggle rows (day head itself will be hidden if month closed)
+      var rows2 = tbody.querySelectorAll('tr.reqlog-group-row[data-day="'+dk2+'"][data-month="'+mk2+'"]');
+      for(var j=0;j<rows2.length;j++){
+        rows2[j].style.display = nextOpen ? '' : 'none';
+      }
+      return;
+    }
   };
 
   empty.textContent = 'Showing '+Math.min(2000, filtered.length)+' of '+filtered.length+' matching requests.';
