@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1"/>
-  <title>M&C-ATRD-scheduler --=Aspire Group=-- (V3.9.0)</title>
+  <title>M&C-ATRD-scheduler --=Aspire Group=-- (V3.9.3)</title>
   <meta name="theme-color" content="#22c55e"/>
 
   <style>
@@ -1401,6 +1401,21 @@
   opacity:0.75;
 }
 
+
+    /* ---------- Requests log grouping ---------- */
+    .reqlog-group-head td{
+      font-weight:800;
+      cursor:pointer;
+      user-select:none;
+      background: rgba(0,0,0,0.06);
+    }
+    .reqlog-group-head.open td{
+      background: rgba(0,0,0,0.10);
+    }
+    .reqlog-caret{
+      display:inline-block;
+      width:18px;
+    }
 </style>
 
   <style>
@@ -1777,7 +1792,7 @@
             View requests
             <span id="requestsCountBadge" class="req-badge">0</span>
           </button>
-          <span class="requests-hint">Manager tools – pending leave &amp; shift edits.</span>
+          <span id="requestsHint" class="requests-hint">Manager tools – pending leave &amp; shift edits.</span>
         </div>
 
         <div id="availabilityBar" class="availability" style="margin:6px 0;"></div>
@@ -2320,7 +2335,7 @@
       </div>
 
       <!-- Themes -->
-      <div class="card">
+      <div class="card" id="themesCard">
         <h3>Themes</h3>
         <div class="theme-grid" id="themeGrid"></div>
       </div>
@@ -2727,7 +2742,7 @@ var DAY = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 var App = {
   // IMPORTANT: Increment App.version *and* App.buildId whenever making functional changes to this file.
   // SAFETY NET: This build performs an automatic runtime check against the file name; if mismatched, it shows a blocking warning so it can't be overlooked.
-  version: 'V3.9.0',
+  version: 'V3.9.3',
     buildId: '2026-02-08.1',
 settings: {
     dbUrl:'https://mnc-atrd-default-rtdb.asia-southeast1.firebasedatabase.app/', workspace:'mnc-atrd', authToken:'',
@@ -2856,6 +2871,17 @@ function applyTheme(name){
   }
   App.settings.theme = t.mode; App.settings.themeName = name; saveLocal();
   try{ if(typeof queueSettingsSync==='function') queueSettingsSync(); }catch(e){}
+
+  // Per-user theme persistence (Staff theme should not affect other users)
+  try{
+    if(App && App.currentUser && App.currentUser.id && (App.currentUser.role==='staff')){
+      App.userPrefs = App.userPrefs || {};
+      App.userPrefs.themeName = name;
+      // best-effort write; does not block UI
+      dbPatch('/userPrefs/'+String(App.currentUser.id), {themeName:String(name)}).catch(function(){});
+    }
+  }catch(e){}
+
 }
 function renderThemePicker(){
   var grid=byId('themeGrid'); if(!grid) return;
@@ -3771,6 +3797,11 @@ async function pullUserPrefs(){
     if(up && typeof up === 'object'){
       App.userPrefs = up;
       applyUserPrefsToSettings();
+      // Apply per-user theme immediately (does not require opening Settings)
+      try{
+        var tname = (App.userPrefs && App.userPrefs.themeName) ? String(App.userPrefs.themeName) : '';
+        if(tname){ applyTheme(tname); try{ if(typeof renderThemePicker==='function') renderThemePicker(); }catch(e){} }
+      }catch(e){}
       ensureSettingsDefaults();
       saveLocal(true);
       try{ syncSettingsUIFromApp(); }catch(e){}
@@ -3944,8 +3975,8 @@ function init(){
   initPlanner();
   populateLoginSelects();
   // Fresh sync on app load to reduce stale cached data
-  try{ pullData(false).then(function(){ try{ populateLoginSelects(); }catch(e){} try{ syncSettingsUIFromSettings(); }catch(e){} try{ var __appTitleEl2=byId('appTitle'); if(__appTitleEl2) __appTitleEl2.textContent = App.settings.appTitle || __appTitleEl2.textContent; }catch(e){} try{ var __titleEl2=document.querySelector('.appbar .title'); if(__titleEl2) __titleEl2.textContent = App.settings.appTitle || __titleEl2.textContent; }catch(e){} try{ document.title = (App.settings.appTitle||'App')+' ('+App.version+')'; }catch(e){} try{ if(App.settings && App.settings.themeName){ applyTheme(App.settings.themeName); if(typeof renderThemePicker==='function') renderThemePicker(); } }catch(e){} }).catch(function(){}); }catch(e){}
-  applyTheme(App.settings.themeName||'dark-classic');
+  try{ pullData(false).then(function(){ try{ populateLoginSelects(); }catch(e){} try{ syncSettingsUIFromSettings(); }catch(e){} try{ var __appTitleEl2=byId('appTitle'); if(__appTitleEl2) __appTitleEl2.textContent = App.settings.appTitle || __appTitleEl2.textContent; }catch(e){} try{ var __titleEl2=document.querySelector('.appbar .title'); if(__titleEl2) __titleEl2.textContent = App.settings.appTitle || __titleEl2.textContent; }catch(e){} try{ document.title = (App.settings.appTitle||'App')+' ('+App.version+')'; }catch(e){} try{ if(App.settings && App.settings.themeName){ App.__globalThemeName = App.settings.themeName || App.__globalThemeName || 'dark-classic'; applyTheme(App.settings.themeName); if(typeof renderThemePicker==='function') renderThemePicker(); } }catch(e){} }).catch(function(){}); }catch(e){}
+  App.__globalThemeName = App.settings.themeName||App.__globalThemeName||'dark-classic'; applyTheme(App.settings.themeName||'dark-classic');
   renderThemePicker();
 
   var tb = byId('btnTheme'); if(tb){ tb.onclick = function(){ var cur=App.settings.themeName||'dark-classic'; var next=(THEMES[cur] && THEMES[cur].mode==='light') ? 'dark-classic' : 'light-classic'; applyTheme(next); renderThemePicker(); }; }
@@ -4194,7 +4225,7 @@ function init(){
   if(bottomLogout) bottomLogout.onclick=function(){ var lb=byId('btnLogout'); if(lb && lb.onclick) lb.onclick(); };
 
 
-  var logout=byId('btnLogout'); if(logout) logout.onclick=function(){ try{ stopLiveRequestListener(); }catch(e){} App.currentUser=null; showLogin(); byId('userChip').textContent=''; var nav=byId('bottomNav'); if(nav) nav.style.display='none'; startAutoSyncTimers(); };
+  var logout=byId('btnLogout'); if(logout) logout.onclick=function(){ try{ stopLiveRequestListener(); }catch(e){} App.currentUser=null; App.userPrefs=null; try{ applyTheme(App.__globalThemeName||'dark-classic'); if(typeof renderThemePicker==='function') renderThemePicker(); }catch(e){} showLogin(); byId('userChip').textContent=''; var nav=byId('bottomNav'); if(nav) nav.style.display='none'; startAutoSyncTimers(); };
 
   byId('btnExportJSON').onclick=function(){ if(!isAdmin()) return alert('Admin only.'); var data={settings:App.settings,staff:App.staff,availability:App.availability,weeks:App.weeks,absenceRequests:App.absenceRequests||{},absenceHistory:App.absenceHistory||{},shiftChangeRequests:App.shiftChangeRequests||{},shiftChangeHistory:App.shiftChangeHistory||{},payrollAdjustments:App.payrollAdjustments||{},payrollPaid:App.payrollPaid||{},payWithheld:App.payWithheld||{},payWithheldByWeek:App.payWithheldByWeek||{},payWithheldLog:App.payWithheldLog||[],recurringUnavailability:App.recurringUnavailability||{},editRequests:App.editRequests||{},version:App.version}; var a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'})); a.download='munchandcrun_export.json'; a.click(); };
   byId('btnExportCSV').onclick=function(){ if(!isAdmin()) return alert('Admin only.'); exportPayrollCSV(); };
@@ -4311,6 +4342,7 @@ async function login(){
   }else{ ok=true; }
   if(ok){
     App.currentUser={id:id, name:s.name, role:s.role||'staff', rate:s.rate||0};
+    try{ if(App.currentUser.role!=='staff'){ applyTheme(App.__globalThemeName||App.settings.themeName||'dark-classic'); } }catch(e){}
     enterApp();
     startAutoSyncTimers();
   } else {
@@ -4621,6 +4653,7 @@ function renderAdminRequestsLog(){
           requestedAt: requestedAt,
           resolvedAt: '',
           dayLabel: formatIsoForHuman(iso),
+          dayISO: String(iso),
           staffId: String(sid),
           staffName: name,
           status: 'pending',
@@ -4665,6 +4698,7 @@ function renderAdminRequestsLog(){
           requestedAt: rec.createdAt || rec.requestedAt || rec.ts || '',
           resolvedAt: rec.resolvedAt || rec.resolvedAt || '',
           dayLabel: formatIsoForHuman(iso),
+          dayISO: String(iso),
           staffId: String(sid),
           staffName: name,
           status: st,
@@ -4701,6 +4735,7 @@ function renderAdminRequestsLog(){
           requestedAt: requestedAt,
           resolvedAt: '',
           dayLabel: _shiftReqDayLabel(req, iso),
+          dayISO: String(iso),
           staffId: sid,
           staffName: name,
           status: 'pending',
@@ -4734,6 +4769,7 @@ function renderAdminRequestsLog(){
           requestedAt: rec.createdAt || rec.requestedAt || rec.ts || '',
           resolvedAt: rec.resolvedAt || '',
           dayLabel: _shiftReqDayLabel(rec, iso),
+          dayISO: String(iso),
           staffId: sid,
           staffName: name,
           status: st,
@@ -4758,14 +4794,46 @@ function renderAdminRequestsLog(){
     return;
   }
 
+  
   filtered.sort(function(a,b){
-    var ta = Date.parse(a.resolvedAt||'') || Date.parse(a.requestedAt||'') || 0;
-    var tb = Date.parse(b.resolvedAt||'') || Date.parse(b.requestedAt||'') || 0;
+    var ta = Date.parse(a.dayISO||'') || Date.parse(a.resolvedAt||'') || Date.parse(a.requestedAt||'') || 0;
+    var tb = Date.parse(b.dayISO||'') || Date.parse(b.resolvedAt||'') || Date.parse(b.requestedAt||'') || 0;
+    // sort by day (desc), then by resolved/requested (desc)
+    if(tb !== ta) return tb - ta;
+    var ra = Date.parse(a.resolvedAt||'') || Date.parse(a.requestedAt||'') || 0;
+    var rb = Date.parse(b.resolvedAt||'') || Date.parse(b.requestedAt||'') || 0;
+    return rb - ra;
+  });
+
+  // Group by day
+  var groups = {}; // dayISO -> {label,count,items}
+  filtered.forEach(function(r){
+    var key = String(r.dayISO || r.dayLabel || '');
+    if(!key) key = 'Unknown';
+    if(!groups[key]) groups[key] = {key:key, label:String(r.dayLabel||key), items:[]};
+    groups[key].items.push(r);
+  });
+  var keys = Object.keys(groups).sort(function(a,b){
+    var ta = Date.parse(a) || 0;
+    var tb = Date.parse(b) || 0;
     return tb - ta;
   });
 
-  filtered.slice(0,2000).forEach(function(r){
+  var initiallyOpenKey = keys.length ? keys[0] : '';
+
+  function mkGroupHead(k, label, n, open){
     var tr = document.createElement('tr');
+    tr.className = 'reqlog-group-head' + (open ? ' open' : '');
+    tr.setAttribute('data-group', k);
+    tr.innerHTML = '<td colspan="7"><span class="reqlog-caret">'+(open?'▼':'▶')+'</span> '
+      + escapeHtml(label) + ' <span class="muted-small">(' + n + ')</span></td>';
+    return tr;
+  }
+
+  function mkRow(r, groupKey){
+    var tr = document.createElement('tr');
+    tr.className = 'reqlog-group-row';
+    tr.setAttribute('data-parent', groupKey);
     _tintRowByStaffColor(tr, r.color);
     tr.innerHTML =
       '<td>'+escapeHtml(_fmtTS(r.requestedAt))+'</td>'+
@@ -4775,11 +4843,46 @@ function renderAdminRequestsLog(){
       '<td>'+escapeHtml(String(r.status||''))+'</td>'+
       '<td>'+escapeHtml(String(r.type||''))+'</td>'+
       '<td>'+escapeHtml(String(r.details||''))+'</td>';
-    tbody.appendChild(tr);
+    return tr;
+  }
+
+  keys.forEach(function(k){
+    var g = groups[k];
+    var open = (k === initiallyOpenKey);
+    tbody.appendChild(mkGroupHead(k, g.label, g.items.length, open));
+    g.items.sort(function(a,b){
+      var ta = Date.parse(a.resolvedAt||'') || Date.parse(a.requestedAt||'') || 0;
+      var tb = Date.parse(b.resolvedAt||'') || Date.parse(b.requestedAt||'') || 0;
+      return tb - ta;
+    });
+    g.items.slice(0,2000).forEach(function(r){
+      var row = mkRow(r, k);
+      if(!open) row.style.display='none';
+      tbody.appendChild(row);
+    });
   });
+
+  // toggle behaviour
+  tbody.onclick = function(ev){
+    var t = ev.target;
+    while(t && t !== tbody && !(t.tagName==='TR' && (t.classList||{}).contains && t.classList.contains('reqlog-group-head'))){
+      t = t.parentNode;
+    }
+    if(!t || t===tbody) return;
+    var key = t.getAttribute('data-group') || '';
+    if(!key) return;
+    var isOpen = t.classList.contains('open');
+    var nextOpen = !isOpen;
+    t.classList.toggle('open', nextOpen);
+    var caret = t.querySelector('.reqlog-caret');
+    if(caret) caret.textContent = nextOpen ? '▼' : '▶';
+    var rows = tbody.querySelectorAll('tr.reqlog-group-row[data-parent="'+key+'"]');
+    for(var i=0;i<rows.length;i++){ rows[i].style.display = nextOpen ? '' : 'none'; }
+  };
 
   empty.textContent = 'Showing '+Math.min(2000, filtered.length)+' of '+filtered.length+' matching requests.';
   empty.style.display = '';
+
 }
 
 // ---------- Tabs & render ----------
@@ -4810,7 +4913,7 @@ function initTabs(){
 function showTab(name){
   try{ App.ui = App.ui || {}; App.ui.activeTab = name; }catch(e){}
   var role = App.currentUser ? App.currentUser.role : 'staff';
-  if(name==='Settings' && role!=='admin') return;
+  if(name==='Settings' && !(role==='admin' || role==='staff')) return;
   if(name==='Payroll' && role!=='admin') return;
   if(name==='Stats' && role!=='admin') return;
 
@@ -4856,8 +4959,34 @@ function showTab(name){
     try{ buildPrintView(); }catch(e){}
   }
 }
+
+function applySettingsRoleVisibility(){
+  try{
+    var role = App.currentUser ? App.currentUser.role : 'staff';
+    var sec = byId('settingsSection');
+    if(!sec) return;
+    var cards = sec.querySelectorAll('.card');
+    for(var i=0;i<cards.length;i++){
+      var c = cards[i];
+      if(role==='staff'){
+        if(c && c.id==='themesCard'){ c.style.display=''; }
+        else if(c) { c.style.display='none'; }
+      } else {
+        if(c) c.style.display='';
+      }
+    }
+  }catch(e){}
+}
+
 function renderAfterLogin(){
   var role = App.currentUser ? App.currentUser.role : 'staff';
+
+  // role-based UI: staff should not see manager request controls
+  var reqBtn = byId('btnRequests');
+  if(reqBtn) reqBtn.style.display = (role==='staff') ? 'none' : '';
+  var reqHint = byId('requestsHint');
+  if(reqHint) reqHint.style.display = (role==='staff') ? 'none' : '';
+
 
   // hide all role-gated tabs by default
   byId('tabPlanner').style.display='none';
@@ -4889,7 +5018,7 @@ function renderAfterLogin(){
       bSettings = byId('bottomSettings');
 
   if(bMy) bMy.style.display='';
-  if(bRequests) bRequests.style.display='';
+  if(bRequests) bRequests.style.display='none';
   if(bPlanner) bPlanner.style.display='none';
   if(bPayroll) bPayroll.style.display='none';
   if(bStats) bStats.style.display='none';
@@ -4899,8 +5028,10 @@ function renderAfterLogin(){
   if(role==='staff'){
     byId('tabPlanner').style.display='inline-block';
     byId('tabPrint').style.display='inline-block';
+    byId('tabSettings').style.display='inline-block';
     if(pullTop) pullTop.style.display='inline-block';
     if(bPlanner) bPlanner.style.display='';
+    if(bSettings) bSettings.style.display='';
   }
   if(role==='manager'){
     byId('tabPlanner').style.display='inline-block';
@@ -4924,10 +5055,13 @@ function renderAfterLogin(){
   }
 
   try{ byId('tabMyRequests').style.display='inline-block'; }catch(e){}
+  try{ applySettingsRoleVisibility(); }catch(e){}
   renderMyShifts();
   renderPlanner();
   renderPayroll();
   if(typeof updateRequestsBadge==='function') updateRequestsBadge();
+
+    if(bRequests) bRequests.style.display='';
 }
 
 // ---------- Rates & OT helpers ----------
