@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1"/>
-  <title>M&C-ATRD-scheduler --=Aspire Group=-- (V3.9.4)</title>
+  <title>M&C-ATRD-scheduler --=Aspire Group=-- (V3.9.7)</title>
   <meta name="theme-color" content="#22c55e"/>
 
   <style>
@@ -1604,7 +1604,330 @@
     }
 </style>
 
-  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  
+  <style>
+    /* ---------- Payroll documents ---------- */
+    .payroll-doc-grid {
+      display:grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap:12px;
+      margin-top:14px;
+    }
+    .payroll-box {
+      background: var(--grid);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 12px;
+      box-shadow: var(--shadow-soft);
+    }
+    .payroll-box h3 { margin: 0 0 10px; }
+    .payroll-box h4 {
+      margin: 12px 0 8px;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--muted);
+    }
+    .payroll-doc-modal-panel {
+      width: min(1100px, 100%);
+      max-height: 92vh;
+    }
+    .payroll-doc-preview-host {
+      max-height: 68vh;
+      overflow: auto;
+      padding: 18px;
+      border-radius: 18px;
+      border: 1px solid rgba(148,163,184,.30);
+      background:
+        linear-gradient(180deg, rgba(148,163,184,.14), rgba(15,23,42,.10)),
+        #dbe4ee;
+    }
+    [data-theme="light"] .payroll-doc-preview-host {
+      background: #e8edf4;
+      border-color: rgba(15,23,42,.10);
+    }
+    .doc-sheet {
+      width: 100%;
+      max-width: 184mm;
+      margin: 0 auto;
+      padding: 10mm 9mm 9mm;
+      box-sizing: border-box;
+      color: #111827;
+      background: #ffffff;
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 11.25px;
+      line-height: 1.35;
+      border-radius: 4px;
+      box-shadow: 0 20px 40px rgba(15,23,42,.18);
+    }
+    .doc-header {
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:16px;
+      border-bottom: 2px solid #111827;
+      padding-bottom: 4mm;
+      margin-bottom: 6mm;
+    }
+    .doc-title {
+      font-size: 27px;
+      line-height: 1.05;
+      font-weight: 900;
+      letter-spacing: -.02em;
+      color: #0f172a;
+    }
+    .doc-subtitle {
+      font-size: 12px;
+      color: #475569;
+      margin-top: 4px;
+    }
+    .doc-chip {
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      padding:4px 10px;
+      border-radius:999px;
+      background:#eff6ff;
+      color:#1d4ed8;
+      font-weight:800;
+      font-size:11px;
+      border:1px solid #bfdbfe;
+      white-space:nowrap;
+    }
+    .doc-grid {
+      display:grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap:6mm;
+      margin-bottom: 6mm;
+      align-items: start;
+    }
+    .doc-card {
+      border: 1px solid #cbd5e1;
+      border-radius: 12px;
+      padding: 4mm 4mm 3.5mm;
+      background: #fff;
+      break-inside: avoid-page;
+      page-break-inside: avoid;
+    }
+    .doc-card h4,
+    .doc-section-label {
+      margin: 0 0 8px;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: #475569;
+      font-weight: 900;
+    }
+    .doc-section-label {
+      margin-top: 6mm;
+      margin-bottom: 3mm;
+    }
+    .doc-kv {
+      width:100%;
+      border-collapse: collapse;
+      font-size: 11px;
+    }
+    .doc-kv td {
+      padding: 1.4mm 0;
+      vertical-align: top;
+    }
+    .doc-kv td:first-child {
+      color:#475569;
+      width: 38%;
+      padding-right: 3mm;
+      font-weight: 700;
+    }
+    .doc-lines,
+    .doc-summary {
+      width:100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+      font-size: 10.6px;
+    }
+    .doc-lines th,
+    .doc-lines td,
+    .doc-summary td {
+      border-bottom: 1px solid #e2e8f0;
+      padding: 2.4mm 2mm;
+      text-align:left;
+      vertical-align: top;
+    }
+    .doc-lines th {
+      background: #f8fafc;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      color:#334155;
+    }
+    .doc-lines thead {
+      display: table-header-group;
+    }
+    .doc-lines tr {
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+    .doc-lines th:nth-child(1),
+    .doc-lines td:nth-child(1) { width: 17%; }
+    .doc-lines th:nth-child(2),
+    .doc-lines td:nth-child(2) { width: 21%; }
+    .doc-lines th:nth-child(3),
+    .doc-lines td:nth-child(3),
+    .doc-lines th:nth-child(4),
+    .doc-lines td:nth-child(4),
+    .doc-lines th:nth-child(5),
+    .doc-lines td:nth-child(5),
+    .doc-lines th:nth-child(6),
+    .doc-lines td:nth-child(6),
+    .doc-lines th:nth-child(7),
+    .doc-lines td:nth-child(7),
+    .doc-lines th:nth-child(8),
+    .doc-lines td:nth-child(8),
+    .doc-summary td:last-child {
+      text-align:right;
+      white-space:nowrap;
+      font-variant-numeric: tabular-nums;
+    }
+    .doc-lines td:nth-child(1),
+    .doc-lines td:nth-child(2) {
+      white-space: normal;
+      line-height: 1.25;
+    }
+    .doc-summary {
+      max-width: 88mm;
+      margin-left: auto;
+      margin-top: 5mm;
+    }
+    .doc-summary td:first-child {
+      color:#334155;
+    }
+    .doc-summary tr.total td {
+      font-weight: 900;
+      font-size: 14px;
+      color:#0f172a;
+      border-top: 2px solid #111827;
+    }
+    .doc-note {
+      margin-top: 4mm;
+      color: #475569;
+      font-size: 10.5px;
+      break-inside: avoid-page;
+      page-break-inside: avoid;
+    }
+    .doc-note strong {
+      color:#0f172a;
+    }
+    .doc-bad {
+      color:#b91c1c;
+      font-weight:800;
+    }
+    .doc-good {
+      color:#047857;
+      font-weight:800;
+    }
+    .doc-history-table {
+      width:100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      color: var(--fg);
+      background: transparent;
+    }
+    .doc-history-table th,
+    .doc-history-table td {
+      border-bottom: 1px solid var(--border);
+      padding: 8px 9px;
+      text-align:left;
+      vertical-align: top;
+      color: var(--fg);
+      background: transparent;
+    }
+    .doc-history-table th {
+      background: rgba(255,255,255,.06);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      color:#dbe7ff;
+    }
+    [data-theme="light"] .doc-history-table {
+      color:#0a0f1a;
+    }
+    [data-theme="light"] .doc-history-table th {
+      background:#f8fafc;
+      color:#334155;
+      border-bottom-color:#e2e8f0;
+    }
+    [data-theme="light"] .doc-history-table td {
+      color:#0a0f1a;
+      border-bottom-color:#e2e8f0;
+    }
+    @media (max-width: 960px) {
+      .payroll-doc-grid,
+      .doc-grid {
+        grid-template-columns: 1fr;
+      }
+      .doc-sheet {
+        max-width: 100%;
+        padding: 6mm;
+      }
+      .doc-lines {
+        font-size: 10px;
+      }
+    }
+    @media print {
+      .payroll-doc-preview-host {
+        max-height: none;
+        overflow: visible;
+        padding: 0;
+        border: none;
+        background: #fff;
+      }
+      .doc-sheet {
+        max-width: none;
+        width: auto;
+        padding: 0;
+        box-shadow: none;
+        border-radius: 0;
+      }
+    }
+  </style>
+
+
+  <style>
+    /* ---------- Payroll history contrast fix ---------- */
+    #payrollSection .doc-history-table,
+    #payrollSection .doc-history-table tbody,
+    #payrollSection .doc-history-table tr,
+    #payrollSection .doc-history-table td,
+    #payrollSection .doc-history-table th,
+    #payrollSection .doc-history-table .btn-outline,
+    #payrollSection #payslipHistoryEmpty {
+      color: var(--fg) !important;
+    }
+    #payrollSection .doc-history-table tbody tr:nth-child(odd) td {
+      background: rgba(255,255,255,.02);
+    }
+    #payrollSection .doc-history-table tbody tr:hover td {
+      background: rgba(255,255,255,.05);
+    }
+    [data-theme="light"] #payrollSection .doc-history-table,
+    [data-theme="light"] #payrollSection .doc-history-table tbody,
+    [data-theme="light"] #payrollSection .doc-history-table tr,
+    [data-theme="light"] #payrollSection .doc-history-table td,
+    [data-theme="light"] #payrollSection .doc-history-table th,
+    [data-theme="light"] #payrollSection .doc-history-table .btn-outline {
+      color:#0a0f1a !important;
+    }
+    [data-theme="light"] #payrollSection #payslipHistoryEmpty {
+      color:#59677a !important;
+    }
+    [data-theme="light"] #payrollSection .doc-history-table tbody tr:nth-child(odd) td {
+      background: rgba(15,23,42,.03);
+    }
+    [data-theme="light"] #payrollSection .doc-history-table tbody tr:hover td {
+      background: rgba(15,23,42,.06);
+    }
+  </style>
+
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 </head>
 <body>
 
@@ -1614,7 +1937,7 @@
       <div id="appLogoBox"></div>
       <div class="titlewrap">
         <div class="title" id="appTitle">M&C-ATRD-scheduler --=Aspire Group=--</div>
-        <div class="version-pill" id="appVersion">V3.9.4</div>
+        <div class="version-pill" id="appVersion">V3.9.7</div>
       </div>
     </div>
     <div class="tabs">
@@ -1883,10 +2206,274 @@
             </tfoot>
           </table>
         </div>
+        <div class="muted" style="margin-top:8px;">
+          Payslip export includes employer and employee details, pay period, payment date, hourly-rate lines, deductions, net pay and super contribution details. Use Print / Save PDF to export a PDF from your browser.
+        </div>
+
+        <div class="payroll-doc-grid">
+          <div class="payroll-box">
+            <h3>Business / employer details</h3>
+            <div class="grid-2">
+              <div>
+                <label>Business / employer name</label>
+                <input id="payrollBusinessName" type="text" placeholder="Employer name shown on payslip">
+              </div>
+              <div>
+                <label>Legal name (optional)</label>
+                <input id="payrollBusinessLegalName" type="text" placeholder="Registered legal name">
+              </div>
+            </div>
+            <div class="grid-2">
+              <div>
+                <label>ABN</label>
+                <input id="payrollBusinessABN" type="text" placeholder="11 digit ABN">
+              </div>
+              <div>
+                <label>ACN (optional)</label>
+                <input id="payrollBusinessACN" type="text" placeholder="9 digit ACN">
+              </div>
+            </div>
+            <div>
+              <label>Address</label>
+              <input id="payrollBusinessAddress" type="text" placeholder="Street, suburb, state, postcode">
+            </div>
+            <div class="grid-2">
+              <div>
+                <label>Email</label>
+                <input id="payrollBusinessEmail" type="text" placeholder="payroll@business.com.au">
+              </div>
+              <div>
+                <label>Phone</label>
+                <input id="payrollBusinessPhone" type="text" placeholder="Contact number">
+              </div>
+            </div>
+            <div class="grid-2">
+              <div>
+                <label>Default super fund name</label>
+                <input id="payrollBusinessSuperFundName" type="text" placeholder="Employer or default fund name">
+              </div>
+              <div>
+                <label>Default fund number / USI</label>
+                <input id="payrollBusinessSuperFundNumber" type="text" placeholder="Fund number or USI">
+              </div>
+            </div>
+            <div class="grid-2">
+              <div>
+                <label>Default super rate (%)</label>
+                <input id="payrollBusinessSuperRate" type="number" min="0" step="0.01" value="12">
+              </div>
+              <div>
+                <label>Business note (optional)</label>
+                <input id="payrollBusinessNote" type="text" placeholder="Shown in document footer if entered">
+              </div>
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
+              <button id="btnSavePayrollBusiness" class="btn-primary">Save business details</button>
+            </div>
+          </div>
+
+          <div class="payroll-box">
+            <h3>Staff payroll profile</h3>
+            <div>
+              <label>Staff</label>
+              <select id="payrollProfileStaffSelect"></select>
+            </div>
+            <div class="grid-2">
+              <div>
+                <label>Employee / payroll ID</label>
+                <input id="payrollEmployeeId" type="text" placeholder="Employee ID">
+              </div>
+              <div>
+                <label>Employment type</label>
+                <select id="payrollEmploymentType">
+                  <option value="">-- select --</option>
+                  <option value="Full-time">Full-time</option>
+                  <option value="Part-time">Part-time</option>
+                  <option value="Casual">Casual</option>
+                  <option value="Contractor">Contractor</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+            </div>
+            <div class="grid-2">
+              <div>
+                <label>Position / classification</label>
+                <input id="payrollEmployeeClassification" type="text" placeholder="Role or classification">
+              </div>
+              <div>
+                <label>ABN / ACN (optional)</label>
+                <input id="payrollEmployeeABNACN" type="text" placeholder="Optional contractor or entity ID">
+              </div>
+            </div>
+            <div>
+              <label>Address</label>
+              <input id="payrollEmployeeAddress" type="text" placeholder="Staff postal or street address">
+            </div>
+            <div class="grid-2">
+              <div>
+                <label>Email</label>
+                <input id="payrollEmployeeEmail" type="text" placeholder="Staff email">
+              </div>
+              <div>
+                <label>Phone</label>
+                <input id="payrollEmployeePhone" type="text" placeholder="Staff phone">
+              </div>
+            </div>
+            <div class="grid-2">
+              <div>
+                <label>Super fund name</label>
+                <input id="payrollEmployeeSuperFundName" type="text" placeholder="Employee fund name">
+              </div>
+              <div>
+                <label>Fund number / USI</label>
+                <input id="payrollEmployeeSuperFundNumber" type="text" placeholder="Employee fund number or USI">
+              </div>
+            </div>
+            <div class="grid-2">
+              <div>
+                <label>Member number</label>
+                <input id="payrollEmployeeSuperMemberNumber" type="text" placeholder="Member number">
+              </div>
+              <div>
+                <label>Bank details (masked, optional)</label>
+                <input id="payrollEmployeeBankMasked" type="text" placeholder="Example: BSB ***-*** / Acc ****1234">
+              </div>
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
+              <button id="btnSavePayrollStaffProfile" class="btn-primary">Save staff payroll profile</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="payroll-box" style="margin-top:14px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+            <h3 style="margin:0;">Payslip / payment summary generator</h3>
+            <div class="muted">Most browsers let you save the print dialog as PDF.</div>
+          </div>
+          <div class="grid-2" style="margin-top:10px;">
+            <div>
+              <label>Document type</label>
+              <select id="payrollDocType">
+                <option value="payslip">Payslip (weekly)</option>
+                <option value="paymentSummary">Payment summary / group certificate style</option>
+              </select>
+            </div>
+            <div>
+              <label>Staff</label>
+              <select id="payrollDocStaffSelect"></select>
+            </div>
+          </div>
+          <div class="grid-2">
+            <div id="payrollDocWeekWrap">
+              <label>Pay week (choose any date in the week)</label>
+              <input id="payrollDocWeekInput" type="date">
+              <div id="payrollDocWeekResolved" class="muted" style="margin-top:4px;"></div>
+            </div>
+            <div id="payrollDocFyWrap">
+              <label>Financial year</label>
+              <select id="payrollDocFySelect"></select>
+              <div class="muted" style="margin-top:4px;">Year-end summary aggregates by stored pay date. If no pay date is saved for a week, the app defaults to the week end date.</div>
+            </div>
+          </div>
+          <div class="grid-2">
+            <div>
+              <label id="payrollDocPayDateLabel">Payment date</label>
+              <input id="payrollDocPayDate" type="date">
+            </div>
+            <div>
+              <label>Document note (optional)</label>
+              <input id="payrollDocQuickNote" type="text" placeholder="Optional footer note for this document">
+            </div>
+          </div>
+
+          <div id="payrollWeekDataFields">
+            <h4>Weekly payslip fields</h4>
+            <div class="grid-2">
+              <div>
+                <label>PAYG withheld</label>
+                <input id="payrollWeekPAYG" type="number" min="0" step="0.01" value="0">
+              </div>
+              <div>
+                <label>Super contribution amount (leave blank for auto)</label>
+                <input id="payrollWeekSuper" type="number" min="0" step="0.01" placeholder="Auto from ordinary earnings">
+              </div>
+            </div>
+            <div class="grid-2">
+              <div>
+                <label>Other deductions</label>
+                <input id="payrollWeekOtherDeduction" type="number" min="0" step="0.01" value="0">
+              </div>
+              <div>
+                <label>Deductions details</label>
+                <input id="payrollWeekOtherDeductionNote" type="text" placeholder="Example: Salary sacrifice, union fee">
+              </div>
+            </div>
+            <div class="grid-2">
+              <div>
+                <label>Annual leave balance (optional)</label>
+                <input id="payrollWeekLeaveAnnual" type="text" placeholder="Example: 42.50 h">
+              </div>
+              <div>
+                <label>Personal / sick leave balance (optional)</label>
+                <input id="payrollWeekLeaveSick" type="text" placeholder="Example: 18.00 h">
+              </div>
+            </div>
+            <div class="grid-2">
+              <div>
+                <label>Long service leave balance (optional)</label>
+                <input id="payrollWeekLeaveLong" type="text" placeholder="Example: 0.00 h">
+              </div>
+              <div>
+                <label>Payslip note</label>
+                <input id="payrollWeekNote" type="text" placeholder="Optional note for this week">
+              </div>
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
+              <button id="btnSavePayrollWeekData" class="btn-outline">Save weekly payslip fields</button>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
+            <button id="btnPreviewPayslip" class="btn-outline">Preview</button>
+            <button id="btnPrintPayslipPdf" class="btn-primary">Print / Save PDF</button>
+          </div>
+        </div>
+
+        <div class="payroll-box" style="margin-top:14px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+            <h3 style="margin:0;">Document history</h3>
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+              <label>Staff</label>
+              <select id="payslipHistoryStaffFilter"></select>
+              <label>Type</label>
+              <select id="payslipHistoryTypeFilter">
+                <option value="">All</option>
+                <option value="payslip">Payslips</option>
+                <option value="paymentSummary">Payment summaries</option>
+              </select>
+            </div>
+          </div>
+          <div class="table-wrapper" style="margin-top:10px;">
+            <table class="table doc-history-table" id="payslipHistoryTable">
+              <thead>
+                <tr>
+                  <th>Generated</th>
+                  <th>Document</th>
+                  <th>Staff</th>
+                  <th>Period</th>
+                  <th>Pay / Statement date</th>
+                  <th>Gross</th>
+                  <th>Net</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <div id="payslipHistoryEmpty" class="muted" style="margin-top:8px;display:none;">No payroll documents have been recorded yet.</div>
+        </div>
       </div>
     </section>
-
-
 
 <!-- Stats (Admin only) -->
 <section id="statsSection" class="section">
@@ -2454,12 +3041,13 @@
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;">
         <button id="withholdManageSetWeek" class="btn-primary">Set withheld (shown week)</button>
         <button id="withholdManageClearWeek" class="btn-outline">Clear withheld (shown week)</button>
+        <button id="withholdManagePayPart" class="btn-good">Pay part of withheld</button>
       </div>
 
       <div style="margin-top:14px;">
-        <label>Withhold entries (shown week)</label>
+        <label>Withheld log (shown week)</label>
         <div id="withholdManageList" style="margin-top:8px;"></div>
-        <div class="muted small" style="margin-top:6px;">Tip: Use “Set withheld (shown week)” to correct a typo quickly. Removing an entry will update withheld totals immediately.</div>
+        <div class="muted small" style="margin-top:6px;">Tip: Use “Set withheld (shown week)” to correct a typo quickly. “Pay part of withheld” releases the oldest withheld weeks first and records each paid part in the log.</div>
       </div>
 
       <div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;margin-top:14px;">
@@ -2670,6 +3258,23 @@
   </div>
 
 
+
+  <div id="payrollDocModal" class="modal" style="z-index:2150;">
+    <div class="panel payroll-doc-modal-panel">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+        <div>
+          <h3 id="payrollDocModalTitle" style="margin:0;">Document preview</h3>
+          <div id="payrollDocModalMeta" class="muted" style="margin-top:4px;"></div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button id="btnPayrollDocModalPrint" class="btn-primary">Print / Save PDF</button>
+          <button id="btnPayrollDocModalClose" class="btn-outline">Close</button>
+        </div>
+      </div>
+      <div id="payrollDocPreviewHost" class="payroll-doc-preview-host" style="margin-top:12px;"></div>
+    </div>
+  </div>
+
     <nav id="bottomNav" class="bottom-nav" aria-label="Primary navigation">
     <button id="bottomMy">
       <span>🏠</span>
@@ -2744,8 +3349,8 @@ var DAY = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 var App = {
   // IMPORTANT: Increment App.version *and* App.buildId whenever making functional changes to this file.
   // SAFETY NET: This build performs an automatic runtime check against the file name; if mismatched, it shows a blocking warning so it can't be overlooked.
-  version: 'V3.9.4',
-    buildId: '2026-02-08.1',
+  version: 'V3.9.7',
+    buildId: '2026-04-03.1',
 settings: {
     dbUrl:'https://mnc-atrd-default-rtdb.asia-southeast1.firebasedatabase.app/', workspace:'mnc-atrd', authToken:'',
     theme:'light', themeName:'light-pastel-sky', recentColors:[], appTitle:'M&C-ATRD-scheduler --=Aspire Group=--', logoUrl:'',
@@ -2783,6 +3388,9 @@ publishedWeeks: {}
   },
   staff:{}, availability:{}, weeks:{}, absenceRequests:{}, absenceHistory:{}, shiftChangeRequests:{}, shiftChangeHistory:{}, payrollAdjustments:{}, payrollPaid:{},
   payWithheld:{}, payWithheldByWeek:{}, payWithheldLog:[],
+  payrollProfiles:{business:{}, staff:{}},
+  payrollWeekData:{},
+  payslipRecords:[],
   recurringUnavailability:{},
   editRequests:{},
   rosterTemplates:{},
@@ -3437,6 +4045,9 @@ function historySnapshotObj(){
     payWithheld: App.payWithheld,
     payWithheldByWeek: App.payWithheldByWeek,
     payWithheldLog: App.payWithheldLog,
+    payrollProfiles: App.payrollProfiles,
+    payrollWeekData: App.payrollWeekData,
+    payslipRecords: App.payslipRecords,
     version: App.version
   };
 }
@@ -3586,6 +4197,9 @@ function historyApplySnapshotString(s){
     if(d.payWithheld) App.payWithheld = d.payWithheld;
     if(d.payWithheldByWeek) App.payWithheldByWeek = d.payWithheldByWeek;
     if(d.payWithheldLog) App.payWithheldLog = d.payWithheldLog;
+    if(d.payrollProfiles) App.payrollProfiles = d.payrollProfiles;
+    if(d.payrollWeekData) App.payrollWeekData = d.payrollWeekData;
+    if(d.payslipRecords) App.payslipRecords = d.payslipRecords;
     if(d.version) App.version = d.version;
 
     // If current user no longer exists, force logout to avoid broken state
@@ -3666,7 +4280,7 @@ function bindUndoRedoShortcuts(){
 // ---------- Local Storage ----------
 function saveLocal(skipHistory){
   try{
-    localStorage.setItem(App.cacheKey, JSON.stringify({settings:App.settings,staff:App.staff,weeks:App.weeks,availability:App.availability,recurringUnavailability:App.recurringUnavailability,editRequests:App.editRequests,rosterTemplates:App.rosterTemplates||{},absenceRequests:App.absenceRequests,absenceHistory:App.absenceHistory,shiftChangeRequests:App.shiftChangeRequests,shiftChangeHistory:App.shiftChangeHistory,payrollAdjustments:App.payrollAdjustments,payrollPaid:App.payrollPaid,payWithheld:App.payWithheld,payWithheldByWeek:App.payWithheldByWeek,payWithheldLog:App.payWithheldLog,version:App.version}));
+    localStorage.setItem(App.cacheKey, JSON.stringify({settings:App.settings,staff:App.staff,weeks:App.weeks,availability:App.availability,recurringUnavailability:App.recurringUnavailability,editRequests:App.editRequests,rosterTemplates:App.rosterTemplates||{},absenceRequests:App.absenceRequests,absenceHistory:App.absenceHistory,shiftChangeRequests:App.shiftChangeRequests,shiftChangeHistory:App.shiftChangeHistory,payrollAdjustments:App.payrollAdjustments,payrollPaid:App.payrollPaid,payWithheld:App.payWithheld,payWithheldByWeek:App.payWithheldByWeek,payWithheldLog:App.payWithheldLog,payrollProfiles:App.payrollProfiles,payrollWeekData:App.payrollWeekData,payslipRecords:App.payslipRecords,version:App.version}));
   }catch(e){}
   try{ if(!skipHistory) historyCapture(); }catch(e){}
 }
@@ -3682,7 +4296,7 @@ function loadLocal(){ try{
         if(c.authToken!=null) App.settings.authToken = c.authToken;
       }
     }catch(e){}
-    var raw=localStorage.getItem(App.cacheKey); if(!raw) return; var d=JSON.parse(raw)||{}; if(d.settings){ for(var k in d.settings){ App.settings[k]=d.settings[k]; } } App.staff=d.staff||App.staff; App.weeks=d.weeks||App.weeks; App.availability=d.availability||App.availability; App.recurringUnavailability=d.recurringUnavailability||App.recurringUnavailability||{}; App.editRequests=d.editRequests||App.editRequests||{}; App.absenceRequests=d.absenceRequests||App.absenceRequests||{}; App.absenceHistory=d.absenceHistory||App.absenceHistory||{}; App.shiftChangeRequests=d.shiftChangeRequests||App.shiftChangeRequests||{}; App.shiftChangeHistory=d.shiftChangeHistory||App.shiftChangeHistory||{}; App.payrollAdjustments=d.payrollAdjustments||App.payrollAdjustments||{}; App.payrollPaid=d.payrollPaid||App.payrollPaid||{}; App.payWithheld=d.payWithheld||App.payWithheld||{}; App.payWithheldByWeek=d.payWithheldByWeek||App.payWithheldByWeek||{}; App.payWithheldLog=d.payWithheldLog||App.payWithheldLog||[]; App.absenceHistory=d.absenceHistory||App.absenceHistory; App.shiftChangeRequests=d.shiftChangeRequests||App.shiftChangeRequests; App.shiftChangeHistory=d.shiftChangeHistory||App.shiftChangeHistory||{}; App.payrollAdjustments=d.payrollAdjustments||App.payrollAdjustments||{}; App.payrollPaid=d.payrollPaid||App.payrollPaid||{}; App.payWithheld=d.payWithheld||App.payWithheld||{}; App.payWithheldByWeek=d.payWithheldByWeek||App.payWithheldByWeek||{}; App.payWithheldLog=d.payWithheldLog||App.payWithheldLog||[]; }catch(e){} }
+    var raw=localStorage.getItem(App.cacheKey); if(!raw) return; var d=JSON.parse(raw)||{}; if(d.settings){ for(var k in d.settings){ App.settings[k]=d.settings[k]; } } App.staff=d.staff||App.staff; App.weeks=d.weeks||App.weeks; App.availability=d.availability||App.availability; App.recurringUnavailability=d.recurringUnavailability||App.recurringUnavailability||{}; App.editRequests=d.editRequests||App.editRequests||{}; App.absenceRequests=d.absenceRequests||App.absenceRequests||{}; App.absenceHistory=d.absenceHistory||App.absenceHistory||{}; App.shiftChangeRequests=d.shiftChangeRequests||App.shiftChangeRequests||{}; App.shiftChangeHistory=d.shiftChangeHistory||App.shiftChangeHistory||{}; App.payrollAdjustments=d.payrollAdjustments||App.payrollAdjustments||{}; App.payrollPaid=d.payrollPaid||App.payrollPaid||{}; App.payWithheld=d.payWithheld||App.payWithheld||{}; App.payWithheldByWeek=d.payWithheldByWeek||App.payWithheldByWeek||{}; App.payWithheldLog=d.payWithheldLog||App.payWithheldLog||[]; App.payrollProfiles=d.payrollProfiles||App.payrollProfiles||{business:{},staff:{}}; App.payrollWeekData=d.payrollWeekData||App.payrollWeekData||{}; App.payslipRecords=d.payslipRecords||App.payslipRecords||[]; App.absenceHistory=d.absenceHistory||App.absenceHistory; App.shiftChangeRequests=d.shiftChangeRequests||App.shiftChangeRequests; App.shiftChangeHistory=d.shiftChangeHistory||App.shiftChangeHistory||{}; App.payrollAdjustments=d.payrollAdjustments||App.payrollAdjustments||{}; App.payrollPaid=d.payrollPaid||App.payrollPaid||{}; App.payWithheld=d.payWithheld||App.payWithheld||{}; App.payWithheldByWeek=d.payWithheldByWeek||App.payWithheldByWeek||{}; App.payWithheldLog=d.payWithheldLog||App.payWithheldLog||[]; App.payrollProfiles=d.payrollProfiles||App.payrollProfiles||{business:{},staff:{}}; App.payrollWeekData=d.payrollWeekData||App.payrollWeekData||{}; App.payslipRecords=d.payslipRecords||App.payslipRecords||[]; }catch(e){} }
 
 // Shared helper for resetting local cache
 function resetLocalCache(allowAll){
@@ -3957,6 +4571,7 @@ function init(){
   initColorRecents();
   initTabs();
   try{ bindUndoRedoShortcuts(); }catch(e){}
+  try{ bindPayrollDocUI(); }catch(e){}
 
   // Stats UI (admin only)
   try{
@@ -4157,11 +4772,11 @@ function init(){
 
 
 
-  byId('btnExportSettings').onclick=function(){ var data={settings:App.settings,staff:App.staff,availability:App.availability,weeks:App.weeks,absenceRequests:App.absenceRequests||{},absenceHistory:App.absenceHistory||{},shiftChangeRequests:App.shiftChangeRequests||{},shiftChangeHistory:App.shiftChangeHistory||{},payrollAdjustments:App.payrollAdjustments||{},payrollPaid:App.payrollPaid||{},payWithheld:App.payWithheld||{},payWithheldByWeek:App.payWithheldByWeek||{},payWithheldLog:App.payWithheldLog||[],recurringUnavailability:App.recurringUnavailability||{},editRequests:App.editRequests||{},rosterTemplates:App.rosterTemplates||{},version:App.version}; var a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'})); a.download='munchandcrun_export.json'; a.click(); };
+  byId('btnExportSettings').onclick=function(){ var data={settings:App.settings,staff:App.staff,availability:App.availability,weeks:App.weeks,absenceRequests:App.absenceRequests||{},absenceHistory:App.absenceHistory||{},shiftChangeRequests:App.shiftChangeRequests||{},shiftChangeHistory:App.shiftChangeHistory||{},payrollAdjustments:App.payrollAdjustments||{},payrollPaid:App.payrollPaid||{},payWithheld:App.payWithheld||{},payWithheldByWeek:App.payWithheldByWeek||{},payWithheldLog:App.payWithheldLog||[],payrollProfiles:App.payrollProfiles||{business:{},staff:{}},payrollWeekData:App.payrollWeekData||{},payslipRecords:App.payslipRecords||[],recurringUnavailability:App.recurringUnavailability||{},editRequests:App.editRequests||{},rosterTemplates:App.rosterTemplates||{},version:App.version}; var a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'})); a.download='munchandcrun_export.json'; a.click(); };
   byId('btnImportSettings').onclick=function(){ byId('importSettingsInput').click(); };
   byId('importSettingsInput').onchange=async function(e){ var f=e.target.files[0]; if(!f) return; try{ var d=JSON.parse(await f.text()); if(d.settings){ for(var k in d.settings){ App.settings[k]=d.settings[k]; } } App.staff=d.staff||App.staff; App.availability=d.availability||App.availability; App.recurringUnavailability=d.recurringUnavailability||App.recurringUnavailability||{}; App.editRequests=d.editRequests||App.editRequests||{};
     App.rosterTemplates=d.rosterTemplates||App.rosterTemplates||{};
-    App.weeks=d.weeks||App.weeks; App.absenceRequests=d.absenceRequests||App.absenceRequests||{}; App.absenceHistory=d.absenceHistory||App.absenceHistory||{}; App.shiftChangeRequests=d.shiftChangeRequests||App.shiftChangeRequests||{}; App.shiftChangeHistory=d.shiftChangeHistory||App.shiftChangeHistory||{}; App.payrollAdjustments=d.payrollAdjustments||App.payrollAdjustments||{}; App.payrollPaid=d.payrollPaid||App.payrollPaid||{}; App.payWithheld=d.payWithheld||App.payWithheld||{}; App.payWithheldByWeek=d.payWithheldByWeek||App.payWithheldByWeek||{}; App.payWithheldLog=d.payWithheldLog||App.payWithheldLog||[]; saveLocal(); populateLoginSelects(); populateExistingStaff(); renderAfterLogin(); startAutoSyncTimers(); alert('Imported. Use Push to sync.'); }catch(err){ alert('Invalid JSON'); } };
+    App.weeks=d.weeks||App.weeks; App.absenceRequests=d.absenceRequests||App.absenceRequests||{}; App.absenceHistory=d.absenceHistory||App.absenceHistory||{}; App.shiftChangeRequests=d.shiftChangeRequests||App.shiftChangeRequests||{}; App.shiftChangeHistory=d.shiftChangeHistory||App.shiftChangeHistory||{}; App.payrollAdjustments=d.payrollAdjustments||App.payrollAdjustments||{}; App.payrollPaid=d.payrollPaid||App.payrollPaid||{}; App.payWithheld=d.payWithheld||App.payWithheld||{}; App.payWithheldByWeek=d.payWithheldByWeek||App.payWithheldByWeek||{}; App.payWithheldLog=d.payWithheldLog||App.payWithheldLog||[]; App.payrollProfiles=d.payrollProfiles||App.payrollProfiles||{business:{},staff:{}}; App.payrollWeekData=d.payrollWeekData||App.payrollWeekData||{}; App.payslipRecords=d.payslipRecords||App.payslipRecords||[]; saveLocal(); populateLoginSelects(); populateExistingStaff(); renderAfterLogin(); startAutoSyncTimers(); alert('Imported. Use Push to sync.'); }catch(err){ alert('Invalid JSON'); } };
 
   byId('btnLogin').onclick = login;
   var pwd=byId('loginPass'); if(pwd){ pwd.addEventListener('keydown',function(e){ if(e.key==='Enter'){ login(); } }); }
@@ -4229,10 +4844,10 @@ function init(){
 
   var logout=byId('btnLogout'); if(logout) logout.onclick=function(){ try{ stopLiveRequestListener(); }catch(e){} App.currentUser=null; App.userPrefs=null; try{ applyTheme(App.__globalThemeName||'dark-classic'); if(typeof renderThemePicker==='function') renderThemePicker(); }catch(e){} showLogin(); byId('userChip').textContent=''; var nav=byId('bottomNav'); if(nav) nav.style.display='none'; startAutoSyncTimers(); };
 
-  byId('btnExportJSON').onclick=function(){ if(!isAdmin()) return alert('Admin only.'); var data={settings:App.settings,staff:App.staff,availability:App.availability,weeks:App.weeks,absenceRequests:App.absenceRequests||{},absenceHistory:App.absenceHistory||{},shiftChangeRequests:App.shiftChangeRequests||{},shiftChangeHistory:App.shiftChangeHistory||{},payrollAdjustments:App.payrollAdjustments||{},payrollPaid:App.payrollPaid||{},payWithheld:App.payWithheld||{},payWithheldByWeek:App.payWithheldByWeek||{},payWithheldLog:App.payWithheldLog||[],recurringUnavailability:App.recurringUnavailability||{},editRequests:App.editRequests||{},version:App.version}; var a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'})); a.download='munchandcrun_export.json'; a.click(); };
+  byId('btnExportJSON').onclick=function(){ if(!isAdmin()) return alert('Admin only.'); var data={settings:App.settings,staff:App.staff,availability:App.availability,weeks:App.weeks,absenceRequests:App.absenceRequests||{},absenceHistory:App.absenceHistory||{},shiftChangeRequests:App.shiftChangeRequests||{},shiftChangeHistory:App.shiftChangeHistory||{},payrollAdjustments:App.payrollAdjustments||{},payrollPaid:App.payrollPaid||{},payWithheld:App.payWithheld||{},payWithheldByWeek:App.payWithheldByWeek||{},payWithheldLog:App.payWithheldLog||[],payrollProfiles:App.payrollProfiles||{business:{},staff:{}},payrollWeekData:App.payrollWeekData||{},payslipRecords:App.payslipRecords||[],recurringUnavailability:App.recurringUnavailability||{},editRequests:App.editRequests||{},version:App.version}; var a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'})); a.download='munchandcrun_export.json'; a.click(); };
   byId('btnExportCSV').onclick=function(){ if(!isAdmin()) return alert('Admin only.'); exportPayrollCSV(); };
   byId('btnImportJSON').onclick=function(){ if(!isAdmin()) return alert('Admin only.'); byId('importJSONInput').click(); };
-  byId('importJSONInput').onchange=async function(e){ if(!isAdmin()) return; var f=e.target.files[0]; if(!f) return; try{ var d=JSON.parse(await f.text()); if(d.settings){ for(var k in d.settings){ App.settings[k]=d.settings[k]; } } App.staff=d.staff||App.staff; App.availability=d.availability||App.availability; App.recurringUnavailability=d.recurringUnavailability||App.recurringUnavailability||{}; App.editRequests=d.editRequests||App.editRequests||{}; App.rosterTemplates=d.rosterTemplates||App.rosterTemplates||{}; App.weeks=d.weeks||App.weeks; App.absenceRequests=d.absenceRequests||App.absenceRequests||{}; App.absenceHistory=d.absenceHistory||App.absenceHistory||{}; App.shiftChangeRequests=d.shiftChangeRequests||App.shiftChangeRequests||{}; App.shiftChangeHistory=d.shiftChangeHistory||App.shiftChangeHistory||{}; App.payrollAdjustments=d.payrollAdjustments||App.payrollAdjustments||{}; App.payrollPaid=d.payrollPaid||App.payrollPaid||{}; App.payWithheld=d.payWithheld||App.payWithheld||{}; App.payWithheldByWeek=d.payWithheldByWeek||App.payWithheldByWeek||{}; App.payWithheldLog=d.payWithheldLog||App.payWithheldLog||[]; saveLocal(); populateLoginSelects(); populateExistingStaff(); renderAfterLogin(); startAutoSyncTimers(); alert('Imported. Use Push to sync.'); }catch(err){ alert('Invalid JSON'); } };
+  byId('importJSONInput').onchange=async function(e){ if(!isAdmin()) return; var f=e.target.files[0]; if(!f) return; try{ var d=JSON.parse(await f.text()); if(d.settings){ for(var k in d.settings){ App.settings[k]=d.settings[k]; } } App.staff=d.staff||App.staff; App.availability=d.availability||App.availability; App.recurringUnavailability=d.recurringUnavailability||App.recurringUnavailability||{}; App.editRequests=d.editRequests||App.editRequests||{}; App.rosterTemplates=d.rosterTemplates||App.rosterTemplates||{}; App.weeks=d.weeks||App.weeks; App.absenceRequests=d.absenceRequests||App.absenceRequests||{}; App.absenceHistory=d.absenceHistory||App.absenceHistory||{}; App.shiftChangeRequests=d.shiftChangeRequests||App.shiftChangeRequests||{}; App.shiftChangeHistory=d.shiftChangeHistory||App.shiftChangeHistory||{}; App.payrollAdjustments=d.payrollAdjustments||App.payrollAdjustments||{}; App.payrollPaid=d.payrollPaid||App.payrollPaid||{}; App.payWithheld=d.payWithheld||App.payWithheld||{}; App.payWithheldByWeek=d.payWithheldByWeek||App.payWithheldByWeek||{}; App.payWithheldLog=d.payWithheldLog||App.payWithheldLog||[]; App.payrollProfiles=d.payrollProfiles||App.payrollProfiles||{business:{},staff:{}}; App.payrollWeekData=d.payrollWeekData||App.payrollWeekData||{}; App.payslipRecords=d.payslipRecords||App.payslipRecords||[]; saveLocal(); populateLoginSelects(); populateExistingStaff(); renderAfterLogin(); startAutoSyncTimers(); alert('Imported. Use Push to sync.'); }catch(err){ alert('Invalid JSON'); } };
 
   byId('btnPrevWeek').onclick=function(){ shiftWeek(-1); };
   byId('btnNextWeek').onclick=function(){ shiftWeek(1); };
@@ -5032,7 +5647,7 @@ function showTab(name){
   if(name==='My'){ byId('mySection').classList.add('show'); try{ renderMyShifts(); }catch(e){} }
   if(name==='MyRequests'){ byId('myRequestsSection').classList.add('show'); try{ renderMyRequests(); }catch(e){} }
   if(name==='Planner') byId('plannerSection').classList.add('show');
-  if(name==='Payroll') byId('payrollSection').classList.add('show');
+  if(name==='Payroll'){ byId('payrollSection').classList.add('show'); try{ renderPayroll(); }catch(e){} try{ syncPayrollFormsFromApp(); }catch(e){} try{ renderPayslipHistory(); }catch(e){} }
   if(name==='Stats'){ byId('statsSection').classList.add('show'); try{ renderStats(); }catch(e){} }
   if(name==='Settings'){ byId('settingsSection').classList.add('show'); try{ renderAdminHistory(); }catch(e){} }
   if(name==='Absences'){
@@ -5996,13 +6611,13 @@ async function onSaveStaff(){
   var id = selectedId || uid();
   App.staff[id]={name:name,rate:rate,rateWeekend:rateWeekend,ratePenalty:ratePenalty,otMult:otMult,otWeekly:otWeekly,otDaily:otDaily,breakDefault:br,role:role,color:color,hidden:hidden,passHash:passHash};
   App.settings.recentColors=[color].concat((App.settings.recentColors||[]).filter(function(c){return c!==color;})).slice(0,12);
-  saveLocal(); populateLoginSelects(); populateExistingStaff(); alert('Saved staff.');
+  saveLocal(); populateLoginSelects(); populateExistingStaff(); try{ syncPayrollFormsFromApp(); }catch(e){} alert('Saved staff.');
 }
 function onDeleteStaff(){
   if(!isAdmin()) return alert('Admin only.');
   var id=byId('existingStaffSelect').value; if(!id) return alert('Pick a staff to delete');
   if(!confirm('Delete '+((App.staff[id]&&App.staff[id].name)||'staff')+'?')) return;
-  delete App.staff[id]; saveLocal(); populateLoginSelects(); populateExistingStaff(); clearStaffForm();
+  delete App.staff[id]; saveLocal(); populateLoginSelects(); populateExistingStaff(); clearStaffForm(); try{ syncPayrollFormsFromApp(); }catch(e){}
 }
 function loadStaffIntoForm(){
   var id=this.value; if(!id){ clearStaffForm(); return; }
@@ -8868,6 +9483,87 @@ function clearWithheld(staffId, note){
     dbPatch('/payWithheldLog', App.payWithheldLog||[]).catch(function(){});
   }catch(e){}
 }
+function payPartialWithheld(staffId, amount, note){
+  if(!isAdmin()) return alert('Admin only.');
+  ensureWithheldStores();
+  staffId = String(staffId||'');
+  amount = round2(amount);
+  if(!staffId) return [];
+  if(!isFinite(amount) || amount<=0) return [];
+
+  var balance = round2(getWithheldBalance(staffId));
+  if(balance<=0.0001) return [];
+  if(amount > balance) amount = balance;
+
+  var remaining = amount;
+  var allocations = [];
+  var touchedWeeks = {};
+  var weeks = Object.keys(App.payWithheldByWeek||{}).filter(function(w){
+    return App.payWithheldByWeek[w] && numFromAnyWithheld(App.payWithheldByWeek[w][staffId]) > 0.0001;
+  }).sort();
+
+  for(var i=0; i<weeks.length && remaining>0.0001; i++){
+    var weekIso = String(weeks[i]||'');
+    var cur = round2(numFromAnyWithheld(App.payWithheldByWeek[weekIso][staffId]));
+    if(cur<=0.0001) continue;
+    var used = round2(Math.min(cur, remaining));
+    var next = round2(cur - used);
+    if(next<=0.0001){
+      delete App.payWithheldByWeek[weekIso][staffId];
+      if(Object.keys(App.payWithheldByWeek[weekIso]).length===0) delete App.payWithheldByWeek[weekIso];
+    }else{
+      App.payWithheldByWeek[weekIso][staffId] = next;
+    }
+    remaining = round2(remaining - used);
+    allocations.push({weekIso:weekIso, amount:used});
+    touchedWeeks[weekIso] = true;
+  }
+
+  var paidTotal = round2(amount - remaining);
+  if(paidTotal<=0.0001) return [];
+
+  App.payWithheld[staffId] = round2(Math.max(0, getWithheldBalance(staffId) - paidTotal));
+  var ts = new Date().toISOString();
+  allocations.forEach(function(rec){
+    App.payWithheldLog.push({ts:ts, type:'partialPaid', weekIso:rec.weekIso, staffId:staffId, amount:rec.amount, note:note||''});
+  });
+  saveLocal();
+
+  try{
+    var p1={};
+    p1[staffId]=App.payWithheld[staffId];
+    dbPatch('/payWithheld', p1).catch(function(){});
+    var p2={};
+    Object.keys(touchedWeeks).forEach(function(weekIso){ p2[weekIso] = App.payWithheldByWeek[weekIso] || null; });
+    dbPatch('/payWithheldByWeek', p2).catch(function(){});
+    dbPatch('/payWithheldLog', App.payWithheldLog||[]).catch(function(){});
+  }catch(e){}
+
+  return allocations;
+}
+function openPartialWithheldPaymentPrompt(staffId){
+  staffId = String(staffId||'');
+  if(!staffId) return;
+  var staff = App.staff[staffId] || {};
+  var bal = round2(getWithheldBalance(staffId));
+  if(bal<=0.0001) return alert('No withheld balance to pay.');
+  var amtStr = prompt('Amount of withheld pay to release to '+(staff.name||('staff '+staffId))+' now:', String(bal));
+  if(amtStr===null) return;
+  var amt = round2(parseFloat(amtStr));
+  if(!isFinite(amt) || amt<=0){ alert('Enter a positive amount.'); return; }
+  if(amt > bal) amt = bal;
+  var note = prompt('Note for this partial payment (optional):', 'Partial withheld payment') || '';
+  var allocations = payPartialWithheld(staffId, amt, note);
+  if(!allocations.length) return alert('No withheld amount was updated.');
+  renderPayroll();
+  renderMyShifts();
+  try{
+    if(byId('withholdManageModal') && byId('withholdManageModal').style.display==='flex' && String(_withholdManageCtx.staffId||'')===staffId){
+      openWithholdManageModal(staffId);
+    }
+  }catch(e){}
+}
+
 function openPayrollWithholdPrompt(staffId){
   staffId = String(staffId||'');
   if(!staffId) return;
@@ -8950,55 +9646,82 @@ function removeWithheldLogEntry(idx){
   ensureWithheldStores();
   idx = parseInt(idx, 10);
   if(!isFinite(idx) || idx<0 || idx>= (App.payWithheldLog||[]).length) return;
-  var e = App.payWithheldLog[idx];
-  if(!e) return;
-  var type = String(e.type||'');
-  if(type !== 'withhold' && type !== 'adjust'){
-    return alert('Only withhold/adjust entries can be removed.');
+  var entry = App.payWithheldLog[idx];
+  if(!entry) return;
+  var type = String(entry.type||'');
+  if(type !== 'withhold' && type !== 'adjust' && type !== 'partialPaid'){
+    return alert('Only withhold, adjust, or part-paid entries can be removed.');
   }
-  var staffId = String(e.staffId||'');
-  var weekIso = String(e.weekIso||'');
-  var amt = parseFloat(e.amount||0);
+  var staffId = String(entry.staffId||'');
+  var weekIso = String(entry.weekIso||'');
+  var amt = round2(parseFloat(entry.amount||0));
   if(!isFinite(amt)) amt = 0;
 
-  if(!confirm('Remove this entry?\n\n'+(staffId?('Staff: '+(App.staff[staffId]&&App.staff[staffId].name?App.staff[staffId].name:staffId)):'')+'\nAmount: '+(amt>=0?fmtMoney(amt):('-'+fmtMoney(Math.abs(amt))))+'\nNote: '+String(e.note||''))){
-    return;
-  }
-
-  // Reverse the effect of this entry
-  if(weekIso){
-    if(App.payWithheldByWeek[weekIso] && App.payWithheldByWeek[weekIso][staffId]!=null){
-      var curW = numFromAnyWithheld(App.payWithheldByWeek[weekIso][staffId])||0;
-      var nv = curW - amt;
-      if(nv <= 0.0001){
-        delete App.payWithheldByWeek[weekIso][staffId];
-        if(Object.keys(App.payWithheldByWeek[weekIso]).length===0) delete App.payWithheldByWeek[weekIso];
-      }else{
-        App.payWithheldByWeek[weekIso][staffId] = nv;
-      }
+  if(type !== 'partialPaid' && weekIso && staffId){
+    var hasLaterPartPaid = (App.payWithheldLog||[]).some(function(it, i){
+      if(i === idx || !it) return false;
+      if(String(it.staffId||'') !== staffId) return false;
+      if(String(it.weekIso||'') !== weekIso) return false;
+      if(String(it.type||'') !== 'partialPaid') return false;
+      return i > idx;
+    });
+    if(hasLaterPartPaid){
+      return alert('Remove newer part-paid entries for this week first, then remove the original withhold/adjust entry.');
     }
   }
 
-  if(staffId){
-    var curB = getWithheldBalance(staffId);
-    var nb = curB - amt;
-    if(nb < 0) nb = 0;
-    App.payWithheld[staffId] = nb;
+  var typeLabel = type === 'withhold' ? 'Withheld' : (type === 'adjust' ? 'Adjustment' : 'Part-paid');
+  var shownAmt = (type === 'partialPaid')
+    ? ('-'+fmtMoney(Math.abs(amt)))
+    : (amt>=0 ? fmtMoney(amt) : ('-'+fmtMoney(Math.abs(amt))));
+
+  if(!confirm('Remove this entry?\n\nType: '+typeLabel+'\n'+(staffId?('Staff: '+(App.staff[staffId]&&App.staff[staffId].name?App.staff[staffId].name:staffId)+'\n'):'')+'Amount: '+shownAmt+'\nNote: '+String(entry.note||''))){
+    return;
   }
 
-  // Remove log entry
+  if(type === 'partialPaid'){
+    if(weekIso){
+      if(!App.payWithheldByWeek[weekIso]) App.payWithheldByWeek[weekIso] = {};
+      App.payWithheldByWeek[weekIso][staffId] = round2((numFromAnyWithheld(App.payWithheldByWeek[weekIso][staffId])||0) + Math.abs(amt));
+    }
+    if(staffId){
+      App.payWithheld[staffId] = round2(getWithheldBalance(staffId) + Math.abs(amt));
+    }
+  }else{
+    if(weekIso && App.payWithheldByWeek[weekIso] && App.payWithheldByWeek[weekIso][staffId]!=null){
+      var curW = numFromAnyWithheld(App.payWithheldByWeek[weekIso][staffId])||0;
+      var nextW = round2(curW - amt);
+      if(nextW <= 0.0001){
+        delete App.payWithheldByWeek[weekIso][staffId];
+        if(Object.keys(App.payWithheldByWeek[weekIso]).length===0) delete App.payWithheldByWeek[weekIso];
+      }else{
+        App.payWithheldByWeek[weekIso][staffId] = nextW;
+      }
+    }
+    if(staffId){
+      var curB = getWithheldBalance(staffId);
+      var nextB = round2(curB - amt);
+      if(nextB < 0) nextB = 0;
+      App.payWithheld[staffId] = nextB;
+    }
+  }
+
   App.payWithheldLog.splice(idx, 1);
   saveLocal();
-// Push withheld to Firebase (best-effort)
   try{
-    if(staffId){ var p1={}; p1[staffId]=App.payWithheld[staffId]; dbPatch('/payWithheld', p1).catch(function(){}); }
-    if(weekIso){ var p2={}; p2[weekIso]=App.payWithheldByWeek[weekIso] || null; dbPatch('/payWithheldByWeek', p2).catch(function(){}); }
+    if(staffId){
+      var p1={}; p1[staffId]=App.payWithheld[staffId];
+      dbPatch('/payWithheld', p1).catch(function(){});
+    }
+    if(weekIso){
+      var p2={}; p2[weekIso]=App.payWithheldByWeek[weekIso] || null;
+      dbPatch('/payWithheldByWeek', p2).catch(function(){});
+    }
     dbPatch('/payWithheldLog', App.payWithheldLog||[]).catch(function(){});
   }catch(e){}
 
   renderPayroll();
   renderMyShifts();
-  // Refresh modal list if open
   try{ if(byId('withholdManageModal') && byId('withholdManageModal').style.display==='flex') openWithholdManageModal(_withholdManageCtx.staffId); }catch(e){}
 }
 
@@ -9027,7 +9750,6 @@ function openWithholdManageModal(staffId){
     + '<div class="muted small">Withheld (shown week): <b>'+escapeHtml(fmtMoney(wWeek))+'</b></div>'
     + '<div class="muted small">Withheld balance: <b>'+escapeHtml(fmtMoney(wBal))+'</b></div>';
 
-  // Build list
   var rows = [];
   for(var i=(App.payWithheldLog||[]).length-1; i>=0; i--){
     var it = App.payWithheldLog[i];
@@ -9035,14 +9757,14 @@ function openWithholdManageModal(staffId){
     if(String(it.staffId||'') !== staffId) continue;
     if(String(it.weekIso||'') !== weekIso) continue;
     var tp = String(it.type||'');
-    if(tp !== 'withhold' && tp !== 'adjust') continue;
+    if(tp !== 'withhold' && tp !== 'adjust' && tp !== 'partialPaid') continue;
     rows.push({idx:i, it:it});
     if(rows.length>=30) break;
   }
 
   var html = '';
   if(rows.length===0){
-    html = '<div class="muted small">No withhold entries recorded for this week.</div>';
+    html = '<div class="muted small">No withheld log entries were recorded for this week.</div>';
   }else{
     html += '<div class="table-wrap" style="overflow-x:auto;">'
       + '<table class="table" style="min-width:620px;">'
@@ -9051,11 +9773,13 @@ function openWithholdManageModal(staffId){
       var it=r.it;
       var when='';
       try{ when = new Date(it.ts||'').toLocaleString(); }catch(e){ when = String(it.ts||''); }
+      var tp = String(it.type||'');
+      var typeLabel = tp==='withhold' ? 'Withheld' : (tp==='adjust' ? 'Adjustment' : 'Part-paid');
       var amt = parseFloat(it.amount||0); if(!isFinite(amt)) amt=0;
-      var amtTxt = (amt<0?('-'+fmtMoney(Math.abs(amt))):fmtMoney(amt));
+      var amtTxt = tp==='partialPaid' ? ('-'+fmtMoney(Math.abs(amt))) : (amt<0?('-'+fmtMoney(Math.abs(amt))):fmtMoney(amt));
       html += '<tr>'
         + '<td>'+escapeHtml(when)+'</td>'
-        + '<td>'+escapeHtml(String(it.type||''))+'</td>'
+        + '<td>'+escapeHtml(typeLabel)+'</td>'
         + '<td style="white-space:nowrap;font-weight:800;">'+escapeHtml(amtTxt)+'</td>'
         + '<td>'+escapeHtml(String(it.note||''))+'</td>'
         + '<td><button type="button" class="btn-outline withhold-remove-entry-btn" data-idx="'+String(r.idx)+'">Remove</button></td>'
@@ -9106,11 +9830,17 @@ function closeWithholdManageModal(){
     var weekIso = String(Planner.weekStartISO||'');
     var cur = getWithheldForWeek(weekIso, sid);
     if(cur<=0.0001) return alert('Nothing withheld for this week.');
-    if(!confirm('Clear withheld for this week only?\n\nThis keeps other weeks\' withheld amounts intact.')) return;
+    if(!confirm("Clear withheld for this week only?\n\nThis keeps other weeks' withheld amounts intact.")) return;
     adjustWithheldDelta(weekIso, sid, -cur, 'Clear week withheld');
     renderPayroll();
     renderMyShifts();
     openWithholdManageModal(sid);
+  };
+
+  var payBtn = byId('withholdManagePayPart');
+  if(payBtn) payBtn.onclick = function(){
+    if(!_withholdManageCtx.staffId) return;
+    openPartialWithheldPaymentPrompt(_withholdManageCtx.staffId);
   };
 })();
 
@@ -9125,6 +9855,1060 @@ document.addEventListener('click', function(ev){
   }
 });
 
+
+// ---------- Payroll documents ----------
+var PayrollDocs = { currentDoc:null, currentKey:'', currentType:'payslip' };
+
+function round2(n){
+  n = parseFloat(n||0);
+  if(!isFinite(n)) n = 0;
+  return Math.round(n * 100) / 100;
+}
+function numOr0(v){
+  var n = parseFloat(v||0);
+  return isFinite(n) ? n : 0;
+}
+function setInputValueIfIdle(id, value){
+  var el = byId(id);
+  if(!el) return;
+  if(document.activeElement === el) return;
+  el.value = value == null ? '' : String(value);
+}
+function setTextIfExists(id, value){
+  var el = byId(id);
+  if(el) el.textContent = value == null ? '' : String(value);
+}
+function ensurePayrollDocStores(){
+  if(!App.payrollProfiles || typeof App.payrollProfiles !== 'object') App.payrollProfiles = {};
+  if(!App.payrollProfiles.business || typeof App.payrollProfiles.business !== 'object') App.payrollProfiles.business = {};
+  if(!App.payrollProfiles.staff || typeof App.payrollProfiles.staff !== 'object') App.payrollProfiles.staff = {};
+  if(!App.payrollWeekData || typeof App.payrollWeekData !== 'object') App.payrollWeekData = {};
+  if(!Array.isArray(App.payslipRecords)) App.payslipRecords = [];
+}
+function syncPayrollDocStoresBestEffort(){
+  try{
+    dbPatch('', {
+      payrollProfiles:App.payrollProfiles||{business:{},staff:{}},
+      payrollWeekData:App.payrollWeekData||{},
+      payslipRecords:App.payslipRecords||[]
+    }).catch(function(){});
+  }catch(e){}
+}
+function payrollEligibleStaffIds(){
+  return Object.keys(App.staff||{}).filter(function(id){
+    var st = App.staff[id] || {};
+    return !st.hidden;
+  }).sort(function(a,b){
+    return ((App.staff[a]&&App.staff[a].name)||'').localeCompare((App.staff[b]&&App.staff[b].name)||'');
+  });
+}
+function payrollStaffName(staffId){
+  var st = (App.staff && App.staff[staffId]) || {};
+  return st.name || staffId || 'Staff';
+}
+function payrollWeekIsoFromAny(raw){
+  try{
+    if(!raw) raw = Planner.weekStartISO;
+    return toISO(weekStart(fromISO(String(raw))));
+  }catch(e){
+    return Planner.weekStartISO;
+  }
+}
+function payrollSelectedWeekIso(){
+  var el = byId('payrollDocWeekInput');
+  return payrollWeekIsoFromAny(el && el.value ? el.value : Planner.weekStartISO);
+}
+function payrollWeekEndIso(weekIso){
+  var d = fromISO(weekIso);
+  d.setDate(d.getDate() + 6);
+  return toISO(d);
+}
+function payrollWeekRangeLabel(weekIso){
+  try{
+    var s = fromISO(weekIso);
+    var e = new Date(s);
+    e.setDate(e.getDate() + 6);
+    return 'Week of ' + fmtDMY(s) + ' – ' + fmtDMY(e);
+  }catch(err){
+    return String(weekIso||'');
+  }
+}
+function payrollCurrentFYStartYear(){
+  var now = new Date();
+  var y = now.getFullYear();
+  return now.getMonth() >= 6 ? y : (y - 1);
+}
+function payrollFYBounds(startYear){
+  startYear = parseInt(startYear, 10) || payrollCurrentFYStartYear();
+  return {
+    startYear:startYear,
+    startIso:startYear + '-07-01',
+    endIso:(startYear+1) + '-06-30',
+    label:String(startYear) + '-' + String(startYear+1).slice(-2)
+  };
+}
+function payrollAllFYStartYears(){
+  var years = {};
+  years[payrollCurrentFYStartYear()] = true;
+  Object.keys(App.weeks||{}).forEach(function(w){
+    try{ years[(fromISO(w).getMonth() >= 6 ? fromISO(w).getFullYear() : (fromISO(w).getFullYear()-1))] = true; }catch(e){}
+  });
+  Object.keys(App.payrollWeekData||{}).forEach(function(w){
+    try{ years[(fromISO(w).getMonth() >= 6 ? fromISO(w).getFullYear() : (fromISO(w).getFullYear()-1))] = true; }catch(e){}
+  });
+  (App.payslipRecords||[]).forEach(function(r){
+    if(r && r.financialYearStartYear!=null) years[String(r.financialYearStartYear)] = true;
+    if(r && r.weekIso){
+      try{
+        var d = fromISO(r.weekIso);
+        years[(d.getMonth() >= 6 ? d.getFullYear() : (d.getFullYear()-1))] = true;
+      }catch(e){}
+    }
+  });
+  return Object.keys(years).map(function(v){ return parseInt(v,10); }).filter(function(v){ return isFinite(v); }).sort(function(a,b){ return b-a; });
+}
+function getPayrollBusinessProfile(){
+  ensurePayrollDocStores();
+  var b = App.payrollProfiles.business || {};
+  if(!b.businessName) b.businessName = App.settings.appTitle || '';
+  if(b.superRatePct == null || b.superRatePct === '') b.superRatePct = 12;
+  return b;
+}
+function getPayrollStaffProfile(staffId){
+  ensurePayrollDocStores();
+  staffId = String(staffId||'');
+  if(!App.payrollProfiles.staff[staffId]) App.payrollProfiles.staff[staffId] = {};
+  return App.payrollProfiles.staff[staffId];
+}
+function getPayrollWeekDataRec(weekIso, staffId, create){
+  ensurePayrollDocStores();
+  weekIso = String(weekIso||'');
+  staffId = String(staffId||'');
+  if(!weekIso || !staffId) return {};
+  if(!App.payrollWeekData[weekIso] && create) App.payrollWeekData[weekIso] = {};
+  if(!App.payrollWeekData[weekIso]) return {};
+  if(!App.payrollWeekData[weekIso][staffId] && create) App.payrollWeekData[weekIso][staffId] = {};
+  return App.payrollWeekData[weekIso][staffId] || {};
+}
+function payrollDefaultPayDateForWeek(weekIso){
+  return payrollWeekEndIso(weekIso);
+}
+function getPayrollStoredPayDate(weekIso, staffId){
+  var rec = getPayrollWeekDataRec(weekIso, staffId, false) || {};
+  return rec.payDate || payrollDefaultPayDateForWeek(weekIso);
+}
+function populateSelectFromStaff(selectId, currentValue, includeAllLabel){
+  var sel = byId(selectId);
+  if(!sel) return;
+  var ids = payrollEligibleStaffIds();
+  var html = '';
+  if(includeAllLabel) html += '<option value="">' + escapeHtml(includeAllLabel) + '</option>';
+  ids.forEach(function(id){
+    html += '<option value="' + escapeHtml(String(id)) + '">' + escapeHtml(payrollStaffName(id)) + '</option>';
+  });
+  sel.innerHTML = html;
+  if(currentValue && sel.querySelector('option[value="' + String(currentValue).replace(/"/g,'&quot;') + '"]')){
+    sel.value = String(currentValue);
+  }else if(!includeAllLabel && ids.length){
+    sel.value = ids[0];
+  }
+}
+function readPayrollBusinessInputs(){
+  return {
+    businessName:(byId('payrollBusinessName') && byId('payrollBusinessName').value || '').trim(),
+    legalName:(byId('payrollBusinessLegalName') && byId('payrollBusinessLegalName').value || '').trim(),
+    abn:(byId('payrollBusinessABN') && byId('payrollBusinessABN').value || '').trim(),
+    acn:(byId('payrollBusinessACN') && byId('payrollBusinessACN').value || '').trim(),
+    address:(byId('payrollBusinessAddress') && byId('payrollBusinessAddress').value || '').trim(),
+    email:(byId('payrollBusinessEmail') && byId('payrollBusinessEmail').value || '').trim(),
+    phone:(byId('payrollBusinessPhone') && byId('payrollBusinessPhone').value || '').trim(),
+    superFundName:(byId('payrollBusinessSuperFundName') && byId('payrollBusinessSuperFundName').value || '').trim(),
+    superFundNumber:(byId('payrollBusinessSuperFundNumber') && byId('payrollBusinessSuperFundNumber').value || '').trim(),
+    superRatePct:numOr0(byId('payrollBusinessSuperRate') && byId('payrollBusinessSuperRate').value || 12),
+    note:(byId('payrollBusinessNote') && byId('payrollBusinessNote').value || '').trim()
+  };
+}
+function readPayrollStaffProfileInputs(){
+  var staffId = (byId('payrollProfileStaffSelect') && byId('payrollProfileStaffSelect').value) || '';
+  return {
+    staffId:String(staffId||''),
+    employeeId:(byId('payrollEmployeeId') && byId('payrollEmployeeId').value || '').trim(),
+    employmentType:(byId('payrollEmploymentType') && byId('payrollEmploymentType').value || '').trim(),
+    classification:(byId('payrollEmployeeClassification') && byId('payrollEmployeeClassification').value || '').trim(),
+    abnAcn:(byId('payrollEmployeeABNACN') && byId('payrollEmployeeABNACN').value || '').trim(),
+    address:(byId('payrollEmployeeAddress') && byId('payrollEmployeeAddress').value || '').trim(),
+    email:(byId('payrollEmployeeEmail') && byId('payrollEmployeeEmail').value || '').trim(),
+    phone:(byId('payrollEmployeePhone') && byId('payrollEmployeePhone').value || '').trim(),
+    superFundName:(byId('payrollEmployeeSuperFundName') && byId('payrollEmployeeSuperFundName').value || '').trim(),
+    superFundNumber:(byId('payrollEmployeeSuperFundNumber') && byId('payrollEmployeeSuperFundNumber').value || '').trim(),
+    superMemberNumber:(byId('payrollEmployeeSuperMemberNumber') && byId('payrollEmployeeSuperMemberNumber').value || '').trim(),
+    bankMasked:(byId('payrollEmployeeBankMasked') && byId('payrollEmployeeBankMasked').value || '').trim()
+  };
+}
+function readPayrollWeekInputs(){
+  return {
+    payDate:(byId('payrollDocPayDate') && byId('payrollDocPayDate').value || '').trim(),
+    paygWithheld:numOr0(byId('payrollWeekPAYG') && byId('payrollWeekPAYG').value || 0),
+    superAmount:(function(){ var v = byId('payrollWeekSuper') && byId('payrollWeekSuper').value; return v==null || v==='' ? '' : round2(v); })(),
+    otherDeductions:numOr0(byId('payrollWeekOtherDeduction') && byId('payrollWeekOtherDeduction').value || 0),
+    otherDeductionDetails:(byId('payrollWeekOtherDeductionNote') && byId('payrollWeekOtherDeductionNote').value || '').trim(),
+    leaveAnnual:(byId('payrollWeekLeaveAnnual') && byId('payrollWeekLeaveAnnual').value || '').trim(),
+    leaveSick:(byId('payrollWeekLeaveSick') && byId('payrollWeekLeaveSick').value || '').trim(),
+    leaveLong:(byId('payrollWeekLeaveLong') && byId('payrollWeekLeaveLong').value || '').trim(),
+    note:(byId('payrollWeekNote') && byId('payrollWeekNote').value || '').trim()
+  };
+}
+function savePayrollBusinessProfile(quiet){
+  if(!isAdmin()) return alert('Admin only.');
+  ensurePayrollDocStores();
+  var b = readPayrollBusinessInputs();
+  if(!b.businessName) b.businessName = App.settings.appTitle || '';
+  if(!b.superRatePct) b.superRatePct = 12;
+  App.payrollProfiles.business = b;
+  saveLocal();
+  syncPayrollDocStoresBestEffort();
+  if(!quiet) showToast('Saved', 'Business payroll details saved.', 'success', 2500);
+}
+function savePayrollStaffProfile(quiet){
+  if(!isAdmin()) return alert('Admin only.');
+  ensurePayrollDocStores();
+  var rec = readPayrollStaffProfileInputs();
+  if(!rec.staffId) return alert('Choose a staff member.');
+  App.payrollProfiles.staff[rec.staffId] = {
+    employeeId:rec.employeeId,
+    employmentType:rec.employmentType,
+    classification:rec.classification,
+    abnAcn:rec.abnAcn,
+    address:rec.address,
+    email:rec.email,
+    phone:rec.phone,
+    superFundName:rec.superFundName,
+    superFundNumber:rec.superFundNumber,
+    superMemberNumber:rec.superMemberNumber,
+    bankMasked:rec.bankMasked
+  };
+  saveLocal();
+  syncPayrollDocStoresBestEffort();
+  if(!quiet) showToast('Saved', 'Staff payroll profile saved.', 'success', 2500);
+}
+function savePayrollWeekData(quiet){
+  if(!isAdmin()) return alert('Admin only.');
+  ensurePayrollDocStores();
+  var staffId = (byId('payrollDocStaffSelect') && byId('payrollDocStaffSelect').value) || '';
+  if(!staffId) return alert('Choose a staff member.');
+  var weekIso = payrollSelectedWeekIso();
+  var rec = readPayrollWeekInputs();
+  if(!App.payrollWeekData[weekIso]) App.payrollWeekData[weekIso] = {};
+  App.payrollWeekData[weekIso][staffId] = rec;
+  saveLocal();
+  syncPayrollDocStoresBestEffort();
+  if(!quiet) showToast('Saved', 'Weekly payslip fields saved for ' + payrollWeekRangeLabel(weekIso) + '.', 'success', 2500);
+}
+function syncPayrollBusinessInputsFromApp(){
+  ensurePayrollDocStores();
+  var b = getPayrollBusinessProfile();
+  setInputValueIfIdle('payrollBusinessName', b.businessName || App.settings.appTitle || '');
+  setInputValueIfIdle('payrollBusinessLegalName', b.legalName || '');
+  setInputValueIfIdle('payrollBusinessABN', b.abn || '');
+  setInputValueIfIdle('payrollBusinessACN', b.acn || '');
+  setInputValueIfIdle('payrollBusinessAddress', b.address || '');
+  setInputValueIfIdle('payrollBusinessEmail', b.email || '');
+  setInputValueIfIdle('payrollBusinessPhone', b.phone || '');
+  setInputValueIfIdle('payrollBusinessSuperFundName', b.superFundName || '');
+  setInputValueIfIdle('payrollBusinessSuperFundNumber', b.superFundNumber || '');
+  setInputValueIfIdle('payrollBusinessSuperRate', b.superRatePct != null ? b.superRatePct : 12);
+  setInputValueIfIdle('payrollBusinessNote', b.note || '');
+}
+function syncPayrollSelectedStaff(staffId){
+  var s1 = byId('payrollProfileStaffSelect');
+  var s2 = byId('payrollDocStaffSelect');
+  if(s1 && staffId && s1.querySelector('option[value="' + String(staffId).replace(/"/g,'&quot;') + '"]')) s1.value = staffId;
+  if(s2 && staffId && s2.querySelector('option[value="' + String(staffId).replace(/"/g,'&quot;') + '"]')) s2.value = staffId;
+}
+function syncPayrollStaffInputsFromApp(){
+  ensurePayrollDocStores();
+  var staffId = (byId('payrollProfileStaffSelect') && byId('payrollProfileStaffSelect').value) || (byId('payrollDocStaffSelect') && byId('payrollDocStaffSelect').value) || '';
+  if(!staffId) return;
+  syncPayrollSelectedStaff(staffId);
+  var rec = getPayrollStaffProfile(staffId);
+  setInputValueIfIdle('payrollEmployeeId', rec.employeeId || '');
+  setInputValueIfIdle('payrollEmploymentType', rec.employmentType || '');
+  setInputValueIfIdle('payrollEmployeeClassification', rec.classification || '');
+  setInputValueIfIdle('payrollEmployeeABNACN', rec.abnAcn || '');
+  setInputValueIfIdle('payrollEmployeeAddress', rec.address || '');
+  setInputValueIfIdle('payrollEmployeeEmail', rec.email || '');
+  setInputValueIfIdle('payrollEmployeePhone', rec.phone || '');
+  setInputValueIfIdle('payrollEmployeeSuperFundName', rec.superFundName || '');
+  setInputValueIfIdle('payrollEmployeeSuperFundNumber', rec.superFundNumber || '');
+  setInputValueIfIdle('payrollEmployeeSuperMemberNumber', rec.superMemberNumber || '');
+  setInputValueIfIdle('payrollEmployeeBankMasked', rec.bankMasked || '');
+}
+function syncPayrollWeekInputsFromApp(){
+  ensurePayrollDocStores();
+  var staffId = (byId('payrollDocStaffSelect') && byId('payrollDocStaffSelect').value) || '';
+  if(!staffId) return;
+  var weekIso = payrollSelectedWeekIso();
+  var rec = getPayrollWeekDataRec(weekIso, staffId, false) || {};
+  var resolved = payrollWeekRangeLabel(weekIso);
+  setTextIfExists('payrollDocWeekResolved', resolved);
+  var storedPayDate = rec.payDate || payrollDefaultPayDateForWeek(weekIso);
+  setInputValueIfIdle('payrollDocPayDate', storedPayDate);
+  setInputValueIfIdle('payrollWeekPAYG', rec.paygWithheld != null ? rec.paygWithheld : 0);
+  setInputValueIfIdle('payrollWeekSuper', rec.superAmount != null ? rec.superAmount : '');
+  setInputValueIfIdle('payrollWeekOtherDeduction', rec.otherDeductions != null ? rec.otherDeductions : 0);
+  setInputValueIfIdle('payrollWeekOtherDeductionNote', rec.otherDeductionDetails || '');
+  setInputValueIfIdle('payrollWeekLeaveAnnual', rec.leaveAnnual || '');
+  setInputValueIfIdle('payrollWeekLeaveSick', rec.leaveSick || '');
+  setInputValueIfIdle('payrollWeekLeaveLong', rec.leaveLong || '');
+  setInputValueIfIdle('payrollWeekNote', rec.note || '');
+}
+function syncPayrollFYSelect(){
+  var sel = byId('payrollDocFySelect');
+  if(!sel) return;
+  var years = payrollAllFYStartYears();
+  var cur = sel.value || '';
+  sel.innerHTML = years.map(function(y){
+    var fy = payrollFYBounds(y);
+    return '<option value="' + String(y) + '">' + escapeHtml(fy.label) + '</option>';
+  }).join('');
+  if(cur && sel.querySelector('option[value="' + String(cur).replace(/"/g,'&quot;') + '"]')) sel.value = cur;
+  else if(years.length) sel.value = String(years[0]);
+}
+function togglePayrollDocMode(){
+  var type = (byId('payrollDocType') && byId('payrollDocType').value) || 'payslip';
+  var weekWrap = byId('payrollDocWeekWrap');
+  var fyWrap = byId('payrollDocFyWrap');
+  var weekFields = byId('payrollWeekDataFields');
+  var payDateLabel = byId('payrollDocPayDateLabel');
+  if(weekWrap) weekWrap.style.display = (type === 'payslip' ? '' : 'none');
+  if(fyWrap) fyWrap.style.display = (type === 'paymentSummary' ? '' : 'none');
+  if(weekFields) weekFields.style.display = (type === 'payslip' ? '' : 'none');
+  if(payDateLabel) payDateLabel.textContent = (type === 'payslip' ? 'Payment date' : 'Statement date');
+}
+function syncPayrollFormsFromApp(){
+  ensurePayrollDocStores();
+  syncPayrollBusinessInputsFromApp();
+  var currentStaff = (byId('payrollDocStaffSelect') && byId('payrollDocStaffSelect').value) || (byId('payrollProfileStaffSelect') && byId('payrollProfileStaffSelect').value) || '';
+  populateSelectFromStaff('payrollDocStaffSelect', currentStaff, '');
+  populateSelectFromStaff('payrollProfileStaffSelect', currentStaff, '');
+  populateSelectFromStaff('payslipHistoryStaffFilter', (byId('payslipHistoryStaffFilter') && byId('payslipHistoryStaffFilter').value) || '', 'All staff');
+  if(!currentStaff){
+    var ids = payrollEligibleStaffIds();
+    currentStaff = ids.length ? ids[0] : '';
+    syncPayrollSelectedStaff(currentStaff);
+  }
+  syncPayrollFYSelect();
+  if(byId('payrollDocWeekInput') && !byId('payrollDocWeekInput').value) byId('payrollDocWeekInput').value = Planner.weekStartISO;
+  togglePayrollDocMode();
+  syncPayrollStaffInputsFromApp();
+  syncPayrollWeekInputsFromApp();
+}
+function bindPayrollDocUI(){
+  var btnB = byId('btnSavePayrollBusiness'); if(btnB && !btnB._bound){ btnB._bound = true; btnB.onclick = function(){ savePayrollBusinessProfile(false); }; }
+  var btnS = byId('btnSavePayrollStaffProfile'); if(btnS && !btnS._bound){ btnS._bound = true; btnS.onclick = function(){ savePayrollStaffProfile(false); }; }
+  var btnW = byId('btnSavePayrollWeekData'); if(btnW && !btnW._bound){ btnW._bound = true; btnW.onclick = function(){ savePayrollWeekData(false); }; }
+  var sel1 = byId('payrollProfileStaffSelect'); if(sel1 && !sel1._bound){ sel1._bound = true; sel1.onchange = function(){ syncPayrollSelectedStaff(sel1.value||''); syncPayrollStaffInputsFromApp(); syncPayrollWeekInputsFromApp(); }; }
+  var sel2 = byId('payrollDocStaffSelect'); if(sel2 && !sel2._bound){ sel2._bound = true; sel2.onchange = function(){ syncPayrollSelectedStaff(sel2.value||''); syncPayrollStaffInputsFromApp(); syncPayrollWeekInputsFromApp(); }; }
+  var wk = byId('payrollDocWeekInput'); if(wk && !wk._bound){ wk._bound = true; wk.onchange = function(){ try{ wk.value = payrollSelectedWeekIso(); }catch(e){} syncPayrollWeekInputsFromApp(); }; }
+  var typ = byId('payrollDocType'); if(typ && !typ._bound){ typ._bound = true; typ.onchange = function(){ togglePayrollDocMode(); renderPayslipHistory(); }; }
+  var hf = byId('payslipHistoryStaffFilter'); if(hf && !hf._bound){ hf._bound = true; hf.onchange = function(){ renderPayslipHistory(); }; }
+  var ht = byId('payslipHistoryTypeFilter'); if(ht && !ht._bound){ ht._bound = true; ht.onchange = function(){ renderPayslipHistory(); }; }
+  var prev = byId('btnPreviewPayslip'); if(prev && !prev._bound){ prev._bound = true; prev.onclick = function(){ try{ openPayrollDocModal(buildSelectedPayrollDocument(), true); }catch(e){ alert(e && e.message ? e.message : e); } }; }
+  var prn = byId('btnPrintPayslipPdf'); if(prn && !prn._bound){ prn._bound = true; prn.onclick = function(){ try{ savePayrollBusinessProfile(true); savePayrollStaffProfile(true); if(((byId('payrollDocType') && byId('payrollDocType').value) || 'payslip') === 'payslip') savePayrollWeekData(true); var doc = buildSelectedPayrollDocument(); openPayrollDocModal(doc, true); printPayrollDocument(doc, true); }catch(e){ alert(e && e.message ? e.message : e); } }; }
+  var close = byId('btnPayrollDocModalClose'); if(close && !close._bound){ close._bound = true; close.onclick = function(){ var m = byId('payrollDocModal'); if(m) m.style.display = 'none'; }; }
+  var modalPrint = byId('btnPayrollDocModalPrint'); if(modalPrint && !modalPrint._bound){ modalPrint._bound = true; modalPrint.onclick = function(){ try{ savePayrollBusinessProfile(true); savePayrollStaffProfile(true); if(PayrollDocs.currentDoc && PayrollDocs.currentDoc.type === 'payslip') savePayrollWeekData(true); }catch(e){} if(PayrollDocs.currentDoc) printPayrollDocument(PayrollDocs.currentDoc, true); }; }
+  if(!document.__payrollDocHistoryBound){
+    document.__payrollDocHistoryBound = true;
+    document.addEventListener('click', function(ev){
+      var t = ev.target;
+      if(!t || !t.closest) return;
+      var p = t.closest('.payroll-doc-preview-btn');
+      if(p){
+        var key = p.getAttribute('data-key') || '';
+        var doc = findPayslipRecordByKey(key);
+        if(doc) openPayrollDocModal(doc, false);
+      }
+      var d = t.closest('.payroll-doc-delete-btn');
+      if(d){
+        var key2 = d.getAttribute('data-key') || '';
+        deletePayslipRecordByKey(key2);
+      }
+    });
+  }
+  syncPayrollFormsFromApp();
+}
+function weekHasAnyData(weekIso, staffId){
+  var wk = App.weeks[weekIso] || {};
+  var found = false;
+  Object.keys(wk).forEach(function(day){
+    if(found) return;
+    var ds = wk[day] || {};
+    Object.keys(ds).forEach(function(k){ if(ds[k] && String(ds[k].staffId) === String(staffId)) found = true; });
+  });
+  if(found) return true;
+  var adj = ((App.payrollAdjustments||{})[weekIso]||{})[staffId];
+  if(adj) return true;
+  var rec = ((App.payrollWeekData||{})[weekIso]||{})[staffId];
+  if(rec) return true;
+  return false;
+}
+function computeWeekPayrollBreakdown(weekIso, staffId){
+  var st = App.staff[staffId] || {};
+  var start = fromISO(weekIso);
+  var totals = {
+    workHours:0,
+    breakHours:0,
+    payableHours:0,
+    ordinaryHours:0,
+    otHours:0,
+    ordinaryPay:0,
+    overtimePay:0,
+    grossBase:0,
+    superBase:0
+  };
+  var lines = [];
+  var weekCum = 0;
+  for(var j=0;j<7;j++){
+    var d = new Date(start);
+    d.setDate(d.getDate() + j);
+    var iso = toISO(d);
+    var ds = (App.weeks[weekIso] && App.weeks[weekIso][String(j)]) ? App.weeks[weekIso][String(j)] : {};
+    var keys = Object.keys(ds).sort(function(a,b){
+      var A = ds[a] || {}, B = ds[b] || {};
+      return parse12(A.start||'00:00') - parse12(B.start||'00:00');
+    });
+    var dayCum = 0;
+    keys.forEach(function(k){
+      var sh = ds[k];
+      if(!sh || String(sh.staffId) !== String(staffId)) return;
+      var shiftDur = hoursBetweenAny(sh.start, sh.end);
+      var leaveH = leaveOverlapHours(iso, staffId, sh);
+      var workAfterLeave = Math.max(0, shiftDur - leaveH);
+      var br = (breakMinutesForShift(sh, st) || 0) / 60;
+      if(br > workAfterLeave) br = workAfterLeave;
+      var payH = Math.max(0, workAfterLeave - br);
+      var rate = effectiveRate(staffId, j, sh);
+      var mult = parseFloat(st.otMult||1.5)||1.5;
+      var split = splitOvertime(staffId, j, payH, {weekCum:weekCum, dayCum:dayCum});
+      var ordinaryPay = split.normal * rate;
+      var overtimePay = split.ot * rate * mult;
+      var linePay = ordinaryPay + overtimePay;
+      totals.workHours += workAfterLeave;
+      totals.breakHours += br;
+      totals.payableHours += payH;
+      totals.ordinaryHours += split.normal;
+      totals.otHours += split.ot;
+      totals.ordinaryPay += ordinaryPay;
+      totals.overtimePay += overtimePay;
+      totals.grossBase += linePay;
+      totals.superBase += ordinaryPay;
+      lines.push({
+        iso:iso,
+        dayLabel:DAY[j],
+        dateLabel:fmtDMY(d),
+        shiftLabel:String(sh.start||'') + '–' + String(sh.end||''),
+        workHours:round2(workAfterLeave),
+        breakHours:round2(br),
+        payableHours:round2(payH),
+        ordinaryHours:round2(split.normal),
+        otHours:round2(split.ot),
+        rate:round2(rate),
+        linePay:round2(linePay),
+        rateLabel:(sh.penalty ? 'Penalty' : ((j===5 || j===6) && (parseFloat(st.rateWeekend||0)||0) > 0 ? 'Weekend' : 'Ordinary')),
+        notes:(sh.notes || '')
+      });
+      weekCum += (split.normal + split.ot);
+      dayCum += payH;
+    });
+  }
+  totals.workHours = round2(totals.workHours);
+  totals.breakHours = round2(totals.breakHours);
+  totals.payableHours = round2(totals.payableHours);
+  totals.ordinaryHours = round2(totals.ordinaryHours);
+  totals.otHours = round2(totals.otHours);
+  totals.ordinaryPay = round2(totals.ordinaryPay);
+  totals.overtimePay = round2(totals.overtimePay);
+  totals.grossBase = round2(totals.grossBase);
+  totals.superBase = round2(totals.superBase);
+  return {lines:lines, totals:totals};
+}
+function buildPayslipDocument(weekIso, staffId, payDate, quickNote, useCurrentInputs){
+  ensurePayrollDocStores();
+  weekIso = payrollWeekIsoFromAny(weekIso);
+  staffId = String(staffId||'');
+  if(!staffId) throw new Error('Choose a staff member first.');
+  var staff = App.staff[staffId] || {};
+  var business = readPayrollBusinessInputs();
+  if(!business.businessName) business = getPayrollBusinessProfile();
+  if(!business.businessName) business.businessName = App.settings.appTitle || 'Employer';
+  var selectedProfile = readPayrollStaffProfileInputs();
+  var profile = (selectedProfile.staffId && String(selectedProfile.staffId) === staffId)
+    ? {
+        employeeId:selectedProfile.employeeId,
+        employmentType:selectedProfile.employmentType,
+        classification:selectedProfile.classification,
+        abnAcn:selectedProfile.abnAcn,
+        address:selectedProfile.address,
+        email:selectedProfile.email,
+        phone:selectedProfile.phone,
+        superFundName:selectedProfile.superFundName,
+        superFundNumber:selectedProfile.superFundNumber,
+        superMemberNumber:selectedProfile.superMemberNumber,
+        bankMasked:selectedProfile.bankMasked
+      }
+    : getPayrollStaffProfile(staffId);
+  var weekInputs = JSON.parse(JSON.stringify(getPayrollWeekDataRec(weekIso, staffId, false) || {}));
+  if(useCurrentInputs){
+    var currentStaff = (byId('payrollDocStaffSelect') && byId('payrollDocStaffSelect').value) || '';
+    var currentWeek = payrollSelectedWeekIso();
+    if(String(currentStaff) === String(staffId) && String(currentWeek) === String(weekIso)) weekInputs = Object.assign({}, weekInputs, readPayrollWeekInputs());
+  }
+  var breakdown = computeWeekPayrollBreakdown(weekIso, staffId);
+  var adjRec = (((App.payrollAdjustments||{})[weekIso]||{})[staffId]) || {amount:0, comment:''};
+  var adjAmt = numOr0(adjRec.amount);
+  var positiveAdj = adjAmt > 0 ? round2(adjAmt) : 0;
+  var negativeAdj = adjAmt < 0 ? round2(Math.abs(adjAmt)) : 0;
+  var grossPay = round2(breakdown.totals.grossBase + positiveAdj);
+  var paygWithheld = round2(weekInputs.paygWithheld);
+  var otherDeductions = round2(numOr0(weekInputs.otherDeductions) + negativeAdj);
+  var withheldThisWeek = round2(getWithheldForWeek(weekIso, staffId));
+  var superRate = numOr0(business.superRatePct || 12) || 12;
+  var superAmount = (weekInputs.superAmount === '' || weekInputs.superAmount == null) ? round2(breakdown.totals.superBase * superRate / 100) : round2(weekInputs.superAmount);
+  var netPay = round2(grossPay - paygWithheld - otherDeductions - withheldThisWeek);
+  if(netPay < 0) netPay = 0;
+  var start = fromISO(weekIso);
+  var end = new Date(start); end.setDate(end.getDate() + 6);
+  var docNo = 'PS-' + String(weekIso||'').replace(/-/g,'') + '-' + String(staffId).replace(/[^A-Za-z0-9]/g,'').slice(-6).toUpperCase();
+  return {
+    type:'payslip',
+    key:'p|' + staffId + '|' + weekIso + '|' + String(payDate||''),
+    documentNo:docNo,
+    generatedAt:new Date().toISOString(),
+    weekIso:weekIso,
+    periodStart:toISO(start),
+    periodEnd:toISO(end),
+    periodLabel:payrollWeekRangeLabel(weekIso),
+    payDate:String(payDate || weekInputs.payDate || payrollDefaultPayDateForWeek(weekIso)),
+    staffId:staffId,
+    staffName:staff.name || payrollStaffName(staffId),
+    financialYearStartYear: payrollFYBounds((fromISO(weekIso).getMonth() >= 6 ? fromISO(weekIso).getFullYear() : (fromISO(weekIso).getFullYear()-1))).startYear,
+    business:business,
+    employee:{
+      name:staff.name || payrollStaffName(staffId),
+      employeeId:profile.employeeId || '',
+      employmentType:profile.employmentType || '',
+      classification:profile.classification || '',
+      abnAcn:profile.abnAcn || '',
+      address:profile.address || '',
+      email:profile.email || '',
+      phone:profile.phone || '',
+      superFundName:profile.superFundName || business.superFundName || '',
+      superFundNumber:profile.superFundNumber || business.superFundNumber || '',
+      superMemberNumber:profile.superMemberNumber || '',
+      bankMasked:profile.bankMasked || '',
+      baseRate:round2(staff.rate || 0)
+    },
+    lines:breakdown.lines,
+    summary:{
+      workHours:breakdown.totals.workHours,
+      breakHours:breakdown.totals.breakHours,
+      payableHours:breakdown.totals.payableHours,
+      ordinaryHours:breakdown.totals.ordinaryHours,
+      otHours:breakdown.totals.otHours,
+      ordinaryPay:breakdown.totals.ordinaryPay,
+      overtimePay:breakdown.totals.overtimePay,
+      grossBase:breakdown.totals.grossBase,
+      positiveAdjustment:positiveAdj,
+      negativeAdjustment:negativeAdj,
+      paygWithheld:paygWithheld,
+      otherDeductions:otherDeductions,
+      withheldThisWeek:withheldThisWeek,
+      superAmount:superAmount,
+      superBase:breakdown.totals.superBase,
+      grossPay:grossPay,
+      netPay:netPay
+    },
+    notes:{
+      quickNote:String(quickNote || ''),
+      payrollNote:weekInputs.note || '',
+      adjustmentComment:adjRec.comment || '',
+      otherDeductionDetails:weekInputs.otherDeductionDetails || '',
+      leaveAnnual:weekInputs.leaveAnnual || '',
+      leaveSick:weekInputs.leaveSick || '',
+      leaveLong:weekInputs.leaveLong || ''
+    }
+  };
+}
+function buildPaymentSummaryDocument(startYear, staffId, statementDate, quickNote){
+  ensurePayrollDocStores();
+  staffId = String(staffId||'');
+  if(!staffId) throw new Error('Choose a staff member first.');
+  var fy = payrollFYBounds(startYear);
+  var business = readPayrollBusinessInputs();
+  if(!business.businessName) business = getPayrollBusinessProfile();
+  if(!business.businessName) business.businessName = App.settings.appTitle || 'Employer';
+  var selectedProfile = readPayrollStaffProfileInputs();
+  var profile = (selectedProfile.staffId && String(selectedProfile.staffId) === staffId)
+    ? {
+        employeeId:selectedProfile.employeeId,
+        employmentType:selectedProfile.employmentType,
+        classification:selectedProfile.classification,
+        abnAcn:selectedProfile.abnAcn,
+        address:selectedProfile.address,
+        email:selectedProfile.email,
+        phone:selectedProfile.phone,
+        superFundName:selectedProfile.superFundName,
+        superFundNumber:selectedProfile.superFundNumber,
+        superMemberNumber:selectedProfile.superMemberNumber,
+        bankMasked:selectedProfile.bankMasked
+      }
+    : getPayrollStaffProfile(staffId);
+  var weekSet = {};
+  Object.keys(App.weeks||{}).forEach(function(w){ weekSet[w] = true; });
+  Object.keys(App.payrollWeekData||{}).forEach(function(w){ weekSet[w] = true; });
+  Object.keys(App.payrollAdjustments||{}).forEach(function(w){ weekSet[w] = true; });
+  var weeks = Object.keys(weekSet).sort();
+  var rows = [];
+  var totals = {grossPay:0, paygWithheld:0, otherDeductions:0, withheldThisWeek:0, netPay:0, superAmount:0};
+  weeks.forEach(function(w){
+    if(!weekHasAnyData(w, staffId)) return;
+    var payDate = getPayrollStoredPayDate(w, staffId);
+    if(payDate < fy.startIso || payDate > fy.endIso) return;
+    var doc = buildPayslipDocument(w, staffId, payDate, '', false);
+    rows.push({
+      weekIso:w,
+      weekLabel:doc.periodLabel,
+      payDate:doc.payDate,
+      grossPay:doc.summary.grossPay,
+      paygWithheld:doc.summary.paygWithheld,
+      netPay:doc.summary.netPay,
+      superAmount:doc.summary.superAmount
+    });
+    totals.grossPay += doc.summary.grossPay;
+    totals.paygWithheld += doc.summary.paygWithheld;
+    totals.otherDeductions += doc.summary.otherDeductions;
+    totals.withheldThisWeek += doc.summary.withheldThisWeek;
+    totals.netPay += doc.summary.netPay;
+    totals.superAmount += doc.summary.superAmount;
+  });
+  totals.grossPay = round2(totals.grossPay);
+  totals.paygWithheld = round2(totals.paygWithheld);
+  totals.otherDeductions = round2(totals.otherDeductions);
+  totals.withheldThisWeek = round2(totals.withheldThisWeek);
+  totals.netPay = round2(totals.netPay);
+  totals.superAmount = round2(totals.superAmount);
+  var staff = App.staff[staffId] || {};
+  return {
+    type:'paymentSummary',
+    key:'g|' + staffId + '|' + String(fy.startYear),
+    documentNo:'GC-' + String(fy.startYear) + String(fy.startYear+1).slice(-2) + '-' + String(staffId).replace(/[^A-Za-z0-9]/g,'').slice(-6).toUpperCase(),
+    generatedAt:new Date().toISOString(),
+    statementDate:String(statementDate || toISO(new Date())),
+    financialYear:fy.label,
+    financialYearStartYear:fy.startYear,
+    periodLabel:'Financial year ' + fy.label,
+    staffId:staffId,
+    staffName:staff.name || payrollStaffName(staffId),
+    business:business,
+    employee:{
+      name:staff.name || payrollStaffName(staffId),
+      employeeId:profile.employeeId || '',
+      employmentType:profile.employmentType || '',
+      classification:profile.classification || '',
+      abnAcn:profile.abnAcn || '',
+      address:profile.address || '',
+      email:profile.email || '',
+      phone:profile.phone || '',
+      superFundName:profile.superFundName || business.superFundName || '',
+      superFundNumber:profile.superFundNumber || business.superFundNumber || '',
+      superMemberNumber:profile.superMemberNumber || '',
+      bankMasked:profile.bankMasked || '',
+      baseRate:round2(staff.rate || 0)
+    },
+    weeks:rows,
+    summary:totals,
+    notes:{
+      quickNote:String(quickNote || ''),
+      disclaimer:'Most employers who report through Single Touch Payroll finalise employee income statements with the ATO rather than issuing a payment summary.'
+    }
+  };
+}
+function buildSelectedPayrollDocument(){
+  ensurePayrollDocStores();
+  togglePayrollDocMode();
+  var type = (byId('payrollDocType') && byId('payrollDocType').value) || 'payslip';
+  var staffId = (byId('payrollDocStaffSelect') && byId('payrollDocStaffSelect').value) || '';
+  var payDate = (byId('payrollDocPayDate') && byId('payrollDocPayDate').value) || '';
+  var quickNote = (byId('payrollDocQuickNote') && byId('payrollDocQuickNote').value) || '';
+  if(!staffId) throw new Error('Choose a staff member.');
+  if(type === 'payslip'){
+    return buildPayslipDocument(payrollSelectedWeekIso(), staffId, payDate, quickNote, true);
+  }
+  var fyStart = parseInt((byId('payrollDocFySelect') && byId('payrollDocFySelect').value) || payrollCurrentFYStartYear(), 10);
+  return buildPaymentSummaryDocument(fyStart, staffId, payDate, quickNote);
+}
+function payrollDocDisplayDate(value){
+  var s = String(value || '').trim();
+  if(!s) return '';
+  if(/^\d{4}-\d{2}-\d{2}$/.test(s)){
+    try{ return fmtDMY(fromISO(s)); }catch(e){}
+  }
+  return s;
+}
+function payrollDocDisplayTimestamp(value){
+  var s = String(value || '').trim();
+  if(!s) return '';
+  try{
+    var d = new Date(s);
+    if(!isNaN(d.getTime())) return fmtDMY(d) + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+  }catch(e){}
+  return s;
+}
+function payrollDocumentCss(){
+  return [
+    '@page{size:auto;margin:12mm;}',
+    'html,body{background:#fff;color:#111827;margin:0;padding:0;font-family:Arial,Helvetica,sans-serif;}',
+    'body{font-size:11.25px;line-height:1.35;-webkit-print-color-adjust:exact;print-color-adjust:exact;}',
+    '.doc-sheet{width:100%;max-width:184mm;margin:0 auto;color:#111827;background:#fff;box-sizing:border-box;}',
+    '.doc-header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;border-bottom:2px solid #111827;padding-bottom:4mm;margin-bottom:6mm;}',
+    '.doc-title{font-size:27px;line-height:1.05;font-weight:900;letter-spacing:-.02em;color:#0f172a;}',
+    '.doc-subtitle{font-size:12px;color:#475569;margin-top:4px;}',
+    '.doc-chip{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;background:#eff6ff;color:#1d4ed8;font-weight:800;font-size:11px;border:1px solid #bfdbfe;white-space:nowrap;}',
+    '.doc-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6mm;margin-bottom:6mm;align-items:start;}',
+    '.doc-card{border:1px solid #cbd5e1;border-radius:12px;padding:4mm 4mm 3.5mm;background:#fff;break-inside:avoid-page;page-break-inside:avoid;}',
+    '.doc-card h4,.doc-section-label{margin:0 0 8px;font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:#475569;font-weight:900;}',
+    '.doc-section-label{margin-top:6mm;margin-bottom:3mm;}',
+    '.doc-kv{width:100%;border-collapse:collapse;font-size:11px;}',
+    '.doc-kv td{padding:1.4mm 0;vertical-align:top;}',
+    '.doc-kv td:first-child{color:#475569;width:38%;padding-right:3mm;font-weight:700;}',
+    '.doc-lines,.doc-summary{width:100%;border-collapse:collapse;table-layout:fixed;font-size:10.6px;}',
+    '.doc-lines th,.doc-lines td,.doc-summary td{border-bottom:1px solid #e2e8f0;padding:2.4mm 2mm;text-align:left;vertical-align:top;}',
+    '.doc-lines th{background:#f8fafc;font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:#334155;}',
+    '.doc-lines thead{display:table-header-group;}',
+    '.doc-lines tr{break-inside:avoid;page-break-inside:avoid;}',
+    '.doc-lines th:nth-child(1),.doc-lines td:nth-child(1){width:17%;}',
+    '.doc-lines th:nth-child(2),.doc-lines td:nth-child(2){width:21%;}',
+    '.doc-lines th:nth-child(3),.doc-lines td:nth-child(3),.doc-lines th:nth-child(4),.doc-lines td:nth-child(4),.doc-lines th:nth-child(5),.doc-lines td:nth-child(5),.doc-lines th:nth-child(6),.doc-lines td:nth-child(6),.doc-lines th:nth-child(7),.doc-lines td:nth-child(7),.doc-lines th:nth-child(8),.doc-lines td:nth-child(8),.doc-summary td:last-child{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums;}',
+    '.doc-lines td:nth-child(1),.doc-lines td:nth-child(2){white-space:normal;line-height:1.25;}',
+    '.doc-summary{max-width:88mm;margin-left:auto;margin-top:5mm;}',
+    '.doc-summary td:first-child{color:#334155;}',
+    '.doc-summary tr.total td{font-weight:900;font-size:14px;color:#0f172a;border-top:2px solid #111827;}',
+    '.doc-note{margin-top:4mm;color:#475569;font-size:10.5px;break-inside:avoid-page;page-break-inside:avoid;}',
+    '.doc-note strong{color:#0f172a;}',
+    '.doc-bad{color:#b91c1c;font-weight:800;}',
+    '.doc-good{color:#047857;font-weight:800;}',
+    '@media print{html,body{margin:0;padding:0;} .doc-sheet{max-width:none;width:auto;} .doc-grid{grid-template-columns:1fr 1fr;gap:5mm;} .doc-card,.doc-note,.doc-summary{break-inside:avoid-page;page-break-inside:avoid;}}'
+  ].join('');
+}
+function payrollDocInfoLine(label, value){
+  if(value == null || value === '') return '';
+  return '<tr><td>' + escapeHtml(label) + '</td><td>' + escapeHtml(String(value)) + '</td></tr>';
+}
+function renderPayrollDocumentHtml(doc){
+  if(!doc) return '<div class="doc-sheet"><div class="doc-bad">No document data.</div></div>';
+  if(doc.type === 'paymentSummary'){
+    var weekRows = (doc.weeks || []).map(function(r){
+      return [
+        '<tr>',
+          '<td>', escapeHtml(r.weekLabel || r.weekIso || ''), '</td>',
+          '<td>', escapeHtml(payrollDocDisplayDate(r.payDate || '')), '</td>',
+          '<td>', escapeHtml(fmtMoney(r.grossPay || 0)), '</td>',
+          '<td>', escapeHtml(fmtMoney(r.paygWithheld || 0)), '</td>',
+          '<td>', escapeHtml(fmtMoney(r.netPay || 0)), '</td>',
+          '<td>', escapeHtml(fmtMoney(r.superAmount || 0)), '</td>',
+        '</tr>'
+      ].join('');
+    }).join('');
+    if(!weekRows) weekRows = '<tr><td colspan="6" class="doc-bad">No weeks matched this financial year.</td></tr>';
+    return [
+      '<div class="doc-sheet">',
+        '<div class="doc-header">',
+          '<div>',
+            '<div class="doc-title">Payment Summary</div>',
+            '<div class="doc-subtitle">Group certificate style year-end summary</div>',
+          '</div>',
+          '<div style="text-align:right;display:flex;flex-direction:column;gap:8px;align-items:flex-end;">',
+            '<div class="doc-chip">Document ', escapeHtml(doc.documentNo || ''), '</div>',
+            '<div class="doc-chip">FY ', escapeHtml(doc.financialYear || ''), '</div>',
+          '</div>',
+        '</div>',
+        '<div class="doc-grid">',
+          '<div class="doc-card"><h4>Employer</h4><table class="doc-kv">',
+            payrollDocInfoLine('Business name', doc.business.businessName || ''),
+            payrollDocInfoLine('Legal name', doc.business.legalName || ''),
+            payrollDocInfoLine('ABN', doc.business.abn || ''),
+            payrollDocInfoLine('ACN', doc.business.acn || ''),
+            payrollDocInfoLine('Address', doc.business.address || ''),
+            payrollDocInfoLine('Email', doc.business.email || ''),
+            payrollDocInfoLine('Phone', doc.business.phone || ''),
+          '</table></div>',
+          '<div class="doc-card"><h4>Employee</h4><table class="doc-kv">',
+            payrollDocInfoLine('Employee name', doc.employee.name || ''),
+            payrollDocInfoLine('Employee ID', doc.employee.employeeId || ''),
+            payrollDocInfoLine('Employment type', doc.employee.employmentType || ''),
+            payrollDocInfoLine('Classification', doc.employee.classification || ''),
+            payrollDocInfoLine('ABN / ACN', doc.employee.abnAcn || ''),
+            payrollDocInfoLine('Address', doc.employee.address || ''),
+            payrollDocInfoLine('Email', doc.employee.email || ''),
+            payrollDocInfoLine('Phone', doc.employee.phone || ''),
+          '</table></div>',
+        '</div>',
+        '<div class="doc-grid">',
+          '<div class="doc-card"><h4>Statement details</h4><table class="doc-kv">',
+            payrollDocInfoLine('Financial year', doc.financialYear || ''),
+            payrollDocInfoLine('Statement date', payrollDocDisplayDate(doc.statementDate || '')),
+            payrollDocInfoLine('Generated', payrollDocDisplayTimestamp(doc.generatedAt || '')),
+          '</table></div>',
+          '<div class="doc-card"><h4>Superannuation</h4><table class="doc-kv">',
+            payrollDocInfoLine('Total super', fmtMoney((doc.summary && doc.summary.superAmount) || 0)),
+            payrollDocInfoLine('Super fund', doc.employee.superFundName || ''),
+            payrollDocInfoLine('Fund number / USI', doc.employee.superFundNumber || ''),
+            payrollDocInfoLine('Member number', doc.employee.superMemberNumber || ''),
+          '</table></div>',
+        '</div>',
+        '<div class="doc-section-label">Weekly totals included</div>',
+        '<table class="doc-lines">',
+          '<thead><tr><th>Week</th><th>Pay date</th><th>Gross</th><th>PAYG withheld</th><th>Net</th><th>Super</th></tr></thead>',
+          '<tbody>', weekRows, '</tbody>',
+        '</table>',
+        '<table class="doc-summary">',
+          '<tr><td>Gross payments</td><td>', escapeHtml(fmtMoney((doc.summary && doc.summary.grossPay) || 0)), '</td></tr>',
+          '<tr><td>PAYG withheld</td><td>-', escapeHtml(fmtMoney((doc.summary && doc.summary.paygWithheld) || 0)), '</td></tr>',
+          '<tr><td>Net payments</td><td>', escapeHtml(fmtMoney((doc.summary && doc.summary.netPay) || 0)), '</td></tr>',
+          '<tr class="total"><td>Total super</td><td>', escapeHtml(fmtMoney((doc.summary && doc.summary.superAmount) || 0)), '</td></tr>',
+        '</table>',
+        '<div class="doc-note">Statement date: ', escapeHtml(payrollDocDisplayDate(doc.statementDate || '')), '. ', escapeHtml((doc.notes && doc.notes.disclaimer) || ''), '</div>',
+        ((doc.notes && doc.notes.quickNote) ? ('<div class="doc-note"><strong>Note:</strong> ' + escapeHtml(doc.notes.quickNote) + '</div>') : ''),
+      '</div>'
+    ].join('');
+  }
+
+  var lineRows = (doc.lines || []).map(function(r){
+    return [
+      '<tr>',
+        '<td>', escapeHtml(((r.dayLabel || '') + ' ' + (r.dateLabel || '')).trim()), '</td>',
+        '<td>', escapeHtml(r.shiftLabel || ''), '</td>',
+        '<td>', escapeHtml(numOr0(r.workHours).toFixed(2)), '</td>',
+        '<td>', escapeHtml(numOr0(r.breakHours).toFixed(2)), '</td>',
+        '<td>', escapeHtml(numOr0(r.payableHours).toFixed(2)), '</td>',
+        '<td>', escapeHtml(fmtMoney(numOr0(r.rate))), '</td>',
+        '<td>', escapeHtml(numOr0(r.otHours).toFixed(2)), '</td>',
+        '<td>', escapeHtml(fmtMoney(numOr0(r.linePay))), '</td>',
+      '</tr>'
+    ].join('');
+  }).join('');
+  if(!lineRows) lineRows = '<tr><td colspan="8" class="doc-bad">No paid time or wage lines were found for this week.</td></tr>';
+
+  var deductionsRows = '';
+  if(((doc.summary && doc.summary.positiveAdjustment) || 0) > 0){
+    deductionsRows += '<tr><td>Other earnings adjustment</td><td>' + escapeHtml(fmtMoney(doc.summary.positiveAdjustment || 0)) + '</td></tr>';
+  }
+  if(((doc.summary && doc.summary.paygWithheld) || 0) > 0){
+    deductionsRows += '<tr><td>PAYG withheld</td><td>-' + escapeHtml(fmtMoney(doc.summary.paygWithheld || 0)) + '</td></tr>';
+  }
+  if(((doc.summary && doc.summary.otherDeductions) || 0) > 0){
+    var otherLabel = 'Other deductions';
+    if(doc.notes && doc.notes.otherDeductionDetails) otherLabel += ' — ' + escapeHtml(doc.notes.otherDeductionDetails);
+    if(doc.notes && doc.notes.adjustmentComment && ((doc.summary && doc.summary.negativeAdjustment) || 0) > 0) otherLabel += ' / ' + escapeHtml(doc.notes.adjustmentComment);
+    deductionsRows += '<tr><td>' + otherLabel + '</td><td>-' + escapeHtml(fmtMoney(doc.summary.otherDeductions || 0)) + '</td></tr>';
+  }
+  if(((doc.summary && doc.summary.withheldThisWeek) || 0) > 0){
+    deductionsRows += '<tr><td>Held back this week</td><td>-' + escapeHtml(fmtMoney(doc.summary.withheldThisWeek || 0)) + '</td></tr>';
+  }
+  if(!deductionsRows) deductionsRows = '<tr><td class="doc-good">No separate deductions recorded</td><td></td></tr>';
+
+  var notes = [];
+  if(doc.notes && doc.notes.adjustmentComment) notes.push('Adjustment note: ' + escapeHtml(doc.notes.adjustmentComment));
+  if(doc.notes && doc.notes.payrollNote) notes.push('Payroll note: ' + escapeHtml(doc.notes.payrollNote));
+  if(doc.notes && doc.notes.quickNote) notes.push('Document note: ' + escapeHtml(doc.notes.quickNote));
+  if(doc.business && doc.business.note) notes.push('Business note: ' + escapeHtml(doc.business.note));
+
+  return [
+    '<div class="doc-sheet">',
+      '<div class="doc-header">',
+        '<div>',
+          '<div class="doc-title">Payslip</div>',
+          '<div class="doc-subtitle">Electronic pay slip generated in English</div>',
+        '</div>',
+        '<div style="text-align:right;display:flex;flex-direction:column;gap:8px;align-items:flex-end;">',
+          '<div class="doc-chip">Document ', escapeHtml(doc.documentNo || ''), '</div>',
+          '<div class="doc-chip">Pay date ', escapeHtml(payrollDocDisplayDate(doc.payDate || '')), '</div>',
+        '</div>',
+      '</div>',
+      '<div class="doc-grid">',
+        '<div class="doc-card"><h4>Employer</h4><table class="doc-kv">',
+          payrollDocInfoLine('Business name', doc.business.businessName || ''),
+          payrollDocInfoLine('Legal name', doc.business.legalName || ''),
+          payrollDocInfoLine('ABN', doc.business.abn || ''),
+          payrollDocInfoLine('ACN', doc.business.acn || ''),
+          payrollDocInfoLine('Address', doc.business.address || ''),
+          payrollDocInfoLine('Email', doc.business.email || ''),
+          payrollDocInfoLine('Phone', doc.business.phone || ''),
+        '</table></div>',
+        '<div class="doc-card"><h4>Employee</h4><table class="doc-kv">',
+          payrollDocInfoLine('Employee name', doc.employee.name || ''),
+          payrollDocInfoLine('Employee ID', doc.employee.employeeId || ''),
+          payrollDocInfoLine('Employment type', doc.employee.employmentType || ''),
+          payrollDocInfoLine('Classification', doc.employee.classification || ''),
+          payrollDocInfoLine('ABN / ACN', doc.employee.abnAcn || ''),
+          payrollDocInfoLine('Address', doc.employee.address || ''),
+          payrollDocInfoLine('Email', doc.employee.email || ''),
+          payrollDocInfoLine('Phone', doc.employee.phone || ''),
+        '</table></div>',
+      '</div>',
+      '<div class="doc-grid">',
+        '<div class="doc-card"><h4>Pay details</h4><table class="doc-kv">',
+          payrollDocInfoLine('Pay period', doc.periodLabel || ''),
+          payrollDocInfoLine('Period start', payrollDocDisplayDate(doc.periodStart || '')),
+          payrollDocInfoLine('Period end', payrollDocDisplayDate(doc.periodEnd || '')),
+          payrollDocInfoLine('Payment date', payrollDocDisplayDate(doc.payDate || '')),
+          payrollDocInfoLine('Generated', payrollDocDisplayTimestamp(doc.generatedAt || '')),
+          payrollDocInfoLine('Paid to', doc.employee.bankMasked || ''),
+        '</table></div>',
+        '<div class="doc-card"><h4>Super and balances</h4><table class="doc-kv">',
+          payrollDocInfoLine('Super contribution', fmtMoney((doc.summary && doc.summary.superAmount) || 0)),
+          payrollDocInfoLine('Super fund', doc.employee.superFundName || ''),
+          payrollDocInfoLine('Fund number / USI', doc.employee.superFundNumber || ''),
+          payrollDocInfoLine('Member number', doc.employee.superMemberNumber || ''),
+          payrollDocInfoLine('Annual leave balance', (doc.notes && doc.notes.leaveAnnual) || ''),
+          payrollDocInfoLine('Personal / sick leave', (doc.notes && doc.notes.leaveSick) || ''),
+          payrollDocInfoLine('Long service leave', (doc.notes && doc.notes.leaveLong) || ''),
+        '</table></div>',
+      '</div>',
+      '<div class="doc-section-label">Earnings by rate / shift</div>',
+      '<table class="doc-lines">',
+        '<thead><tr><th>Date</th><th>Shift</th><th>Worked</th><th>Break</th><th>Payable</th><th>Rate</th><th>OT</th><th>Amount</th></tr></thead>',
+        '<tbody>', lineRows, '</tbody>',
+      '</table>',
+      '<div class="doc-grid" style="margin-top:6mm;">',
+        '<div class="doc-card"><h4>Other payments and deductions</h4><table class="doc-kv">', deductionsRows, '</table></div>',
+        '<div class="doc-card"><h4>Hours summary</h4><table class="doc-kv">',
+          payrollDocInfoLine('Worked hours', numOr0(doc.summary && doc.summary.workHours).toFixed(2)),
+          payrollDocInfoLine('Break hours', numOr0(doc.summary && doc.summary.breakHours).toFixed(2)),
+          payrollDocInfoLine('Payable hours', numOr0(doc.summary && doc.summary.payableHours).toFixed(2)),
+          payrollDocInfoLine('Ordinary hours', numOr0(doc.summary && doc.summary.ordinaryHours).toFixed(2)),
+          payrollDocInfoLine('Overtime hours', numOr0(doc.summary && doc.summary.otHours).toFixed(2)),
+        '</table></div>',
+      '</div>',
+      '<table class="doc-summary">',
+        '<tr><td>Gross pay</td><td>', escapeHtml(fmtMoney((doc.summary && doc.summary.grossPay) || 0)), '</td></tr>',
+        '<tr><td>PAYG withheld</td><td>-', escapeHtml(fmtMoney((doc.summary && doc.summary.paygWithheld) || 0)), '</td></tr>',
+        '<tr><td>Other deductions</td><td>-', escapeHtml(fmtMoney((doc.summary && doc.summary.otherDeductions) || 0)), '</td></tr>',
+        '<tr><td>Held back this week</td><td>-', escapeHtml(fmtMoney((doc.summary && doc.summary.withheldThisWeek) || 0)), '</td></tr>',
+        '<tr class="total"><td>Net pay</td><td>', escapeHtml(fmtMoney((doc.summary && doc.summary.netPay) || 0)), '</td></tr>',
+      '</table>',
+      (notes.length ? ('<div class="doc-note"><strong>Notes:</strong> ' + notes.join('. ') + '.</div>') : ''),
+      '<div class="doc-note">This payslip shows employer and employee names, pay period, payment date, gross pay, net pay, hourly-rate lines, deductions and super contribution details.</div>',
+    '</div>'
+  ].join('');
+}
+function openPayrollDocModal(doc, fromBuilder){
+  if(!doc) return;
+  PayrollDocs.currentDoc = doc;
+  PayrollDocs.currentKey = doc.key || '';
+  PayrollDocs.currentType = doc.type || 'payslip';
+  var host = byId('payrollDocPreviewHost');
+  var modal = byId('payrollDocModal');
+  if(host) host.innerHTML = renderPayrollDocumentHtml(doc);
+  setTextIfExists('payrollDocModalTitle', doc.type === 'paymentSummary' ? 'Payment summary preview' : 'Payslip preview');
+  setTextIfExists('payrollDocModalMeta', (doc.periodLabel || '') + ' • ' + (doc.staffName || '') + ' • ' + (doc.documentNo || ''));
+  if(modal) modal.style.display = 'flex';
+}
+function printPayrollDocument(doc, recordToHistory){
+  if(!doc) return;
+  if(recordToHistory) upsertPayslipRecord(doc);
+  var html = renderPayrollDocumentHtml(doc);
+  var w = window.open('', '_blank');
+  if(!w) return alert('Pop-up blocked. Allow pop-ups to print or save PDF.');
+  w.document.open();
+  w.document.write('<!doctype html><html><head><meta charset="utf-8"><title>' + escapeHtml((doc.documentNo||'Payroll document')) + '</title><style>' + payrollDocumentCss() + '</style></head><body>' + html + '</body></html>');
+  w.document.close();
+  setTimeout(function(){ try{ w.focus(); w.print(); }catch(e){} }, 250);
+}
+function upsertPayslipRecord(doc){
+  ensurePayrollDocStores();
+  if(!doc) return;
+  var key = doc.key || (doc.type + '|' + (doc.staffId||'') + '|' + (doc.weekIso||doc.financialYear||''));
+  var idx = -1;
+  for(var i=0;i<(App.payslipRecords||[]).length;i++){
+    if(App.payslipRecords[i] && App.payslipRecords[i].key === key){ idx = i; break; }
+  }
+  var rec = JSON.parse(JSON.stringify(doc));
+  rec.key = key;
+  rec.updatedAt = new Date().toISOString();
+  if(idx >= 0){
+    rec.createdAt = App.payslipRecords[idx].createdAt || App.payslipRecords[idx].generatedAt || rec.generatedAt || rec.updatedAt;
+    App.payslipRecords[idx] = rec;
+  }else{
+    rec.createdAt = rec.generatedAt || rec.updatedAt;
+    App.payslipRecords.push(rec);
+  }
+  saveLocal();
+  syncPayrollDocStoresBestEffort();
+  renderPayslipHistory();
+}
+function findPayslipRecordByKey(key){
+  ensurePayrollDocStores();
+  key = String(key||'');
+  for(var i=0;i<(App.payslipRecords||[]).length;i++){
+    if(App.payslipRecords[i] && App.payslipRecords[i].key === key) return App.payslipRecords[i];
+  }
+  return null;
+}
+function deletePayslipRecordByKey(key){
+  ensurePayrollDocStores();
+  key = String(key||'');
+  var idx = -1;
+  for(var i=0;i<(App.payslipRecords||[]).length;i++){
+    if(App.payslipRecords[i] && App.payslipRecords[i].key === key){ idx = i; break; }
+  }
+  if(idx < 0) return;
+  if(!confirm('Delete this payroll document from history?')) return;
+  App.payslipRecords.splice(idx, 1);
+  saveLocal();
+  syncPayrollDocStoresBestEffort();
+  renderPayslipHistory();
+}
+function renderPayslipHistory(){
+  ensurePayrollDocStores();
+  var table = byId('payslipHistoryTable');
+  var empty = byId('payslipHistoryEmpty');
+  if(!table || !empty) return;
+  var tbody = table.querySelector('tbody');
+  if(!tbody) return;
+  tbody.innerHTML = '';
+  var staffFilter = (byId('payslipHistoryStaffFilter') && byId('payslipHistoryStaffFilter').value) || '';
+  var typeFilter = (byId('payslipHistoryTypeFilter') && byId('payslipHistoryTypeFilter').value) || '';
+  var rows = (App.payslipRecords||[]).filter(function(r){
+    if(!r) return false;
+    if(staffFilter && String(r.staffId||'') !== String(staffFilter)) return false;
+    if(typeFilter && String(r.type||'') !== String(typeFilter)) return false;
+    return true;
+  }).sort(function(a,b){
+    return (Date.parse(b.updatedAt||b.createdAt||b.generatedAt||'') || 0) - (Date.parse(a.updatedAt||a.createdAt||a.generatedAt||'') || 0);
+  });
+  if(!rows.length){
+    empty.style.display = '';
+    return;
+  }
+  empty.style.display = 'none';
+  rows.forEach(function(r){
+    var tr = document.createElement('tr');
+    tr.innerHTML = ''
+      + '<td>' + escapeHtml(String((r.updatedAt||r.createdAt||r.generatedAt||'').replace('T',' ').slice(0,16))) + '</td>'
+      + '<td>' + escapeHtml((r.type === 'paymentSummary' ? 'Payment summary' : 'Payslip') + ' • ' + (r.documentNo || '')) + '</td>'
+      + '<td>' + escapeHtml(r.staffName || payrollStaffName(r.staffId)) + '</td>'
+      + '<td>' + escapeHtml(r.periodLabel || (r.financialYear ? ('Financial year ' + r.financialYear) : '')) + '</td>'
+      + '<td>' + escapeHtml(r.payDate || r.statementDate || '') + '</td>'
+      + '<td>' + escapeHtml(fmtMoney((r.summary && r.summary.grossPay) || 0)) + '</td>'
+      + '<td>' + escapeHtml(fmtMoney((r.summary && r.summary.netPay) || 0)) + '</td>'
+      + '<td>'
+      +   '<button type="button" class="btn-outline payroll-doc-preview-btn" data-key="' + escapeHtml(r.key || '') + '">Preview</button>'
+      +   '<button type="button" class="btn-outline payroll-doc-delete-btn" data-key="' + escapeHtml(r.key || '') + '" style="margin-left:6px;">Delete</button>'
+      + '</td>';
+    tbody.appendChild(tr);
+  });
+}
 
 
 function renderPayroll(){
@@ -9238,6 +11022,7 @@ function renderPayroll(){
         + '<button type="button" class="btn-outline payroll-adjust-btn" data-staff="'+escapeHtml(String(id))+'" style="margin-top:4px;">Adjust</button>'
         + '<button type="button" class="btn-outline payroll-withhold-btn" data-staff="'+escapeHtml(String(id))+'" style="margin-top:4px;">Withhold</button>'
         + '<button type=\"button\" class=\"btn-outline payroll-managewithheld-btn\" data-staff=\"'+escapeHtml(String(id))+'\" style=\"margin-top:4px;\">Fix / Undo withhold</button>'
+        + (withheldBal>0.0001 ? ('<button type="button" class="btn-outline payroll-paypartwithheld-btn" data-staff="'+escapeHtml(String(id))+'" style="margin-top:4px;">Pay some withheld</button>') : '')
         + (withheldBal>0.0001 ? ('<button type="button" class="btn-outline payroll-clearwithheld-btn" data-staff="'+escapeHtml(String(id))+'" style="margin-top:4px;">Mark withheld paid</button>') : '')
         + '<label class="muted small" style="display:flex;align-items:center;gap:4px;margin-top:4px;">'
           + '<input type="checkbox" class="payroll-paid-checkbox" data-staff="'+escapeHtml(String(id))+'"'+(isPaid?' checked':'')+'>'
@@ -9263,6 +11048,8 @@ function renderPayroll(){
   byId('allPayable').textContent=aP.toFixed(2);
   byId('allOT').textContent=aOT.toFixed(2);
   byId('allPay').textContent=fmtMoney(aM);
+  try{ syncPayrollFormsFromApp(); }catch(e){}
+  try{ renderPayslipHistory(); }catch(e){}
   try{ if(isAdmin && isAdmin()){ var sec=byId('statsSection'); if(sec && sec.classList.contains('show')) renderStats(); } }catch(e){}
 }
 
@@ -9866,6 +11653,11 @@ document.addEventListener('click', function(ev){
     var sidM = mbtn.getAttribute('data-staff');
     openWithholdManageModal(sidM);
   }
+  var pbtn = t.closest('.payroll-paypartwithheld-btn');
+  if(pbtn){
+    var sidP = pbtn.getAttribute('data-staff');
+    openPartialWithheldPaymentPrompt(sidP);
+  }
   var cbtn = t.closest('.payroll-clearwithheld-btn');
   if(cbtn){
     var sid3 = cbtn.getAttribute('data-staff');
@@ -10035,7 +11827,7 @@ try{
     App.payrollPaid=data.payrollPaid||App.payrollPaid||{};
     App.payWithheld=data.payWithheld||App.payWithheld||{};
     App.payWithheldByWeek=data.payWithheldByWeek||App.payWithheldByWeek||{};
-    App.payWithheldLog=data.payWithheldLog||App.payWithheldLog||[];
+    App.payWithheldLog=data.payWithheldLog||App.payWithheldLog||[]; App.payrollProfiles=data.payrollProfiles||App.payrollProfiles||{business:{},staff:{}}; App.payrollWeekData=data.payrollWeekData||App.payrollWeekData||{}; App.payslipRecords=data.payslipRecords||App.payslipRecords||[];
     if(data.settings){
       for(var k in data.settings){
         App.settings[k]=data.settings[k];
@@ -10388,7 +12180,10 @@ async function pushPlannerData(){
     payrollPaid:App.payrollPaid||{},
     payWithheld:App.payWithheld||{},
     payWithheldByWeek:App.payWithheldByWeek||{},
-    payWithheldLog:App.payWithheldLog||[]
+    payWithheldLog:App.payWithheldLog||[],
+    payrollProfiles:App.payrollProfiles||{business:{},staff:{}},
+    payrollWeekData:App.payrollWeekData||{},
+    payslipRecords:App.payslipRecords||[]
   });
   return true;
 }
@@ -10410,7 +12205,10 @@ async function pushPlannerAndSettingsAdmin(){
     payrollPaid:App.payrollPaid||{},
     payWithheld:App.payWithheld||{},
     payWithheldByWeek:App.payWithheldByWeek||{},
-    payWithheldLog:App.payWithheldLog||[]
+    payWithheldLog:App.payWithheldLog||[],
+    payrollProfiles:App.payrollProfiles||{business:{},staff:{}},
+    payrollWeekData:App.payrollWeekData||{},
+    payslipRecords:App.payslipRecords||[]
   });
   return true;
 }
