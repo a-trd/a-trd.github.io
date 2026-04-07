@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1"/>
-  <title>M&C-ATRD-scheduler --=Aspire Group=-- (V3.9.7)</title>
+  <title>M&C-ATRD-scheduler --=Aspire Group=-- (V3.9.8)</title>
   <meta name="theme-color" content="#22c55e"/>
 
   <style>
@@ -715,6 +715,12 @@
       color: var(--fg);
     }
 
+    .mini-actions .btn-mini.proposal {
+      background: linear-gradient(180deg, rgba(124,58,237,.25), rgba(124,58,237,.12));
+      border-color: rgba(124,58,237,.5);
+      color: var(--fg);
+    }
+
     /* Day tools: match planner mini-action colors */
     .daytools-actions .btn-outline.dt-danger {
       background: linear-gradient(180deg, rgba(239,68,68,.25), rgba(239,68,68,.12));
@@ -743,6 +749,12 @@
     .daytools-actions .btn-outline.dt-info {
       background: linear-gradient(180deg, rgba(59,130,246,.25), rgba(59,130,246,.12));
       border-color: rgba(59,130,246,.5);
+      color: var(--fg);
+    }
+
+    .daytools-actions .btn-outline.dt-proposal {
+      background: linear-gradient(180deg, rgba(124,58,237,.25), rgba(124,58,237,.12));
+      border-color: rgba(124,58,237,.5);
       color: var(--fg);
     }
 
@@ -1937,7 +1949,7 @@
       <div id="appLogoBox"></div>
       <div class="titlewrap">
         <div class="title" id="appTitle">M&C-ATRD-scheduler --=Aspire Group=--</div>
-        <div class="version-pill" id="appVersion">V3.9.7</div>
+        <div class="version-pill" id="appVersion">V3.9.8</div>
       </div>
     </div>
     <div class="tabs">
@@ -2117,7 +2129,7 @@
             View requests
             <span id="requestsCountBadge" class="req-badge">0</span>
           </button>
-          <span id="requestsHint" class="requests-hint">Manager tools – pending leave &amp; shift edits.</span>
+          <span id="requestsHint" class="requests-hint">Manager tools – pending leave, shift edits &amp; proposed shifts.</span>
         </div>
 
         <div id="availabilityBar" class="availability" style="margin:6px 0;"></div>
@@ -2515,7 +2527,7 @@
             <select id="statsBarsMetric" style="min-width:210px;">
               <option value="shifts">Shifts worked</option>
               <option value="away">Away days requested</option>
-              <option value="shift">Shift edit requests</option>
+              <option value="shift">Shift requests</option>
               <option value="all">All requests</option>
             </select>
           </div>
@@ -2898,7 +2910,7 @@
       <!-- Admin tools / history -->
       <div class="card">
         <h3>Admin Tools</h3>
-        <div class="muted">Manager/Admin-only tools for reviewing request approvals and rejections (Away + Shift edits).</div>
+        <div class="muted">Manager/Admin-only tools for reviewing request approvals and rejections (Away + Shift requests).</div>
         <div class="grid-2" style="margin-top:8px;">
           <div>
             <label>Staff filter</label>
@@ -3006,6 +3018,7 @@
         <button id="dtRecurringUnavail" class="btn-outline dt-mute">Recurring Unavailability</button>
         <button id="dtClearAway" class="btn-outline dt-mute">Clear Away (manager)</button>
         <button id="dtProposeEdit" class="btn-outline dt-success">Propose Edit</button>
+        <button id="dtProposeShift" class="btn-outline dt-proposal">Propose Shift</button>
         <button id="dtInfo" class="btn-outline dt-info">Info for this day</button>
       </div>
       <div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;">
@@ -3349,8 +3362,8 @@ var DAY = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 var App = {
   // IMPORTANT: Increment App.version *and* App.buildId whenever making functional changes to this file.
   // SAFETY NET: This build performs an automatic runtime check against the file name; if mismatched, it shows a blocking warning so it can't be overlooked.
-  version: 'V3.9.7',
-    buildId: '2026-04-03.1',
+  version: 'V3.9.8',
+    buildId: '2026-04-07.1',
 settings: {
     dbUrl:'https://mnc-atrd-default-rtdb.asia-southeast1.firebasedatabase.app/', workspace:'mnc-atrd', authToken:'',
     theme:'light', themeName:'light-pastel-sky', recentColors:[], appTitle:'M&C-ATRD-scheduler --=Aspire Group=--', logoUrl:'',
@@ -3780,6 +3793,187 @@ function buildAbsDecisionMessage(iso, rec){
   }
   return date + ' — ' + kind + (reason?(' — ' + reason):'');
 }
+
+function isShiftProposalRequest(req){
+  try{
+    var t = String((req && (req.requestType || req.kind || '')) || '').toLowerCase();
+    if(t === 'newshift' || t === 'shiftproposal' || t === 'proposedshift' || t === 'new_shift') return true;
+    if(req && (req.proposedShift === true || req.isNewShift === true)) return true;
+  }catch(e){}
+  return false;
+}
+function shiftRequestKindKey(req){
+  return isShiftProposalRequest(req) ? 'shiftProposal' : 'shiftEdit';
+}
+function shiftRequestTypeLabel(req){
+  return isShiftProposalRequest(req) ? 'Shift proposal' : 'Shift edit';
+}
+function shiftRequestRangeLabel(req){
+  try{
+    var s = (req && req.newStart) ? to12hStr(req.newStart) : '';
+    var e = (req && req.newEnd) ? to12hStr(req.newEnd) : '';
+    if(s && e) return s + '–' + e;
+    if(isShiftProposalRequest(req)) return (s || '?') + '–' + (e || '?');
+    var parts = [];
+    if(s) parts.push('start → ' + s);
+    if(e) parts.push('end → ' + e);
+    return parts.length ? parts.join(', ') : 'Time change';
+  }catch(e){
+    return isShiftProposalRequest(req) ? 'Proposed shift' : 'Time change';
+  }
+}
+function shiftRequestDetails(req){
+  try{
+    var parts = [];
+    var range = shiftRequestRangeLabel(req);
+    if(range) parts.push(range);
+    if(isShiftProposalRequest(req)){
+      if(req && req.newBreakMins!=null && req.newBreakMins!=='' && !isNaN(parseInt(req.newBreakMins,10))){
+        parts.push(parseInt(req.newBreakMins,10) + 'm break');
+      }
+      if(req && req.newPenalty) parts.push('Penalty');
+      if(req && req.newNotes) parts.push('Notes: ' + String(req.newNotes));
+    }
+    if(req && req.reason) parts.push('Reason: ' + String(req.reason));
+    return parts.join(' | ');
+  }catch(e){
+    return '';
+  }
+}
+function requestTypeKeyForAbs(rec){
+  try{
+    if(rec && rec.blocks && rec.blocks.length) return 'awayPartial';
+    if(rec && rec.unavailable) return 'awayFull';
+  }catch(e){}
+  return 'awayFull';
+}
+function requestTypeLabelForAbs(rec){
+  return requestTypeKeyForAbs(rec) === 'awayPartial' ? 'Away (partial)' : 'Away (full day)';
+}
+function requestTypeKeyForEditRequest(rec){
+  try{
+    if(rec && rec.type === 'away') return rec.mode === 'partial' ? 'awayPartial' : 'awayFull';
+  }catch(e){}
+  return 'editRequest';
+}
+function requestTypeLabelForEditRequest(rec){
+  try{
+    if(rec && rec.type === 'away') return rec.mode === 'partial' ? 'Away edit (partial)' : 'Away edit (full day)';
+  }catch(e){}
+  return 'Edit request';
+}
+function requestVisual(kind){
+  var theme = (App && App.settings && App.settings.theme === 'light') ? 'light' : 'dark';
+  var map = {
+    awayFull:      {accent:'#ef4444', border:'rgba(239,68,68,.45)', fill:'rgba(239,68,68,.12)', text:(theme==='light'?'#991b1b':'#fecaca')},
+    awayPartial:   {accent:'#f59e0b', border:'rgba(245,158,11,.45)', fill:'rgba(245,158,11,.12)', text:(theme==='light'?'#92400e':'#fde68a')},
+    shiftEdit:     {accent:'#10b981', border:'rgba(16,185,129,.45)', fill:'rgba(16,185,129,.12)', text:(theme==='light'?'#065f46':'#a7f3d0')},
+    shiftProposal: {accent:'#7c3aed', border:'rgba(124,58,237,.45)', fill:'rgba(124,58,237,.12)', text:(theme==='light'?'#4c1d95':'#e9d5ff')},
+    editRequest:   {accent:'#3b82f6', border:'rgba(59,130,246,.45)', fill:'rgba(59,130,246,.12)', text:(theme==='light'?'#1d4ed8':'#bfdbfe')},
+    neutral:       {accent:'#64748b', border:'rgba(100,116,139,.35)', fill:'rgba(100,116,139,.10)', text:(theme==='light'?'#334155':'#e2e8f0')}
+  };
+  return map[kind] || map.neutral;
+}
+function applyRequestCardVisual(el, kind){
+  try{
+    if(!el) return;
+    var v = requestVisual(kind);
+    el.style.border = '1px solid ' + v.border;
+    el.style.borderLeft = '6px solid ' + v.accent;
+    el.style.background = 'linear-gradient(90deg, ' + v.fill + ', transparent 62%)';
+  }catch(e){}
+}
+function makeRequestTypePill(kind, label){
+  var v = requestVisual(kind);
+  var span = document.createElement('span');
+  span.textContent = label || '';
+  span.style.display = 'inline-flex';
+  span.style.alignItems = 'center';
+  span.style.gap = '6px';
+  span.style.padding = '2px 8px';
+  span.style.borderRadius = '999px';
+  span.style.border = '1px solid ' + v.border;
+  span.style.background = v.fill;
+  span.style.color = v.text;
+  span.style.fontSize = '11px';
+  span.style.fontWeight = '900';
+  span.style.lineHeight = '1.4';
+  span.style.whiteSpace = 'nowrap';
+  return span;
+}
+function requestTypeBadgeHtml(kind, label){
+  var v = requestVisual(kind);
+  return '<span style="display:inline-flex;align-items:center;gap:6px;padding:2px 8px;border-radius:999px;border:1px solid '+v.border+';background:'+v.fill+';color:'+v.text+';font-size:11px;font-weight:900;line-height:1.4;white-space:nowrap;">'+escapeHtml(label||'')+'</span>';
+}
+function statusBadgeHtml(status){
+  status = _normReqStatus(status || 'pending');
+  var kind = (status === 'approved') ? 'shiftEdit' : ((status === 'rejected') ? 'awayFull' : 'awayPartial');
+  var label = status.charAt(0).toUpperCase() + status.slice(1);
+  return requestTypeBadgeHtml(kind, label);
+}
+function buildManagerRequestCard(opts){
+  var box = document.createElement('div');
+  box.style.display = 'grid';
+  box.style.gridTemplateColumns = 'minmax(0, 1fr) auto';
+  box.style.gap = '10px';
+  box.style.alignItems = 'center';
+  box.style.marginBottom = '8px';
+  box.style.padding = '10px 12px';
+  box.style.borderRadius = '14px';
+  applyRequestCardVisual(box, opts.kindKey || 'neutral');
+
+  var left = document.createElement('div');
+  left.style.minWidth = '0';
+
+  var top = document.createElement('div');
+  top.style.display = 'flex';
+  top.style.flexWrap = 'wrap';
+  top.style.alignItems = 'center';
+  top.style.gap = '8px';
+  var name = document.createElement('div');
+  name.style.fontWeight = '900';
+  name.textContent = opts.staffName || '';
+  top.appendChild(name);
+  top.appendChild(makeRequestTypePill(opts.kindKey || 'neutral', opts.typeLabel || 'Request'));
+  left.appendChild(top);
+
+  var meta = document.createElement('div');
+  meta.className = 'muted';
+  meta.style.marginTop = '3px';
+  meta.style.display = 'flex';
+  meta.style.flexWrap = 'wrap';
+  meta.style.gap = '10px';
+  meta.innerHTML = '<span>' + escapeHtml(opts.dayLabel || '') + '</span><span>Requested: ' + escapeHtml(_fmtTS(opts.requestedAt || '')) + '</span>';
+  left.appendChild(meta);
+
+  if(opts.details){
+    var details = document.createElement('div');
+    details.className = 'muted';
+    details.style.marginTop = '6px';
+    details.textContent = opts.details;
+    left.appendChild(details);
+  }
+
+  var right = document.createElement('div');
+  right.style.display = 'flex';
+  right.style.flexWrap = 'wrap';
+  right.style.gap = '8px';
+  right.style.justifyContent = 'flex-end';
+  if(opts.actions && opts.actions.length){
+    opts.actions.forEach(function(a){ if(a) right.appendChild(a); });
+  }
+
+  box.appendChild(left);
+  box.appendChild(right);
+  return box;
+}
+function addRequestSection(list, title){
+  var head = document.createElement('div');
+  head.style.fontWeight = '900';
+  head.style.margin = '6px 0 10px';
+  head.textContent = title;
+  list.appendChild(head);
+}
 function buildShiftDecisionMessage(rec, isoFallback){
   var date = '';
   try{
@@ -3794,11 +3988,10 @@ function buildShiftDecisionMessage(rec, isoFallback){
   }catch(e){
     date = (isoFallback ? String(isoFallback) : '');
   }
-  var changes = [];
-  if(rec && rec.newStart) changes.push('start → ' + rec.newStart);
-  if(rec && rec.newEnd) changes.push('end → ' + rec.newEnd);
-  var msg = (date ? (date + ' — ') : '') + (changes.length ? changes.join(', ') : 'Shift edit');
-  if(rec && rec.reason) msg += ' — ' + rec.reason;
+  var label = shiftRequestTypeLabel(rec);
+  var msg = (date ? (date + ' — ') : '') + label;
+  var details = shiftRequestDetails(rec);
+  if(details) msg += ' — ' + details;
   return msg;
 }
 
@@ -3873,7 +4066,7 @@ function collectMyDecisionUpdates(){
         out.push({
           seenKey: key2,
           kind: (st2==='approved' ? 'success' : 'danger'),
-          title: (st2==='approved' ? 'Shift edit accepted' : 'Shift edit declined'),
+          title: (st2==='approved' ? ((isShiftProposalRequest(rec2) ? 'Shift proposal accepted' : 'Shift edit accepted')) : ((isShiftProposalRequest(rec2) ? 'Shift proposal declined' : 'Shift edit declined'))),
           message: buildShiftDecisionMessage(rec2, iso2)
         });
       });
@@ -4884,6 +5077,7 @@ function init(){
     _b = byId('dtRecurringUnavail'); if(_b) _b.onclick = dayToolsRecurringUnavail;
     _b = byId('dtClearAway'); if(_b) _b.onclick = dayToolsClearAway;
     _b = byId('dtProposeEdit'); if(_b) _b.onclick = dayToolsProposeEdit;
+    _b = byId('dtProposeShift'); if(_b) _b.onclick = dayToolsProposeShift;
     _b = byId('dtInfo'); if(_b) _b.onclick = dayToolsInfo;
   }
 
@@ -5101,11 +5295,10 @@ function renderAdminHistory(){
             detailsParts.push('Day: '+DAY[parseInt(rec.dayIndex,10)]+' '+fmtDMY(d0));
           }catch(e){}
         }
-        if(rec.newStart) detailsParts.push('start → '+rec.newStart);
-        if(rec.newEnd) detailsParts.push('end → '+rec.newEnd);
-        if(rec.reason) detailsParts.push('Reason: '+rec.reason);
+        var shiftSummary = shiftRequestDetails(rec);
+        if(shiftSummary) detailsParts.push(shiftSummary);
 
-        rows.push({when:when, iso:iso, name:name, staffId:sid, status:status, type:'Shift edit', details:detailsParts.join(' | ')});
+        rows.push({when:when, iso:iso, name:name, staffId:sid, status:status, type:shiftRequestTypeLabel(rec), details:detailsParts.join(' | ')});
       });
     });
   }catch(e){}
@@ -5275,6 +5468,7 @@ function renderAdminRequestsLog(){
           staffName: name,
           status: 'pending',
           type: type,
+          kindKey: requestTypeKeyForAbs(req),
           details: detailsParts.join(' | '),
           color: staff.color || ''
         });
@@ -5320,6 +5514,7 @@ function renderAdminRequestsLog(){
           staffName: name,
           status: st,
           type: type,
+          kindKey: requestTypeKeyForAbs(rec),
           details: detailsParts.join(' | '),
           color: staff.color || ''
         });
@@ -5341,11 +5536,6 @@ function renderAdminRequestsLog(){
         var staff = (sid && App.staff && App.staff[sid]) ? App.staff[sid] : {};
         var name = staff.name || sid || '(unknown)';
 
-        var detailsParts=[];
-        if(req.newStart) detailsParts.push('start → '+req.newStart);
-        if(req.newEnd) detailsParts.push('end → '+req.newEnd);
-        if(req.reason) detailsParts.push('Reason: '+req.reason);
-
         var requestedAt = req.createdAt || req.requestedAt || req.ts || req.submittedAt || iso;
 
         addRow({
@@ -5356,8 +5546,9 @@ function renderAdminRequestsLog(){
           staffId: sid,
           staffName: name,
           status: 'pending',
-          type: 'Shift edit',
-          details: detailsParts.join(' | '),
+          type: shiftRequestTypeLabel(req),
+          kindKey: shiftRequestKindKey(req),
+          details: shiftRequestDetails(req),
           color: staff.color || ''
         });
       });
@@ -5377,11 +5568,6 @@ function renderAdminRequestsLog(){
         var staff = (sid && App.staff && App.staff[sid]) ? App.staff[sid] : {};
         var name = staff.name || sid || '(unknown)';
 
-        var detailsParts=[];
-        if(rec.newStart) detailsParts.push('start → '+rec.newStart);
-        if(rec.newEnd) detailsParts.push('end → '+rec.newEnd);
-        if(rec.reason) detailsParts.push('Reason: '+rec.reason);
-
         addRow({
           requestedAt: rec.createdAt || rec.requestedAt || rec.ts || '',
           resolvedAt: rec.resolvedAt || '',
@@ -5390,8 +5576,9 @@ function renderAdminRequestsLog(){
           staffId: sid,
           staffName: name,
           status: st,
-          type: 'Shift edit',
-          details: detailsParts.join(' | '),
+          type: shiftRequestTypeLabel(rec),
+          kindKey: shiftRequestKindKey(rec),
+          details: shiftRequestDetails(rec),
           color: staff.color || ''
         });
       });
@@ -5487,8 +5674,8 @@ function renderAdminRequestsLog(){
       '<td>'+escapeHtml(_fmtTS(r.resolvedAt))+'</td>'+
       '<td>'+escapeHtml(String(r.dayLabel||''))+'</td>'+
       '<td>'+escapeHtml(String(r.staffName||''))+'</td>'+
-      '<td>'+escapeHtml(String(r.status||''))+'</td>'+
-      '<td>'+escapeHtml(String(r.type||''))+'</td>'+
+      '<td>'+statusBadgeHtml(r.status||'')+'</td>'+
+      '<td>'+requestTypeBadgeHtml(r.kindKey||'neutral', String(r.type||''))+'</td>'+
       '<td>'+escapeHtml(String(r.details||''))+'</td>';
     return tr;
   }
@@ -5936,23 +6123,45 @@ function _sortedIsoKeys(obj){
     return Object.keys(obj||{}).filter(function(k){ return /^\d{4}-\d{2}-\d{2}$/.test(k); }).sort(function(a,b){ return fromISO(b)-fromISO(a); });
   }catch(e){ return []; }
 }
-function _makeReqRow(title, sub, actionsHtml){
+
+function _makeReqRow(title, sub, actionsHtml, kindKey, typeLabel){
   var box = document.createElement('div');
-  box.style.display='flex';
-  box.style.gap='10px';
-  box.style.alignItems='flex-start';
-  box.style.justifyContent='space-between';
-  box.style.padding='8px 10px';
-  box.style.border='1px solid var(--border)';
-  box.style.borderRadius='10px';
-  box.style.margin='6px 0';
-  var left=document.createElement('div');
-  var t=document.createElement('div'); t.style.fontWeight='700'; t.textContent=title;
-  var m=document.createElement('div'); m.className='muted small'; m.textContent=sub||'';
-  left.appendChild(t); left.appendChild(m);
-  var right=document.createElement('div');
-  right.innerHTML = actionsHtml||'';
-  box.appendChild(left); box.appendChild(right);
+  box.style.display = 'flex';
+  box.style.gap = '10px';
+  box.style.alignItems = 'flex-start';
+  box.style.justifyContent = 'space-between';
+  box.style.padding = '9px 11px';
+  box.style.borderRadius = '12px';
+  box.style.margin = '6px 0';
+  applyRequestCardVisual(box, kindKey || 'neutral');
+
+  var left = document.createElement('div');
+  left.style.minWidth = '0';
+
+  var top = document.createElement('div');
+  top.style.display = 'flex';
+  top.style.flexWrap = 'wrap';
+  top.style.gap = '8px';
+  top.style.alignItems = 'center';
+
+  var t = document.createElement('div');
+  t.style.fontWeight = '800';
+  t.textContent = title;
+  top.appendChild(t);
+  if(typeLabel){ top.appendChild(makeRequestTypePill(kindKey || 'neutral', typeLabel)); }
+
+  var m = document.createElement('div');
+  m.className = 'muted small';
+  m.textContent = sub || '';
+  m.style.marginTop = '4px';
+
+  left.appendChild(top);
+  left.appendChild(m);
+
+  var right = document.createElement('div');
+  right.innerHTML = actionsHtml || '';
+  box.appendChild(left);
+  box.appendChild(right);
   return box;
 }
 
@@ -6018,6 +6227,7 @@ try{ var payload={}; payload[key]=null; await dbPatch('/shiftChangeRequests/'+re
   if(typeof updateRequestsBadge==='function') updateRequestsBadge();
 }
 
+
 function renderMyRequests(){
   if(!App.currentUser) return;
   var role = App.currentUser.role || 'staff';
@@ -6034,40 +6244,42 @@ function renderMyRequests(){
 
   var pendingCount = 0;
 
-  // Pending away requests
   try{
     var ar = App.absenceRequests || {};
     _sortedIsoKeys(ar).forEach(function(iso){
       var day = ar[iso] || {};
       var rec = day[sid];
       if(!rec) return;
-
+      var kindKey = requestTypeKeyForAbs(rec);
+      var typeLabel = requestTypeLabelForAbs(rec);
       var reason = rec.reason ? String(rec.reason) : '';
       if(rec.unavailable){
         pendingCount++;
-        var row = _makeReqRow(
-          'Away (full day) — ' + formatIsoForHuman(iso),
-          reason || '—',
-          '<button class="btn-outline" data-cancel-abs="1" data-iso="'+escapeHtml(iso)+'" data-staff="'+escapeHtml(sid)+'">Cancel</button>'
-        );
-        pendingEl.appendChild(row);
+        pendingEl.appendChild(_makeReqRow(
+          formatIsoForHuman(iso),
+          (reason || 'Full-day away request'),
+          '<button class="btn-outline" data-cancel-abs="1" data-iso="'+escapeHtml(iso)+'" data-staff="'+escapeHtml(sid)+'">Cancel</button>',
+          'awayFull',
+          'Away (full day)'
+        ));
       }
       if(rec.blocks && rec.blocks.length){
         rec.blocks.forEach(function(b, idx){
           pendingCount++;
-          var sub = (b.start||'?')+'–'+(b.end||'?') + (reason ? (' — '+reason) : '');
-          var row2 = _makeReqRow(
-            'Away (partial) — ' + formatIsoForHuman(iso),
+          var seg = (b.start||'?')+'–'+(b.end||'?');
+          var sub = seg + (b.reason ? (' — ' + String(b.reason)) : (reason ? (' — ' + reason) : ''));
+          pendingEl.appendChild(_makeReqRow(
+            formatIsoForHuman(iso),
             sub,
-            '<button class="btn-outline" data-cancel-abs="1" data-block="'+idx+'" data-iso="'+escapeHtml(iso)+'" data-staff="'+escapeHtml(sid)+'">Cancel</button>'
-          );
-          pendingEl.appendChild(row2);
+            '<button class="btn-outline" data-cancel-abs="1" data-block="'+idx+'" data-iso="'+escapeHtml(iso)+'" data-staff="'+escapeHtml(sid)+'">Cancel</button>',
+            kindKey,
+            typeLabel
+          ));
         });
       }
     });
   }catch(e){ console.error(e); }
 
-  // Pending shift edit requests
   try{
     var scr = App.shiftChangeRequests || {};
     _sortedIsoKeys(scr).forEach(function(iso){
@@ -6076,21 +6288,14 @@ function renderMyRequests(){
         var req = bucket[key];
         if(!req || String(req.staffId)!==sid) return;
         pendingCount++;
-        var when = '';
-        try{
-          if(req.weekStartISO!=null && req.dayIndex!=null){
-            var base = fromISO(req.weekStartISO);
-            var d = new Date(base); d.setDate(d.getDate()+parseInt(req.dayIndex,10));
-            when = formatIsoForHuman(toISO(d));
-          }
-        }catch(e){}
-        var sub = 'Proposed: '+to12hStr(req.newStart||'')+'–'+to12hStr(req.newEnd||'') + (req.reason?(' — '+String(req.reason)):'');
-        var row = _makeReqRow(
-          'Shift edit request — ' + (when||iso),
-          sub,
-          '<button class="btn-outline" data-cancel-shift="1" data-iso="'+escapeHtml(iso)+'" data-key="'+escapeHtml(key)+'">Cancel</button>'
-        );
-        pendingEl.appendChild(row);
+        var when = _shiftReqDayLabel(req, iso);
+        pendingEl.appendChild(_makeReqRow(
+          when || iso,
+          shiftRequestDetails(req),
+          '<button class="btn-outline" data-cancel-shift="1" data-iso="'+escapeHtml(iso)+'" data-key="'+escapeHtml(key)+'">Cancel</button>',
+          shiftRequestKindKey(req),
+          shiftRequestTypeLabel(req)
+        ));
       });
     });
   }catch(e){ console.error(e); }
@@ -6099,7 +6304,6 @@ function renderMyRequests(){
     pendingEl.innerHTML = '<div class="muted">No pending requests.</div>';
   }
 
-  // History (approved/rejected)
   var histCount = 0;
   try{
     var ah = App.absenceHistory || {};
@@ -6108,10 +6312,27 @@ function renderMyRequests(){
       var rec = day[sid];
       if(!rec) return;
       histCount++;
-      var title = (rec.status==='approved'?'Approved':'Rejected') + ' — Away — ' + formatIsoForHuman(iso);
-      var sub = (rec.unavailable?'Full day':'Partial') + (rec.reason?(' — '+String(rec.reason)):'');
-      var row = _makeReqRow(title, sub, '');
-      histEl.appendChild(row);
+      var kindKey = requestTypeKeyForAbs(rec);
+      var typeLabel = requestTypeLabelForAbs(rec);
+      var sub = '';
+      if(rec.blocks && rec.blocks.length){
+        sub = rec.blocks.map(function(b){
+          var seg = (b.start||'?')+'–'+(b.end||'?');
+          if(b.reason) seg += ' — ' + String(b.reason);
+          return seg;
+        }).join(' | ');
+      }else if(rec.unavailable){
+        sub = rec.reason ? ('Full-day — ' + String(rec.reason)) : 'Full-day away';
+      }else if(rec.reason){
+        sub = String(rec.reason);
+      }
+      histEl.appendChild(_makeReqRow(
+        (rec.status==='approved'?'Approved':'Rejected') + ' — ' + formatIsoForHuman(iso),
+        sub,
+        '',
+        kindKey,
+        typeLabel
+      ));
     });
   }catch(e){ console.error(e); }
 
@@ -6123,18 +6344,14 @@ function renderMyRequests(){
         var rec = bucket[key];
         if(!rec || String(rec.staffId)!==sid) return;
         histCount++;
-        var when = '';
-        try{
-          if(rec.weekStartISO!=null && rec.dayIndex!=null){
-            var base = fromISO(rec.weekStartISO);
-            var d = new Date(base); d.setDate(d.getDate()+parseInt(rec.dayIndex,10));
-            when = formatIsoForHuman(toISO(d));
-          }
-        }catch(e){}
-        var title = (rec.status==='approved'?'Approved':'Rejected') + ' — Shift edit — ' + (when||iso);
-        var sub = 'Requested: '+to12hStr(rec.newStart||'')+'–'+to12hStr(rec.newEnd||'') + (rec.reason?(' — '+String(rec.reason)):'');
-        var row = _makeReqRow(title, sub, '');
-        histEl.appendChild(row);
+        var when = _shiftReqDayLabel(rec, iso);
+        histEl.appendChild(_makeReqRow(
+          (rec.status==='approved'?'Approved':'Rejected') + ' — ' + (when || iso),
+          shiftRequestDetails(rec),
+          '',
+          shiftRequestKindKey(rec),
+          shiftRequestTypeLabel(rec)
+        ));
       });
     });
   }catch(e){ console.error(e); }
@@ -6146,6 +6363,7 @@ function renderMyRequests(){
   countEl.textContent = 'Pending: ' + pendingCount;
 }
 
+// Delegation for cancel buttons inside My Requests
 // Delegation for cancel buttons inside My Requests
 document.addEventListener('click', function(ev){
   var t = ev.target;
@@ -6283,6 +6501,7 @@ function renderPlanner(){
     addMini('Clear','mute', function(){ clearAway(curISO, id); });
     
     addMini('Propose Edit','success', function(){ proposeShiftEdit(curISO, id); });
+    addMini('Propose Shift','proposal', function(){ proposeShiftRequest(curISO, id); });
     addMini('INFO','info', function(){ window.openInfoForCell(curISO, id); });
 sc.appendChild(mini);
 
@@ -6982,6 +7201,14 @@ function dayToolsProposeEdit(){
   closeDayTools();
   if(window.proposeShiftEdit){
     window.proposeShiftEdit(DayToolsCtx.iso, DayToolsCtx.staffId);
+  }
+}
+
+function dayToolsProposeShift(){
+  if(!DayToolsCtx || !DayToolsCtx.iso) return;
+  closeDayTools();
+  if(window.proposeShiftRequest){
+    window.proposeShiftRequest(DayToolsCtx.iso, DayToolsCtx.staffId);
   }
 }
 
@@ -8383,18 +8610,18 @@ function rejectEditRequest(editId){
   }catch(e){ console.error('rejectEditRequest error', e); }
 }
 
+
 function openRequestsModal(){
   ensureRequestsStore();
-  var modal=byId('requestsModal');
-  var list=byId('requestsList');
+  var modal = byId('requestsModal');
+  var list = byId('requestsList');
   if(!modal || !list) return;
-  list.innerHTML='';
+  list.innerHTML = '';
 
-  var any=false;
-  var isGlobalAbsences = !!(App && App.currentUser && App.currentUser.role==='admin');
+  var any = false;
+  var isGlobalAbsences = !!(App && App.currentUser && App.currentUser.role === 'admin');
 
-  // Absence requests (admin: all weeks, manager: this week)
-  var absItems=[];
+  var absItems = [];
   try{
     if(App.absenceRequests){
       Object.keys(App.absenceRequests).forEach(function(iso){
@@ -8417,7 +8644,6 @@ function openRequestsModal(){
       });
     }
   }catch(e){}
-
   absItems.sort(function(a,b){
     if(a.iso < b.iso) return -1;
     if(a.iso > b.iso) return 1;
@@ -8425,220 +8651,168 @@ function openRequestsModal(){
     var nb = ((App.staff && App.staff[b.sid]) ? (App.staff[b.sid].name||'') : '');
     return String(na).localeCompare(String(nb));
   });
-
   if(absItems.length){
     any = true;
-    var head = document.createElement('div');
-    head.style.fontWeight = '900';
-    head.style.margin = '6px 0 10px';
-    head.textContent = 'Absence requests' + (isGlobalAbsences ? ' (all weeks)' : ' (this week)');
-    list.appendChild(head);
-
+    addRequestSection(list, 'Away requests' + (isGlobalAbsences ? ' (all weeks)' : ' (this week)'));
     absItems.forEach(function(it){
       var iso = it.iso;
       var sid = it.sid;
       var req = it.req || {};
       var st = (App.staff && App.staff[sid]) ? App.staff[sid] : {};
-
-      var label;
+      var kindKey = requestTypeKeyForAbs(req);
+      var typeLabel = requestTypeLabelForAbs(req);
+      var details = '';
       if(req.blocks && req.blocks.length){
-        var b = req.blocks[0] || {};
-        label = 'Partial away ' + (b.start||'') + '–' + (b.end||'');
+        details = req.blocks.map(function(b){
+          var seg = (b.start||'?') + '–' + (b.end||'?');
+          if(b.reason) seg += ' — ' + String(b.reason);
+          return seg;
+        }).join(' | ');
       }else if(req.unavailable){
-        label = 'Full day away';
-      }else{
-        label = 'Away request';
+        details = req.reason ? String(req.reason) : 'Full-day away request';
+      }else if(req.reason){
+        details = String(req.reason);
       }
-
-      var reason = req.reason || '';
-      if(!reason && req.blocks && req.blocks[0] && req.blocks[0].reason) reason = req.blocks[0].reason;
-
-      var row=document.createElement('div');
-      row.style.display='flex';
-      row.style.gap='8px';
-      row.style.alignItems='center';
-      row.style.marginBottom='6px';
-      row.style.flexWrap='wrap';
-
-      row.innerHTML=
-        '<div style="font-weight:800;min-width:160px">'+escapeHtml(st.name||'')+'</div>'+
-        '<div class="muted" style="min-width:150px">'+escapeHtml(formatIsoForHuman(iso))+'</div>'+
-        '<div class="muted" style="min-width:200px">Requested: '+escapeHtml(_fmtTS(req.createdAt||req.requestedAt||req.ts||req.submittedAt||''))+'</div>'+
-        '<div class="pill">'+escapeHtml(label)+'</div>'+
-        (reason ? '<div class="muted">Reason: '+escapeHtml(String(reason))+'</div>' : '');
-
-      var app=document.createElement('button'); app.className='btn-good'; app.textContent='Approve';
-      var rej=document.createElement('button'); rej.className='btn-outline'; rej.textContent='Reject';
-
-      (function(iso2,sid2,req2){
-        app.onclick=function(){ approveRequest(iso2,sid2,req2); };
-        rej.onclick=function(){ rejectRequest(iso2,sid2); };
-      })(iso,sid,req);
-
-      row.appendChild(app);
-      row.appendChild(rej);
-      list.appendChild(row);
+      var app = document.createElement('button'); app.className='btn-good'; app.textContent='Approve';
+      var rej = document.createElement('button'); rej.className='btn-outline'; rej.textContent='Reject';
+      app.onclick = function(){ approveRequest(iso, sid, req); };
+      rej.onclick = function(){ rejectRequest(iso, sid); };
+      list.appendChild(buildManagerRequestCard({
+        kindKey: kindKey,
+        typeLabel: typeLabel,
+        staffName: st.name || '',
+        dayLabel: formatIsoForHuman(iso),
+        requestedAt: req.createdAt || req.requestedAt || req.ts || req.submittedAt || '',
+        details: details,
+        actions: [app, rej]
+      }));
     });
-
-    var hr=document.createElement('div');
-    hr.style.height='1px';
-    hr.style.background='var(--border)';
-    hr.style.margin='12px 0';
-    list.appendChild(hr);
   }
 
-  // Shift change requests (all pending, any week/day)
-  var shiftAny=false;
-  if(App.shiftChangeRequests){
-    Object.keys(App.shiftChangeRequests).forEach(function(iso2){
-      var bucket2=App.shiftChangeRequests[iso2];
-      if(!bucket2) return;
+  var shiftEdits = [];
+  var shiftProposals = [];
+  try{
+    var sh = App.shiftChangeRequests || {};
+    Object.keys(sh).forEach(function(iso2){
+      var bucket2 = sh[iso2] || {};
       Object.keys(bucket2).forEach(function(key){
-        var req=bucket2[key];
+        var req = bucket2[key];
         if(!req) return;
         if(req.status && req.status!=='pending') return;
-        any=true; shiftAny=true;
-
-        var st=App.staff[req.staffId]||{};
-        var nd;
-        try{
-          if(req.weekStartISO){
-            nd=fromISO(req.weekStartISO);
-            if(req.dayIndex!=null){ nd.setDate(nd.getDate()+parseInt(req.dayIndex,10)); }
-          }else{
-            nd=fromISO(iso2);
-          }
-        }catch(e){
-          nd=fromISO(iso2);
-        }
-
-        var dateStr;
-        try{ dateStr = nd.toLocaleDateString(undefined,{weekday:'short'}) + ' ' + fmtDMY(nd); }
-        catch(e2){ dateStr = fmtDMY(nd); }
-
-        var changes=[];
-        if(req.newStart){ changes.push('start → '+req.newStart); }
-        if(req.newEnd){ changes.push('end → '+req.newEnd); }
-        if(changes.length===0){ changes.push('time change'); }
-
-        var row=document.createElement('div');
-        row.style.display='flex';
-        row.style.gap='8px';
-        row.style.alignItems='center';
-        row.style.marginBottom='6px';
-        row.style.flexWrap='wrap';
-
-        row.innerHTML =
-          '<div style="font-weight:800;min-width:160px">'+escapeHtml(st.name||'')+'</div>'+
-          '<div class="muted" style="min-width:150px">'+escapeHtml(String(dateStr))+'</div>'+
-          '<div class="muted" style="min-width:200px">Requested: '+escapeHtml(_fmtTS(req.createdAt||req.requestedAt||req.ts||req.submittedAt||''))+'</div>'+
-          '<div class="pill">'+escapeHtml(changes.join(', '))+'</div>'+
-          (req.reason ? '<div class="muted">Reason: '+escapeHtml(String(req.reason))+'</div>' : '');
-
-        var appB=document.createElement('button'); appB.className='btn-good'; appB.textContent='Apply';
-        var rejB=document.createElement('button'); rejB.className='btn-outline'; rejB.textContent='Discard';
-
-        (function(iso3,key3,req3){
-          appB.onclick=function(){ approveShiftChange(iso3,key3,req3); };
-          rejB.onclick=function(){ rejectShiftChange(iso3,key3); };
-        })(iso2,key,req);
-
-        row.appendChild(appB);
-        row.appendChild(rejB);
-
-        // Insert a section header once, right before first shift row
-        if(shiftAny && !byId('__shiftReqHeaderInserted')){
-          var h = document.createElement('div');
-          h.id='__shiftReqHeaderInserted';
-          h.style.fontWeight='900';
-          h.style.margin='6px 0 10px';
-          h.textContent='Shift edit requests (all weeks)';
-          list.appendChild(h);
-        }
-
-        list.appendChild(row);
+        var item = {iso:String(iso2), key:String(key), req:req};
+        if(isShiftProposalRequest(req)) shiftProposals.push(item);
+        else shiftEdits.push(item);
       });
     });
-  }
-
-
-// Edit requests (generic) - used for staff-requested edits to published items
-try{
-  var edits = [];
-  if(App.editRequests){
-    Object.keys(App.editRequests).forEach(function(eid){
-      var er = App.editRequests[eid];
-      if(!er) return;
-      var stt = String(er.status||'pending').toLowerCase();
-      if(stt!=='pending') return;
-      edits.push(er);
+  }catch(e){}
+  function sortShiftItems(arr){
+    arr.sort(function(a,b){
+      var ta = Date.parse((a.req && (a.req.createdAt || a.req.requestedAt || a.req.ts || a.req.submittedAt)) || '') || Date.parse(a.iso||'') || 0;
+      var tb = Date.parse((b.req && (b.req.createdAt || b.req.requestedAt || b.req.ts || b.req.submittedAt)) || '') || Date.parse(b.iso||'') || 0;
+      return ta - tb;
     });
   }
-  edits.sort(function(a,b){
-    var ia = String(a.iso||''); var ib = String(b.iso||'');
-    if(ia<ib) return -1; if(ia>ib) return 1;
-    return String(a.createdAt||'').localeCompare(String(b.createdAt||''));
-  });
-  if(edits.length){
-    any=true;
-    var headE = document.createElement('div');
-    headE.style.fontWeight='900';
-    headE.style.margin='6px 0 10px';
-    headE.textContent='Edit requests';
-    list.appendChild(headE);
+  sortShiftItems(shiftEdits);
+  sortShiftItems(shiftProposals);
 
-    edits.forEach(function(er){
-      var st = (App.staff && App.staff[er.staffId]) ? App.staff[er.staffId] : {};
-      var label = (er.type==='away' ? ('Away edit ('+(er.mode||'')+')') : ('Edit: '+(er.type||'')));
-      var row=document.createElement('div');
-      row.style.display='flex';
-      row.style.gap='8px';
-      row.style.alignItems='center';
-      row.style.marginBottom='6px';
-      row.style.flexWrap='wrap';
+  if(shiftEdits.length){
+    any = true;
+    addRequestSection(list, 'Shift edit requests');
+    shiftEdits.forEach(function(it){
+      var req = it.req || {};
+      var sid = (req.staffId!=null) ? String(req.staffId) : '';
+      var st = (sid && App.staff && App.staff[sid]) ? App.staff[sid] : {};
+      var appB = document.createElement('button'); appB.className='btn-good'; appB.textContent='Apply';
+      var rejB = document.createElement('button'); rejB.className='btn-outline'; rejB.textContent='Discard';
+      appB.onclick = function(){ approveShiftChange(it.iso, it.key, req); };
+      rejB.onclick = function(){ rejectShiftChange(it.iso, it.key); };
+      list.appendChild(buildManagerRequestCard({
+        kindKey: 'shiftEdit',
+        typeLabel: 'Shift edit',
+        staffName: st.name || sid || '(unknown)',
+        dayLabel: _shiftReqDayLabel(req, it.iso),
+        requestedAt: req.createdAt || req.requestedAt || req.ts || req.submittedAt || '',
+        details: shiftRequestDetails(req),
+        actions: [appB, rejB]
+      }));
+    });
+  }
 
-      var summary='';
-      if(er.type==='away'){
-        if(er.mode==='full'){
-          summary = 'Reason → ' + String((er.proposed&&er.proposed.reason)||'');
-        }else if(er.mode==='partial'){
-          summary = (er.proposed&&er.proposed.start?String(er.proposed.start):'') + '–' + (er.proposed&&er.proposed.end?String(er.proposed.end):'') + ' · ' + String((er.proposed&&er.proposed.reason)||'');
+  if(shiftProposals.length){
+    any = true;
+    addRequestSection(list, 'Shift proposals');
+    shiftProposals.forEach(function(it){
+      var req = it.req || {};
+      var sid = (req.staffId!=null) ? String(req.staffId) : '';
+      var st = (sid && App.staff && App.staff[sid]) ? App.staff[sid] : {};
+      var appB = document.createElement('button'); appB.className='btn-good'; appB.textContent='Add shift';
+      var rejB = document.createElement('button'); rejB.className='btn-outline'; rejB.textContent='Decline';
+      appB.onclick = function(){ approveShiftChange(it.iso, it.key, req); };
+      rejB.onclick = function(){ rejectShiftChange(it.iso, it.key); };
+      list.appendChild(buildManagerRequestCard({
+        kindKey: 'shiftProposal',
+        typeLabel: 'Shift proposal',
+        staffName: st.name || sid || '(unknown)',
+        dayLabel: _shiftReqDayLabel(req, it.iso),
+        requestedAt: req.createdAt || req.requestedAt || req.ts || req.submittedAt || '',
+        details: shiftRequestDetails(req),
+        actions: [appB, rejB]
+      }));
+    });
+  }
+
+  try{
+    var edits = [];
+    if(App.editRequests){
+      Object.keys(App.editRequests).forEach(function(eid){
+        var er = App.editRequests[eid];
+        if(!er) return;
+        var stt = String(er.status||'pending').toLowerCase();
+        if(stt!=='pending') return;
+        edits.push(er);
+      });
+    }
+    edits.sort(function(a,b){
+      var ia = String(a.iso||''); var ib = String(b.iso||'');
+      if(ia<ib) return -1; if(ia>ib) return 1;
+      return String(a.createdAt||'').localeCompare(String(b.createdAt||''));
+    });
+    if(edits.length){
+      any = true;
+      addRequestSection(list, 'Edit requests');
+      edits.forEach(function(er){
+        var st = (App.staff && App.staff[er.staffId]) ? App.staff[er.staffId] : {};
+        var summary = '';
+        if(er.type==='away'){
+          if(er.mode==='full'){
+            summary = 'Reason → ' + String((er.proposed&&er.proposed.reason)||'');
+          }else if(er.mode==='partial'){
+            summary = (er.proposed&&er.proposed.start?String(er.proposed.start):'') + '–' + (er.proposed&&er.proposed.end?String(er.proposed.end):'') + ' · ' + String((er.proposed&&er.proposed.reason)||'');
+          }
         }
-      }
+        var appB = document.createElement('button'); appB.className='btn-good'; appB.textContent='Approve';
+        var rejB = document.createElement('button'); rejB.className='btn-outline'; rejB.textContent='Reject';
+        appB.onclick = function(){ approveEditRequest(String(er.id)); openRequestsModal(); };
+        rejB.onclick = function(){ rejectEditRequest(String(er.id)); openRequestsModal(); };
+        list.appendChild(buildManagerRequestCard({
+          kindKey: requestTypeKeyForEditRequest(er),
+          typeLabel: requestTypeLabelForEditRequest(er),
+          staffName: st.name || '',
+          dayLabel: formatIsoForHuman(String(er.iso||'')),
+          requestedAt: er.createdAt || '',
+          details: summary,
+          actions: [appB, rejB]
+        }));
+      });
+    }
+  }catch(e){}
 
-      row.innerHTML=
-        '<div style="font-weight:800;min-width:160px">'+escapeHtml(st.name||'')+'</div>'+
-        '<div class="muted" style="min-width:150px">'+escapeHtml(formatIsoForHuman(String(er.iso||'')))+'</div>'+
-        '<div class="muted" style="min-width:200px">Requested: '+escapeHtml(_fmtTS(er.createdAt||''))+'</div>'+
-        '<div class="pill">'+escapeHtml(label)+'</div>'+
-        (summary ? '<div class="muted">'+escapeHtml(summary)+'</div>' : '');
-
-      var appB=document.createElement('button'); appB.className='btn-good'; appB.textContent='Approve';
-      var rejB=document.createElement('button'); rejB.className='btn-outline'; rejB.textContent='Reject';
-
-      (function(eid2){
-        appB.onclick=function(){ approveEditRequest(eid2); openRequestsModal(); };
-        rejB.onclick=function(){ rejectEditRequest(eid2); openRequestsModal(); };
-      })(String(er.id));
-
-      row.appendChild(appB);
-      row.appendChild(rejB);
-      list.appendChild(row);
-    });
-
-    var hrE=document.createElement('div');
-    hrE.style.height='1px';
-    hrE.style.background='var(--border)';
-    hrE.style.margin='12px 0';
-    list.appendChild(hrE);
-  }
-}catch(e){}
   if(!any){
-    list.textContent='No pending requests.';
+    list.textContent = 'No pending requests.';
   }
 
-  modal.style.display='flex';
-  byId('btnCloseRequests').onclick=function(){ modal.style.display='none'; };
+  modal.style.display = 'flex';
+  byId('btnCloseRequests').onclick = function(){ modal.style.display = 'none'; };
   if(typeof updateRequestsBadge==='function') updateRequestsBadge();
 }
 
@@ -8731,6 +8905,7 @@ openRequestsModal();
   if(typeof window._refreshSchedulerDebug==='function') window._refreshSchedulerDebug();
 }
 
+
 function approveShiftChange(iso,key,req){
   if(!canModerateAbsences()) return alert('Manager/Admin only.');
   try{
@@ -8740,26 +8915,45 @@ function approveShiftChange(iso,key,req){
       alert('Missing shift location info; cannot apply.');
       return;
     }
+
+    var createdShiftId = null;
     var week = App.weeks[wsISO] || {};
-    var dayBucket = week[String(dayIndex)] || {};
-    var shift = dayBucket[req.shiftId || key];
-    if(!shift){
-      alert('Original shift not found; maybe it was deleted.');
-    }else{
-      if(req.newStart){
-        shift.start = to12hStr(req.newStart);
-      }
-      if(req.newEnd){
-        shift.end = to12hStr(req.newEnd);
-      }
+    var dayKey = String(dayIndex);
+    var dayBucket = week[dayKey] || {};
+
+    if(isShiftProposalRequest(req)){
+      createdShiftId = uid();
+      dayBucket[createdShiftId] = {
+        id: createdShiftId,
+        staffId: String(req.staffId || ''),
+        day: parseInt(dayIndex, 10) || 0,
+        start: to12hStr(req.newStart || ''),
+        end: to12hStr(req.newEnd || ''),
+        breakMins: (req.newBreakMins!=null && req.newBreakMins!=='' && !isNaN(parseInt(req.newBreakMins,10))) ? parseInt(req.newBreakMins,10) : null,
+        notes: req.newNotes ? String(req.newNotes) : '',
+        penalty: !!req.newPenalty
+      };
+      week[dayKey] = dayBucket;
       App.weeks[wsISO] = week;
+    }else{
+      var shift = dayBucket[req.shiftId || key];
+      if(!shift){
+        alert('Original shift not found; maybe it was deleted.');
+      }else{
+        if(req.newStart){
+          shift.start = to12hStr(req.newStart);
+        }
+        if(req.newEnd){
+          shift.end = to12hStr(req.newEnd);
+        }
+        App.weeks[wsISO] = week;
+      }
     }
 
-    // Record decision for request sender acknowledgement
     try{
       if(!App.shiftChangeHistory) App.shiftChangeHistory = {};
       if(!App.shiftChangeHistory[iso]) App.shiftChangeHistory[iso] = {};
-      App.shiftChangeHistory[iso][key] = Object.assign({}, req||{}, {status:'approved', resolvedAt:new Date().toISOString()});
+      App.shiftChangeHistory[iso][key] = Object.assign({}, req || {}, {status:'approved', resolvedAt:new Date().toISOString(), appliedShiftId:(createdShiftId||null)});
     }catch(e){}
 
     if(App.shiftChangeRequests && App.shiftChangeRequests[iso]){
@@ -8767,17 +8961,16 @@ function approveShiftChange(iso,key,req){
       if(Object.keys(App.shiftChangeRequests[iso]).length===0) delete App.shiftChangeRequests[iso];
     }
     saveLocal();
-    // Sync shift update + decision to Firebase
+
     try{
-      // push updated shift only (smallest payload)
       if(wsISO!=null && dayIndex!=null){
-        var dayKey = String(dayIndex);
-        var shiftId = String(req.shiftId || key);
+        var pushDayKey = String(dayIndex);
+        var pushShiftId = String(createdShiftId || req.shiftId || key);
         var wk = App.weeks[wsISO] || {};
-        var dayB = wk[dayKey] || {};
-        var sh = dayB[shiftId] || null;
+        var dayB = wk[pushDayKey] || {};
+        var sh = dayB[pushShiftId] || null;
         if(sh){
-          dbPatch('/weeks/' + encodeURIComponent(wsISO) + '/' + encodeURIComponent(dayKey) + '/' + encodeURIComponent(shiftId), sh)
+          dbPatch('/weeks/' + encodeURIComponent(wsISO) + '/' + encodeURIComponent(pushDayKey) + '/' + encodeURIComponent(pushShiftId), sh)
             .catch(function(e){ console.error('Push weeks shift failed', e); });
         }
       }
@@ -8796,9 +8989,9 @@ function approveShiftChange(iso,key,req){
     }catch(e){}
 
     try{ dbPatch('/availability/' + encodeURIComponent(iso), App.availability[iso]||{}).catch(function(e){ console.error('Push availability failed', e); }); }catch(e){}
-renderPlanner();
+    renderPlanner();
     try{ byId('tabMyRequests').style.display='inline-block'; }catch(e){}
-  renderMyShifts();
+    renderMyShifts();
     renderPayroll();
     if(typeof updateRequestsBadge==='function') updateRequestsBadge();
     openRequestsModal();
@@ -8846,12 +9039,17 @@ if(typeof updateRequestsBadge==='function') updateRequestsBadge();
   try{ var stSec4=byId('settingsSection'); if(stSec4 && stSec4.classList && stSec4.classList.contains('show')) renderAdminHistory(); }catch(e){}
 }
 
-function countPendingRequestsForWeek(){
-  var total = 0;
+
+function getPendingRequestBreakdown(){
+  var info = {awayFull:0, awayPartial:0, shiftEdit:0, shiftProposal:0, edit:0, total:0};
   try{
     var adminGlobal = !!(App && App.currentUser && App.currentUser.role==='admin');
+    function add(kind){
+      if(!info.hasOwnProperty(kind)) kind = 'edit';
+      info[kind] += 1;
+      info.total += 1;
+    }
 
-    // Absence requests
     if(adminGlobal){
       if(App.absenceRequests){
         Object.keys(App.absenceRequests).forEach(function(iso){
@@ -8861,30 +9059,29 @@ function countPendingRequestsForWeek(){
             var req = bucket[sid];
             if(!req) return;
             if(req.status && req.status!=='pending') return;
-            total += 1;
+            add(requestTypeKeyForAbs(req));
           });
         });
       }
     }else{
-      if(!Planner || !Planner.weekStartISO) return 0;
-      var start = fromISO(Planner.weekStartISO);
-      if(!start) return 0;
-      for(var i=0;i<7;i++){
-        var d = new Date(start); d.setDate(start.getDate()+i);
-        var isoD = toISO(d);
-        var bucketW = (App.absenceRequests && App.absenceRequests[isoD]) ? App.absenceRequests[isoD] : null;
-        if(bucketW){
-          Object.keys(bucketW).forEach(function(sid2){
-            var req2 = bucketW[sid2];
-            if(!req2) return;
-            if(req2.status && req2.status!=='pending') return;
-            total += 1;
-          });
+      if(Planner && Planner.weekStartISO){
+        var start = fromISO(Planner.weekStartISO);
+        for(var i=0;i<7;i++){
+          var d = new Date(start); d.setDate(start.getDate()+i);
+          var isoD = toISO(d);
+          var bucketW = (App.absenceRequests && App.absenceRequests[isoD]) ? App.absenceRequests[isoD] : null;
+          if(bucketW){
+            Object.keys(bucketW).forEach(function(sid2){
+              var req2 = bucketW[sid2];
+              if(!req2) return;
+              if(req2.status && req2.status!=='pending') return;
+              add(requestTypeKeyForAbs(req2));
+            });
+          }
         }
       }
     }
 
-    // Shift edit requests: all pending (any week/day)
     if(App.shiftChangeRequests){
       Object.keys(App.shiftChangeRequests).forEach(function(iso2){
         var b2 = App.shiftChangeRequests[iso2];
@@ -8893,32 +9090,52 @@ function countPendingRequestsForWeek(){
           var r2 = b2[k];
           if(!r2) return;
           if(r2.status && r2.status!=='pending') return;
-          total += 1;
+          add(shiftRequestKindKey(r2));
         });
       });
     }
+
+    if(App.editRequests){
+      Object.keys(App.editRequests).forEach(function(eid){
+        var er = App.editRequests[eid];
+        if(!er) return;
+        if(String(er.status||'pending').toLowerCase()!=='pending') return;
+        if(!adminGlobal){
+          try{
+            if(!Planner || !Planner.weekStartISO) return;
+            var ws = toISO(weekStart(fromISO(String(er.iso||''))));
+            if(ws !== Planner.weekStartISO) return;
+          }catch(e2){ return; }
+        }
+        add('edit');
+      });
+    }
   }catch(e){}
-  
-// Edit requests (generic)
-try{
-  if(App.editRequests){
-    Object.keys(App.editRequests).forEach(function(eid){
-      var er = App.editRequests[eid];
-      if(!er) return;
-      if(String(er.status||'pending').toLowerCase()!=='pending') return;
-      if(!adminGlobal){
-        try{
-          if(!Planner || !Planner.weekStartISO) return;
-          var ws = toISO(weekStart(fromISO(String(er.iso||''))));
-          if(ws !== Planner.weekStartISO) return;
-        }catch(e2){ return; }
-      }
-      total += 1;
-    });
-  }
-}catch(e){}
-return total;
+  return info;
 }
+function pendingRequestBreakdownText(info){
+  info = info || {};
+  var parts = [];
+  if(info.awayFull) parts.push('Away ' + info.awayFull);
+  if(info.awayPartial) parts.push('Partial away ' + info.awayPartial);
+  if(info.shiftEdit) parts.push('Shift edits ' + info.shiftEdit);
+  if(info.shiftProposal) parts.push('Shift proposals ' + info.shiftProposal);
+  if(info.edit) parts.push('Edits ' + info.edit);
+  return parts.join(' · ');
+}
+function diffPendingRequestBreakdown(prev, cur){
+  var out = {awayFull:0, awayPartial:0, shiftEdit:0, shiftProposal:0, edit:0, total:0};
+  ['awayFull','awayPartial','shiftEdit','shiftProposal','edit'].forEach(function(k){
+    var diff = (cur && cur[k] ? cur[k] : 0) - (prev && prev[k] ? prev[k] : 0);
+    out[k] = diff > 0 ? diff : 0;
+    out.total += out[k];
+  });
+  return out;
+}
+function countPendingRequestsForWeek(){
+  return getPendingRequestBreakdown().total;
+}
+
 function updateRequestsBadge(){
   var el = byId('requestsCountBadge');
   if(!el) return;
@@ -9009,6 +9226,7 @@ var __liveReqPollTimer = null;
 var __liveReqDebounce = null;
 var __liveReqLastSyncedAt = 0;
 var __liveReqLastPendingCount = null;
+var __liveReqLastBreakdown = null;
 var __emailjsInitedKey = null;
 
 function __pageIsHidden(){
@@ -9101,18 +9319,36 @@ function __sendEmailJs(subject, message, pendingCount){
   }catch(e){}
 }
 
-function __fireRequestNotifications(prevCount, newCount){
+
+function __fireRequestNotifications(prevInfo, curInfo){
   try{
-    if(prevCount==null) prevCount = 0;
-    if(newCount==null) newCount = 0;
-    if(newCount <= prevCount) return;
+    prevInfo = prevInfo || {total:0};
+    curInfo = curInfo || {total:0};
+    var prevTotal = prevInfo.total || 0;
+    var curTotal = curInfo.total || 0;
+    if(curTotal <= prevTotal) return;
 
-    var msg = 'Pending requests: ' + newCount;
-    __notifyBrowser('New request received', msg);
+    var diff = diffPendingRequestBreakdown(prevInfo, curInfo);
+    if(diff.total <= 0) return;
+
+    var title = 'New staff request';
+    if(diff.total === 1){
+      if(diff.shiftProposal) title = 'New shift proposal';
+      else if(diff.shiftEdit) title = 'New shift edit request';
+      else if(diff.awayPartial) title = 'New partial away request';
+      else if(diff.awayFull) title = 'New away request';
+      else if(diff.edit) title = 'New edit request';
+    }else{
+      title = 'New staff requests';
+    }
+
+    var body = pendingRequestBreakdownText(curInfo);
+    if(body) body = body + ' · Pending total ' + curTotal;
+    else body = 'Pending requests: ' + curTotal;
+
+    __notifyBrowser(title, body);
     __playReqBeep();
-
-    // Email notification
-    __sendEmailJs('New request received', msg, newCount);
+    __sendEmailJs(title, body, curTotal);
   }catch(e){}
 }
 
@@ -9143,18 +9379,21 @@ function __scheduleLiveRequestsRefresh(){
     if(now - __liveReqLastSyncedAt < 700) return;
     __liveReqLastSyncedAt = now;
 
-    var prev = (__liveReqLastPendingCount==null) ? countPendingRequestsForWeek() : __liveReqLastPendingCount;
+    var prevInfo = __liveReqLastBreakdown || getPendingRequestBreakdown();
+    var prev = prevInfo.total || 0;
 
     __pullRequestsNodesOnly().then(function(){
       try{ updateRequestsBadge(); }catch(e){}
-      var cur = countPendingRequestsForWeek();
+      var curInfo = getPendingRequestBreakdown();
+      var cur = curInfo.total || 0;
       __liveReqLastPendingCount = cur;
+      __liveReqLastBreakdown = curInfo;
 
       // Popup behaviour (respects mode/cooldown)
       try{ __maybeAutoPopupRequests('live'); }catch(e){}
 
       // Notifications only when pending increases
-      __fireRequestNotifications(prev, cur);
+      __fireRequestNotifications(prevInfo, curInfo);
     }).catch(function(){});
   }, 450);
 }
@@ -9180,7 +9419,13 @@ function startLiveRequestListener(){
     __liveReqESShift.onerror = function(){ /* silent */ };
 
     // prime baseline
-    try{ __liveReqLastPendingCount = countPendingRequestsForWeek(); }catch(e){ __liveReqLastPendingCount = null; }
+    try{
+      __liveReqLastBreakdown = getPendingRequestBreakdown();
+      __liveReqLastPendingCount = __liveReqLastBreakdown.total || 0;
+    }catch(e){
+      __liveReqLastPendingCount = null;
+      __liveReqLastBreakdown = null;
+    }
   
 
     // Fallback: periodic requests-only pull (avoids overwriting unsynced planner edits)
@@ -9208,6 +9453,7 @@ function armRequestsAutoPopupAfterLogin(){
   // Reset counters on each login so "on login" can fire if configured.
   __requestsPopupLastCount = null;
   __requestsPopupLastAt = 0;
+  __liveReqLastBreakdown = null;
   __maybeAutoPopupRequests('login');
   try{ startLiveRequestListener(); }catch(e){}
 }
@@ -11215,21 +11461,9 @@ function _renderBars(el, series){
 function _requestsSummary(rangeWeeks){
   var pendingAbs=0, pendingShift=0;
   try{
-    var ar=App.absenceRequests||{};
-    Object.keys(ar).forEach(function(iso){
-      var bucket=ar[iso]||{};
-      Object.keys(bucket).forEach(function(id){
-        var rec=bucket[id];
-        if(rec && (rec.status||'pending')==='pending') pendingAbs++;
-      });
-    });
-  }catch(e){}
-  try{
-    var sr=App.shiftChangeRequests||{};
-    Object.keys(sr).forEach(function(k){
-      var rec=sr[k];
-      if(rec && (rec.status||'pending')==='pending') pendingShift++;
-    });
+    var info = getPendingRequestBreakdown();
+    pendingAbs = (info.awayFull||0) + (info.awayPartial||0);
+    pendingShift = (info.shiftEdit||0) + (info.shiftProposal||0);
   }catch(e){}
 
   // approvals/rejections in range (best effort based on iso date)
@@ -11475,7 +11709,7 @@ function renderStats(){
       addKpi('Total requests', String(totalReq), (weeks.length>1?('Across '+weeks.length+' weeks'):'This week'));
       if(topId && topTotal>0){
         var c=rc[topId]||{};
-        addKpi('Top requester', topName+' ('+String(topTotal)+')', 'Away '+(c.away||0)+' · Shift edits '+(c.shift||0));
+        addKpi('Top requester', topName+' ('+String(topTotal)+')', 'Away '+(c.away||0)+' · Shift requests '+(c.shift||0));
       }else{
         addKpi('Top requester', '—', 'No requests in range');
       }
@@ -11506,7 +11740,7 @@ function renderStats(){
   }else{
     if(leftTitleEl){
       if(metric==='away') leftTitleEl.textContent = 'Away requests';
-      else if(metric==='shift') leftTitleEl.textContent = 'Shift edit requests';
+      else if(metric==='shift') leftTitleEl.textContent = 'Shift requests';
       else leftTitleEl.textContent = 'All requests';
     }
     leftSeries = staffSeries.map(function(s){
@@ -11554,14 +11788,14 @@ function renderStats(){
   if(barsTitle){
     if(metric==='shifts') barsTitle.textContent = 'Shifts per staff';
     else if(metric==='away') barsTitle.textContent = 'Away requested (days)';
-    else if(metric==='shift') barsTitle.textContent = 'Shift edit requests';
+    else if(metric==='shift') barsTitle.textContent = 'Shift requests';
     else barsTitle.textContent = 'All requests';
   }
   if(barsNote){
     if(metric==='shifts') barsNote.textContent = 'Counts days where a staff member worked at least one scheduled shift (after approved Away overlap).';
     else if(metric==='away') barsNote.textContent = 'Counts per-day Away requests (full-day + partial), across pending + approved + rejected in the selected range.';
-    else if(metric==='shift') barsNote.textContent = 'Counts shift-edit requests across pending + approved + rejected in the selected range.';
-    else barsNote.textContent = 'Away days requested + shift-edit requests (pending + resolved) in the selected range.';
+    else if(metric==='shift') barsNote.textContent = 'Counts shift edits + shift proposals across pending + approved + rejected in the selected range.';
+    else barsNote.textContent = 'Away days requested + shift requests (edits + proposals, pending + resolved) in the selected range.';
   }
 
   _renderBars(byId('statsShiftsBars'), barSeries);
@@ -11571,8 +11805,8 @@ function renderStats(){
   var rqEl=byId('statsRequests');
   if(rqEl){
     var parts=[];
-    parts.push('<div><b>Pending</b>: Away '+rq.pendingAbs+' · Shift edits '+rq.pendingShift+'</div>');
-    parts.push('<div class="muted-small"><b>In range</b>: Away approved '+rq.absApproved+' · rejected '+rq.absRejected+' · Shift edits approved '+rq.shApproved+' · rejected '+rq.shRejected+'</div>');
+    parts.push('<div><b>Pending</b>: Away '+rq.pendingAbs+' · Shift requests '+rq.pendingShift+'</div>');
+    parts.push('<div class="muted-small"><b>In range</b>: Away approved '+rq.absApproved+' · rejected '+rq.absRejected+' · Shift requests approved '+rq.shApproved+' · rejected '+rq.shRejected+'</div>');
     rqEl.innerHTML = parts.join('');
   }
   try{ renderAdminRequestsLog(); }catch(e){}
@@ -12214,6 +12448,128 @@ async function pushPlannerAndSettingsAdmin(){
 }
 
 // Single-source proposeShiftEdit used by the "Propose Edit" button
+
+window.proposeShiftRequest = async function(iso, staffId){
+  try{
+    staffId = String(staffId);
+    if(App.currentUser && App.currentUser.role === 'staff' && String(App.currentUser.id) !== staffId){
+      alert('You can only propose shifts for yourself.');
+      return;
+    }
+
+    var d = fromISO(iso);
+    var ws = toISO(weekStart(d));
+    var week = App.weeks[ws] || {};
+    var base = weekStart(d);
+    var dayIndex = Math.round((d.getTime() - base.getTime()) / 86400000);
+    if(dayIndex < 0 || dayIndex > 6){
+      alert('Could not resolve the selected day.');
+      return;
+    }
+
+    var existingCount = 0;
+    try{
+      var bucket = week[String(dayIndex)] || {};
+      Object.keys(bucket).forEach(function(k){
+        var sh = bucket[k];
+        if(sh && String(sh.staffId) === staffId) existingCount += 1;
+      });
+    }catch(e){}
+    if(existingCount > 0){
+      var okMore = confirm('This day already has ' + existingCount + ' shift' + (existingCount===1?'':'s') + '. Use Propose Edit to change an existing shift.\n\nPress OK to propose an additional shift, or Cancel to stop.');
+      if(!okMore) return;
+    }
+
+    var rangePrompt = 'Enter the proposed shift as "start-end".\nExample: 9:00 AM-5:00 PM or 09:00-17:00';
+    var rangeVal = prompt(rangePrompt, '09:00-17:00');
+    if(rangeVal == null) return;
+    rangeVal = String(rangeVal).trim();
+    if(!rangeVal || rangeVal.indexOf('-') < 0){
+      alert('Enter a range like 09:00-17:00.');
+      return;
+    }
+
+    var parts = rangeVal.split('-');
+    var rawStart = (parts[0] || '').trim();
+    var rawEnd = (parts[1] || '').trim();
+    var newStart = normalizeHHMM(rawStart);
+    var newEnd = normalizeHHMM(rawEnd);
+    if(!newStart || !newEnd){
+      alert('Could not parse the proposed times. Try a format like 09:00-17:00.');
+      return;
+    }
+    if(parse12(newEnd) <= parse12(newStart)){
+      alert('End time must be after start time.');
+      return;
+    }
+
+    var breakRaw = prompt('Break minutes (optional). Leave blank for auto break rules.', '');
+    if(breakRaw === null) return;
+    breakRaw = String(breakRaw).trim();
+    var breakMins = null;
+    if(breakRaw){
+      breakMins = parseInt(breakRaw, 10);
+      if(!isFinite(breakMins) || breakMins < 0){
+        alert('Break minutes must be a whole number of 0 or more.');
+        return;
+      }
+    }
+
+    var notes = prompt('Optional shift notes (leave blank if none):', '');
+    if(notes === null) notes = '';
+    notes = String(notes || '').trim();
+
+    var reason = '';
+    while(true){
+      reason = prompt('Please provide reason/comment for this shift proposal (Mandatory):');
+      if(reason === null) return;
+      reason = String(reason).trim();
+      if(reason) break;
+    }
+
+    ensureRequestsStore();
+    if(!App.shiftChangeRequests[iso]) App.shiftChangeRequests[iso] = {};
+
+    var reqKey = 'new_' + uid();
+    App.shiftChangeRequests[iso][reqKey] = {
+      requestType: 'newShift',
+      proposedShift: true,
+      staffId: staffId,
+      shiftId: null,
+      weekStartISO: ws,
+      dayIndex: dayIndex,
+      newStart: newStart,
+      newEnd: newEnd,
+      newBreakMins: breakMins,
+      newNotes: notes,
+      newPenalty: false,
+      reason: reason,
+      createdAt: new Date().toISOString(),
+      status: 'pending'
+    };
+    saveLocal();
+
+    var pushedOk = true;
+    try{
+      var payload = {};
+      payload[iso] = App.shiftChangeRequests[iso];
+      await dbPatch('/shiftChangeRequests', payload);
+    }catch(e){
+      pushedOk = false;
+      console.error('Failed to push shift proposal', e);
+      showToast('Shift proposal saved', 'Status: Pending (not sent to server)', 'warn', 9000);
+    }
+
+    if(typeof updateRequestsBadge==='function') updateRequestsBadge();
+    if(pushedOk){
+      showToast('Shift proposal submitted', 'Status: Pending', 'warn', 6500);
+    }
+  }catch(e){
+    console.error('proposeShiftRequest error', e);
+    alert('Could not create shift proposal: ' + e);
+  }
+};
+
 window.proposeShiftEdit = async function(iso, staffId){
   try{
     if(App.currentUser && App.currentUser.role === 'staff' && String(App.currentUser.id) !== String(staffId)){
@@ -12305,6 +12661,7 @@ window.proposeShiftEdit = async function(iso, staffId){
     if(!App.shiftChangeRequests[iso]) App.shiftChangeRequests[iso] = {};
 
     App.shiftChangeRequests[iso][selected.key] = {
+      requestType: 'shiftEdit',
       staffId: staffId,
       shiftId: selected.key,
       weekStartISO: selected.weekStartISO,
