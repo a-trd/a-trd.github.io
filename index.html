@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1"/>
-  <title>M&C-ATRD-scheduler --=Aspire Group=-- (V4.0.0)</title>
+  <title>M&C-ATRD-scheduler --=Aspire Group=-- (V4.0.1)</title>
   <meta name="theme-color" content="#22c55e"/>
 
   <style>
@@ -1987,7 +1987,7 @@
       <div id="appLogoBox"></div>
       <div class="titlewrap">
         <div class="title" id="appTitle">M&C-ATRD-scheduler --=Aspire Group=--</div>
-        <div class="version-pill" id="appVersion">V4.0.0</div>
+        <div class="version-pill" id="appVersion">V4.0.1</div>
         <div class="sync-pill syncing" id="syncStatusChip" title="Sync status">Starting…</div>
       </div>
     </div>
@@ -3403,8 +3403,8 @@ var DAY = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 var App = {
   // IMPORTANT: Increment App.version *and* App.buildId whenever making functional changes to this file.
   // SAFETY NET: This build performs an automatic runtime check against the file name; if mismatched, it shows a blocking warning so it can't be overlooked.
-  version: 'V4.0.0',
-    buildId: '2026-04-07.3',
+  version: 'V4.0.1',
+    buildId: '2026-04-10.1',
 settings: {
     dbUrl:'https://mnc-atrd-default-rtdb.asia-southeast1.firebasedatabase.app/', workspace:'mnc-atrd', authToken:'',
     theme:'light', themeName:'light-pastel-sky', recentColors:[], appTitle:'M&C-ATRD-scheduler --=Aspire Group=--', logoUrl:'',
@@ -4891,6 +4891,20 @@ function queueSettingsSync(){
 function isAdmin(){ return App.currentUser && App.currentUser.role==='admin'; }
 function canEdit(){ return App.currentUser && (App.currentUser.role==='manager' || App.currentUser.role==='admin'); }
 function canModerateAbsences(){ return canEdit(); }
+function isOwnStaffTarget(staffId){
+  try{
+    return !!(App.currentUser && staffId!=null && String(App.currentUser.id)===String(staffId));
+  }catch(e){ return false; }
+}
+function canManageAwayForStaff(staffId){
+  try{
+    if(!App.currentUser) return false;
+    return !!(canModerateAbsences() || isOwnStaffTarget(staffId));
+  }catch(e){ return false; }
+}
+function awayActionDeniedMessage(){
+  return 'Away / Partial Away actions are only available for your own shifts.';
+}
 
 // ---------- Splash ----------
 
@@ -6733,9 +6747,14 @@ function renderPlanner(){
     // mini-actions
     var mini=document.createElement('div'); mini.className='mini-actions';
     function addMini(lbl, cls, handler){ var b=document.createElement('button'); b.className='btn-mini '+cls; b.textContent=lbl; b.onclick=function(e){ e.stopPropagation(); handler(); }; mini.appendChild(b); }
-    addMini('Propose Away','danger', function(){ proposeAway(curISO, id); });
-    addMini('Partial Away','warn', function(){ var rng=prompt('Enter time range (e.g., 09:00-12:00)'); if(!rng||rng.indexOf('-')<0) return; var p=rng.split('-'); proposePartial(curISO, id, (p[0]||'').trim(), (p[1]||'').trim()); });
-    addMini('Clear','mute', function(){ clearAway(curISO, id); });
+    var canAwayMiniActions = canManageAwayForStaff(id);
+    if(canAwayMiniActions){
+      addMini('Propose Away','danger', function(){ proposeAway(curISO, id); });
+      addMini('Partial Away','warn', function(){ var rng=prompt('Enter time range (e.g., 09:00-12:00)'); if(!rng||rng.indexOf('-')<0) return; var p=rng.split('-'); proposePartial(curISO, id, (p[0]||'').trim(), (p[1]||'').trim()); });
+    }
+    if(canModerateAbsences()){
+      addMini('Clear','mute', function(){ clearAway(curISO, id); });
+    }
     
     addMini('Propose Edit','success', function(){ proposeShiftEdit(curISO, id); });
     addMini('Propose Shift','proposal', function(){ proposeShiftRequest(curISO, id); });
@@ -7388,6 +7407,11 @@ function openDayToolsFor(staffId, dayIndex){
       subEl.textContent = name;
     }
   }
+  var canAwayActions = canManageAwayForStaff(staffId);
+  var btnProposeAway = byId('dtProposeAway'); if(btnProposeAway) btnProposeAway.style.display = canAwayActions ? '' : 'none';
+  var btnPartialAway = byId('dtPartialAway'); if(btnPartialAway) btnPartialAway.style.display = canAwayActions ? '' : 'none';
+  var btnRecurringUnavail = byId('dtRecurringUnavail'); if(btnRecurringUnavail) btnRecurringUnavail.style.display = canAwayActions ? '' : 'none';
+  var btnClearAway = byId('dtClearAway'); if(btnClearAway) btnClearAway.style.display = canModerateAbsences() ? '' : 'none';
   modal.style.display = 'flex';
 }
 
@@ -7561,6 +7585,10 @@ function openAwayMultiModal(mode){
   AwayMulti.mode = (mode==='partial' ? 'partial' : 'full');
   if(!DayToolsCtx || DayToolsCtx.staffId==null) return;
   var staffId = String(DayToolsCtx.staffId);
+  if(!canManageAwayForStaff(staffId)){
+    alert(awayActionDeniedMessage());
+    return;
+  }
   var staff = (App.staff && App.staff[staffId]) || {};
   var modal = byId('awayMultiModal');
   if(!modal) return;
@@ -7994,9 +8022,8 @@ function submitAwayMultiModal(){
     if(dayIdxs.length===0){ alert('Select at least one day.'); return; }
   }
 
-  // Staff can only propose their own away
-  if(App.currentUser && App.currentUser.role==='staff' && String(App.currentUser.id)!==String(staffId)){
-    alert('Staff can only propose their own away.');
+  if(!canManageAwayForStaff(staffId)){
+    alert(awayActionDeniedMessage());
     return;
   }
 
@@ -8377,10 +8404,15 @@ function drawAwayOverlays(wrapEl, iso, staffId){
     if(state.unavailable){
       var full=document.createElement('div'); full.className='away-band'; full.style.left='0'; full.style.width='100%';
       var chip=document.createElement('div'); chip.className='away-chip'; chip.textContent='AWAY';
-      try{ chip.style.cursor='pointer'; chip.title='Click to edit'; }catch(e){}
+      var canClickAway = canManageAwayForStaff(staffId);
+      try{ chip.style.cursor=canClickAway ? 'pointer' : 'help'; chip.title=canClickAway ? 'Click to edit' : 'Click to view info'; }catch(e){}
       chip.onclick=function(evA){
         try{ evA.stopPropagation(); }catch(e){}
         try{
+          if(!canManageAwayForStaff(staffId)){
+            if(window.openInfoForCell) window.openInfoForCell(iso, staffId);
+            return;
+          }
           if(canModerateAbsences()){
             var curR = (state && state.reason!=null) ? String(state.reason) : '';
             var newR = prompt('Update away reason (mandatory):', curR||'');
@@ -8417,11 +8449,16 @@ function drawAwayOverlays(wrapEl, iso, staffId){
         var ds12 = ds ? to12hStr(to24hhmm(ds, '09:00')) : '';
         var de12 = de ? to12hStr(to24hhmm(de, '17:00')) : '';
         chip2.textContent='AWAY '+(ds12||ds)+'–'+(de12||de);
-        try{ chip2.style.cursor='pointer'; chip2.title='Click to edit'; }catch(e){}
+        var canClickPartialAway = canManageAwayForStaff(staffId);
+        try{ chip2.style.cursor=canClickPartialAway ? 'pointer' : 'help'; chip2.title=canClickPartialAway ? 'Click to edit' : 'Click to view info'; }catch(e){}
         (function(blockIndex){
           chip2.onclick=function(evB){
             try{ evB.stopPropagation(); }catch(e){}
             try{
+              if(!canManageAwayForStaff(staffId)){
+                if(window.openInfoForCell) window.openInfoForCell(iso, staffId);
+                return;
+              }
               if(canModerateAbsences()){
                 var newRange = prompt('Update partial away time range (e.g., 9:00 AM-5:00 PM):', (ds12||ds)+'-'+(de12||de));
                 if(newRange===null) return;
@@ -8796,6 +8833,10 @@ function submitEditRequest(req){
     ensureRequestsStore();
     if(!App.currentUser) return;
     if(!req || !req.type) return;
+    if(req.type==='away' && !canManageAwayForStaff(req.staffId)){
+      alert(awayActionDeniedMessage());
+      return;
+    }
     // validate proposed payload
     if(req.type==='away'){
       if(req.mode==='full'){
@@ -9830,8 +9871,8 @@ function proposeAway(iso, staffId){
 
   ensureRequestsStore();
   if(!App.currentUser) return;
-  if(App.currentUser.role==='staff' && String(App.currentUser.id)!==staffId){
-    alert('Staff can only propose their own away.'); return;
+  if(!canManageAwayForStaff(staffId)){
+    alert(awayActionDeniedMessage()); return;
   }
   if(canModerateAbsences()){
     if(!App.availability) App.availability={};
@@ -9886,8 +9927,8 @@ function proposePartial(iso, staffId, start, end){
 
   ensureRequestsStore();
   if(!App.currentUser) return;
-  if(App.currentUser.role==='staff' && String(App.currentUser.id)!==staffId){
-    alert('Staff can only propose their own away.'); return;
+  if(!canManageAwayForStaff(staffId)){
+    alert(awayActionDeniedMessage()); return;
   }
   var startM = parse12(start);
   var endM = parse12(end);
