@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1"/>
-  <title>M&C-ATRD-scheduler --=Aspire Group=-- (V4.0.1)</title>
+  <title>M&C-ATRD-scheduler --=Aspire Group=-- (V4.1.2)</title>
   <meta name="theme-color" content="#22c55e"/>
 
   <style>
@@ -272,6 +272,294 @@
 .stats-table tr:last-child td{ border-bottom:none; }
 
 .muted-small{ color: var(--muted); font-size: 12px; }
+
+
+/* ---------- Business Analytics ---------- */
+.biz-admin-grid {
+  display:grid;
+  grid-template-columns: 1.08fr .92fr;
+  gap:12px;
+}
+@media (max-width: 980px){
+  .biz-admin-grid{ grid-template-columns: 1fr; }
+}
+.biz-toolbar{
+  display:flex;
+  gap:8px;
+  align-items:center;
+  flex-wrap:wrap;
+}
+.biz-range-grid{
+  display:grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap:10px;
+  margin-top:10px;
+}
+@media (max-width: 900px){
+  .biz-range-grid{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 520px){
+  .biz-range-grid{ grid-template-columns: 1fr; }
+}
+.biz-form-grid{
+  display:grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap:10px;
+}
+@media (max-width: 640px){
+  .biz-form-grid{ grid-template-columns: 1fr; }
+}
+.biz-summary-strip{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  margin-top:10px;
+}
+.biz-summary-chip{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:6px 10px;
+  border-radius:999px;
+  border:1px solid var(--border);
+  background: rgba(255,255,255,.06);
+  font-size:12px;
+  font-weight:800;
+}
+[data-theme="light"] .biz-summary-chip{
+  background: rgba(15,23,42,.04);
+}
+.biz-inline-actions{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  margin-top:12px;
+}
+.biz-mini-note{
+  color: var(--muted);
+  font-size:12px;
+  line-height:1.45;
+}
+.biz-canvas{
+  width:100%;
+  height:260px;
+  display:block;
+  border-radius:16px;
+  border:1px solid var(--border);
+  background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01));
+  margin-top:10px;
+}
+[data-theme="light"] .biz-canvas{
+  background: linear-gradient(180deg, rgba(15,23,42,.025), rgba(15,23,42,.01));
+}
+.biz-legend-inline{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  margin-top:10px;
+}
+.biz-legend-inline .item{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:4px 8px;
+  border-radius:999px;
+  border:1px solid var(--border);
+  background: rgba(255,255,255,.05);
+  font-size:11px;
+  font-weight:700;
+}
+[data-theme="light"] .biz-legend-inline .item{
+  background: rgba(15,23,42,.04);
+}
+.biz-recurring-list{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  margin-top:12px;
+}
+.biz-recurring-row{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:10px;
+  align-items:center;
+  padding:10px 12px;
+  border-radius:14px;
+  border:1px solid var(--border);
+  background: rgba(255,255,255,.04);
+}
+[data-theme="light"] .biz-recurring-row{
+  background: rgba(15,23,42,.03);
+}
+.biz-recurring-meta{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  margin-top:4px;
+}
+.biz-tag{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:2px 8px;
+  border-radius:999px;
+  border:1px solid var(--border);
+  background: rgba(255,255,255,.05);
+  font-size:11px;
+  font-weight:800;
+}
+[data-theme="light"] .biz-tag{
+  background: rgba(15,23,42,.04);
+}
+.biz-empty{
+  color: var(--muted);
+  font-size:12px;
+  padding:12px 0;
+}
+.biz-spend-card{
+  margin-top:12px;
+  padding:12px;
+  border-radius:16px;
+  border:1px solid var(--border);
+  background: rgba(255,255,255,.035);
+}
+[data-theme="light"] .biz-spend-card{
+  background: rgba(15,23,42,.03);
+}
+.biz-spend-add-grid{
+  display:grid;
+  grid-template-columns: minmax(0,1.35fr) minmax(0,.75fr) auto;
+  gap:10px;
+  align-items:end;
+  margin-top:10px;
+}
+@media (max-width: 760px){
+  .biz-spend-add-grid{ grid-template-columns: 1fr; }
+}
+.biz-spend-add-action{
+  display:flex;
+  align-items:flex-end;
+  min-height:100%;
+}
+.biz-spend-list{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  margin-top:12px;
+}
+.biz-spend-row{
+  display:grid;
+  grid-template-columns: minmax(0,1.35fr) minmax(120px,.55fr) auto;
+  gap:8px;
+  align-items:center;
+  padding:8px 10px;
+  border-radius:12px;
+  border:1px solid var(--border);
+  background: rgba(255,255,255,.04);
+}
+[data-theme="light"] .biz-spend-row{
+  background: rgba(15,23,42,.03);
+}
+.biz-spend-row .btn-outline{
+  padding:6px 10px;
+}
+@media (max-width: 760px){
+  .biz-spend-row{ grid-template-columns: 1fr; }
+  .biz-spend-row .btn-outline{ width:100%; }
+}
+.biz-kpi-positive{ color: var(--good); }
+.biz-kpi-negative{ color: var(--bad); }
+.biz-history-actions button{
+  padding:4px 8px;
+  font-size:11px;
+}
+.biz-history-table td.amount-good{
+  color: var(--good);
+  font-weight:900;
+}
+.biz-history-table td.amount-bad{
+  color: var(--bad);
+  font-weight:900;
+}
+.biz-history-table td.amount-warn{
+  color: var(--warn);
+  font-weight:900;
+}
+.biz-history-toolbar{
+  display:flex;
+  gap:8px;
+  align-items:center;
+  flex-wrap:wrap;
+}
+.biz-history-toggle{
+  display:inline-flex;
+  align-items:flex-start;
+  gap:8px;
+  width:100%;
+  border:none;
+  background:transparent;
+  color:inherit;
+  padding:0;
+  font:inherit;
+  text-align:left;
+  cursor:pointer;
+}
+.biz-history-toggle .biz-history-caret{
+  width:14px;
+  flex:0 0 14px;
+  line-height:1.1;
+  margin-top:2px;
+  font-weight:900;
+}
+.biz-history-row-static{
+  display:flex;
+  align-items:flex-start;
+  gap:8px;
+  width:100%;
+}
+.biz-history-indent{
+  display:inline-block;
+  flex:0 0 auto;
+  width:0;
+}
+.biz-history-indent.week{ width:14px; }
+.biz-history-indent.day{ width:28px; }
+.biz-history-row-text{
+  display:flex;
+  flex-direction:column;
+  min-width:0;
+}
+.biz-history-row-title{
+  font-weight:900;
+  line-height:1.3;
+}
+.biz-history-subtext{
+  color:var(--muted);
+  font-size:11px;
+  line-height:1.35;
+  margin-top:2px;
+}
+.biz-history-table tr.biz-history-level-month td{
+  background: rgba(255,255,255,.04);
+}
+.biz-history-table tr.biz-history-level-week td{
+  background: rgba(255,255,255,.025);
+}
+[data-theme="light"] .biz-history-table tr.biz-history-level-month td{
+  background: rgba(15,23,42,.045);
+}
+[data-theme="light"] .biz-history-table tr.biz-history-level-week td{
+  background: rgba(15,23,42,.025);
+}
+.biz-history-action-spacer{
+  color:var(--muted);
+  font-size:11px;
+}
+@media (max-width: 640px){
+  .biz-history-toolbar{
+    align-items:flex-start;
+  }
+}
 
     .tabs {
       display: flex;
@@ -1987,7 +2275,7 @@
       <div id="appLogoBox"></div>
       <div class="titlewrap">
         <div class="title" id="appTitle">M&C-ATRD-scheduler --=Aspire Group=--</div>
-        <div class="version-pill" id="appVersion">V4.0.1</div>
+        <div class="version-pill" id="appVersion">V4.1.2</div>
         <div class="sync-pill syncing" id="syncStatusChip" title="Sync status">Starting…</div>
       </div>
     </div>
@@ -1997,7 +2285,7 @@
       <button id="tabMyRequests">My Requests</button>
       <button id="tabPlanner">Planner</button>
       <button id="tabPayroll">Payroll</button>
-      <button id="tabStats">Stats / Requests</button>
+      <button id="tabStats">Business Analytics</button>
       <button id="tabPrint">Print View</button>
       <button id="tabAbsences">Absences</button>
       <button id="tabSettings">Settings</button>
@@ -2529,8 +2817,303 @@
 <!-- Stats (Admin only) -->
 <section id="statsSection" class="section">
   <div class="card">
+    <div class="biz-toolbar">
+      <h3 style="margin:0;">Business Analytics</h3>
+      <div class="pill" id="bizRangeSummary">Loading...</div>
+      <div style="flex:1;"></div>
+      <div class="muted-small">Admin only</div>
+    </div>
+
+    <div class="biz-range-grid">
+      <div>
+        <label>Range</label>
+        <select id="bizRangePreset">
+          <option value="7d">Last 7 days</option>
+          <option value="30d" selected>Last 30 days</option>
+          <option value="90d">Last 90 days</option>
+          <option value="month">This month</option>
+          <option value="quarter">This quarter</option>
+          <option value="year">This year</option>
+          <option value="all">All time</option>
+          <option value="custom">Custom</option>
+        </select>
+      </div>
+      <div>
+        <label>From</label>
+        <input id="bizRangeStart" type="date">
+      </div>
+      <div>
+        <label>To</label>
+        <input id="bizRangeEnd" type="date">
+      </div>
+      <div style="display:flex;align-items:flex-end;gap:8px;flex-wrap:wrap;">
+        <button id="btnBizApplyRange" class="btn-primary">Apply range</button>
+        <button id="btnBizResetRange" class="btn-outline">Reset</button>
+      </div>
+    </div>
+
+    <div class="biz-admin-grid" style="margin-top:12px;">
+      <div class="stats-card">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+          <h3 style="margin:0;">Daily business capture</h3>
+          <div class="muted-small">Cash / EFTPOS / spendings / utilities / ongoing / staff costs</div>
+        </div>
+
+        <div class="biz-form-grid" style="margin-top:10px;">
+          <div>
+            <label>Date</label>
+            <input id="bizEntryDate" type="date">
+          </div>
+          <div>
+            <label>Cash sales</label>
+            <input id="bizEntryCash" type="number" step="0.01" min="0" placeholder="0.00">
+          </div>
+          <div>
+            <label>EFTPOS sales</label>
+            <input id="bizEntryEftpos" type="number" step="0.01" min="0" placeholder="0.00">
+          </div>
+          <div>
+            <label>Total daily spendings</label>
+            <input id="bizEntrySpendings" type="number" step="0.01" min="0" placeholder="0.00" readonly>
+            <div class="biz-mini-note">Auto-calculated from the spending lines below.</div>
+          </div>
+          <div>
+            <label>Ongoing costs (manual for this day)</label>
+            <input id="bizEntryOngoing" type="number" step="0.01" min="0" placeholder="0.00">
+          </div>
+          <div>
+            <label>Utility costs</label>
+            <input id="bizEntryUtility" type="number" step="0.01" min="0" placeholder="0.00">
+          </div>
+          <div>
+            <label>Staff costs (manual correction)</label>
+            <input id="bizEntryStaffAdj" type="number" step="0.01" placeholder="Use negative to reduce auto roster cost">
+          </div>
+          <div>
+            <label>&nbsp;</label>
+            <div class="biz-mini-note">Auto staff cost is calculated from the roster, pay rates, overtime and payroll adjustments. Use the manual correction field when the actual cost differs.</div>
+          </div>
+        </div>
+
+        <div class="biz-spend-card">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+            <div>
+              <label style="margin-bottom:0;">Daily spending items</label>
+              <div id="bizSpendItemsHint" class="biz-mini-note">Add expenses as they happen. Each line saves with this day.</div>
+            </div>
+            <div class="biz-summary-chip"><span class="muted">Spending total</span><span id="bizSpendItemsTotal">$0.00</span></div>
+          </div>
+
+          <div class="biz-spend-add-grid">
+            <div>
+              <label>Description</label>
+              <input id="bizSpendItemDesc" type="text" placeholder="e.g. Milk, supplies, repair">
+            </div>
+            <div>
+              <label>Amount</label>
+              <input id="bizSpendItemAmount" type="number" step="0.01" min="0" placeholder="0.00">
+            </div>
+            <div class="biz-spend-add-action">
+              <button id="btnBizAddSpendItem" class="btn-outline">Add spending line</button>
+            </div>
+          </div>
+
+          <div id="bizSpendItemsList" class="biz-spend-list"></div>
+        </div>
+
+        <div style="margin-top:10px;">
+          <label>Notes</label>
+          <textarea id="bizEntryNotes" placeholder="Optional notes for this trading day"></textarea>
+        </div>
+
+        <div class="biz-summary-strip">
+          <div class="biz-summary-chip"><span class="muted">Auto staff cost</span><span id="bizEntryAutoStaff">$0.00</span></div>
+          <div class="biz-summary-chip"><span class="muted">Recurring cost share</span><span id="bizEntryRecurring">$0.00</span></div>
+          <div class="biz-summary-chip"><span class="muted">Selected day result</span><span id="bizEntryNet">$0.00</span></div>
+        </div>
+        <div id="bizEntrySummaryNote" class="biz-mini-note" style="margin-top:8px;"></div>
+        <div id="bizEntryLastSaved" class="muted-small" style="margin-top:8px;"></div>
+
+        <div class="biz-inline-actions">
+          <button id="btnBizSaveDay" class="btn-primary">Save day</button>
+          <button id="btnBizDeleteDay" class="btn-outline">Clear day</button>
+          <button id="btnBizLoadToday" class="btn-outline">Today</button>
+        </div>
+      </div>
+
+      <div class="stats-card">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+          <h3 style="margin:0;">Ongoing / recurring costs</h3>
+          <div class="muted-small">Rent, machine hire, utilities and similar repeating costs</div>
+        </div>
+
+        <div class="biz-form-grid" style="margin-top:10px;">
+          <div>
+            <label>Cost name</label>
+            <input id="bizRecurringName" type="text" placeholder="e.g. Rent, Machine hire">
+          </div>
+          <div>
+            <label>Category</label>
+            <select id="bizRecurringCategory">
+              <option value="ongoing">Ongoing cost</option>
+              <option value="utility">Utility cost</option>
+            </select>
+          </div>
+          <div>
+            <label>Amount per occurrence</label>
+            <input id="bizRecurringAmount" type="number" min="0" step="0.01" placeholder="0.00">
+          </div>
+          <div>
+            <label>Frequency</label>
+            <select id="bizRecurringFrequency">
+              <option value="daily">Daily</option>
+              <option value="weekly">Weekly</option>
+              <option value="fortnightly">Fortnightly</option>
+              <option value="monthly" selected>Monthly</option>
+            </select>
+          </div>
+          <div>
+            <label>Start date</label>
+            <input id="bizRecurringStart" type="date">
+          </div>
+          <div>
+            <label>End date (optional)</label>
+            <input id="bizRecurringEnd" type="date">
+          </div>
+        </div>
+
+        <div style="margin-top:10px;">
+          <label>Notes</label>
+          <input id="bizRecurringNotes" type="text" placeholder="Optional note">
+        </div>
+
+        <div class="biz-inline-actions">
+          <button id="btnBizAddRecurring" class="btn-primary">Add recurring cost</button>
+          <button id="btnBizResetRecurring" class="btn-outline">Clear form</button>
+        </div>
+
+        <div id="bizRecurringList" class="biz-recurring-list"></div>
+      </div>
+    </div>
+
+    <div id="bizKpis" class="stats-kpis"></div>
+
+    <div class="stats-grid">
+      <div class="stats-card">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+          <h3 style="margin:0;">Revenue / cost / profit trend</h3>
+          <div id="bizTrendNote" class="muted-small"></div>
+        </div>
+        <canvas id="bizTrendCanvas" class="biz-canvas" height="260"></canvas>
+        <div id="bizTrendLegend" class="biz-legend-inline"></div>
+      </div>
+
+      <div class="stats-card">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+          <h3 style="margin:0;">Revenue mix</h3>
+          <div id="bizRevenueNote" class="muted-small"></div>
+        </div>
+        <div class="pie-wrap" style="margin-top:10px;">
+          <div class="pie" id="bizRevenuePie" aria-label="Revenue mix"></div>
+          <div class="legend" id="bizRevenueLegend"></div>
+        </div>
+
+        <div style="height:12px"></div>
+
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+          <h3 style="margin:0;">Cost mix</h3>
+          <div id="bizCostNote" class="muted-small"></div>
+        </div>
+        <div class="pie-wrap" style="margin-top:10px;">
+          <div class="pie" id="bizCostPie" aria-label="Cost mix"></div>
+          <div class="legend" id="bizCostLegend"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="stats-grid" style="margin-top:12px;">
+      <div class="stats-card">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+          <h3 style="margin:0;">Custom graph</h3>
+          <div id="bizCustomNote" class="muted-small"></div>
+        </div>
+        <div class="biz-toolbar" style="margin-top:10px;margin-bottom:10px;">
+          <label class="muted" style="font-weight:700;">Metric A</label>
+          <select id="bizCustomMetricA" style="min-width:180px;"></select>
+          <label class="muted" style="font-weight:700;">Metric B</label>
+          <select id="bizCustomMetricB" style="min-width:180px;"></select>
+          <label class="muted" style="font-weight:700;">Group</label>
+          <select id="bizCustomGroup" style="min-width:140px;">
+            <option value="day">Daily</option>
+            <option value="week">Weekly</option>
+            <option value="month">Monthly</option>
+          </select>
+          <label class="muted" style="font-weight:700;">Type</label>
+          <select id="bizCustomType" style="min-width:140px;">
+            <option value="line">Line</option>
+            <option value="bar">Bar</option>
+          </select>
+        </div>
+        <canvas id="bizCustomCanvas" class="biz-canvas" height="260"></canvas>
+        <div id="bizCustomLegend" class="biz-legend-inline"></div>
+      </div>
+
+      <div class="stats-card">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+          <h3 style="margin:0;">Top cost centres</h3>
+          <div class="muted-small">Expanded across the selected range</div>
+        </div>
+        <div id="bizCostBars" class="barlist" style="margin-top:10px;"></div>
+        <div id="bizCostBarsNote" class="biz-mini-note" style="margin-top:8px;"></div>
+      </div>
+    </div>
+
+    <div class="stats-card" style="margin-top:12px;">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+        <div>
+          <h3 style="margin:0;">Historical ledger</h3>
+          <div id="bizHistoryModeHint" class="muted-small" style="margin-top:4px;">Tree view lets you expand a month into weeks and individual trading days.</div>
+        </div>
+        <div class="biz-history-toolbar">
+          <label class="muted" style="font-weight:700;">View</label>
+          <select id="bizHistoryView" style="min-width:190px;">
+            <option value="tree" selected>Tree: month → week → day</option>
+            <option value="month">Monthly summary</option>
+            <option value="week">Weekly summary</option>
+            <option value="day">Daily list</option>
+          </select>
+          <button id="btnBizLedgerExpandAll" class="btn-outline">Expand all</button>
+          <button id="btnBizLedgerCollapseAll" class="btn-outline">Collapse all</button>
+        </div>
+      </div>
+      <div class="table-wrapper" style="margin-top:10px;">
+        <table class="stats-table biz-history-table" id="bizHistoryTable">
+          <thead>
+            <tr>
+              <th>Period</th>
+              <th>Cash</th>
+              <th>EFTPOS</th>
+              <th>Revenue</th>
+              <th>Staff cost</th>
+              <th>Spendings</th>
+              <th>Utilities</th>
+              <th>Ongoing</th>
+              <th>Total costs</th>
+              <th>Net</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="bizHistoryTbody"></tbody>
+        </table>
+      </div>
+      <div id="bizHistoryEmpty" class="muted-small" style="margin-top:8px;display:none;"></div>
+    </div>
+  </div>
+
+  <div style="height:12px"></div>
+  <div class="card">
     <div class="stats-toolbar">
-      <h3 style="margin:0;">Stats / Requests</h3>
+      <h3 style="margin:0;">Staff / Requests Analytics</h3>
       <div class="pill" id="statsWeekLabel"></div>
       <button id="btnStatsPrevWeek" class="btn-outline">← Prev week</button>
       <button id="btnStatsNextWeek" class="btn-outline">Next week →</button>
@@ -3348,7 +3931,7 @@
     </button>
     <button id="bottomStats">
       <span>📊</span>
-      <span class="label">Stats/Req</span>
+      <span class="label">Biz</span>
     </button>
     <button id="bottomAbsences">
       <span>🌴</span>
@@ -3403,8 +3986,8 @@ var DAY = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 var App = {
   // IMPORTANT: Increment App.version *and* App.buildId whenever making functional changes to this file.
   // SAFETY NET: This build performs an automatic runtime check against the file name; if mismatched, it shows a blocking warning so it can't be overlooked.
-  version: 'V4.0.1',
-    buildId: '2026-04-10.1',
+  version: 'V4.1.2',
+    buildId: '2026-04-19.3',
 settings: {
     dbUrl:'https://mnc-atrd-default-rtdb.asia-southeast1.firebasedatabase.app/', workspace:'mnc-atrd', authToken:'',
     theme:'light', themeName:'light-pastel-sky', recentColors:[], appTitle:'M&C-ATRD-scheduler --=Aspire Group=--', logoUrl:'',
@@ -3445,6 +4028,7 @@ publishedWeeks: {}
   payrollProfiles:{business:{}, staff:{}},
   payrollWeekData:{},
   payslipRecords:[],
+  businessAnalytics:{daily:{}, recurringCosts:{}},
   recurringUnavailability:{},
   editRequests:{},
   rosterTemplates:{},
@@ -3571,6 +4155,9 @@ function normalizeCoreState(){
     if(!App.payrollProfiles.staff || typeof App.payrollProfiles.staff !== 'object') App.payrollProfiles.staff = {};
     if(!App.payrollWeekData || typeof App.payrollWeekData !== 'object') App.payrollWeekData = {};
     if(!Array.isArray(App.payslipRecords)) App.payslipRecords = [];
+    if(!App.businessAnalytics || typeof App.businessAnalytics !== 'object') App.businessAnalytics = {daily:{}, recurringCosts:{}};
+    if(!App.businessAnalytics.daily || typeof App.businessAnalytics.daily !== 'object') App.businessAnalytics.daily = {};
+    if(!App.businessAnalytics.recurringCosts || typeof App.businessAnalytics.recurringCosts !== 'object') App.businessAnalytics.recurringCosts = {};
   }catch(e){}
 }
 function buildAppExportData(){
@@ -3592,6 +4179,7 @@ function buildAppExportData(){
     payrollProfiles:App.payrollProfiles||{business:{},staff:{}},
     payrollWeekData:App.payrollWeekData||{},
     payslipRecords:App.payslipRecords||[],
+    businessAnalytics:App.businessAnalytics||{daily:{}, recurringCosts:{}},
     recurringUnavailability:App.recurringUnavailability||{},
     editRequests:App.editRequests||{},
     rosterTemplates:App.rosterTemplates||{},
@@ -3619,6 +4207,7 @@ function applyExportDataToApp(d){
   App.payrollProfiles = d.payrollProfiles || App.payrollProfiles || {business:{},staff:{}};
   App.payrollWeekData = d.payrollWeekData || App.payrollWeekData || {};
   App.payslipRecords = d.payslipRecords || App.payslipRecords || [];
+  App.businessAnalytics = d.businessAnalytics || App.businessAnalytics || {daily:{}, recurringCosts:{}};
   normalizeCoreState();
   try{
     if(App.currentUser && (!App.staff || !App.staff[String(App.currentUser.id)])) App.currentUser = null;
@@ -4465,6 +5054,7 @@ function historySnapshotObj(){
     payrollProfiles: App.payrollProfiles,
     payrollWeekData: App.payrollWeekData,
     payslipRecords: App.payslipRecords,
+    businessAnalytics: App.businessAnalytics,
     version: App.version
   };
 }
@@ -5008,6 +5598,7 @@ function init(){
     var _bn=byId('btnStatsNextWeek'); if(_bn) _bn.onclick=function(){ shiftWeek(1); try{ renderStats(); }catch(e){} };
     var _sm=byId('statsBarsMetric'); if(_sm){ try{ _sm.value = App.settings.statsBarsMetric || 'shifts'; }catch(e){} _sm.onchange=function(){ try{ App.settings.statsBarsMetric = _sm.value||'shifts'; saveLocal(); try{ if(typeof queueSettingsSync==='function') queueSettingsSync(); }catch(e){} renderStats(); }catch(e){} }; }
   }catch(e){}
+  try{ bindBusinessAnalyticsUI(); }catch(e){}
 
   // Requests log UI (admin only)
   try{
@@ -5118,7 +5709,7 @@ function init(){
     // - All users (including admin) persist Request pop-up/notification preferences under /userPrefs/<uid>.
     var __saveChain = Promise.resolve(true);
     if(__isAdmin){
-      __saveChain = dbPatch('', {settings:App.settings, staff:App.staff});
+      __saveChain = dbPatch('', {settings:App.settings, staff:App.staff, businessAnalytics:App.businessAnalytics||{daily:{}, recurringCosts:{}}});
     }
     __saveChain.then(function(){
       return pushUserPrefsRequestPopups();
@@ -12028,6 +12619,7 @@ function renderStats(){
   if(!isAdmin()) return;
   var sec=byId('statsSection');
   if(!sec) return;
+  try{ renderBusinessAnalytics(); }catch(e){}
 
   var rangeSel = byId('statsRange');
   var range = rangeSel ? (rangeSel.value||'week') : 'week';
@@ -12316,6 +12908,1523 @@ document.addEventListener('change', function(ev){
 });
 
 
+
+
+// ---------- Business analytics ----------
+var BusinessView = {
+  rangePreset:'30d',
+  startISO:'',
+  endISO:'',
+  entryISO:'',
+  entrySpendItems:[],
+  customMetricA:'revenue',
+  customMetricB:'totalStaffCost',
+  customGroup:'day',
+  customType:'line',
+  historyMode:'tree',
+  historyOpenMonths:{},
+  historyOpenWeeks:{},
+  historyUserCollapsedAll:false,
+  lastRows:null
+};
+
+function ensureBusinessAnalyticsStore(){
+  if(!App.businessAnalytics || typeof App.businessAnalytics !== 'object') App.businessAnalytics = {daily:{}, recurringCosts:{}};
+  if(!App.businessAnalytics.daily || typeof App.businessAnalytics.daily !== 'object') App.businessAnalytics.daily = {};
+  if(!App.businessAnalytics.recurringCosts || typeof App.businessAnalytics.recurringCosts !== 'object') App.businessAnalytics.recurringCosts = {};
+}
+function bizTodayIso(){ return toISO(new Date()); }
+function bizFormatTimestamp(ts){ try{ return new Date(ts).toLocaleString(); }catch(e){ return ''; } }
+function bizShorten(text, maxLen){ text=String(text||''); return text.length>maxLen ? text.slice(0, Math.max(0, maxLen-3))+'...' : text; }
+function bizShiftIso(iso, delta){ try{ var d=fromISO(String(iso||bizTodayIso())); d.setDate(d.getDate() + (delta||0)); return toISO(d); }catch(e){ return bizTodayIso(); } }
+function bizFormatShortDate(iso){ try{ return fromISO(iso).toLocaleDateString(undefined, {day:'2-digit', month:'short'}); }catch(e){ return String(iso||''); } }
+function bizFormatLongDate(iso){ try{ return fromISO(iso).toLocaleDateString(undefined, {weekday:'short', day:'2-digit', month:'short', year:'numeric'}); }catch(e){ return String(iso||''); } }
+function bizFormatRangeLabel(startIso, endIso){
+  try{ return fmtDMY(fromISO(startIso)) + ' to ' + fmtDMY(fromISO(endIso)); }
+  catch(e){ return String(startIso||'') + ' to ' + String(endIso||''); }
+}
+function bizCompactMoney(v){
+  var n = numOr0(v), sign = n < 0 ? '-' : '', abs = Math.abs(n);
+  if(abs >= 1000000) return sign + '$' + (abs/1000000).toFixed(abs >= 10000000 ? 0 : 1) + 'm';
+  if(abs >= 1000) return sign + '$' + (abs/1000).toFixed(abs >= 10000 ? 0 : 1) + 'k';
+  return sign + '$' + abs.toFixed(abs >= 100 ? 0 : 2);
+}
+function bizReadMoneyInput(id){
+  var el = byId(id);
+  if(!el) return 0;
+  var raw = String(el.value||'').trim();
+  if(!raw) return 0;
+  return round2(numOr0(raw));
+}
+function bizNormalizeSpendItem(item){
+  item = item || {};
+  var description = '';
+  if(item.description != null) description = String(item.description);
+  else if(item.label != null) description = String(item.label);
+  else if(item.name != null) description = String(item.name);
+  description = description.trim();
+  var amount = round2(numOr0(item.amount));
+  var createdAt = item.createdAt ? String(item.createdAt) : '';
+  if(!description && !amount) return null;
+  return {
+    id: String(item.id || uid()),
+    description: description || 'Spending item',
+    amount: amount,
+    createdAt: createdAt
+  };
+}
+function bizNormalizeSpendItems(items, fallbackTotal){
+  var out = [];
+  if(Array.isArray(items)){
+    items.forEach(function(item){
+      var normalized = bizNormalizeSpendItem(item);
+      if(normalized) out.push(normalized);
+    });
+  }
+  var legacyTotal = round2(numOr0(fallbackTotal));
+  if(!out.length && legacyTotal > 0.0001){
+    out.push({id:uid(), description:'Legacy total', amount:legacyTotal, createdAt:''});
+  }
+  return out;
+}
+function bizSpendItemsTotal(items){
+  var total = 0;
+  (items||[]).forEach(function(item){ total += numOr0(item && item.amount); });
+  return round2(total);
+}
+function bizCurrentEntrySpendItems(){
+  BusinessView.entrySpendItems = bizNormalizeSpendItems(BusinessView.entrySpendItems || [], 0);
+  return BusinessView.entrySpendItems;
+}
+function bizSpendItemsSummary(items, maxItems){
+  items = (items||[]).filter(function(item){ return item && (Math.abs(numOr0(item.amount)) > 0.0001 || String(item.description||'').trim()); });
+  if(!items.length) return '';
+  var limit = Math.max(1, parseInt(maxItems||3, 10) || 3);
+  var shown = items.slice(0, limit).map(function(item){
+    return (item.description || 'Spending item') + ' ' + fmtMoney(numOr0(item.amount));
+  });
+  if(items.length > limit) shown.push('+' + (items.length - limit) + ' more');
+  return 'Spend: ' + shown.join(', ');
+}
+function bizRefreshSpendingsEditor(){
+  var total = bizSpendItemsTotal(BusinessView.entrySpendItems || []);
+  setInputValueIfIdle('bizEntrySpendings', total > 0.0001 ? round2(total) : '');
+  setTextIfExists('bizSpendItemsTotal', fmtMoney(total));
+  var items = BusinessView.entrySpendItems || [];
+  setTextIfExists('bizSpendItemsHint', items.length ? (items.length + ' spending line' + (items.length === 1 ? '' : 's') + ' ready for this day.') : 'Add expenses as they happen. Each line saves with this day.');
+}
+function bizRenderSpendItems(){
+  var host = byId('bizSpendItemsList');
+  if(!host){ bizRefreshSpendingsEditor(); return; }
+  var items = bizCurrentEntrySpendItems();
+  if(!items.length){
+    host.innerHTML = '<div class="biz-empty">No spending lines added yet for this day.</div>';
+    bizRefreshSpendingsEditor();
+    return;
+  }
+  host.innerHTML = items.map(function(item){
+    return '<div class="biz-spend-row" data-id="' + escapeHtml(item.id) + '">' +
+      '<input class="biz-spend-row-desc" type="text" value="' + escapeHtml(item.description || '') + '" placeholder="Description">' +
+      '<input class="biz-spend-row-amount" type="number" step="0.01" min="0" value="' + escapeHtml(Math.abs(numOr0(item.amount)) > 0.0001 ? round2(item.amount) : '') + '" placeholder="0.00">' +
+      '<button type="button" class="btn-outline biz-del-spend-item" data-id="' + escapeHtml(item.id) + '">Remove</button>' +
+    '</div>';
+  }).join('');
+  bizRefreshSpendingsEditor();
+}
+function bizSetEntrySpendItems(items, fallbackTotal){
+  BusinessView.entrySpendItems = bizNormalizeSpendItems(items, fallbackTotal);
+  bizRenderSpendItems();
+}
+function bizNormalizeDailyRecord(rec){
+  rec = rec || {};
+  var spendItems = bizNormalizeSpendItems(rec.spendItems, rec.spendings);
+  var spendings = spendItems.length ? bizSpendItemsTotal(spendItems) : round2(numOr0(rec.spendings));
+  return {
+    cash: round2(numOr0(rec.cash)),
+    eftpos: round2(numOr0(rec.eftpos)),
+    spendings: spendings,
+    spendItems: spendItems,
+    utilityCosts: round2(numOr0(rec.utilityCosts)),
+    ongoingCosts: round2(numOr0(rec.ongoingCosts)),
+    staffCostAdjustment: round2(numOr0(rec.staffCostAdjustment)),
+    notes: String(rec.notes||''),
+    updatedAt: rec.updatedAt || ''
+  };
+}
+function bizGetDailyRecord(iso){
+  ensureBusinessAnalyticsStore();
+  var rec = App.businessAnalytics.daily[String(iso||'')];
+  return rec ? bizNormalizeDailyRecord(rec) : null;
+}
+function bizSetDailyRecord(iso, rec){
+  ensureBusinessAnalyticsStore();
+  iso = String(iso||'');
+  var normalized = bizNormalizeDailyRecord(rec);
+  normalized.updatedAt = new Date().toISOString();
+  var isEmpty = !normalized.cash && !normalized.eftpos && !normalized.spendings && !normalized.utilityCosts && !normalized.ongoingCosts && !normalized.staffCostAdjustment && !String(normalized.notes||'').trim();
+  if(isEmpty) delete App.businessAnalytics.daily[iso];
+  else App.businessAnalytics.daily[iso] = normalized;
+}
+function bizDeleteDailyRecord(iso){ ensureBusinessAnalyticsStore(); delete App.businessAnalytics.daily[String(iso||'')]; }
+function bizReadEntryForm(){
+  var spendItems = bizCurrentEntrySpendItems();
+  return bizNormalizeDailyRecord({
+    cash: bizReadMoneyInput('bizEntryCash'),
+    eftpos: bizReadMoneyInput('bizEntryEftpos'),
+    spendings: bizSpendItemsTotal(spendItems),
+    spendItems: spendItems,
+    utilityCosts: bizReadMoneyInput('bizEntryUtility'),
+    ongoingCosts: bizReadMoneyInput('bizEntryOngoing'),
+    staffCostAdjustment: bizReadMoneyInput('bizEntryStaffAdj'),
+    notes: (byId('bizEntryNotes') && byId('bizEntryNotes').value) ? String(byId('bizEntryNotes').value).trim() : ''
+  });
+}
+function bizSetNumberField(id, value){
+  setInputValueIfIdle(id, Math.abs(numOr0(value)) > 0.0001 ? round2(value) : '');
+}
+function bizLoadEntryForm(iso){
+  iso = String(iso || BusinessView.entryISO || bizTodayIso());
+  BusinessView.entryISO = iso;
+  setInputValueIfIdle('bizEntryDate', iso);
+  var rec = bizGetDailyRecord(iso) || bizNormalizeDailyRecord({});
+  bizSetNumberField('bizEntryCash', rec.cash);
+  bizSetNumberField('bizEntryEftpos', rec.eftpos);
+  bizSetEntrySpendItems(rec.spendItems || [], rec.spendings);
+  bizSetNumberField('bizEntryUtility', rec.utilityCosts);
+  bizSetNumberField('bizEntryOngoing', rec.ongoingCosts);
+  bizSetNumberField('bizEntryStaffAdj', rec.staffCostAdjustment);
+  setInputValueIfIdle('bizEntryNotes', rec.notes || '');
+  setInputValueIfIdle('bizSpendItemDesc', '');
+  setInputValueIfIdle('bizSpendItemAmount', '');
+  setTextIfExists('bizEntryLastSaved', rec.updatedAt ? ('Last saved ' + bizFormatTimestamp(rec.updatedAt)) : 'No manual entry saved for this day yet.');
+  bizUpdateEntryPreview();
+}
+function bizClearRecurringForm(){
+  setInputValueIfIdle('bizRecurringName', '');
+  setInputValueIfIdle('bizRecurringAmount', '');
+  setInputValueIfIdle('bizRecurringStart', bizTodayIso());
+  setInputValueIfIdle('bizRecurringEnd', '');
+  setInputValueIfIdle('bizRecurringNotes', '');
+  var cat = byId('bizRecurringCategory'); if(cat) cat.value = 'ongoing';
+  var freq = byId('bizRecurringFrequency'); if(freq) freq.value = 'monthly';
+}
+function bizEarliestRelevantIso(){
+  ensureBusinessAnalyticsStore();
+  var cands = [];
+  try{ Object.keys(App.businessAnalytics.daily||{}).forEach(function(k){ if(/^\d{4}-\d{2}-\d{2}$/.test(k)) cands.push(k); }); }catch(e){}
+  try{ Object.keys(App.businessAnalytics.recurringCosts||{}).forEach(function(id){ var rec=App.businessAnalytics.recurringCosts[id]||{}; if(rec.startDate) cands.push(String(rec.startDate)); }); }catch(e){}
+  try{ Object.keys(App.weeks||{}).forEach(function(k){ if(/^\d{4}-\d{2}-\d{2}$/.test(k)) cands.push(k); }); }catch(e){}
+  if(!cands.length) return bizShiftIso(bizTodayIso(), -29);
+  cands.sort();
+  return cands[0];
+}
+function bizClampRange(startIso, endIso){
+  startIso = startIso || bizShiftIso(bizTodayIso(), -29);
+  endIso = endIso || bizTodayIso();
+  if(startIso > endIso){ var tmp = startIso; startIso = endIso; endIso = tmp; }
+  return {startISO:startIso, endISO:endIso};
+}
+function bizApplyRangePreset(preset){
+  var today = fromISO(bizTodayIso());
+  var start = new Date(today), end = new Date(today);
+  var p = String(preset || BusinessView.rangePreset || '30d');
+  if(p === '7d') start.setDate(end.getDate() - 6);
+  else if(p === '30d') start.setDate(end.getDate() - 29);
+  else if(p === '90d') start.setDate(end.getDate() - 89);
+  else if(p === 'month') start = new Date(today.getFullYear(), today.getMonth(), 1);
+  else if(p === 'quarter'){ var qm = Math.floor(today.getMonth()/3)*3; start = new Date(today.getFullYear(), qm, 1); }
+  else if(p === 'year') start = new Date(today.getFullYear(), 0, 1);
+  else if(p === 'all') start = fromISO(bizEarliestRelevantIso());
+  else if(p === 'custom'){
+    var current = bizReadRangeInputs();
+    start = fromISO(current.startISO);
+    end = fromISO(current.endISO);
+  }
+  var range = bizClampRange(toISO(start), toISO(end));
+  BusinessView.rangePreset = p;
+  BusinessView.startISO = range.startISO;
+  BusinessView.endISO = range.endISO;
+  var presetEl = byId('bizRangePreset'); if(presetEl) presetEl.value = p;
+  setInputValueIfIdle('bizRangeStart', range.startISO);
+  setInputValueIfIdle('bizRangeEnd', range.endISO);
+  return range;
+}
+function bizReadRangeInputs(){
+  var start = (byId('bizRangeStart') && byId('bizRangeStart').value) ? String(byId('bizRangeStart').value) : (BusinessView.startISO || bizShiftIso(bizTodayIso(), -29));
+  var end = (byId('bizRangeEnd') && byId('bizRangeEnd').value) ? String(byId('bizRangeEnd').value) : (BusinessView.endISO || bizTodayIso());
+  var range = bizClampRange(start, end);
+  BusinessView.startISO = range.startISO;
+  BusinessView.endISO = range.endISO;
+  return range;
+}
+function bizDaysInRange(startIso, endIso){
+  var out = [];
+  try{
+    var range = bizClampRange(startIso, endIso);
+    var start = fromISO(range.startISO), end = fromISO(range.endISO);
+    for(var d = new Date(start); d <= end; d.setDate(d.getDate() + 1)){
+      out.push(toISO(d));
+      if(out.length > 3660) break;
+    }
+  }catch(e){}
+  return out;
+}
+function bizNormalizeRecurringRule(rec){
+  rec = rec || {};
+  var category = String(rec.category||'ongoing');
+  if(['ongoing','utility'].indexOf(category) < 0) category = 'ongoing';
+  var frequency = String(rec.frequency||'monthly');
+  if(['daily','weekly','fortnightly','monthly'].indexOf(frequency) < 0) frequency = 'monthly';
+  return {
+    id: String(rec.id || uid()),
+    label: String(rec.label||'').trim(),
+    category: category,
+    frequency: frequency,
+    amount: round2(numOr0(rec.amount)),
+    startDate: String(rec.startDate || bizTodayIso()),
+    endDate: rec.endDate ? String(rec.endDate) : '',
+    notes: String(rec.notes||''),
+    active: rec.active !== false
+  };
+}
+function bizRecurringRulesSorted(){
+  ensureBusinessAnalyticsStore();
+  return Object.keys(App.businessAnalytics.recurringCosts||{}).map(function(id){
+    return bizNormalizeRecurringRule(App.businessAnalytics.recurringCosts[id]);
+  }).sort(function(a,b){
+    if(a.startDate !== b.startDate) return a.startDate.localeCompare(b.startDate);
+    return String(a.label||'').localeCompare(String(b.label||''));
+  });
+}
+function bizFormatFrequency(freq){
+  var map = {daily:'Daily', weekly:'Weekly', fortnightly:'Fortnightly', monthly:'Monthly'};
+  return map[String(freq||'').toLowerCase()] || 'Recurring';
+}
+function bizFormatCategory(cat){ return String(cat||'ongoing') === 'utility' ? 'Utility' : 'Ongoing'; }
+function bizLastDayOfMonth(year, monthIndex){ return new Date(year, monthIndex + 1, 0).getDate(); }
+function bizDateDiffDays(startDate, endDate){
+  var a = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
+  var b = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
+  return Math.round((b.getTime() - a.getTime()) / 86400000);
+}
+function bizMonthlyAnchorDate(baseDate, monthsToAdd){
+  var anchorMonth = new Date(baseDate.getFullYear(), baseDate.getMonth() + monthsToAdd, 1);
+  var year = anchorMonth.getFullYear();
+  var month = anchorMonth.getMonth();
+  return new Date(year, month, Math.min(baseDate.getDate(), bizLastDayOfMonth(year, month)));
+}
+function bizRecurringAppliesOn(rule, iso){
+  rule = bizNormalizeRecurringRule(rule);
+  if(!rule.active || !rule.label || !rule.amount) return false;
+  try{
+    var day = fromISO(iso);
+    var start = fromISO(rule.startDate || iso);
+    if(day < start) return false;
+    if(rule.endDate){
+      var end = fromISO(rule.endDate);
+      if(day > end) return false;
+    }
+    return true;
+  }catch(e){ return false; }
+}
+function bizRecurringCycleForDate(rule, iso){
+  rule = bizNormalizeRecurringRule(rule);
+  if(!bizRecurringAppliesOn(rule, iso)) return null;
+  try{
+    var day = fromISO(iso);
+    var start = fromISO(rule.startDate || iso);
+    var cycleStart = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+    var cycleEnd = new Date(cycleStart.getFullYear(), cycleStart.getMonth(), cycleStart.getDate());
+    if(rule.frequency === 'daily'){
+      cycleStart = new Date(day.getFullYear(), day.getMonth(), day.getDate());
+      cycleEnd = new Date(day.getFullYear(), day.getMonth(), day.getDate());
+    }else if(rule.frequency === 'weekly' || rule.frequency === 'fortnightly'){
+      var span = rule.frequency === 'fortnightly' ? 14 : 7;
+      var diffDays = Math.max(0, bizDateDiffDays(start, day));
+      var cycleIndex = Math.floor(diffDays / span);
+      cycleStart = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+      cycleStart.setDate(cycleStart.getDate() + cycleIndex * span);
+      cycleEnd = new Date(cycleStart.getFullYear(), cycleStart.getMonth(), cycleStart.getDate());
+      cycleEnd.setDate(cycleEnd.getDate() + (span - 1));
+    }else{
+      var months = (day.getFullYear() - start.getFullYear()) * 12 + (day.getMonth() - start.getMonth());
+      var cycleStartCandidate = bizMonthlyAnchorDate(start, months);
+      if(day < cycleStartCandidate){
+        months -= 1;
+        cycleStartCandidate = bizMonthlyAnchorDate(start, months);
+      }
+      if(months < 0) return null;
+      cycleStart = cycleStartCandidate;
+      var nextStart = bizMonthlyAnchorDate(start, months + 1);
+      cycleEnd = new Date(nextStart.getFullYear(), nextStart.getMonth(), nextStart.getDate());
+      cycleEnd.setDate(cycleEnd.getDate() - 1);
+    }
+    var dayCount = Math.max(1, bizDateDiffDays(cycleStart, cycleEnd) + 1);
+    return {startDate:cycleStart, endDate:cycleEnd, dayCount:dayCount};
+  }catch(e){ return null; }
+}
+function bizRecurringAmountForDate(rule, iso){
+  var cycle = bizRecurringCycleForDate(rule, iso);
+  if(!cycle) return 0;
+  var cents = Math.max(0, Math.round(numOr0(rule.amount) * 100));
+  var baseCents = Math.floor(cents / Math.max(1, cycle.dayCount));
+  var remainder = cents - (baseCents * Math.max(1, cycle.dayCount));
+  var dayIndex = Math.max(0, bizDateDiffDays(cycle.startDate, fromISO(iso)));
+  return (baseCents + (dayIndex < remainder ? 1 : 0)) / 100;
+}
+function bizRecurringBreakdownForDate(iso){
+  var totals = {ongoing:0, utility:0, total:0, items:[]};
+  bizRecurringRulesSorted().forEach(function(rule){
+    var amount = bizRecurringAmountForDate(rule, iso);
+    if(Math.abs(amount) <= 0.0001) return;
+    if(rule.category === 'utility') totals.utility += amount;
+    else totals.ongoing += amount;
+    totals.items.push({id:rule.id, label:rule.label, amount:round2(amount), category:rule.category, frequency:rule.frequency});
+  });
+  totals.ongoing = round2(totals.ongoing);
+  totals.utility = round2(totals.utility);
+  totals.total = round2(totals.ongoing + totals.utility);
+  return totals;
+}
+function bizRecurringRuleTotalInRange(rule, startIso, endIso){
+  var total = 0, activeDays = 0;
+  bizDaysInRange(startIso, endIso).forEach(function(iso){
+    var amount = bizRecurringAmountForDate(rule, iso);
+    if(Math.abs(amount) <= 0.0001) return;
+    total += amount;
+    activeDays += 1;
+  });
+  return {activeDays:activeDays, total:round2(total)};
+}
+function bizWeekEndIso(weekIso){ var d = fromISO(weekIso); d.setDate(d.getDate() + 6); return toISO(d); }
+function bizComputeWeekDailyStaffCost(weekIso){
+  var out = {};
+  try{
+    var start = fromISO(weekIso);
+    for(var i=0;i<7;i++){ var d=new Date(start); d.setDate(d.getDate()+i); out[toISO(d)] = 0; }
+    var staffIds = (typeof payrollEligibleStaffIds === 'function') ? payrollEligibleStaffIds() : Object.keys(App.staff||{});
+    staffIds.forEach(function(staffId){
+      var breakdown = computeWeekPayrollBreakdown(weekIso, staffId);
+      (breakdown.lines||[]).forEach(function(line){
+        out[line.iso] = round2((out[line.iso]||0) + numOr0(line.linePay));
+      });
+    });
+    var endIso = bizWeekEndIso(weekIso);
+    var adjBucket = (App.payrollAdjustments && App.payrollAdjustments[weekIso]) ? App.payrollAdjustments[weekIso] : {};
+    Object.keys(adjBucket).forEach(function(staffId){
+      var adj = adjBucket[staffId] || {};
+      var amount = round2(numOr0(adj.amount));
+      if(amount) out[endIso] = round2((out[endIso]||0) + amount);
+    });
+  }catch(e){}
+  return out;
+}
+function bizAutoStaffCostMap(startIso, endIso){
+  var map = {};
+  try{
+    var range = bizClampRange(startIso, endIso);
+    var startWeek = weekStart(fromISO(range.startISO));
+    var endWeek = weekStart(fromISO(range.endISO));
+    for(var d = new Date(startWeek); d <= endWeek; d.setDate(d.getDate() + 7)){
+      var weekIso = toISO(weekStart(d));
+      var weekMap = bizComputeWeekDailyStaffCost(weekIso);
+      Object.keys(weekMap).forEach(function(iso){
+        if(iso < range.startISO || iso > range.endISO) return;
+        map[iso] = round2((map[iso]||0) + numOr0(weekMap[iso]));
+      });
+    }
+  }catch(e){}
+  return map;
+}
+function bizComputeRow(iso, autoMap){
+  var rec = bizGetDailyRecord(iso) || bizNormalizeDailyRecord({});
+  var recurring = bizRecurringBreakdownForDate(iso);
+  var cash = round2(rec.cash||0);
+  var eftpos = round2(rec.eftpos||0);
+  var revenue = round2(cash + eftpos);
+  var spendings = round2(rec.spendings||0);
+  var manualUtility = round2(rec.utilityCosts||0);
+  var manualOngoing = round2(rec.ongoingCosts||0);
+  var utilityCosts = round2(manualUtility + recurring.utility);
+  var ongoingCosts = round2(manualOngoing + recurring.ongoing);
+  var autoStaffCost = round2((autoMap && autoMap[iso]) ? autoMap[iso] : 0);
+  var staffCostAdjustment = round2(rec.staffCostAdjustment||0);
+  var totalStaffCost = round2(autoStaffCost + staffCostAdjustment);
+  var totalCosts = round2(totalStaffCost + spendings + utilityCosts + ongoingCosts);
+  var profit = round2(revenue - totalCosts);
+  return {
+    iso: iso,
+    cashRevenue: cash,
+    eftposRevenue: eftpos,
+    revenue: revenue,
+    spendings: spendings,
+    utilityCosts: utilityCosts,
+    dailyUtilityCosts: manualUtility,
+    recurringUtilityCosts: round2(recurring.utility),
+    ongoingCosts: ongoingCosts,
+    dailyOngoingCosts: manualOngoing,
+    recurringOngoingCosts: round2(recurring.ongoing),
+    autoStaffCost: autoStaffCost,
+    staffCostAdjustment: staffCostAdjustment,
+    totalStaffCost: totalStaffCost,
+    totalCosts: totalCosts,
+    profit: profit,
+    notes: String(rec.notes||''),
+    spendItems: rec.spendItems || [],
+    recurringItems: recurring.items || []
+  };
+}
+function bizCollectRows(startIso, endIso){
+  var autoMap = bizAutoStaffCostMap(startIso, endIso);
+  return bizDaysInRange(startIso, endIso).map(function(iso){ return bizComputeRow(iso, autoMap); });
+}
+function bizHasAnyTrackedValue(row){
+  if(!row) return false;
+  return Math.abs(numOr0(row.revenue)) > 0.0001 ||
+    Math.abs(numOr0(row.totalCosts)) > 0.0001 ||
+    Math.abs(numOr0(row.totalStaffCost)) > 0.0001 ||
+    Math.abs(numOr0(row.spendings)) > 0.0001 ||
+    Math.abs(numOr0(row.utilityCosts)) > 0.0001 ||
+    Math.abs(numOr0(row.ongoingCosts)) > 0.0001 ||
+    !!String(row.notes||'').trim();
+}
+function bizMetricDefinitions(){
+  return {
+    cashRevenue:{label:'Cash sales', color:'#10b981'},
+    eftposRevenue:{label:'EFTPOS sales', color:'#0ea5e9'},
+    revenue:{label:'Total revenue', color:'#22c55e'},
+    autoStaffCost:{label:'Auto staff cost', color:'#f97316'},
+    staffCostAdjustment:{label:'Staff cost adjustment', color:'#ef4444'},
+    totalStaffCost:{label:'Total staff cost', color:'#fb923c'},
+    spendings:{label:'Daily spendings', color:'#f59e0b'},
+    utilityCosts:{label:'Utility costs', color:'#8b5cf6'},
+    ongoingCosts:{label:'Ongoing costs', color:'#ec4899'},
+    totalCosts:{label:'Total costs', color:'#e11d48'},
+    profit:{label:'Net profit / loss', color:'#5A31F4'}
+  };
+}
+function bizMetricOrder(){
+  return ['revenue','cashRevenue','eftposRevenue','totalStaffCost','autoStaffCost','staffCostAdjustment','spendings','utilityCosts','ongoingCosts','totalCosts','profit'];
+}
+function bizMetricLabel(key){ var defs = bizMetricDefinitions(); return defs[key] ? defs[key].label : String(key||''); }
+function bizMetricColor(key){ var defs = bizMetricDefinitions(); return defs[key] ? defs[key].color : '#5A31F4'; }
+function bizAggregateRows(rows, mode){
+  rows = rows || [];
+  mode = mode || 'day';
+  if(mode === 'day'){
+    return rows.map(function(row){
+      var copy = JSON.parse(JSON.stringify(row));
+      copy.key = row.iso;
+      copy.label = bizFormatShortDate(row.iso);
+      return copy;
+    });
+  }
+  var sums = ['cashRevenue','eftposRevenue','revenue','spendings','utilityCosts','dailyUtilityCosts','recurringUtilityCosts','ongoingCosts','dailyOngoingCosts','recurringOngoingCosts','autoStaffCost','staffCostAdjustment','totalStaffCost','totalCosts','profit'];
+  var bucketMap = {};
+  rows.forEach(function(row){
+    var key = '', label = '';
+    if(mode === 'week'){
+      key = toISO(weekStart(fromISO(row.iso)));
+      label = 'Week of ' + fmtDMY(fromISO(key));
+    }else{
+      var d = fromISO(row.iso);
+      key = d.getFullYear() + '-' + pad(d.getMonth()+1);
+      label = d.toLocaleDateString(undefined, {month:'short', year:'numeric'});
+    }
+    if(!bucketMap[key]){
+      bucketMap[key] = {key:key, label:label, iso:key, notes:''};
+      sums.forEach(function(field){ bucketMap[key][field] = 0; });
+    }
+    sums.forEach(function(field){ bucketMap[key][field] = round2(numOr0(bucketMap[key][field]) + numOr0(row[field])); });
+  });
+  return Object.keys(bucketMap).sort().map(function(key){ return bucketMap[key]; });
+}
+function bizCanvasPalette(){
+  var root = getComputedStyle(document.documentElement);
+  return {
+    text: (root.getPropertyValue('--fg') || '#f8fafc').trim() || '#f8fafc',
+    muted: (root.getPropertyValue('--muted') || '#94a3b8').trim() || '#94a3b8',
+    border: (root.getPropertyValue('--border') || 'rgba(255,255,255,.16)').trim() || 'rgba(255,255,255,.16)',
+    grid: document.body && document.body.getAttribute('data-theme') === 'light' ? 'rgba(15,23,42,.08)' : 'rgba(255,255,255,.10)'
+  };
+}
+function bizPrepareCanvas(canvas, height){
+  if(!canvas) return null;
+  var ratio = window.devicePixelRatio || 1;
+  var rect = canvas.getBoundingClientRect ? canvas.getBoundingClientRect() : {width:0};
+  var parentWidth = canvas.parentNode && canvas.parentNode.clientWidth ? canvas.parentNode.clientWidth : 0;
+  var width = Math.max(320, Math.round(rect.width || canvas.clientWidth || parentWidth || 640));
+  height = height || parseInt(canvas.getAttribute('height')||'260', 10) || 260;
+  canvas.width = Math.round(width * ratio);
+  canvas.height = Math.round(height * ratio);
+  canvas.style.width = width + 'px';
+  canvas.style.height = height + 'px';
+  var ctx = canvas.getContext('2d');
+  ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+  ctx.clearRect(0, 0, width, height);
+  return {ctx:ctx, width:width, height:height};
+}
+function bizDrawNoData(canvas, message){
+  var prep = bizPrepareCanvas(canvas, parseInt((canvas && canvas.getAttribute('height')) || '260', 10) || 260);
+  if(!prep) return;
+  var ctx = prep.ctx, pal = bizCanvasPalette();
+  ctx.fillStyle = pal.muted;
+  ctx.font = '13px system-ui, -apple-system, Segoe UI, Arial, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(message || 'No data in selected range', prep.width / 2, prep.height / 2);
+}
+function bizScaleBounds(values){
+  var min = 0, max = 0;
+  values.forEach(function(v){
+    v = numOr0(v);
+    if(v < min) min = v;
+    if(v > max) max = v;
+  });
+  if(min === max){
+    var pad = Math.max(1, Math.abs(max) * 0.25);
+    min -= pad;
+    max += pad;
+  }else{
+    var span = max - min;
+    min -= span * 0.1;
+    max += span * 0.1;
+  }
+  if(min > 0) min = 0;
+  if(max < 0) max = 0;
+  return {min:min, max:max};
+}
+function bizDrawSeriesChart(canvas, series, opts){
+  opts = opts || {};
+  var labels = opts.labels || [];
+  if(!canvas || !series || !series.length || !labels.length) return bizDrawNoData(canvas, opts.emptyMessage);
+  var prep = bizPrepareCanvas(canvas, opts.height || 260);
+  if(!prep) return;
+  var ctx = prep.ctx, width = prep.width, height = prep.height;
+  var pal = bizCanvasPalette();
+  var padL = 64, padR = 18, padT = 18, padB = 44;
+  var plotW = Math.max(40, width - padL - padR), plotH = Math.max(40, height - padT - padB);
+  var values = [];
+  series.forEach(function(s){ (s.data||[]).forEach(function(v){ if(isFinite(v)) values.push(numOr0(v)); }); });
+  if(!values.length) return bizDrawNoData(canvas, opts.emptyMessage);
+  var bounds = bizScaleBounds(values);
+  function xFor(index){ return labels.length === 1 ? (padL + plotW/2) : (padL + (plotW * index / (labels.length - 1))); }
+  function yFor(value){ return padT + ((bounds.max - value) / (bounds.max - bounds.min)) * plotH; }
+
+  ctx.lineWidth = 1;
+  ctx.setLineDash([]);
+  for(var g=0; g<5; g++){
+    var gy = padT + (plotH * g / 4);
+    var gv = bounds.max - ((bounds.max - bounds.min) * g / 4);
+    ctx.strokeStyle = pal.grid;
+    ctx.beginPath();
+    ctx.moveTo(padL, gy);
+    ctx.lineTo(padL + plotW, gy);
+    ctx.stroke();
+    ctx.fillStyle = pal.muted;
+    ctx.font = '11px system-ui, -apple-system, Segoe UI, Arial, sans-serif';
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'middle';
+    ctx.fillText((opts.formatY || bizCompactMoney)(gv), padL - 8, gy);
+  }
+  var zeroY = yFor(0);
+  ctx.strokeStyle = pal.border;
+  ctx.setLineDash([4,4]);
+  ctx.beginPath();
+  ctx.moveTo(padL, zeroY);
+  ctx.lineTo(padL + plotW, zeroY);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  ctx.fillStyle = pal.muted;
+  ctx.font = '11px system-ui, -apple-system, Segoe UI, Arial, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'top';
+  var labelStep = Math.max(1, Math.ceil(labels.length / 6));
+  for(var li=0; li<labels.length; li += labelStep){ ctx.fillText(String(labels[li]||''), xFor(li), padT + plotH + 8); }
+  if(labels.length > 1 && ((labels.length - 1) % labelStep) !== 0) ctx.fillText(String(labels[labels.length-1]||''), xFor(labels.length-1), padT + plotH + 8);
+
+  if(opts.type === 'bar'){
+    var slotW = plotW / Math.max(1, labels.length);
+    var groupW = Math.min(72, slotW * 0.76);
+    var count = Math.max(1, series.length);
+    var barW = Math.max(10, groupW / count);
+    series.forEach(function(s, sIndex){
+      ctx.fillStyle = s.color || '#5A31F4';
+      (s.data||[]).forEach(function(value, index){
+        value = numOr0(value);
+        var x = padL + slotW * index + (slotW - groupW)/2 + barW * sIndex + 2;
+        var y = yFor(value);
+        var top = Math.min(y, zeroY);
+        var h = Math.max(2, Math.abs(zeroY - y));
+        ctx.globalAlpha = 0.92;
+        ctx.fillRect(x, top, Math.max(6, barW - 4), h);
+        ctx.globalAlpha = 1;
+      });
+    });
+  }else{
+    series.forEach(function(s){
+      var data = s.data || [];
+      if(!data.length) return;
+      ctx.strokeStyle = s.color || '#5A31F4';
+      ctx.lineWidth = 2.5;
+      ctx.lineJoin = 'round';
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      data.forEach(function(value, index){
+        var x = xFor(index), y = yFor(numOr0(value));
+        if(index === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+      if(data.length <= 48){
+        data.forEach(function(value, index){
+          var x = xFor(index), y = yFor(numOr0(value));
+          ctx.fillStyle = s.color || '#5A31F4';
+          ctx.beginPath();
+          ctx.arc(x, y, 3.2, 0, Math.PI*2);
+          ctx.fill();
+          ctx.fillStyle = '#ffffff';
+          ctx.beginPath();
+          ctx.arc(x, y, 1.3, 0, Math.PI*2);
+          ctx.fill();
+        });
+      }
+    });
+  }
+}
+function bizRenderLegendInline(el, items, formatter){
+  if(!el) return;
+  el.innerHTML = '';
+  (items||[]).forEach(function(item){
+    if(!item) return;
+    var chip = document.createElement('div');
+    chip.className = 'item';
+    var sw = document.createElement('span');
+    sw.className = 'swatch';
+    sw.style.background = item.color || '#5A31F4';
+    chip.appendChild(sw);
+    var name = document.createElement('span');
+    name.textContent = item.label || item.name || '';
+    chip.appendChild(name);
+    if(item.value != null){
+      var value = document.createElement('span');
+      value.style.opacity = '.82';
+      value.textContent = formatter ? formatter(item.value) : String(item.value);
+      chip.appendChild(value);
+    }
+    el.appendChild(chip);
+  });
+}
+function bizRenderMoneyBars(el, series){
+  if(!el) return;
+  el.innerHTML = '';
+  var list = (series||[]).filter(function(s){ return Math.abs(numOr0(s.value)) > 0.0001; }).sort(function(a,b){ return Math.abs(numOr0(b.value)) - Math.abs(numOr0(a.value)); }).slice(0, 10);
+  if(!list.length){ el.innerHTML = '<div class="biz-empty">No cost data in the selected range.</div>'; return; }
+  var max = 0;
+  list.forEach(function(s){ var abs = Math.abs(numOr0(s.value)); if(abs > max) max = abs; });
+  max = max || 1;
+  list.forEach(function(s){
+    var row = document.createElement('div'); row.className = 'barrow';
+    var name = document.createElement('div'); name.className = 'legend-left';
+    var sw = document.createElement('div'); sw.className = 'swatch'; sw.style.background = s.color || '#5A31F4';
+    var nm = document.createElement('div'); nm.className = 'legend-name'; nm.textContent = s.name || s.label || '';
+    name.appendChild(sw); name.appendChild(nm);
+    var track = document.createElement('div'); track.className = 'bartrack';
+    var fill = document.createElement('div'); fill.className = 'barfill'; fill.style.width = ((Math.abs(numOr0(s.value))/max)*100).toFixed(1) + '%'; fill.style.background = s.color || '#5A31F4';
+    track.appendChild(fill);
+    var val = document.createElement('div'); val.className = 'legend-val'; val.textContent = fmtMoney(numOr0(s.value));
+    row.appendChild(name); row.appendChild(track); row.appendChild(val);
+    el.appendChild(row);
+  });
+}
+function bizPopulateMetricSelects(){
+  var defs = bizMetricDefinitions();
+  var order = bizMetricOrder();
+  [[ 'bizCustomMetricA', false, BusinessView.customMetricA || 'revenue' ], [ 'bizCustomMetricB', true, BusinessView.customMetricB || 'totalStaffCost' ]].forEach(function(cfg){
+    var el = byId(cfg[0]);
+    if(!el) return;
+    var includeNone = cfg[1], desired = cfg[2], current = el.value || desired;
+    el.innerHTML = '';
+    if(includeNone){ var noneOpt = document.createElement('option'); noneOpt.value = 'none'; noneOpt.textContent = 'None'; el.appendChild(noneOpt); }
+    order.forEach(function(key){
+      var opt = document.createElement('option');
+      opt.value = key;
+      opt.textContent = defs[key].label;
+      el.appendChild(opt);
+    });
+    if(includeNone && current === 'none') el.value = 'none';
+    else el.value = defs[current] ? current : desired;
+  });
+  var groupEl = byId('bizCustomGroup'); if(groupEl) groupEl.value = BusinessView.customGroup || 'day';
+  var typeEl = byId('bizCustomType'); if(typeEl) typeEl.value = BusinessView.customType || 'line';
+}
+function bizSyncCustomStateFromDom(){
+  var a = byId('bizCustomMetricA'); if(a && a.value) BusinessView.customMetricA = a.value;
+  var b = byId('bizCustomMetricB'); if(b && b.value) BusinessView.customMetricB = b.value;
+  var g = byId('bizCustomGroup'); if(g && g.value) BusinessView.customGroup = g.value;
+  var t = byId('bizCustomType'); if(t && t.value) BusinessView.customType = t.value;
+}
+function pushBusinessAnalyticsData(){
+  ensureBusinessAnalyticsStore();
+  if(!(typeof isAdmin === 'function' && isAdmin())) return Promise.resolve(true);
+  return dbPatch('/businessAnalytics', App.businessAnalytics||{daily:{}, recurringCosts:{}});
+}
+function bizPersistAndMaybeSync(title, message){
+  saveLocal();
+  BusinessView.lastRows = null;
+  try{ renderBusinessAnalytics(); }catch(e){}
+  if(title) showToast(title, message || '', 'success', 3500);
+  try{
+    if(typeof isAdmin === 'function' && isAdmin()){
+      pushBusinessAnalyticsData().catch(function(){
+        try{ pushPlannerData().catch(function(){}); }catch(err){}
+      });
+    }
+  }catch(e){}
+}
+function bizRenderRecurringList(startIso, endIso){
+  var host = byId('bizRecurringList');
+  if(!host) return;
+  var rules = bizRecurringRulesSorted();
+  if(!rules.length){ host.innerHTML = '<div class="biz-empty">No recurring costs added yet.</div>'; return; }
+  host.innerHTML = '';
+  rules.forEach(function(rule){
+    var totals = bizRecurringRuleTotalInRange(rule, startIso, endIso);
+    var row = document.createElement('div');
+    row.className = 'biz-recurring-row';
+    var left = document.createElement('div');
+    left.innerHTML = '<div style="font-weight:900;">' + escapeHtml(rule.label) + '</div>';
+    var meta = document.createElement('div');
+    meta.className = 'biz-recurring-meta';
+    meta.innerHTML = '<span class="biz-tag">' + escapeHtml(bizFormatCategory(rule.category)) + '</span>' +
+      '<span class="biz-tag">' + escapeHtml(bizFormatFrequency(rule.frequency)) + '</span>' +
+      '<span class="muted-small">Starts ' + escapeHtml(fmtDMY(fromISO(rule.startDate))) + (rule.endDate ? (' | Ends ' + escapeHtml(fmtDMY(fromISO(rule.endDate)))) : '') + '</span>';
+    left.appendChild(meta);
+    var rangeInfo = document.createElement('div');
+    rangeInfo.className = 'muted-small';
+    rangeInfo.style.marginTop = '6px';
+    rangeInfo.textContent = 'Selected range allocation: ' + fmtMoney(totals.total) + (totals.activeDays ? (' across ' + totals.activeDays + ' day' + (totals.activeDays === 1 ? '' : 's')) : '');
+    left.appendChild(rangeInfo);
+    if(rule.notes){
+      var note = document.createElement('div');
+      note.className = 'muted-small';
+      note.style.marginTop = '4px';
+      note.textContent = rule.notes;
+      left.appendChild(note);
+    }
+    var right = document.createElement('div');
+    right.style.display = 'flex';
+    right.style.alignItems = 'center';
+    right.style.gap = '8px';
+    right.style.flexWrap = 'wrap';
+    right.innerHTML = '<div style="font-weight:900;">' + escapeHtml(fmtMoney(rule.amount)) + '</div>' +
+      '<button class="btn-outline biz-del-recurring-btn" data-id="' + escapeHtml(rule.id) + '">Delete</button>';
+    row.appendChild(left);
+    row.appendChild(right);
+    host.appendChild(row);
+  });
+}
+function bizRenderKpis(rows){
+  var host = byId('bizKpis');
+  if(!host) return;
+  host.innerHTML = '';
+  var totals = {cash:0, eftpos:0, revenue:0, spendings:0, utilities:0, ongoing:0, autoStaff:0, staffAdj:0, totalStaff:0, totalCosts:0, profit:0};
+  rows.forEach(function(row){
+    totals.cash += numOr0(row.cashRevenue);
+    totals.eftpos += numOr0(row.eftposRevenue);
+    totals.revenue += numOr0(row.revenue);
+    totals.spendings += numOr0(row.spendings);
+    totals.utilities += numOr0(row.utilityCosts);
+    totals.ongoing += numOr0(row.ongoingCosts);
+    totals.autoStaff += numOr0(row.autoStaffCost);
+    totals.staffAdj += numOr0(row.staffCostAdjustment);
+    totals.totalStaff += numOr0(row.totalStaffCost);
+    totals.totalCosts += numOr0(row.totalCosts);
+    totals.profit += numOr0(row.profit);
+  });
+  Object.keys(totals).forEach(function(key){ totals[key] = round2(totals[key]); });
+  var activeRows = rows.filter(bizHasAnyTrackedValue);
+  var best = null, worst = null;
+  activeRows.forEach(function(row){
+    if(!best || numOr0(row.profit) > numOr0(best.profit)) best = row;
+    if(!worst || numOr0(row.profit) < numOr0(worst.profit)) worst = row;
+  });
+  var avgCosts = rows.length ? round2(totals.totalCosts / rows.length) : 0;
+  var avgRevenue = rows.length ? round2(totals.revenue / rows.length) : 0;
+  var margin = totals.revenue ? ((totals.profit / totals.revenue) * 100) : 0;
+  var cashShare = totals.revenue ? ((totals.cash / totals.revenue) * 100) : 0;
+  function addKpi(label, value, sub, valueClass){
+    var card = document.createElement('div'); card.className = 'kpi';
+    var l = document.createElement('div'); l.className = 'label'; l.textContent = label;
+    var v = document.createElement('div'); v.className = 'value' + (valueClass ? (' ' + valueClass) : ''); v.textContent = value;
+    card.appendChild(l); card.appendChild(v);
+    if(sub){ var s = document.createElement('div'); s.className = 'sub'; s.textContent = sub; card.appendChild(s); }
+    host.appendChild(card);
+  }
+  addKpi('Revenue', fmtMoney(totals.revenue), 'Cash ' + fmtMoney(totals.cash) + ' | EFTPOS ' + fmtMoney(totals.eftpos) + ' | Cash share ' + cashShare.toFixed(0) + '%');
+  addKpi('Total costs', fmtMoney(totals.totalCosts), 'Average ' + fmtMoney(avgCosts) + ' per day across ' + rows.length + ' day(s)');
+  addKpi('Net profit / loss', fmtMoney(totals.profit), 'Margin ' + margin.toFixed(1) + '% | Average revenue ' + fmtMoney(avgRevenue) + ' per day', totals.profit < -0.009 ? 'biz-kpi-negative' : (totals.profit > 0.009 ? 'biz-kpi-positive' : ''));
+  addKpi('Staff cost', fmtMoney(totals.totalStaff), 'Auto ' + fmtMoney(totals.autoStaff) + ' | Manual correction ' + fmtMoney(totals.staffAdj));
+  addKpi('Daily spendings', fmtMoney(totals.spendings), 'Operating spend captured manually');
+  addKpi('Utilities', fmtMoney(totals.utilities), 'Manual + recurring utility costs');
+  addKpi('Ongoing costs', fmtMoney(totals.ongoing), 'Manual + recurring ongoing costs');
+  if(best) addKpi('Best net day', bizFormatShortDate(best.iso), fmtMoney(best.profit) + ' | Worst ' + bizFormatShortDate(worst.iso) + ' ' + fmtMoney(worst.profit), numOr0(best.profit) > 0.009 ? 'biz-kpi-positive' : '');
+  else addKpi('Best net day', '-', 'No tracked trading days yet');
+}
+function bizTrendMode(rows){
+  if((rows||[]).length > 180) return 'month';
+  if((rows||[]).length > 60) return 'week';
+  return 'day';
+}
+function bizRenderTrendChart(rows){
+  var mode = bizTrendMode(rows);
+  var buckets = bizAggregateRows(rows, mode);
+  var labels = buckets.map(function(row){ return row.label; });
+  var series = [
+    {label:'Revenue', color:bizMetricColor('revenue'), data:buckets.map(function(row){ return numOr0(row.revenue); })},
+    {label:'Total costs', color:bizMetricColor('totalCosts'), data:buckets.map(function(row){ return numOr0(row.totalCosts); })},
+    {label:'Net profit / loss', color:bizMetricColor('profit'), data:buckets.map(function(row){ return numOr0(row.profit); })}
+  ];
+  bizDrawSeriesChart(byId('bizTrendCanvas'), series, {labels:labels, type:'line', height:260, emptyMessage:'No business data in selected range'});
+  bizRenderLegendInline(byId('bizTrendLegend'), series.map(function(s){
+    return {label:s.label, color:s.color, value:round2((s.data||[]).reduce(function(sum, value){ return sum + numOr0(value); }, 0))};
+  }), fmtMoney);
+  setTextIfExists('bizTrendNote', mode === 'day' ? 'Daily view' : (mode === 'week' ? 'Weekly roll-up' : 'Monthly roll-up'));
+}
+function bizRenderPies(rows){
+  var cash = 0, eftpos = 0, spendings = 0, utilities = 0, ongoing = 0, staff = 0;
+  rows.forEach(function(row){
+    cash += numOr0(row.cashRevenue);
+    eftpos += numOr0(row.eftposRevenue);
+    spendings += numOr0(row.spendings);
+    utilities += numOr0(row.utilityCosts);
+    ongoing += numOr0(row.ongoingCosts);
+    staff += numOr0(row.totalStaffCost);
+  });
+  var revenueSeries = [
+    {name:'Cash', value:Math.max(0, round2(cash)), color:bizMetricColor('cashRevenue')},
+    {name:'EFTPOS', value:Math.max(0, round2(eftpos)), color:bizMetricColor('eftposRevenue')}
+  ];
+  _setPie(byId('bizRevenuePie'), revenueSeries);
+  _renderLegend(byId('bizRevenueLegend'), revenueSeries, function(v){ return fmtMoney(v||0); });
+  var totalRevenue = round2(cash + eftpos);
+  setTextIfExists('bizRevenueNote', totalRevenue ? ('Total ' + fmtMoney(totalRevenue)) : 'No revenue in range');
+
+  var costSeries = [
+    {name:'Staff', value:Math.max(0, round2(staff)), color:bizMetricColor('totalStaffCost')},
+    {name:'Spendings', value:Math.max(0, round2(spendings)), color:bizMetricColor('spendings')},
+    {name:'Utilities', value:Math.max(0, round2(utilities)), color:bizMetricColor('utilityCosts')},
+    {name:'Ongoing', value:Math.max(0, round2(ongoing)), color:bizMetricColor('ongoingCosts')}
+  ];
+  _setPie(byId('bizCostPie'), costSeries);
+  _renderLegend(byId('bizCostLegend'), costSeries, function(v){ return fmtMoney(v||0); });
+  var totalCosts = round2(staff + spendings + utilities + ongoing);
+  setTextIfExists('bizCostNote', totalCosts ? ('Total ' + fmtMoney(totalCosts)) : 'No costs in range');
+}
+function bizCostCentres(rows){
+  var centres = {};
+  function add(name, amount, color){
+    amount = round2(numOr0(amount));
+    if(Math.abs(amount) <= 0.0001) return;
+    if(!centres[name]) centres[name] = {name:name, value:0, color:color||'#5A31F4'};
+    centres[name].value = round2(numOr0(centres[name].value) + amount);
+  }
+  rows.forEach(function(row){
+    add('Staff wages', row.totalStaffCost, bizMetricColor('totalStaffCost'));
+    add('Daily spendings', row.spendings, bizMetricColor('spendings'));
+    add('Manual utility costs', row.dailyUtilityCosts, bizMetricColor('utilityCosts'));
+    add('Manual ongoing costs', row.dailyOngoingCosts, bizMetricColor('ongoingCosts'));
+    (row.recurringItems||[]).forEach(function(item){
+      add(item.label, item.amount, item.category === 'utility' ? bizMetricColor('utilityCosts') : bizMetricColor('ongoingCosts'));
+    });
+  });
+  return Object.keys(centres).map(function(key){ return centres[key]; }).sort(function(a,b){ return Math.abs(numOr0(b.value)) - Math.abs(numOr0(a.value)); });
+}
+function bizRenderCostBars(rows){
+  var series = bizCostCentres(rows);
+  bizRenderMoneyBars(byId('bizCostBars'), series);
+  setTextIfExists('bizCostBarsNote', series.length ? 'Recurring rules are prorated across the selected range. Weekly payroll adjustments are posted to the week end day.' : 'No cost centres in the selected range yet.');
+}
+function bizRenderCustomGraph(rows){
+  bizPopulateMetricSelects();
+  bizSyncCustomStateFromDom();
+  var metricA = BusinessView.customMetricA || 'revenue';
+  var metricB = BusinessView.customMetricB || 'totalStaffCost';
+  var mode = BusinessView.customGroup || 'day';
+  var type = BusinessView.customType || 'line';
+  var buckets = bizAggregateRows(rows, mode);
+  var labels = buckets.map(function(row){ return row.label; });
+  var defs = bizMetricDefinitions();
+  var series = [];
+  if(defs[metricA]) series.push({label:defs[metricA].label, color:defs[metricA].color, data:buckets.map(function(row){ return numOr0(row[metricA]); })});
+  if(metricB !== 'none' && defs[metricB] && metricB !== metricA) series.push({label:defs[metricB].label, color:defs[metricB].color, data:buckets.map(function(row){ return numOr0(row[metricB]); })});
+  bizDrawSeriesChart(byId('bizCustomCanvas'), series, {labels:labels, type:type, height:260, emptyMessage:'No data for custom graph'});
+  bizRenderLegendInline(byId('bizCustomLegend'), series.map(function(s){
+    return {label:s.label, color:s.color, value:round2((s.data||[]).reduce(function(sum, value){ return sum + numOr0(value); }, 0))};
+  }), fmtMoney);
+  setTextIfExists('bizCustomNote', (mode === 'day' ? 'Daily' : (mode === 'week' ? 'Weekly' : 'Monthly')) + ' / ' + (type === 'bar' ? 'Bar chart' : 'Line chart'));
+}
+function bizHistorySummaryFields(){
+  return ['cashRevenue','eftposRevenue','revenue','totalStaffCost','spendings','utilityCosts','ongoingCosts','totalCosts','profit'];
+}
+function bizHistoryMonthKey(iso){ return String(iso||'').slice(0, 7); }
+function bizHistoryMonthLabel(key){
+  try{
+    var parts = String(key||'').split('-');
+    return new Date(parseInt(parts[0], 10), parseInt(parts[1], 10)-1, 1).toLocaleDateString(undefined, {month:'long', year:'numeric'});
+  }catch(e){ return String(key||''); }
+}
+function bizHistorySummaryRangeText(summary){
+  try{
+    if(!summary || !summary.firstISO) return '';
+    if(summary.firstISO === summary.lastISO) return fmtDMY(fromISO(summary.firstISO));
+    return fmtDMY(fromISO(summary.firstISO)) + ' – ' + fmtDMY(fromISO(summary.lastISO));
+  }catch(e){ return ''; }
+}
+function bizSummarizeRows(rows, key, label, type){
+  var out = {key:key||'', label:label||'', type:type||'summary', firstISO:'', lastISO:'', totalDays:0, activeDays:0, noteCount:0};
+  bizHistorySummaryFields().forEach(function(field){ out[field] = 0; });
+  (rows||[]).forEach(function(row){
+    if(!row) return;
+    var iso = String(row.iso||'');
+    out.totalDays += 1;
+    if(!out.firstISO || iso < out.firstISO) out.firstISO = iso;
+    if(!out.lastISO || iso > out.lastISO) out.lastISO = iso;
+    if(bizHasAnyTrackedValue(row)) out.activeDays += 1;
+    if(String(row.notes||'').trim()) out.noteCount += 1;
+    bizHistorySummaryFields().forEach(function(field){
+      out[field] = round2(numOr0(out[field]) + numOr0(row[field]));
+    });
+  });
+  return out;
+}
+function bizHistoryGroupedSummaries(rows, mode){
+  var groups = {};
+  var keys = [];
+  (rows||[])
+    .filter(bizHasAnyTrackedValue)
+    .slice()
+    .sort(function(a, b){ return String(a.iso||'').localeCompare(String(b.iso||'')); })
+    .forEach(function(row){
+      var key = mode === 'week' ? toISO(weekStart(fromISO(row.iso))) : bizHistoryMonthKey(row.iso);
+      if(!groups[key]){ groups[key] = []; keys.push(key); }
+      groups[key].push(row);
+    });
+  keys.sort();
+  return keys.reverse().map(function(key){
+    var items = groups[key] || [];
+    var label = '';
+    if(mode === 'week'){
+      var firstIso = items.length ? items[0].iso : key;
+      var lastIso = items.length ? items[items.length - 1].iso : key;
+      label = 'Week ' + bizHistorySummaryRangeText({firstISO:firstIso, lastISO:lastIso});
+    }else{
+      label = bizHistoryMonthLabel(key);
+    }
+    return bizSummarizeRows(items, key, label, mode);
+  });
+}
+function bizHistoryBuildTree(rows){
+  var monthMap = {};
+  var monthKeys = [];
+  (rows||[])
+    .filter(bizHasAnyTrackedValue)
+    .slice()
+    .sort(function(a, b){ return String(a.iso||'').localeCompare(String(b.iso||'')); })
+    .forEach(function(row){
+      var monthKey = bizHistoryMonthKey(row.iso);
+      var weekKey = toISO(weekStart(fromISO(row.iso)));
+      if(!monthMap[monthKey]){
+        monthMap[monthKey] = {key:monthKey, label:bizHistoryMonthLabel(monthKey), rows:[], weekMap:{}, weekKeys:[]};
+        monthKeys.push(monthKey);
+      }
+      var month = monthMap[monthKey];
+      month.rows.push(row);
+      if(!month.weekMap[weekKey]){
+        month.weekMap[weekKey] = {key:weekKey, rows:[]};
+        month.weekKeys.push(weekKey);
+      }
+      month.weekMap[weekKey].rows.push(row);
+    });
+  monthKeys.sort();
+  return monthKeys.reverse().map(function(monthKey){
+    var month = monthMap[monthKey];
+    var monthSummary = bizSummarizeRows(month.rows, monthKey, month.label, 'month');
+    var weeks = month.weekKeys.slice().sort().reverse().map(function(weekKey){
+      var weekRowsAsc = month.weekMap[weekKey].rows.slice().sort(function(a, b){ return String(a.iso||'').localeCompare(String(b.iso||'')); });
+      var weekSummary = bizSummarizeRows(weekRowsAsc, weekKey, 'Week ' + bizHistorySummaryRangeText({firstISO:weekRowsAsc[0].iso, lastISO:weekRowsAsc[weekRowsAsc.length - 1].iso}), 'week');
+      return {key:weekKey, summary:weekSummary, rows:weekRowsAsc.slice().reverse()};
+    });
+    monthSummary.weekCount = weeks.length;
+    return {key:monthKey, summary:monthSummary, weeks:weeks};
+  });
+}
+function bizHistoryToggleWeekKey(monthKey, weekKey){ return String(monthKey||'') + '|' + String(weekKey||''); }
+function bizEnsureHistoryTreeState(tree){
+  BusinessView.historyOpenMonths = BusinessView.historyOpenMonths || {};
+  BusinessView.historyOpenWeeks = BusinessView.historyOpenWeeks || {};
+  var visibleMonths = {};
+  (tree||[]).forEach(function(month){ visibleMonths[month.key] = true; });
+  var hasVisibleMonthOpen = false;
+  Object.keys(BusinessView.historyOpenMonths || {}).forEach(function(key){
+    if(BusinessView.historyOpenMonths[key] && visibleMonths[key]) hasVisibleMonthOpen = true;
+  });
+  if(!hasVisibleMonthOpen && tree && tree.length && !BusinessView.historyUserCollapsedAll){
+    BusinessView.historyOpenMonths[tree[0].key] = true;
+  }
+  (tree||[]).forEach(function(month){
+    if(!BusinessView.historyOpenMonths[month.key]) return;
+    var hasWeekOpen = false;
+    (month.weeks||[]).forEach(function(week){
+      if(BusinessView.historyOpenWeeks[bizHistoryToggleWeekKey(month.key, week.key)]) hasWeekOpen = true;
+    });
+    if(!hasWeekOpen && month.weeks && month.weeks.length && !BusinessView.historyUserCollapsedAll){
+      BusinessView.historyOpenWeeks[bizHistoryToggleWeekKey(month.key, month.weeks[0].key)] = true;
+    }
+  });
+}
+function bizExpandAllHistoryTree(tree){
+  BusinessView.historyOpenMonths = {};
+  BusinessView.historyOpenWeeks = {};
+  (tree||[]).forEach(function(month){
+    BusinessView.historyOpenMonths[month.key] = true;
+    (month.weeks||[]).forEach(function(week){
+      BusinessView.historyOpenWeeks[bizHistoryToggleWeekKey(month.key, week.key)] = true;
+    });
+  });
+  BusinessView.historyUserCollapsedAll = false;
+}
+function bizCollapseAllHistoryTree(){
+  BusinessView.historyOpenMonths = {};
+  BusinessView.historyOpenWeeks = {};
+  BusinessView.historyUserCollapsedAll = true;
+}
+function bizHistorySummarySubtext(summary, mode, extra){
+  var parts = [];
+  var rangeText = bizHistorySummaryRangeText(summary);
+  if(mode !== 'day' && rangeText) parts.push(rangeText);
+  parts.push(String(summary && summary.activeDays || 0) + ' active day(s)');
+  if(extra) parts.push(extra);
+  if(summary && summary.noteCount) parts.push(String(summary.noteCount) + ' note(s)');
+  return parts.join(' • ');
+}
+function bizHistorySummaryRowHtml(summary, level, opts){
+  opts = opts || {};
+  var profitClass = numOr0(summary && summary.profit) > 0.009 ? 'amount-good' : (numOr0(summary && summary.profit) < -0.009 ? 'amount-bad' : 'amount-warn');
+  var secondary = opts.secondary || '';
+  var content = '';
+  if(opts.toggleLevel){
+    content = '<button type="button" class="biz-history-toggle" data-level="' + escapeHtml(opts.toggleLevel) + '" data-key="' + escapeHtml(opts.toggleKey || summary.key) + '" aria-expanded="' + (opts.expanded ? 'true' : 'false') + '">' +
+      '<span class="biz-history-caret">' + (opts.expanded ? '▾' : '▸') + '</span>' +
+      '<span class="biz-history-row-text"><span class="biz-history-row-title">' + escapeHtml(summary.label || '') + '</span>' +
+      (secondary ? ('<span class="biz-history-subtext">' + escapeHtml(secondary) + '</span>') : '') +
+      '</span></button>';
+  }else{
+    content = '<div class="biz-history-row-static">' +
+      '<span class="biz-history-indent ' + escapeHtml(level === 'week' ? 'week' : '') + '"></span>' +
+      '<span class="biz-history-row-text"><span class="biz-history-row-title">' + escapeHtml(summary.label || '') + '</span>' +
+      (secondary ? ('<span class="biz-history-subtext">' + escapeHtml(secondary) + '</span>') : '') +
+      '</span></div>';
+  }
+  return '<tr class="biz-history-level-' + escapeHtml(level) + '">' +
+    '<td>' + content + '</td>' +
+    '<td>' + escapeHtml(fmtMoney(summary.cashRevenue||0)) + '</td>' +
+    '<td>' + escapeHtml(fmtMoney(summary.eftposRevenue||0)) + '</td>' +
+    '<td>' + escapeHtml(fmtMoney(summary.revenue||0)) + '</td>' +
+    '<td>' + escapeHtml(fmtMoney(summary.totalStaffCost||0)) + '</td>' +
+    '<td>' + escapeHtml(fmtMoney(summary.spendings||0)) + '</td>' +
+    '<td>' + escapeHtml(fmtMoney(summary.utilityCosts||0)) + '</td>' +
+    '<td>' + escapeHtml(fmtMoney(summary.ongoingCosts||0)) + '</td>' +
+    '<td>' + escapeHtml(fmtMoney(summary.totalCosts||0)) + '</td>' +
+    '<td class="' + profitClass + '">' + escapeHtml(fmtMoney(summary.profit||0)) + '</td>' +
+    '<td class="biz-history-actions">' + (opts.actionHtml || '<span class="biz-history-action-spacer">Summary</span>') + '</td>' +
+  '</tr>';
+}
+function bizHistoryDayRowHtml(row, level){
+  var profitClass = numOr0(row && row.profit) > 0.009 ? 'amount-good' : (numOr0(row && row.profit) < -0.009 ? 'amount-bad' : 'amount-warn');
+  var indentClass = level === 'tree-day' ? 'day' : '';
+  var primary = bizFormatLongDate(row.iso);
+  var details = [];
+  if(row.notes) details.push(bizShorten(row.notes, 100));
+  var spendSummary = bizSpendItemsSummary(row.spendItems || [], 3);
+  if(spendSummary) details.push(bizShorten(spendSummary, 100));
+  var secondary = details.join(' • ');
+  return '<tr class="biz-history-level-day">' +
+    '<td><div class="biz-history-row-static">' +
+      '<span class="biz-history-indent ' + escapeHtml(indentClass) + '"></span>' +
+      '<span class="biz-history-row-text"><span class="biz-history-row-title">' + escapeHtml(primary) + '</span>' +
+      (secondary ? ('<span class="biz-history-subtext">' + escapeHtml(secondary) + '</span>') : '') +
+      '</span></div></td>' +
+      '<td>' + escapeHtml(fmtMoney(row.cashRevenue||0)) + '</td>' +
+      '<td>' + escapeHtml(fmtMoney(row.eftposRevenue||0)) + '</td>' +
+      '<td>' + escapeHtml(fmtMoney(row.revenue||0)) + '</td>' +
+      '<td>' + escapeHtml(fmtMoney(row.totalStaffCost||0)) + '</td>' +
+      '<td>' + escapeHtml(fmtMoney(row.spendings||0)) + '</td>' +
+      '<td>' + escapeHtml(fmtMoney(row.utilityCosts||0)) + '</td>' +
+      '<td>' + escapeHtml(fmtMoney(row.ongoingCosts||0)) + '</td>' +
+      '<td>' + escapeHtml(fmtMoney(row.totalCosts||0)) + '</td>' +
+      '<td class="' + profitClass + '">' + escapeHtml(fmtMoney(row.profit||0)) + '</td>' +
+      '<td class="biz-history-actions"><button class="btn-outline biz-load-day-btn" data-iso="' + escapeHtml(row.iso) + '">Load</button></td>' +
+    '</tr>';
+}
+function bizSyncHistoryControls(mode, tree){
+  mode = mode || 'tree';
+  var view = byId('bizHistoryView');
+  if(view && view.value !== mode) view.value = mode;
+  var expandBtn = byId('btnBizLedgerExpandAll');
+  var collapseBtn = byId('btnBizLedgerCollapseAll');
+  var isTree = mode === 'tree';
+  if(expandBtn){ expandBtn.style.display = isTree ? '' : 'none'; expandBtn.disabled = !(tree && tree.length); }
+  if(collapseBtn){ collapseBtn.style.display = isTree ? '' : 'none'; collapseBtn.disabled = !(tree && tree.length); }
+  var hint = '';
+  if(mode === 'tree') hint = 'Tree view lets you expand a month into weeks and individual trading days.';
+  else if(mode === 'month') hint = 'Monthly summary view totals each month in the selected range.';
+  else if(mode === 'week') hint = 'Weekly summary view totals each week in the selected range.';
+  else hint = 'Daily list shows the latest active trading days in the selected range.';
+  setTextIfExists('bizHistoryModeHint', hint);
+}
+function bizRenderHistoryTable(rows){
+  var body = byId('bizHistoryTbody');
+  var empty = byId('bizHistoryEmpty');
+  if(!body || !empty) return;
+  var activeRows = (rows||[]).filter(bizHasAnyTrackedValue);
+  var mode = BusinessView.historyMode || 'tree';
+  body.innerHTML = '';
+  if(!activeRows.length){
+    bizSyncHistoryControls(mode, null);
+    empty.style.display = '';
+    empty.textContent = 'No business entries or rostered staff costs found in the selected range.';
+    return;
+  }
+
+  var html = '';
+  if(mode === 'day'){
+    var daily = activeRows.slice().sort(function(a, b){ return String(b.iso||'').localeCompare(String(a.iso||'')); }).slice(0, 180);
+    html = daily.map(function(row){ return bizHistoryDayRowHtml(row, 'day'); }).join('');
+    empty.style.display = '';
+    empty.textContent = daily.length === activeRows.length ? ('Showing ' + daily.length + ' active day(s) in the selected range.') : ('Showing latest ' + daily.length + ' active day(s) in the selected range.');
+    bizSyncHistoryControls(mode, null);
+  }else if(mode === 'week'){
+    var weeks = bizHistoryGroupedSummaries(activeRows, 'week');
+    html = weeks.map(function(summary){
+      return bizHistorySummaryRowHtml(summary, 'week', {secondary:bizHistorySummarySubtext(summary, 'week', '')});
+    }).join('');
+    empty.style.display = '';
+    empty.textContent = 'Showing ' + weeks.length + ' week total(s) in the selected range.';
+    bizSyncHistoryControls(mode, null);
+  }else if(mode === 'month'){
+    var months = bizHistoryGroupedSummaries(activeRows, 'month');
+    html = months.map(function(summary){
+      return bizHistorySummaryRowHtml(summary, 'month', {secondary:bizHistorySummarySubtext(summary, 'month', '')});
+    }).join('');
+    empty.style.display = '';
+    empty.textContent = 'Showing ' + months.length + ' month total(s) in the selected range.';
+    bizSyncHistoryControls(mode, null);
+  }else{
+    var tree = bizHistoryBuildTree(activeRows);
+    bizEnsureHistoryTreeState(tree);
+    bizSyncHistoryControls(mode, tree);
+    html = tree.map(function(month){
+      var monthOpen = !!BusinessView.historyOpenMonths[month.key];
+      var monthSecondary = bizHistorySummarySubtext(month.summary, 'month', String(month.summary.weekCount||0) + ' week block(s)');
+      var rowsHtml = bizHistorySummaryRowHtml(month.summary, 'month', {
+        toggleLevel:'month',
+        toggleKey:month.key,
+        expanded:monthOpen,
+        secondary:monthSecondary,
+        actionHtml:'<span class="biz-history-action-spacer">Month total</span>'
+      });
+      if(monthOpen){
+        (month.weeks||[]).forEach(function(week){
+          var weekToggleKey = bizHistoryToggleWeekKey(month.key, week.key);
+          var weekOpen = !!BusinessView.historyOpenWeeks[weekToggleKey];
+          rowsHtml += bizHistorySummaryRowHtml(week.summary, 'week', {
+            toggleLevel:'week',
+            toggleKey:weekToggleKey,
+            expanded:weekOpen,
+            secondary:bizHistorySummarySubtext(week.summary, 'week', ''),
+            actionHtml:'<span class="biz-history-action-spacer">Week total</span>'
+          });
+          if(weekOpen){
+            (week.rows||[]).forEach(function(row){ rowsHtml += bizHistoryDayRowHtml(row, 'tree-day'); });
+          }
+        });
+      }
+      return rowsHtml;
+    }).join('');
+    empty.style.display = '';
+    empty.textContent = 'Showing ' + tree.length + ' month group(s) in tree view. Expand a month to see its weeks and daily entries.';
+  }
+  body.innerHTML = html;
+}
+function bizUpdateEntryPreview(){
+  var iso = (byId('bizEntryDate') && byId('bizEntryDate').value) ? byId('bizEntryDate').value : (BusinessView.entryISO || bizTodayIso());
+  BusinessView.entryISO = iso;
+  var form = bizReadEntryForm();
+  var autoCost = round2((bizAutoStaffCostMap(iso, iso)[iso]) || 0);
+  var recurring = bizRecurringBreakdownForDate(iso);
+  var revenue = round2(form.cash + form.eftpos);
+  var utilities = round2(form.utilityCosts + recurring.utility);
+  var ongoing = round2(form.ongoingCosts + recurring.ongoing);
+  var totalStaff = round2(autoCost + form.staffCostAdjustment);
+  var totalCosts = round2(totalStaff + form.spendings + utilities + ongoing);
+  var net = round2(revenue - totalCosts);
+  setTextIfExists('bizEntryAutoStaff', fmtMoney(autoCost));
+  setTextIfExists('bizEntryRecurring', fmtMoney(recurring.total));
+  var netEl = byId('bizEntryNet');
+  if(netEl){ netEl.textContent = fmtMoney(net); netEl.style.color = net < -0.009 ? 'var(--bad)' : (net > 0.009 ? 'var(--good)' : ''); }
+  var recurringNames = recurring.items.map(function(item){ return item.label; }).slice(0, 3);
+  var note = 'Revenue ' + fmtMoney(revenue) + ' | Total costs ' + fmtMoney(totalCosts) + ' | Recurring share ' + (recurringNames.length ? recurringNames.join(', ') : 'None');
+  setTextIfExists('bizEntrySummaryNote', note);
+}
+function renderBusinessAnalytics(){
+  if(!isAdmin()) return;
+  ensureBusinessAnalyticsStore();
+  bindBusinessAnalyticsUI();
+  if(!BusinessView.rangePreset) BusinessView.rangePreset = '30d';
+  if(!BusinessView.startISO || !BusinessView.endISO) bizApplyRangePreset(BusinessView.rangePreset);
+  else {
+    var presetEl = byId('bizRangePreset'); if(presetEl && !presetEl.value) presetEl.value = BusinessView.rangePreset || '30d';
+    setInputValueIfIdle('bizRangeStart', BusinessView.startISO);
+    setInputValueIfIdle('bizRangeEnd', BusinessView.endISO);
+  }
+  if(!BusinessView.entryISO) BusinessView.entryISO = bizTodayIso();
+  if(!(byId('bizEntryDate') && byId('bizEntryDate').value)) setInputValueIfIdle('bizEntryDate', BusinessView.entryISO);
+  var entryIso = (byId('bizEntryDate') && byId('bizEntryDate').value) ? byId('bizEntryDate').value : BusinessView.entryISO;
+  bizLoadEntryForm(entryIso);
+
+  var range = bizReadRangeInputs();
+  var rows = bizCollectRows(range.startISO, range.endISO);
+  BusinessView.lastRows = rows;
+  var activeCount = rows.filter(bizHasAnyTrackedValue).length;
+  setTextIfExists('bizRangeSummary', bizFormatRangeLabel(range.startISO, range.endISO) + ' | ' + activeCount + ' active day(s)');
+
+  bizRenderRecurringList(range.startISO, range.endISO);
+  bizRenderKpis(rows);
+  bizRenderTrendChart(rows);
+  bizRenderPies(rows);
+  bizRenderCostBars(rows);
+  bizRenderCustomGraph(rows);
+  bizRenderHistoryTable(rows);
+}
+function bizRefreshChartsOnly(){
+  var rows = BusinessView.lastRows;
+  if(!rows){ var range = bizReadRangeInputs(); rows = bizCollectRows(range.startISO, range.endISO); BusinessView.lastRows = rows; }
+  bizRenderTrendChart(rows);
+  bizRenderPies(rows);
+  bizRenderCostBars(rows);
+  bizRenderCustomGraph(rows);
+}
+function bindBusinessAnalyticsUI(){
+  if(window.__bizUiBound) return;
+  window.__bizUiBound = true;
+  var preset = byId('bizRangePreset');
+  if(preset) preset.onchange = function(){
+    BusinessView.rangePreset = preset.value || '30d';
+    if(BusinessView.rangePreset !== 'custom') bizApplyRangePreset(BusinessView.rangePreset);
+    renderBusinessAnalytics();
+  };
+  var start = byId('bizRangeStart');
+  if(start) start.onchange = function(){ var p = byId('bizRangePreset'); if(p) p.value = 'custom'; BusinessView.rangePreset = 'custom'; };
+  var end = byId('bizRangeEnd');
+  if(end) end.onchange = function(){ var p = byId('bizRangePreset'); if(p) p.value = 'custom'; BusinessView.rangePreset = 'custom'; };
+  var apply = byId('btnBizApplyRange');
+  if(apply) apply.onclick = function(){
+    var p = byId('bizRangePreset');
+    BusinessView.rangePreset = (p && p.value) ? p.value : 'custom';
+    if(BusinessView.rangePreset !== 'custom') bizApplyRangePreset(BusinessView.rangePreset);
+    renderBusinessAnalytics();
+  };
+  var reset = byId('btnBizResetRange');
+  if(reset) reset.onclick = function(){ bizApplyRangePreset('30d'); renderBusinessAnalytics(); };
+
+  var historyView = byId('bizHistoryView');
+  if(historyView) historyView.onchange = function(){
+    BusinessView.historyMode = historyView.value || 'tree';
+    if(BusinessView.historyMode !== 'tree') BusinessView.historyUserCollapsedAll = false;
+    bizRenderHistoryTable(BusinessView.lastRows || []);
+  };
+  var expandAll = byId('btnBizLedgerExpandAll');
+  if(expandAll) expandAll.onclick = function(){
+    var tree = bizHistoryBuildTree(BusinessView.lastRows || []);
+    bizExpandAllHistoryTree(tree);
+    bizRenderHistoryTable(BusinessView.lastRows || []);
+  };
+  var collapseAll = byId('btnBizLedgerCollapseAll');
+  if(collapseAll) collapseAll.onclick = function(){
+    bizCollapseAllHistoryTree();
+    bizRenderHistoryTable(BusinessView.lastRows || []);
+  };
+
+  var entryDate = byId('bizEntryDate');
+  if(entryDate) entryDate.onchange = function(){ BusinessView.entryISO = entryDate.value || bizTodayIso(); bizLoadEntryForm(BusinessView.entryISO); };
+  ['bizEntryCash','bizEntryEftpos','bizEntrySpendings','bizEntryUtility','bizEntryOngoing','bizEntryStaffAdj','bizEntryNotes'].forEach(function(id){
+    var el = byId(id);
+    if(!el) return;
+    el.addEventListener('input', bizUpdateEntryPreview);
+  });
+  var addSpend = byId('btnBizAddSpendItem');
+  if(addSpend) addSpend.onclick = function(){
+    var descEl = byId('bizSpendItemDesc');
+    var amountEl = byId('bizSpendItemAmount');
+    var description = descEl ? String(descEl.value||'').trim() : '';
+    var amount = amountEl ? round2(numOr0(amountEl.value||0)) : 0;
+    if(!description) return alert('Enter a spending description.');
+    if(!(amount > 0)) return alert('Enter a spending amount greater than 0.');
+    var items = bizCurrentEntrySpendItems().slice();
+    items.push({id:uid(), description:description, amount:amount, createdAt:new Date().toISOString()});
+    bizSetEntrySpendItems(items, 0);
+    setInputValueIfIdle('bizSpendItemDesc', '');
+    setInputValueIfIdle('bizSpendItemAmount', '');
+    try{ if(descEl) descEl.focus(); }catch(e){}
+    bizUpdateEntryPreview();
+  };
+  ['bizSpendItemDesc','bizSpendItemAmount'].forEach(function(id){
+    var el = byId(id);
+    if(!el) return;
+    el.addEventListener('keydown', function(ev){
+      if(ev.key !== 'Enter') return;
+      ev.preventDefault();
+      var btn = byId('btnBizAddSpendItem');
+      if(btn && btn.onclick) btn.onclick();
+    });
+  });
+  var loadToday = byId('btnBizLoadToday');
+  if(loadToday) loadToday.onclick = function(){ BusinessView.entryISO = bizTodayIso(); bizLoadEntryForm(BusinessView.entryISO); };
+  var saveDay = byId('btnBizSaveDay');
+  if(saveDay) saveDay.onclick = function(){
+    var iso = (byId('bizEntryDate') && byId('bizEntryDate').value) ? byId('bizEntryDate').value : bizTodayIso();
+    BusinessView.entryISO = iso;
+    bizSetDailyRecord(iso, bizReadEntryForm());
+    bizPersistAndMaybeSync('Business day saved', 'Saved ' + bizFormatLongDate(iso) + '.');
+  };
+  var deleteDay = byId('btnBizDeleteDay');
+  if(deleteDay) deleteDay.onclick = function(){
+    var iso = (byId('bizEntryDate') && byId('bizEntryDate').value) ? byId('bizEntryDate').value : bizTodayIso();
+    var existing = bizGetDailyRecord(iso);
+    if(!existing) return alert('There is no manual entry saved for this day.');
+    if(!confirm('Clear the manual business entry for ' + bizFormatLongDate(iso) + '?')) return;
+    bizDeleteDailyRecord(iso);
+    bizLoadEntryForm(iso);
+    bizPersistAndMaybeSync('Business day cleared', 'Cleared manual entry for ' + bizFormatLongDate(iso) + '.');
+  };
+
+  var addRecurring = byId('btnBizAddRecurring');
+  if(addRecurring) addRecurring.onclick = function(){
+    ensureBusinessAnalyticsStore();
+    var name = (byId('bizRecurringName') && byId('bizRecurringName').value) ? String(byId('bizRecurringName').value).trim() : '';
+    var amount = bizReadMoneyInput('bizRecurringAmount');
+    var category = (byId('bizRecurringCategory') && byId('bizRecurringCategory').value) ? byId('bizRecurringCategory').value : 'ongoing';
+    var frequency = (byId('bizRecurringFrequency') && byId('bizRecurringFrequency').value) ? byId('bizRecurringFrequency').value : 'monthly';
+    var startDate = (byId('bizRecurringStart') && byId('bizRecurringStart').value) ? byId('bizRecurringStart').value : bizTodayIso();
+    var endDate = (byId('bizRecurringEnd') && byId('bizRecurringEnd').value) ? byId('bizRecurringEnd').value : '';
+    var notes = (byId('bizRecurringNotes') && byId('bizRecurringNotes').value) ? String(byId('bizRecurringNotes').value).trim() : '';
+    if(!name) return alert('Enter a recurring cost name.');
+    if(!(amount > 0)) return alert('Enter an amount greater than 0.');
+    var rule = bizNormalizeRecurringRule({label:name, amount:amount, category:category, frequency:frequency, startDate:startDate, endDate:endDate, notes:notes});
+    App.businessAnalytics.recurringCosts[rule.id] = rule;
+    bizClearRecurringForm();
+    bizPersistAndMaybeSync('Recurring cost added', name + ' has been added.');
+  };
+  var resetRecurring = byId('btnBizResetRecurring');
+  if(resetRecurring) resetRecurring.onclick = function(){ bizClearRecurringForm(); };
+
+  var spendList = byId('bizSpendItemsList');
+  if(spendList){
+    spendList.addEventListener('input', function(ev){
+      var t = ev.target;
+      if(!t || !t.closest) return;
+      var row = t.closest('.biz-spend-row');
+      if(!row) return;
+      var id = row.getAttribute('data-id') || '';
+      var items = bizCurrentEntrySpendItems().slice();
+      var item = null;
+      items.forEach(function(entry){ if(String(entry.id) === id) item = entry; });
+      if(!item) return;
+      if(t.classList.contains('biz-spend-row-desc')) item.description = String(t.value||'').trim() || 'Spending item';
+      if(t.classList.contains('biz-spend-row-amount')) item.amount = round2(numOr0(t.value||0));
+      BusinessView.entrySpendItems = items;
+      bizRefreshSpendingsEditor();
+      bizUpdateEntryPreview();
+    });
+    spendList.addEventListener('click', function(ev){
+      var t = ev.target;
+      if(!t || !t.closest) return;
+      var btn = t.closest('.biz-del-spend-item');
+      if(!btn) return;
+      var id = btn.getAttribute('data-id') || '';
+      BusinessView.entrySpendItems = bizCurrentEntrySpendItems().filter(function(item){ return String(item.id) !== id; });
+      bizRenderSpendItems();
+      bizUpdateEntryPreview();
+    });
+  }
+
+  var recurringList = byId('bizRecurringList');
+  if(recurringList) recurringList.addEventListener('click', function(ev){
+    var t = ev.target;
+    if(!t || !t.closest) return;
+    var btn = t.closest('.biz-del-recurring-btn');
+    if(!btn) return;
+    var id = btn.getAttribute('data-id') || '';
+    var rule = (App.businessAnalytics && App.businessAnalytics.recurringCosts) ? App.businessAnalytics.recurringCosts[id] : null;
+    if(!rule) return;
+    if(!confirm('Delete recurring cost "' + (rule.label || 'item') + '"?')) return;
+    delete App.businessAnalytics.recurringCosts[id];
+    bizPersistAndMaybeSync('Recurring cost deleted', (rule.label || 'Recurring cost') + ' has been removed.');
+  });
+
+  var historyTable = byId('bizHistoryTable');
+  if(historyTable) historyTable.addEventListener('click', function(ev){
+    var t = ev.target;
+    if(!t || !t.closest) return;
+    var toggleBtn = t.closest('.biz-history-toggle');
+    if(toggleBtn){
+      var level = toggleBtn.getAttribute('data-level') || '';
+      var key = toggleBtn.getAttribute('data-key') || '';
+      if(level === 'month'){
+        BusinessView.historyOpenMonths = BusinessView.historyOpenMonths || {};
+        BusinessView.historyOpenMonths[key] = !BusinessView.historyOpenMonths[key];
+        BusinessView.historyUserCollapsedAll = false;
+      }else if(level === 'week'){
+        BusinessView.historyOpenWeeks = BusinessView.historyOpenWeeks || {};
+        BusinessView.historyOpenWeeks[key] = !BusinessView.historyOpenWeeks[key];
+        BusinessView.historyUserCollapsedAll = false;
+      }
+      bizRenderHistoryTable(BusinessView.lastRows || []);
+      return;
+    }
+    var btn = t.closest('.biz-load-day-btn');
+    if(!btn) return;
+    var iso = btn.getAttribute('data-iso') || '';
+    if(!iso) return;
+    BusinessView.entryISO = iso;
+    bizLoadEntryForm(iso);
+    try{ var entry = byId('bizEntryDate'); if(entry && entry.scrollIntoView) entry.scrollIntoView({behavior:'smooth', block:'center'}); }catch(e){}
+  });
+
+  ['bizCustomMetricA','bizCustomMetricB','bizCustomGroup','bizCustomType'].forEach(function(id){
+    var el = byId(id);
+    if(!el) return;
+    el.onchange = function(){ bizSyncCustomStateFromDom(); bizRenderCustomGraph(BusinessView.lastRows || []); };
+  });
+
+  if(!window.__bizResizeBound){
+    window.__bizResizeBound = true;
+    var resizeTimer = null;
+    window.addEventListener('resize', function(){
+      if(resizeTimer) clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(function(){
+        try{
+          var sec = byId('statsSection');
+          if(sec && sec.classList && sec.classList.contains('show') && isAdmin()) bizRefreshChartsOnly();
+        }catch(e){}
+      }, 120);
+    });
+  }
+  bizClearRecurringForm();
+}
+
 // ---------- Print View (multi-week) ----------
 function buildPrintView(){
   var cont=byId('printContainer'); cont.innerHTML='';
@@ -12436,7 +14545,8 @@ try{
     if(!o || typeof o!=='object') return false;
     return (o.staff!==undefined) || (o.settings!==undefined) || (o.weeks!==undefined) ||
            (o.availability!==undefined) || (o.recurringUnavailability!==undefined) ||
-           (o.absenceRequests!==undefined) || (o.shiftChangeRequests!==undefined);
+           (o.absenceRequests!==undefined) || (o.shiftChangeRequests!==undefined) ||
+           (o.businessAnalytics!==undefined);
   }
   if(data && typeof data==='object' && !Array.isArray(data) && !__looksLikeExport(data)){
     // common wrapper keys
@@ -12469,7 +14579,7 @@ try{
     App.payrollPaid=data.payrollPaid||App.payrollPaid||{};
     App.payWithheld=data.payWithheld||App.payWithheld||{};
     App.payWithheldByWeek=data.payWithheldByWeek||App.payWithheldByWeek||{};
-    App.payWithheldLog=data.payWithheldLog||App.payWithheldLog||[]; App.payrollProfiles=data.payrollProfiles||App.payrollProfiles||{business:{},staff:{}}; App.payrollWeekData=data.payrollWeekData||App.payrollWeekData||{}; App.payslipRecords=data.payslipRecords||App.payslipRecords||[];
+    App.payWithheldLog=data.payWithheldLog||App.payWithheldLog||[]; App.payrollProfiles=data.payrollProfiles||App.payrollProfiles||{business:{},staff:{}}; App.payrollWeekData=data.payrollWeekData||App.payrollWeekData||{}; App.payslipRecords=data.payslipRecords||App.payslipRecords||[]; App.businessAnalytics=data.businessAnalytics||App.businessAnalytics||{daily:{}, recurringCosts:{}};
     if(data.settings){
       for(var k in data.settings){
         App.settings[k]=data.settings[k];
@@ -12808,8 +14918,8 @@ function openTemplatesModal(){
 
 async function pushPlannerData(){
   // Planner/operational push only (safe to use frequently).
-  // Intentionally excludes: staff + settings (those are saved via Settings→Save, or via the Admin-only push below).
-  await dbPatch('', {
+  // Intentionally excludes: staff + settings (those are saved via Settings Save, or via the Admin-only push below).
+  var payload = {
     availability:App.availability,
     recurringUnavailability:App.recurringUnavailability||{},
     editRequests:App.editRequests||{},
@@ -12827,7 +14937,11 @@ async function pushPlannerData(){
     payrollProfiles:App.payrollProfiles||{business:{},staff:{}},
     payrollWeekData:App.payrollWeekData||{},
     payslipRecords:App.payslipRecords||[]
-  });
+  };
+  if(typeof isAdmin==='function' && isAdmin()){
+    payload.businessAnalytics = App.businessAnalytics||{daily:{}, recurringCosts:{}};
+  }
+  await dbPatch('', payload);
   return true;
 }
 
@@ -12852,7 +14966,8 @@ async function pushPlannerAndSettingsAdmin(){
     payWithheldLog:App.payWithheldLog||[],
     payrollProfiles:App.payrollProfiles||{business:{},staff:{}},
     payrollWeekData:App.payrollWeekData||{},
-    payslipRecords:App.payslipRecords||[]
+    payslipRecords:App.payslipRecords||[],
+    businessAnalytics:App.businessAnalytics||{daily:{}, recurringCosts:{}}
   });
   return true;
 }
