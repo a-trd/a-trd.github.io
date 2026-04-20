@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1"/>
-  <title>M&C-ATRD-scheduler --=Aspire Group=-- (V4.1.2)</title>
+  <title>M&C-ATRD-scheduler --=Aspire Group=-- (V4.1.3)</title>
   <meta name="theme-color" content="#22c55e"/>
 
   <style>
@@ -2275,7 +2275,7 @@
       <div id="appLogoBox"></div>
       <div class="titlewrap">
         <div class="title" id="appTitle">M&C-ATRD-scheduler --=Aspire Group=--</div>
-        <div class="version-pill" id="appVersion">V4.1.2</div>
+        <div class="version-pill" id="appVersion">V4.1.3</div>
         <div class="sync-pill syncing" id="syncStatusChip" title="Sync status">Starting…</div>
       </div>
     </div>
@@ -2821,7 +2821,11 @@
       <h3 style="margin:0;">Business Analytics</h3>
       <div class="pill" id="bizRangeSummary">Loading...</div>
       <div style="flex:1;"></div>
-      <div class="muted-small">Admin only</div>
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+        <div class="muted-small">Admin only</div>
+        <button id="btnBizExportPdf" class="btn-outline">Export PDF</button>
+        <button id="btnBizExportExcel" class="btn-primary">Export Excel</button>
+      </div>
     </div>
 
     <div class="biz-range-grid">
@@ -3986,8 +3990,8 @@ var DAY = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 var App = {
   // IMPORTANT: Increment App.version *and* App.buildId whenever making functional changes to this file.
   // SAFETY NET: This build performs an automatic runtime check against the file name; if mismatched, it shows a blocking warning so it can't be overlooked.
-  version: 'V4.1.2',
-    buildId: '2026-04-19.3',
+  version: 'V4.1.3',
+    buildId: '2026-04-20.1',
 settings: {
     dbUrl:'https://mnc-atrd-default-rtdb.asia-southeast1.firebasedatabase.app/', workspace:'mnc-atrd', authToken:'',
     theme:'light', themeName:'light-pastel-sky', recentColors:[], appTitle:'M&C-ATRD-scheduler --=Aspire Group=--', logoUrl:'',
@@ -14216,6 +14220,581 @@ function bizRefreshChartsOnly(){
   bizRenderCostBars(rows);
   bizRenderCustomGraph(rows);
 }
+
+function bizLatestRelevantIso(){
+  ensureBusinessAnalyticsStore();
+  var cands = [bizTodayIso()];
+  try{
+    Object.keys(App.businessAnalytics.daily||{}).forEach(function(k){
+      if(/^\d{4}-\d{2}-\d{2}$/.test(k)) cands.push(k);
+    });
+  }catch(e){}
+  try{
+    Object.keys(App.weeks||{}).forEach(function(k){
+      if(/^\d{4}-\d{2}-\d{2}$/.test(k)) cands.push(bizWeekEndIso(k));
+    });
+  }catch(e){}
+  try{
+    Object.keys(App.businessAnalytics.recurringCosts||{}).forEach(function(id){
+      var rec = App.businessAnalytics.recurringCosts[id] || {};
+      if(rec.endDate && /^\d{4}-\d{2}-\d{2}$/.test(String(rec.endDate))) cands.push(String(rec.endDate));
+      else if(rec.startDate && /^\d{4}-\d{2}-\d{2}$/.test(String(rec.startDate)) && String(rec.startDate) > bizTodayIso()) cands.push(String(rec.startDate));
+    });
+  }catch(e){}
+  cands = cands.filter(function(iso){ return /^\d{4}-\d{2}-\d{2}$/.test(String(iso||'')); }).sort();
+  return cands.length ? cands[cands.length - 1] : bizTodayIso();
+}
+function bizExportCanvasImage(id){
+  try{
+    var el = byId(id);
+    if(!el || !el.toDataURL) return '';
+    return el.toDataURL('image/png');
+  }catch(e){ return ''; }
+}
+function bizExportPercent(part, total){
+  total = numOr0(total);
+  if(!total) return 0;
+  return round2((numOr0(part) / total) * 100);
+}
+function bizExportBreakdownRows(rows){
+  var cash = 0, eftpos = 0, spendings = 0, utilities = 0, ongoing = 0, staff = 0;
+  (rows||[]).forEach(function(row){
+    cash += numOr0(row.cashRevenue);
+    eftpos += numOr0(row.eftposRevenue);
+    spendings += numOr0(row.spendings);
+    utilities += numOr0(row.utilityCosts);
+    ongoing += numOr0(row.ongoingCosts);
+    staff += numOr0(row.totalStaffCost);
+  });
+  cash = round2(cash); eftpos = round2(eftpos); spendings = round2(spendings); utilities = round2(utilities); ongoing = round2(ongoing); staff = round2(staff);
+  var revenueTotal = round2(cash + eftpos);
+  var costTotal = round2(spendings + utilities + ongoing + staff);
+  return {
+    revenueTotal: revenueTotal,
+    costTotal: costTotal,
+    revenue: [
+      {name:'Cash', value:cash, pct:bizExportPercent(cash, revenueTotal), color:bizMetricColor('cashRevenue')},
+      {name:'EFTPOS', value:eftpos, pct:bizExportPercent(eftpos, revenueTotal), color:bizMetricColor('eftposRevenue')}
+    ],
+    costs: [
+      {name:'Staff', value:staff, pct:bizExportPercent(staff, costTotal), color:bizMetricColor('totalStaffCost')},
+      {name:'Spendings', value:spendings, pct:bizExportPercent(spendings, costTotal), color:bizMetricColor('spendings')},
+      {name:'Utilities', value:utilities, pct:bizExportPercent(utilities, costTotal), color:bizMetricColor('utilityCosts')},
+      {name:'Ongoing', value:ongoing, pct:bizExportPercent(ongoing, costTotal), color:bizMetricColor('ongoingCosts')}
+    ]
+  };
+}
+function bizExportSpendItemsRows(rows){
+  var out = [];
+  (rows||[]).filter(bizHasAnyTrackedValue).forEach(function(row){
+    (row.spendItems||[]).forEach(function(item){
+      if(!item) return;
+      out.push({
+        iso: row.iso,
+        dateLabel: bizFormatLongDate(row.iso),
+        description: String(item.description||'').trim() || 'Spending item',
+        amount: round2(numOr0(item.amount)),
+        dayNotes: String(row.notes||'').trim()
+      });
+    });
+  });
+  return out.sort(function(a, b){ return String(a.iso||'').localeCompare(String(b.iso||'')); });
+}
+function bizFindBestWorstRows(rows){
+  var best = null, worst = null;
+  (rows||[]).filter(bizHasAnyTrackedValue).forEach(function(row){
+    if(!best || numOr0(row.profit) > numOr0(best.profit)) best = row;
+    if(!worst || numOr0(row.profit) < numOr0(worst.profit)) worst = row;
+  });
+  return {best:best, worst:worst};
+}
+function bizSummaryInsights(summary){
+  summary = summary || {};
+  var revenue = numOr0(summary.revenue);
+  var totalDays = Math.max(0, parseInt(summary.totalDays||0, 10) || 0);
+  var activeDays = Math.max(0, parseInt(summary.activeDays||0, 10) || 0);
+  return {
+    marginPct: revenue ? round2((numOr0(summary.profit) / revenue) * 100) : 0,
+    avgRevenuePerDay: totalDays ? round2(revenue / totalDays) : 0,
+    avgRevenuePerActiveDay: activeDays ? round2(revenue / activeDays) : 0,
+    avgCostsPerDay: totalDays ? round2(numOr0(summary.totalCosts) / totalDays) : 0,
+    avgProfitPerDay: totalDays ? round2(numOr0(summary.profit) / totalDays) : 0
+  };
+}
+function bizBuildExportDataset(){
+  ensureBusinessAnalyticsStore();
+  var selectedRange = bizReadRangeInputs();
+  var selectedRowsRaw = (BusinessView.lastRows && BusinessView.lastRows.length) ? BusinessView.lastRows.slice() : bizCollectRows(selectedRange.startISO, selectedRange.endISO);
+  var selectedRows = selectedRowsRaw.filter(bizHasAnyTrackedValue);
+  var allRange = {startISO:bizEarliestRelevantIso(), endISO:bizLatestRelevantIso()};
+  if(allRange.endISO < allRange.startISO) allRange.endISO = allRange.startISO;
+  var allRowsRaw = bizCollectRows(allRange.startISO, allRange.endISO);
+  var allRows = allRowsRaw.filter(bizHasAnyTrackedValue);
+  var recurringRules = bizRecurringRulesSorted();
+  var weeklySummaries = bizHistoryGroupedSummaries(allRowsRaw, 'week');
+  var monthlySummaries = bizHistoryGroupedSummaries(allRowsRaw, 'month');
+  var selectedMix = bizExportBreakdownRows(selectedRowsRaw);
+  var allMix = bizExportBreakdownRows(allRowsRaw);
+  return {
+    generatedAt: new Date().toISOString(),
+    appTitle: String((App.settings && App.settings.appTitle) || 'Business Analytics'),
+    workspace: String((App.settings && App.settings.workspace) || ''),
+    version: String(App.version || ''),
+    selectedRange: selectedRange,
+    allRange: allRange,
+    selectedRowsRaw: selectedRowsRaw,
+    selectedRows: selectedRows,
+    allRowsRaw: allRowsRaw,
+    allRows: allRows,
+    recurringRules: recurringRules,
+    weeklySummaries: weeklySummaries,
+    monthlySummaries: monthlySummaries,
+    selectedSummary: bizSummarizeRows(selectedRowsRaw, 'selected', 'Selected range', 'selected'),
+    allSummary: bizSummarizeRows(allRowsRaw, 'all', 'All exported data', 'all'),
+    selectedBestWorst: bizFindBestWorstRows(selectedRowsRaw),
+    allBestWorst: bizFindBestWorstRows(allRowsRaw),
+    selectedInsights: bizSummaryInsights(bizSummarizeRows(selectedRowsRaw, 'selected', 'Selected range', 'selected')),
+    allInsights: bizSummaryInsights(bizSummarizeRows(allRowsRaw, 'all', 'All exported data', 'all')),
+    selectedMix: selectedMix,
+    allMix: allMix,
+    selectedSpendItems: bizExportSpendItemsRows(selectedRowsRaw),
+    allSpendItems: bizExportSpendItemsRows(allRowsRaw),
+    selectedCostCentres: bizCostCentres(selectedRowsRaw),
+    allCostCentres: bizCostCentres(allRowsRaw),
+    charts: {
+      trend: bizExportCanvasImage('bizTrendCanvas'),
+      custom: bizExportCanvasImage('bizCustomCanvas')
+    },
+    customGraph: {
+      metricA: BusinessView.customMetricA || 'revenue',
+      metricB: BusinessView.customMetricB || 'totalStaffCost',
+      metricALabel: bizMetricLabel(BusinessView.customMetricA || 'revenue'),
+      metricBLabel: (BusinessView.customMetricB || 'none') === 'none' ? 'None' : bizMetricLabel(BusinessView.customMetricB || 'totalStaffCost'),
+      group: BusinessView.customGroup || 'day',
+      type: BusinessView.customType || 'line'
+    }
+  };
+}
+function bizExportFileStamp(){
+  var now = new Date();
+  return now.getFullYear().toString() + pad(now.getMonth()+1) + pad(now.getDate()) + '_' + pad(now.getHours()) + pad(now.getMinutes());
+}
+function bizExportDownloadBlob(filename, blob){
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(function(){ try{ document.body.removeChild(a); }catch(e){} try{ URL.revokeObjectURL(url); }catch(e){} }, 1200);
+}
+function bizXmlEsc(value){
+  if(value == null) return '';
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;');
+}
+function bizExcelSheetName(name){
+  var cleaned = String(name || 'Sheet').replace(/[\\\/?*\[\]:]/g, ' ').trim();
+  if(!cleaned) cleaned = 'Sheet';
+  return cleaned.slice(0, 31);
+}
+function bizExcelCellXml(cell){
+  if(cell == null) cell = {v:''};
+  if(typeof cell !== 'object' || Array.isArray(cell)) cell = {v:cell};
+  var value = cell.v;
+  var type = cell.t || ((typeof value === 'number' && isFinite(value)) ? 'Number' : 'String');
+  var style = cell.s ? ' ss:StyleID="' + bizXmlEsc(cell.s) + '"' : '';
+  var mergeAcross = cell.mergeAcross ? ' ss:MergeAcross="' + parseInt(cell.mergeAcross, 10) + '"' : '';
+  if(type === 'Number'){
+    var num = isFinite(value) ? Number(value) : 0;
+    return '<Cell' + style + mergeAcross + '><Data ss:Type="Number">' + num + '</Data></Cell>';
+  }
+  return '<Cell' + style + mergeAcross + '><Data ss:Type="String">' + bizXmlEsc(value == null ? '' : String(value)) + '</Data></Cell>';
+}
+function bizExcelRowXml(cells){
+  return '<Row>' + (cells||[]).map(bizExcelCellXml).join('') + '</Row>';
+}
+function bizExcelWorksheetXml(name, rows, widths){
+  var cols = (widths||[]).map(function(width){ return '<Column ss:AutoFitWidth="0" ss:Width="' + (parseInt(width, 10) || 90) + '"/>'; }).join('');
+  return '<Worksheet ss:Name="' + bizXmlEsc(bizExcelSheetName(name)) + '"><Table>' + cols + (rows||[]).map(bizExcelRowXml).join('') + '</Table></Worksheet>';
+}
+function bizCostCentreMap(list){
+  var map = {};
+  (list||[]).forEach(function(item){
+    if(!item) return;
+    var key = String(item.name || item.label || '').trim();
+    if(!key) return;
+    map[key] = round2(numOr0(item.value));
+  });
+  return map;
+}
+function bizBuildExcelWorkbookXml(dataset){
+  dataset = dataset || bizBuildExportDataset();
+  var selectedSummary = dataset.selectedSummary || {};
+  var allSummary = dataset.allSummary || {};
+  var selectedInsights = dataset.selectedInsights || {};
+  var allInsights = dataset.allInsights || {};
+  var overviewRows = [
+    [{v:'Business Analytics Export', s:'sTitle', mergeAcross:2}],
+    [{v:'Generated', s:'sSection'}, {v:new Date(dataset.generatedAt).toLocaleString()}],
+    [{v:'App', s:'sSection'}, {v:dataset.appTitle}],
+    [{v:'Workspace', s:'sSection'}, {v:dataset.workspace}],
+    [{v:'Version', s:'sSection'}, {v:dataset.version}],
+    [{v:'Selected range', s:'sSection'}, {v:bizFormatRangeLabel(dataset.selectedRange.startISO, dataset.selectedRange.endISO)}],
+    [{v:'Full export coverage', s:'sSection'}, {v:bizFormatRangeLabel(dataset.allRange.startISO, dataset.allRange.endISO)}],
+    [{v:''}],
+    [{v:'Metric', s:'sHeader'}, {v:'Selected range', s:'sHeader'}, {v:'All exported data', s:'sHeader'}],
+    [{v:'Days in range', s:'sSection'}, {v:numOr0(selectedSummary.totalDays), t:'Number', s:'sNumber'}, {v:numOr0(allSummary.totalDays), t:'Number', s:'sNumber'}],
+    [{v:'Active days', s:'sSection'}, {v:numOr0(selectedSummary.activeDays), t:'Number', s:'sNumber'}, {v:numOr0(allSummary.activeDays), t:'Number', s:'sNumber'}],
+    [{v:'Revenue', s:'sSection'}, {v:numOr0(selectedSummary.revenue), t:'Number', s:'sMoney'}, {v:numOr0(allSummary.revenue), t:'Number', s:'sMoney'}],
+    [{v:'Total costs', s:'sSection'}, {v:numOr0(selectedSummary.totalCosts), t:'Number', s:'sMoney'}, {v:numOr0(allSummary.totalCosts), t:'Number', s:'sMoney'}],
+    [{v:'Net profit / loss', s:'sSection'}, {v:numOr0(selectedSummary.profit), t:'Number', s:'sMoney'}, {v:numOr0(allSummary.profit), t:'Number', s:'sMoney'}],
+    [{v:'Total staff cost', s:'sSection'}, {v:numOr0(selectedSummary.totalStaffCost), t:'Number', s:'sMoney'}, {v:numOr0(allSummary.totalStaffCost), t:'Number', s:'sMoney'}],
+    [{v:'Daily spendings', s:'sSection'}, {v:numOr0(selectedSummary.spendings), t:'Number', s:'sMoney'}, {v:numOr0(allSummary.spendings), t:'Number', s:'sMoney'}],
+    [{v:'Utilities', s:'sSection'}, {v:numOr0(selectedSummary.utilityCosts), t:'Number', s:'sMoney'}, {v:numOr0(allSummary.utilityCosts), t:'Number', s:'sMoney'}],
+    [{v:'Ongoing costs', s:'sSection'}, {v:numOr0(selectedSummary.ongoingCosts), t:'Number', s:'sMoney'}, {v:numOr0(allSummary.ongoingCosts), t:'Number', s:'sMoney'}],
+    [{v:'Margin %', s:'sSection'}, {v:numOr0(selectedInsights.marginPct), t:'Number', s:'sPercent'}, {v:numOr0(allInsights.marginPct), t:'Number', s:'sPercent'}],
+    [{v:'Avg revenue / day', s:'sSection'}, {v:numOr0(selectedInsights.avgRevenuePerDay), t:'Number', s:'sMoney'}, {v:numOr0(allInsights.avgRevenuePerDay), t:'Number', s:'sMoney'}],
+    [{v:'Avg costs / day', s:'sSection'}, {v:numOr0(selectedInsights.avgCostsPerDay), t:'Number', s:'sMoney'}, {v:numOr0(allInsights.avgCostsPerDay), t:'Number', s:'sMoney'}],
+    [{v:'Avg net / day', s:'sSection'}, {v:numOr0(selectedInsights.avgProfitPerDay), t:'Number', s:'sMoney'}, {v:numOr0(allInsights.avgProfitPerDay), t:'Number', s:'sMoney'}],
+    [{v:'Best day', s:'sSection'}, {v:dataset.selectedBestWorst.best ? (bizFormatLongDate(dataset.selectedBestWorst.best.iso) + ' | ' + fmtMoney(dataset.selectedBestWorst.best.profit)) : 'No tracked day'}, {v:dataset.allBestWorst.best ? (bizFormatLongDate(dataset.allBestWorst.best.iso) + ' | ' + fmtMoney(dataset.allBestWorst.best.profit)) : 'No tracked day'}],
+    [{v:'Worst day', s:'sSection'}, {v:dataset.selectedBestWorst.worst ? (bizFormatLongDate(dataset.selectedBestWorst.worst.iso) + ' | ' + fmtMoney(dataset.selectedBestWorst.worst.profit)) : 'No tracked day'}, {v:dataset.allBestWorst.worst ? (bizFormatLongDate(dataset.allBestWorst.worst.iso) + ' | ' + fmtMoney(dataset.allBestWorst.worst.profit)) : 'No tracked day'}],
+    [{v:''}],
+    [{v:'Current custom graph configuration', s:'sHeader', mergeAcross:2}],
+    [{v:'Metric A', s:'sSection'}, {v:dataset.customGraph.metricALabel}],
+    [{v:'Metric B', s:'sSection'}, {v:dataset.customGraph.metricBLabel}],
+    [{v:'Grouping', s:'sSection'}, {v:String(dataset.customGraph.group || '').toUpperCase()}],
+    [{v:'Chart type', s:'sSection'}, {v:String(dataset.customGraph.type || '').toUpperCase()}],
+    [{v:''}],
+    [{v:'Current range mix', s:'sHeader', mergeAcross:2}],
+    [{v:'Revenue mix', s:'sHeader'}, {v:'Amount', s:'sHeader'}, {v:'Share %', s:'sHeader'}]
+  ];
+  (dataset.selectedMix.revenue||[]).forEach(function(item){ overviewRows.push([{v:item.name, s:'sSection'}, {v:item.value, t:'Number', s:'sMoney'}, {v:item.pct, t:'Number', s:'sPercent'}]); });
+  overviewRows.push([{v:'Cost mix', s:'sHeader'}, {v:'Amount', s:'sHeader'}, {v:'Share %', s:'sHeader'}]);
+  (dataset.selectedMix.costs||[]).forEach(function(item){ overviewRows.push([{v:item.name, s:'sSection'}, {v:item.value, t:'Number', s:'sMoney'}, {v:item.pct, t:'Number', s:'sPercent'}]); });
+
+  var currentRangeRows = [
+    [{v:'Current Range Detail', s:'sTitle', mergeAcross:7}],
+    [{v:'Coverage', s:'sSection'}, {v:bizFormatRangeLabel(dataset.selectedRange.startISO, dataset.selectedRange.endISO)}],
+    [{v:'Revenue mix total', s:'sSection'}, {v:numOr0(dataset.selectedMix.revenueTotal), t:'Number', s:'sMoney'}],
+    [{v:'Cost mix total', s:'sSection'}, {v:numOr0(dataset.selectedMix.costTotal), t:'Number', s:'sMoney'}],
+    [{v:''}],
+    [{v:'Date', s:'sHeader'}, {v:'Cash', s:'sHeader'}, {v:'EFTPOS', s:'sHeader'}, {v:'Revenue', s:'sHeader'}, {v:'Staff cost', s:'sHeader'}, {v:'Spendings', s:'sHeader'}, {v:'Total costs', s:'sHeader'}, {v:'Net', s:'sHeader'}]
+  ];
+  (dataset.selectedRows||[]).forEach(function(row){
+    currentRangeRows.push([
+      {v:bizFormatLongDate(row.iso), s:'sSection'},
+      {v:numOr0(row.cashRevenue), t:'Number', s:'sMoney'},
+      {v:numOr0(row.eftposRevenue), t:'Number', s:'sMoney'},
+      {v:numOr0(row.revenue), t:'Number', s:'sMoney'},
+      {v:numOr0(row.totalStaffCost), t:'Number', s:'sMoney'},
+      {v:numOr0(row.spendings), t:'Number', s:'sMoney'},
+      {v:numOr0(row.totalCosts), t:'Number', s:'sMoney'},
+      {v:numOr0(row.profit), t:'Number', s:'sMoney'}
+    ]);
+  });
+  if(!(dataset.selectedRows||[]).length) currentRangeRows.push([{v:'No tracked business rows found in the selected range.'}]);
+
+  var dailyRows = [[
+    {v:'Date', s:'sHeader'}, {v:'Cash', s:'sHeader'}, {v:'EFTPOS', s:'sHeader'}, {v:'Revenue', s:'sHeader'}, {v:'Auto staff', s:'sHeader'},
+    {v:'Staff adj', s:'sHeader'}, {v:'Staff total', s:'sHeader'}, {v:'Spendings', s:'sHeader'}, {v:'Utility manual', s:'sHeader'},
+    {v:'Utility recurring', s:'sHeader'}, {v:'Utility total', s:'sHeader'}, {v:'Ongoing manual', s:'sHeader'}, {v:'Ongoing recurring', s:'sHeader'},
+    {v:'Ongoing total', s:'sHeader'}, {v:'Total costs', s:'sHeader'}, {v:'Net', s:'sHeader'}, {v:'Notes', s:'sHeader'}, {v:'Spend summary', s:'sHeader'}
+  ]];
+  (dataset.allRows||[]).forEach(function(row){
+    dailyRows.push([
+      {v:bizFormatLongDate(row.iso), s:'sSection'},
+      {v:numOr0(row.cashRevenue), t:'Number', s:'sMoney'},
+      {v:numOr0(row.eftposRevenue), t:'Number', s:'sMoney'},
+      {v:numOr0(row.revenue), t:'Number', s:'sMoney'},
+      {v:numOr0(row.autoStaffCost), t:'Number', s:'sMoney'},
+      {v:numOr0(row.staffCostAdjustment), t:'Number', s:'sMoney'},
+      {v:numOr0(row.totalStaffCost), t:'Number', s:'sMoney'},
+      {v:numOr0(row.spendings), t:'Number', s:'sMoney'},
+      {v:numOr0(row.dailyUtilityCosts), t:'Number', s:'sMoney'},
+      {v:numOr0(row.recurringUtilityCosts), t:'Number', s:'sMoney'},
+      {v:numOr0(row.utilityCosts), t:'Number', s:'sMoney'},
+      {v:numOr0(row.dailyOngoingCosts), t:'Number', s:'sMoney'},
+      {v:numOr0(row.recurringOngoingCosts), t:'Number', s:'sMoney'},
+      {v:numOr0(row.ongoingCosts), t:'Number', s:'sMoney'},
+      {v:numOr0(row.totalCosts), t:'Number', s:'sMoney'},
+      {v:numOr0(row.profit), t:'Number', s:'sMoney'},
+      {v:String(row.notes||'')},
+      {v:bizSpendItemsSummary(row.spendItems || [], 4)}
+    ]);
+  });
+  if(!(dataset.allRows||[]).length) dailyRows.push([{v:'No tracked business rows found in the export coverage.'}]);
+
+  var weeklyRows = [[
+    {v:'Week', s:'sHeader'}, {v:'Active days', s:'sHeader'}, {v:'Revenue', s:'sHeader'}, {v:'Staff cost', s:'sHeader'},
+    {v:'Spendings', s:'sHeader'}, {v:'Utilities', s:'sHeader'}, {v:'Ongoing', s:'sHeader'}, {v:'Total costs', s:'sHeader'}, {v:'Net', s:'sHeader'}
+  ]];
+  (dataset.weeklySummaries||[]).forEach(function(summary){
+    weeklyRows.push([
+      {v:summary.label, s:'sSection'},
+      {v:numOr0(summary.activeDays), t:'Number', s:'sNumber'},
+      {v:numOr0(summary.revenue), t:'Number', s:'sMoney'},
+      {v:numOr0(summary.totalStaffCost), t:'Number', s:'sMoney'},
+      {v:numOr0(summary.spendings), t:'Number', s:'sMoney'},
+      {v:numOr0(summary.utilityCosts), t:'Number', s:'sMoney'},
+      {v:numOr0(summary.ongoingCosts), t:'Number', s:'sMoney'},
+      {v:numOr0(summary.totalCosts), t:'Number', s:'sMoney'},
+      {v:numOr0(summary.profit), t:'Number', s:'sMoney'}
+    ]);
+  });
+  if(!(dataset.weeklySummaries||[]).length) weeklyRows.push([{v:'No weekly summaries available.'}]);
+
+  var monthlyRows = [[
+    {v:'Month', s:'sHeader'}, {v:'Active days', s:'sHeader'}, {v:'Revenue', s:'sHeader'}, {v:'Staff cost', s:'sHeader'},
+    {v:'Spendings', s:'sHeader'}, {v:'Utilities', s:'sHeader'}, {v:'Ongoing', s:'sHeader'}, {v:'Total costs', s:'sHeader'}, {v:'Net', s:'sHeader'}
+  ]];
+  (dataset.monthlySummaries||[]).forEach(function(summary){
+    monthlyRows.push([
+      {v:summary.label, s:'sSection'},
+      {v:numOr0(summary.activeDays), t:'Number', s:'sNumber'},
+      {v:numOr0(summary.revenue), t:'Number', s:'sMoney'},
+      {v:numOr0(summary.totalStaffCost), t:'Number', s:'sMoney'},
+      {v:numOr0(summary.spendings), t:'Number', s:'sMoney'},
+      {v:numOr0(summary.utilityCosts), t:'Number', s:'sMoney'},
+      {v:numOr0(summary.ongoingCosts), t:'Number', s:'sMoney'},
+      {v:numOr0(summary.totalCosts), t:'Number', s:'sMoney'},
+      {v:numOr0(summary.profit), t:'Number', s:'sMoney'}
+    ]);
+  });
+  if(!(dataset.monthlySummaries||[]).length) monthlyRows.push([{v:'No monthly summaries available.'}]);
+
+  var spendItemRows = [[
+    {v:'Date', s:'sHeader'}, {v:'Description', s:'sHeader'}, {v:'Amount', s:'sHeader'}, {v:'Day notes', s:'sHeader'}
+  ]];
+  (dataset.allSpendItems||[]).forEach(function(item){
+    spendItemRows.push([
+      {v:item.dateLabel, s:'sSection'},
+      {v:item.description},
+      {v:numOr0(item.amount), t:'Number', s:'sMoney'},
+      {v:item.dayNotes}
+    ]);
+  });
+  if(!(dataset.allSpendItems||[]).length) spendItemRows.push([{v:'No spending line items have been recorded yet.'}]);
+
+  var recurringRows = [[
+    {v:'Name', s:'sHeader'}, {v:'Category', s:'sHeader'}, {v:'Frequency', s:'sHeader'}, {v:'Amount / occurrence', s:'sHeader'},
+    {v:'Start date', s:'sHeader'}, {v:'End date', s:'sHeader'}, {v:'Selected range allocation', s:'sHeader'}, {v:'Full export allocation', s:'sHeader'}, {v:'Notes', s:'sHeader'}
+  ]];
+  (dataset.recurringRules||[]).forEach(function(rule){
+    var selectedAlloc = bizRecurringRuleTotalInRange(rule, dataset.selectedRange.startISO, dataset.selectedRange.endISO);
+    var allAlloc = bizRecurringRuleTotalInRange(rule, dataset.allRange.startISO, dataset.allRange.endISO);
+    recurringRows.push([
+      {v:rule.label, s:'sSection'},
+      {v:bizFormatCategory(rule.category)},
+      {v:bizFormatFrequency(rule.frequency)},
+      {v:numOr0(rule.amount), t:'Number', s:'sMoney'},
+      {v:rule.startDate || ''},
+      {v:rule.endDate || ''},
+      {v:numOr0(selectedAlloc.total), t:'Number', s:'sMoney'},
+      {v:numOr0(allAlloc.total), t:'Number', s:'sMoney'},
+      {v:String(rule.notes || '')}
+    ]);
+  });
+  if(!(dataset.recurringRules||[]).length) recurringRows.push([{v:'No recurring costs have been recorded yet.'}]);
+
+  var selectedCentreMap = bizCostCentreMap(dataset.selectedCostCentres);
+  var allCentreMap = bizCostCentreMap(dataset.allCostCentres);
+  var centreKeyMap = {};
+  Object.keys(selectedCentreMap||{}).forEach(function(name){ centreKeyMap[name] = true; });
+  Object.keys(allCentreMap||{}).forEach(function(name){ centreKeyMap[name] = true; });
+  var centreNames = Object.keys(centreKeyMap).sort(function(a, b){ return a.localeCompare(b); });
+  var costCentreRows = [[
+    {v:'Cost centre', s:'sHeader'}, {v:'Selected range', s:'sHeader'}, {v:'All exported data', s:'sHeader'}
+  ]];
+  centreNames.forEach(function(name){
+    costCentreRows.push([
+      {v:name, s:'sSection'},
+      {v:numOr0(selectedCentreMap[name]), t:'Number', s:'sMoney'},
+      {v:numOr0(allCentreMap[name]), t:'Number', s:'sMoney'}
+    ]);
+  });
+  if(!centreNames.length) costCentreRows.push([{v:'No cost centres available for the export.'}]);
+
+  return '<?xml version="1.0"?>' +
+    '<?mso-application progid="Excel.Sheet"?>' +
+    '<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet" xmlns:html="http://www.w3.org/TR/REC-html40">' +
+      '<DocumentProperties xmlns="urn:schemas-microsoft-com:office:office"><Author>OpenAI</Author><Created>' + bizXmlEsc(dataset.generatedAt) + '</Created><Company>' + bizXmlEsc(dataset.appTitle) + '</Company></DocumentProperties>' +
+      '<Styles>' +
+        '<Style ss:ID="Default" ss:Name="Normal"><Alignment ss:Vertical="Center"/><Borders/><Font ss:FontName="Calibri" ss:Size="11"/><Interior/><NumberFormat/><Protection/></Style>' +
+        '<Style ss:ID="sTitle"><Font ss:Bold="1" ss:Size="15"/><Interior ss:Color="#DDEBF7" ss:Pattern="Solid"/></Style>' +
+        '<Style ss:ID="sHeader"><Font ss:Bold="1"/><Interior ss:Color="#E2F0D9" ss:Pattern="Solid"/><Borders><Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1"/></Borders></Style>' +
+        '<Style ss:ID="sSection"><Font ss:Bold="1"/></Style>' +
+        '<Style ss:ID="sMoney"><NumberFormat ss:Format="Currency"/></Style>' +
+        '<Style ss:ID="sNumber"><NumberFormat ss:Format="0.00"/></Style>' +
+        '<Style ss:ID="sPercent"><NumberFormat ss:Format="0.00"/></Style>' +
+      '</Styles>' +
+      bizExcelWorksheetXml('Overview', overviewRows, [200,140,140]) +
+      bizExcelWorksheetXml('Current Range', currentRangeRows, [180,90,90,90,100,100,100,100]) +
+      bizExcelWorksheetXml('Daily Ledger', dailyRows, [170,80,80,80,80,80,80,80,90,95,90,95,100,95,90,90,220,240]) +
+      bizExcelWorksheetXml('Weekly Summary', weeklyRows, [180,80,90,90,90,90,90,95,90]) +
+      bizExcelWorksheetXml('Monthly Summary', monthlyRows, [180,80,90,90,90,90,90,95,90]) +
+      bizExcelWorksheetXml('Spending Items', spendItemRows, [170,260,90,220]) +
+      bizExcelWorksheetXml('Recurring Costs', recurringRows, [180,110,110,110,95,95,130,130,240]) +
+      bizExcelWorksheetXml('Cost Centres', costCentreRows, [220,120,120]) +
+    '</Workbook>';
+}
+function bizReportFmtPercent(value){ return (numOr0(value)).toFixed(2) + '%'; }
+function bizReportRangeLabel(range){ return bizFormatRangeLabel(range.startISO, range.endISO); }
+function bizReportSummaryCardsHtml(title, rangeLabel, summary, insights, bestWorst){
+  summary = summary || {};
+  insights = insights || {};
+  bestWorst = bestWorst || {};
+  var bestText = bestWorst.best ? (bizFormatLongDate(bestWorst.best.iso) + ' | ' + fmtMoney(bestWorst.best.profit)) : 'No tracked day';
+  var worstText = bestWorst.worst ? (bizFormatLongDate(bestWorst.worst.iso) + ' | ' + fmtMoney(bestWorst.worst.profit)) : 'No tracked day';
+  return '<section class="report-section" id="' + escapeHtml(title.toLowerCase().replace(/[^a-z0-9]+/g,'-')) + '">' +
+    '<div class="section-head"><h2>' + escapeHtml(title) + '</h2><div class="section-sub">' + escapeHtml(rangeLabel) + '</div></div>' +
+    '<div class="summary-grid">' +
+      '<div class="summary-card"><div class="label">Revenue</div><div class="value">' + escapeHtml(fmtMoney(summary.revenue||0)) + '</div><div class="sub">Active days: ' + escapeHtml(String(summary.activeDays||0)) + ' / ' + escapeHtml(String(summary.totalDays||0)) + '</div></div>' +
+      '<div class="summary-card"><div class="label">Total costs</div><div class="value">' + escapeHtml(fmtMoney(summary.totalCosts||0)) + '</div><div class="sub">Avg/day ' + escapeHtml(fmtMoney(insights.avgCostsPerDay||0)) + '</div></div>' +
+      '<div class="summary-card"><div class="label">Net profit / loss</div><div class="value ' + (numOr0(summary.profit) < -0.009 ? 'bad' : (numOr0(summary.profit) > 0.009 ? 'good' : '')) + '">' + escapeHtml(fmtMoney(summary.profit||0)) + '</div><div class="sub">Margin ' + escapeHtml(bizReportFmtPercent(insights.marginPct||0)) + '</div></div>' +
+      '<div class="summary-card"><div class="label">Staff cost</div><div class="value">' + escapeHtml(fmtMoney(summary.totalStaffCost||0)) + '</div><div class="sub">Spendings ' + escapeHtml(fmtMoney(summary.spendings||0)) + '</div></div>' +
+      '<div class="summary-card"><div class="label">Utilities</div><div class="value">' + escapeHtml(fmtMoney(summary.utilityCosts||0)) + '</div><div class="sub">Ongoing ' + escapeHtml(fmtMoney(summary.ongoingCosts||0)) + '</div></div>' +
+      '<div class="summary-card"><div class="label">Average revenue / day</div><div class="value">' + escapeHtml(fmtMoney(insights.avgRevenuePerDay||0)) + '</div><div class="sub">Avg active day ' + escapeHtml(fmtMoney(insights.avgRevenuePerActiveDay||0)) + '</div></div>' +
+      '<div class="summary-card"><div class="label">Best day</div><div class="value small">' + escapeHtml(bestText) + '</div><div class="sub">Highest net day</div></div>' +
+      '<div class="summary-card"><div class="label">Worst day</div><div class="value small">' + escapeHtml(worstText) + '</div><div class="sub">Lowest net day</div></div>' +
+    '</div></section>';
+}
+function bizReportMixHtml(title, items, total){
+  var rows = (items||[]).map(function(item){
+    return '<tr><td><span class="dot" style="background:' + escapeHtml(item.color || '#5A31F4') + '"></span>' + escapeHtml(item.name) + '</td><td class="num">' + escapeHtml(fmtMoney(item.value||0)) + '</td><td class="num">' + escapeHtml(bizReportFmtPercent(item.pct||0)) + '</td></tr>';
+  }).join('');
+  if(!rows) rows = '<tr><td colspan="3">No data in this breakdown.</td></tr>';
+  return '<div class="mini-card"><h3>' + escapeHtml(title) + '</h3><div class="mini-sub">Total ' + escapeHtml(fmtMoney(total||0)) + '</div><table class="report-table tight"><thead><tr><th>Type</th><th class="num">Amount</th><th class="num">Share</th></tr></thead><tbody>' + rows + '</tbody></table></div>';
+}
+function bizReportTableHtml(title, id, headers, rowsHtml, note){
+  return '<section class="report-section" id="' + escapeHtml(id) + '">' +
+    '<div class="section-head"><h2>' + escapeHtml(title) + '</h2>' + (note ? ('<div class="section-sub">' + escapeHtml(note) + '</div>') : '') + '</div>' +
+    '<table class="report-table"><thead><tr>' + headers.map(function(h){ return '<th>' + escapeHtml(h) + '</th>'; }).join('') + '</tr></thead><tbody>' +
+      (rowsHtml || ('<tr><td colspan="' + headers.length + '">No data available.</td></tr>')) +
+    '</tbody></table></section>';
+}
+function bizBuildPdfReportHtml(dataset){
+  dataset = dataset || bizBuildExportDataset();
+  var summarySelected = bizReportSummaryCardsHtml('Selected range summary', bizReportRangeLabel(dataset.selectedRange), dataset.selectedSummary, dataset.selectedInsights, dataset.selectedBestWorst);
+  var summaryAll = bizReportSummaryCardsHtml('Full data summary', bizReportRangeLabel(dataset.allRange), dataset.allSummary, dataset.allInsights, dataset.allBestWorst);
+  var currentRangeRowsHtml = (dataset.selectedRows||[]).map(function(row){
+    return '<tr>' +
+      '<td>' + escapeHtml(bizFormatLongDate(row.iso)) + '</td>' +
+      '<td class="num">' + escapeHtml(fmtMoney(row.cashRevenue||0)) + '</td>' +
+      '<td class="num">' + escapeHtml(fmtMoney(row.eftposRevenue||0)) + '</td>' +
+      '<td class="num">' + escapeHtml(fmtMoney(row.revenue||0)) + '</td>' +
+      '<td class="num">' + escapeHtml(fmtMoney(row.totalStaffCost||0)) + '</td>' +
+      '<td class="num">' + escapeHtml(fmtMoney(row.spendings||0)) + '</td>' +
+      '<td class="num">' + escapeHtml(fmtMoney(row.totalCosts||0)) + '</td>' +
+      '<td class="num ' + (numOr0(row.profit) < -0.009 ? 'bad' : (numOr0(row.profit) > 0.009 ? 'good' : '')) + '">' + escapeHtml(fmtMoney(row.profit||0)) + '</td>' +
+    '</tr>';
+  }).join('');
+  var monthlyRowsHtml = (dataset.monthlySummaries||[]).map(function(summary){
+    return '<tr>' +
+      '<td>' + escapeHtml(summary.label) + '</td>' +
+      '<td class="num">' + escapeHtml(String(summary.activeDays||0)) + '</td>' +
+      '<td class="num">' + escapeHtml(fmtMoney(summary.revenue||0)) + '</td>' +
+      '<td class="num">' + escapeHtml(fmtMoney(summary.totalStaffCost||0)) + '</td>' +
+      '<td class="num">' + escapeHtml(fmtMoney(summary.spendings||0)) + '</td>' +
+      '<td class="num">' + escapeHtml(fmtMoney(summary.utilityCosts||0)) + '</td>' +
+      '<td class="num">' + escapeHtml(fmtMoney(summary.ongoingCosts||0)) + '</td>' +
+      '<td class="num">' + escapeHtml(fmtMoney(summary.totalCosts||0)) + '</td>' +
+      '<td class="num ' + (numOr0(summary.profit) < -0.009 ? 'bad' : (numOr0(summary.profit) > 0.009 ? 'good' : '')) + '">' + escapeHtml(fmtMoney(summary.profit||0)) + '</td>' +
+    '</tr>';
+  }).join('');
+  var weeklyRowsHtml = (dataset.weeklySummaries||[]).map(function(summary){
+    return '<tr>' +
+      '<td>' + escapeHtml(summary.label) + '</td>' +
+      '<td class="num">' + escapeHtml(String(summary.activeDays||0)) + '</td>' +
+      '<td class="num">' + escapeHtml(fmtMoney(summary.revenue||0)) + '</td>' +
+      '<td class="num">' + escapeHtml(fmtMoney(summary.totalStaffCost||0)) + '</td>' +
+      '<td class="num">' + escapeHtml(fmtMoney(summary.spendings||0)) + '</td>' +
+      '<td class="num">' + escapeHtml(fmtMoney(summary.utilityCosts||0)) + '</td>' +
+      '<td class="num">' + escapeHtml(fmtMoney(summary.ongoingCosts||0)) + '</td>' +
+      '<td class="num">' + escapeHtml(fmtMoney(summary.totalCosts||0)) + '</td>' +
+      '<td class="num ' + (numOr0(summary.profit) < -0.009 ? 'bad' : (numOr0(summary.profit) > 0.009 ? 'good' : '')) + '">' + escapeHtml(fmtMoney(summary.profit||0)) + '</td>' +
+    '</tr>';
+  }).join('');
+  var dailyRowsHtml = (dataset.allRows||[]).map(function(row){
+    var noteBits = [];
+    if(row.notes) noteBits.push(row.notes);
+    var spendSummary = bizSpendItemsSummary(row.spendItems || [], 4);
+    if(spendSummary) noteBits.push(spendSummary);
+    return '<tr>' +
+      '<td>' + escapeHtml(bizFormatLongDate(row.iso)) + '</td>' +
+      '<td class="num">' + escapeHtml(fmtMoney(row.cashRevenue||0)) + '</td>' +
+      '<td class="num">' + escapeHtml(fmtMoney(row.eftposRevenue||0)) + '</td>' +
+      '<td class="num">' + escapeHtml(fmtMoney(row.revenue||0)) + '</td>' +
+      '<td class="num">' + escapeHtml(fmtMoney(row.totalStaffCost||0)) + '</td>' +
+      '<td class="num">' + escapeHtml(fmtMoney(row.spendings||0)) + '</td>' +
+      '<td class="num">' + escapeHtml(fmtMoney(row.utilityCosts||0)) + '</td>' +
+      '<td class="num">' + escapeHtml(fmtMoney(row.ongoingCosts||0)) + '</td>' +
+      '<td class="num">' + escapeHtml(fmtMoney(row.totalCosts||0)) + '</td>' +
+      '<td class="num ' + (numOr0(row.profit) < -0.009 ? 'bad' : (numOr0(row.profit) > 0.009 ? 'good' : '')) + '">' + escapeHtml(fmtMoney(row.profit||0)) + '</td>' +
+      '<td>' + escapeHtml(noteBits.join(' • ')) + '</td>' +
+    '</tr>';
+  }).join('');
+  var spendingRowsHtml = (dataset.allSpendItems||[]).map(function(item){
+    return '<tr><td>' + escapeHtml(item.dateLabel) + '</td><td>' + escapeHtml(item.description) + '</td><td class="num">' + escapeHtml(fmtMoney(item.amount||0)) + '</td><td>' + escapeHtml(item.dayNotes||'') + '</td></tr>';
+  }).join('');
+  var recurringRowsHtml = (dataset.recurringRules||[]).map(function(rule){
+    var selectedAlloc = bizRecurringRuleTotalInRange(rule, dataset.selectedRange.startISO, dataset.selectedRange.endISO);
+    var allAlloc = bizRecurringRuleTotalInRange(rule, dataset.allRange.startISO, dataset.allRange.endISO);
+    return '<tr>' +
+      '<td>' + escapeHtml(rule.label) + '</td>' +
+      '<td>' + escapeHtml(bizFormatCategory(rule.category)) + '</td>' +
+      '<td>' + escapeHtml(bizFormatFrequency(rule.frequency)) + '</td>' +
+      '<td class="num">' + escapeHtml(fmtMoney(rule.amount||0)) + '</td>' +
+      '<td>' + escapeHtml(rule.startDate || '') + '</td>' +
+      '<td>' + escapeHtml(rule.endDate || '') + '</td>' +
+      '<td class="num">' + escapeHtml(fmtMoney(selectedAlloc.total||0)) + '</td>' +
+      '<td class="num">' + escapeHtml(fmtMoney(allAlloc.total||0)) + '</td>' +
+      '<td>' + escapeHtml(rule.notes || '') + '</td>' +
+    '</tr>';
+  }).join('');
+  var costCentreRowsHtml = (dataset.allCostCentres||[]).map(function(item){
+    return '<tr><td>' + escapeHtml(item.name) + '</td><td class="num">' + escapeHtml(fmtMoney(item.value||0)) + '</td></tr>';
+  }).join('');
+  var trendImage = dataset.charts && dataset.charts.trend ? '<div class="chart-card"><h3>Current range trend</h3><img alt="Trend chart" src="' + escapeHtml(dataset.charts.trend) + '"></div>' : '';
+  var customImage = dataset.charts && dataset.charts.custom ? '<div class="chart-card"><h3>Current custom chart</h3><div class="mini-sub">' + escapeHtml(dataset.customGraph.metricALabel + ' vs ' + dataset.customGraph.metricBLabel + ' • ' + String(dataset.customGraph.group||'').toUpperCase() + ' • ' + String(dataset.customGraph.type||'').toUpperCase()) + '</div><img alt="Custom chart" src="' + escapeHtml(dataset.charts.custom) + '"></div>' : '';
+  var chartsHtml = (trendImage || customImage) ? '<section class="report-section" id="charts"><div class="section-head"><h2>Current range charts</h2><div class="section-sub">Charts reflect the currently selected Business Analytics range.</div></div><div class="chart-grid">' + trendImage + customImage + '</div></section>' : '';
+  var mixHtml = '<section class="report-section" id="mix"><div class="section-head"><h2>Current range mix</h2><div class="section-sub">Revenue and cost composition for the selected range.</div></div><div class="mini-grid">' +
+    bizReportMixHtml('Revenue mix', dataset.selectedMix.revenue, dataset.selectedMix.revenueTotal) +
+    bizReportMixHtml('Cost mix', dataset.selectedMix.costs, dataset.selectedMix.costTotal) +
+  '</div></section>';
+  var tocHtml = '<nav class="toc"><a href="#selected-range-summary">Selected summary</a><a href="#full-data-summary">Full summary</a><a href="#charts">Charts</a><a href="#mix">Mix</a><a href="#current-range-detail">Current range detail</a><a href="#monthly-summary">Monthly summary</a><a href="#weekly-summary">Weekly summary</a><a href="#recurring-costs">Recurring costs</a><a href="#daily-ledger">Daily ledger</a><a href="#spending-items">Spending items</a><a href="#cost-centres">Cost centres</a></nav>';
+  return '<!doctype html><html><head><meta charset="utf-8"><title>' + escapeHtml((dataset.appTitle || 'Business Analytics') + ' - ' + bizExportFileStamp()) + '</title>' +
+    '<style>' +
+      '@page{size:auto;margin:14mm;}body{font-family:Arial,Helvetica,sans-serif;color:#0f172a;background:#f4f7fb;margin:0;padding:0;}a{color:#1d4ed8;text-decoration:none;}a:hover{text-decoration:underline;} .screen-bar{position:sticky;top:0;z-index:10;display:flex;gap:8px;align-items:center;justify-content:space-between;padding:12px 16px;background:#0f172a;color:#fff;} .screen-actions{display:flex;gap:8px;flex-wrap:wrap;} .screen-actions button{border:none;border-radius:999px;padding:8px 14px;font-weight:700;cursor:pointer;} .screen-actions .primary{background:#2563eb;color:#fff;} .screen-actions .secondary{background:#e2e8f0;color:#0f172a;} .report{max-width:1120px;margin:0 auto;padding:18px;} .hero{background:#fff;border-radius:18px;padding:18px 20px;box-shadow:0 12px 28px rgba(15,23,42,.10);} .hero h1{margin:0;font-size:28px;} .hero-meta{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:14px;} .hero-meta .meta{background:#eef4ff;border-radius:14px;padding:10px 12px;} .hero-meta .meta .label{font-size:11px;color:#475569;text-transform:uppercase;letter-spacing:.06em;font-weight:700;} .hero-meta .meta .value{margin-top:4px;font-size:14px;font-weight:700;} .toc{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 4px;} .toc a{display:inline-flex;align-items:center;padding:7px 11px;border-radius:999px;background:#fff;border:1px solid #d7e1ee;font-size:12px;font-weight:700;} .report-section{background:#fff;border-radius:18px;padding:16px 18px;margin-top:16px;box-shadow:0 10px 22px rgba(15,23,42,.08);} .section-head{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:12px;} .section-head h2{margin:0;font-size:20px;} .section-sub{color:#475569;font-size:12px;} .summary-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;} .summary-card{border:1px solid #dbe5f0;border-radius:14px;padding:12px;background:#f8fbff;} .summary-card .label{font-size:11px;color:#475569;text-transform:uppercase;letter-spacing:.06em;font-weight:700;} .summary-card .value{margin-top:8px;font-size:20px;font-weight:800;line-height:1.25;} .summary-card .value.small{font-size:15px;} .summary-card .value.good{color:#047857;} .summary-card .value.bad{color:#b91c1c;} .summary-card .sub{margin-top:6px;color:#475569;font-size:12px;} .mini-grid,.chart-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;} .mini-card,.chart-card{border:1px solid #dbe5f0;border-radius:14px;padding:12px;background:#f8fbff;} .mini-card h3,.chart-card h3{margin:0 0 8px;font-size:16px;} .mini-sub{color:#475569;font-size:12px;margin-bottom:8px;} .dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:8px;vertical-align:middle;} .report-table{width:100%;border-collapse:collapse;font-size:12px;} .report-table th,.report-table td{border-bottom:1px solid #dbe5f0;padding:8px 10px;vertical-align:top;} .report-table th{background:#eef4ff;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.05em;} .report-table .num{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums;} .report-table .good{color:#047857;font-weight:800;} .report-table .bad{color:#b91c1c;font-weight:800;} .report-table.tight th,.report-table.tight td{padding:7px 8px;} .chart-card img{width:100%;height:auto;border-radius:12px;border:1px solid #dbe5f0;background:#fff;} @media (max-width:900px){.hero-meta,.summary-grid,.mini-grid,.chart-grid{grid-template-columns:1fr 1fr;}} @media (max-width:640px){.hero-meta,.summary-grid,.mini-grid,.chart-grid{grid-template-columns:1fr;} .screen-bar{position:static;}} @media print{body{background:#fff;} .screen-bar{display:none !important;} .report{max-width:none;padding:0;} .hero,.report-section{box-shadow:none;border:1px solid #dbe5f0;break-inside:avoid-page;} .toc a{color:#0f172a;border-color:#dbe5f0;} a{text-decoration:none;color:#0f172a;} }' +
+    '</style></head><body><div class="screen-bar"><div><strong>Business Analytics PDF export</strong></div><div class="screen-actions"><button class="primary" onclick="window.print()">Print / Save PDF</button><button class="secondary" onclick="window.close()">Close</button></div></div><div class="report"><section class="hero"><h1>' + escapeHtml(dataset.appTitle) + ' — Business Analytics</h1><div class="section-sub">Generated ' + escapeHtml(new Date(dataset.generatedAt).toLocaleString()) + '</div><div class="hero-meta"><div class="meta"><div class="label">Workspace</div><div class="value">' + escapeHtml(dataset.workspace || '-') + '</div></div><div class="meta"><div class="label">Version</div><div class="value">' + escapeHtml(dataset.version || '-') + '</div></div><div class="meta"><div class="label">Selected range</div><div class="value">' + escapeHtml(bizReportRangeLabel(dataset.selectedRange)) + '</div></div><div class="meta"><div class="label">Full export coverage</div><div class="value">' + escapeHtml(bizReportRangeLabel(dataset.allRange)) + '</div></div></div></section>' + tocHtml + summarySelected + summaryAll + chartsHtml + mixHtml + bizReportTableHtml('Current range detail', 'current-range-detail', ['Date','Cash','EFTPOS','Revenue','Staff cost','Spendings','Total costs','Net'], currentRangeRowsHtml, 'Tracked business rows in the selected range.') + bizReportTableHtml('Monthly summary', 'monthly-summary', ['Month','Active days','Revenue','Staff cost','Spendings','Utilities','Ongoing','Total costs','Net'], monthlyRowsHtml, 'All exported business data rolled up by month.') + bizReportTableHtml('Weekly summary', 'weekly-summary', ['Week','Active days','Revenue','Staff cost','Spendings','Utilities','Ongoing','Total costs','Net'], weeklyRowsHtml, 'All exported business data rolled up by week.') + bizReportTableHtml('Recurring costs', 'recurring-costs', ['Name','Category','Frequency','Amount / occurrence','Start','End','Selected allocation','Full allocation','Notes'], recurringRowsHtml, 'Recurring costs are prorated across their active cycle.') + bizReportTableHtml('Daily ledger', 'daily-ledger', ['Date','Cash','EFTPOS','Revenue','Staff cost','Spendings','Utilities','Ongoing','Total costs','Net','Notes / spending summary'], dailyRowsHtml, 'Full day-by-day ledger across the export coverage.') + bizReportTableHtml('Spending items', 'spending-items', ['Date','Description','Amount','Day notes'], spendingRowsHtml, 'Each recorded spending line item.') + bizReportTableHtml('Cost centres', 'cost-centres', ['Cost centre','Amount'], costCentreRowsHtml, 'All exported cost centres by total value.') + '</div><script>window.addEventListener("load",function(){setTimeout(function(){try{window.focus();window.print();}catch(e){}},350);});<\/script></body></html>';
+}
+function bizOpenReportWindow(html){
+  var win = window.open('', '_blank');
+  if(!win){ alert('Please allow pop-ups to export the Business Analytics report.'); return null; }
+  win.document.open();
+  win.document.write(html);
+  win.document.close();
+  return win;
+}
+function bizExportAnalyticsPdf(){
+  if(!isAdmin()) return alert('Admin only.');
+  renderBusinessAnalytics();
+  var dataset = bizBuildExportDataset();
+  bizOpenReportWindow(bizBuildPdfReportHtml(dataset));
+}
+function bizExportAnalyticsExcel(){
+  if(!isAdmin()) return alert('Admin only.');
+  renderBusinessAnalytics();
+  var dataset = bizBuildExportDataset();
+  var xml = bizBuildExcelWorkbookXml(dataset);
+  bizExportDownloadBlob('business_analytics_' + bizExportFileStamp() + '.xls', new Blob([xml], {type:'application/vnd.ms-excel'}));
+  try{ showToast('Business Analytics exported', 'Excel export has started.', 'success', 3000); }catch(e){}
+}
+
 function bindBusinessAnalyticsUI(){
   if(window.__bizUiBound) return;
   window.__bizUiBound = true;
@@ -14238,6 +14817,10 @@ function bindBusinessAnalyticsUI(){
   };
   var reset = byId('btnBizResetRange');
   if(reset) reset.onclick = function(){ bizApplyRangePreset('30d'); renderBusinessAnalytics(); };
+  var exportPdf = byId('btnBizExportPdf');
+  if(exportPdf) exportPdf.onclick = function(){ bizExportAnalyticsPdf(); };
+  var exportExcel = byId('btnBizExportExcel');
+  if(exportExcel) exportExcel.onclick = function(){ bizExportAnalyticsExcel(); };
 
   var historyView = byId('bizHistoryView');
   if(historyView) historyView.onchange = function(){
