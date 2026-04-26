@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1"/>
-  <title>M&C-ATRD-scheduler --=Aspire Group=-- (V4.1.8)</title>
+  <title>M&C-ATRD-scheduler --=Aspire Group=-- (V4.1.10)</title>
   <meta name="theme-color" content="#22c55e"/>
 
   <style>
@@ -968,6 +968,39 @@
       box-shadow:
         inset 5px 0 0 rgba(255,45,149,.92),
         inset 0 0 0 1px rgba(255,255,255,.18);
+    }
+
+
+    .shift.covered-source {
+      border-style: dashed;
+      border-color: rgba(239,68,68,.82);
+      box-shadow:
+        0 8px 18px rgba(0,0,0,.30),
+        inset 0 0 0 999px rgba(255,255,255,.08);
+    }
+
+    .wo-chip.covered-source,
+    .print-chip.covered-source {
+      border: 1px dashed rgba(239,68,68,.75);
+      color: #ef4444;
+      background: repeating-linear-gradient(
+        135deg,
+        rgba(239,68,68,.10) 0 6px,
+        transparent 6px 12px
+      );
+    }
+
+    [data-theme="light"] .shift.covered-source {
+      border-color: rgba(220,38,38,.72);
+      box-shadow:
+        0 6px 14px rgba(0,0,0,.16),
+        inset 0 0 0 999px rgba(255,255,255,.18);
+    }
+
+    [data-theme="light"] .wo-chip.covered-source,
+    [data-theme="light"] .print-chip.covered-source {
+      border-color: rgba(220,38,38,.62);
+      color: #b91c1c;
     }
 
     .away-band {
@@ -2336,7 +2369,7 @@
       <div id="appLogoBox"></div>
       <div class="titlewrap">
         <div class="title" id="appTitle">M&C-ATRD-scheduler --=Aspire Group=--</div>
-        <div class="version-pill" id="appVersion">V4.1.8</div>
+        <div class="version-pill" id="appVersion">V4.1.10</div>
         <div class="sync-pill syncing" id="syncStatusChip" title="Sync status">Starting…</div>
       </div>
     </div>
@@ -4062,7 +4095,7 @@ var DAY = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 var App = {
   // IMPORTANT: Increment App.version *and* App.buildId whenever making functional changes to this file.
   // SAFETY NET: This build performs an automatic runtime check against the file name; if mismatched, it shows a blocking warning so it can't be overlooked.
-  version: 'V4.1.8',
+  version: 'V4.1.10',
     buildId: '2026-04-25.1',
 settings: {
     dbUrl:'https://mnc-atrd-default-rtdb.asia-southeast1.firebasedatabase.app/', workspace:'mnc-atrd', authToken:'',
@@ -4498,10 +4531,188 @@ function shiftAssignedStaffName(sh){
   try{ return (App.staff && App.staff[sid] && App.staff[sid].name) ? String(App.staff[sid].name) : ''; }catch(e){}
   return '';
 }
+function staffNameForId(sid, fallback){
+  sid = (sid==null ? '' : String(sid));
+  if(!sid) return (fallback!=null ? String(fallback) : '');
+  try{
+    if(App && App.staff && App.staff[sid] && App.staff[sid].name) return String(App.staff[sid].name);
+  }catch(e){}
+  return (fallback!=null ? String(fallback) : sid);
+}
+function shiftCoveredByStaffId(sh){
+  if(!sh || typeof sh !== 'object') return '';
+  return (sh.coveredByStaffId!=null ? String(sh.coveredByStaffId) : '');
+}
+function shiftCoveredByStaffName(sh){
+  var sid = shiftCoveredByStaffId(sh);
+  if(!sid) return '';
+  return staffNameForId(sid, sid);
+}
+function shiftIsCoveredSource(sh){
+  if(!sh || typeof sh !== 'object') return false;
+  return !!(sh.isCoveredSource || sh.coveredByShiftId || sh.coveredByStaffId);
+}
+function shiftCountsAsWorked(sh){
+  return !!sh && !shiftIsCoveredSource(sh);
+}
+function clearCoveredSourceMeta(sh){
+  if(!sh || typeof sh !== 'object') return sh;
+  delete sh.isCoveredSource;
+  delete sh.coveredByShiftId;
+  delete sh.coveredByStaffId;
+  return sh;
+}
+function applyCoveredSourceMeta(sh, coverStaffId, coverShiftId){
+  if(!sh || typeof sh !== 'object') return sh;
+  sh.isCoveredSource = true;
+  sh.coveredByStaffId = (coverStaffId==null ? '' : String(coverStaffId));
+  sh.coveredByShiftId = (coverShiftId==null ? '' : String(coverShiftId));
+  return sh;
+}
 function coveredByReasonText(sh){
   if(!shiftIsCover(sh)) return '';
   var who = shiftAssignedStaffName(sh) || 'another staff member';
   return 'Covered by ' + who;
+}
+function coveredSourceReasonText(sh){
+  if(shiftIsCoveredSource(sh)){
+    var who = shiftCoveredByStaffName(sh) || 'another staff member';
+    return 'Covered by ' + who;
+  }
+  return coveredByReasonText(sh);
+}
+function findCoveredSourceEntryLinkedToCover(weekIso, dayIndex, coverShiftId, baseStaffId){
+  try{
+    coverShiftId = String(coverShiftId || '');
+    baseStaffId = String(baseStaffId || '');
+    var day = (((App.weeks||{})[weekIso]||{})[String(dayIndex)]) || {};
+    var keys = Object.keys(day);
+    for(var i=0;i<keys.length;i++){
+      var key = keys[i];
+      var sh = day[key];
+      if(!sh || !shiftIsCoveredSource(sh)) continue;
+      if(coverShiftId && String(sh.coveredByShiftId||'') !== coverShiftId) continue;
+      if(baseStaffId && String(sh.staffId||'') !== baseStaffId) continue;
+      return {id:String(key||''), shift:sh};
+    }
+  }catch(e){}
+  return null;
+}
+function findSourceShiftEntryForBaseStaff(weekIso, dayIndex, baseStaffId, preferredSourceId){
+  try{
+    baseStaffId = String(baseStaffId || '');
+    preferredSourceId = String(preferredSourceId || '');
+    if(!baseStaffId) return null;
+    var day = (((App.weeks||{})[weekIso]||{})[String(dayIndex)]) || {};
+    if(preferredSourceId && day[preferredSourceId] && String((day[preferredSourceId]||{}).staffId||'') === baseStaffId){
+      return {id:preferredSourceId, shift:day[preferredSourceId]};
+    }
+    var entries = Object.keys(day).map(function(key){ return {id:String(key||''), shift:day[key]}; }).filter(function(entry){
+      return entry.shift && String(entry.shift.staffId||'') === baseStaffId;
+    });
+    entries.sort(function(a,b){
+      var aLinked = preferredSourceId && String((a.shift||{}).coveredByShiftId||'') === preferredSourceId ? -50 : 0;
+      var bLinked = preferredSourceId && String((b.shift||{}).coveredByShiftId||'') === preferredSourceId ? -50 : 0;
+      var aCovered = shiftIsCoveredSource(a.shift) ? -20 : 0;
+      var bCovered = shiftIsCoveredSource(b.shift) ? -20 : 0;
+      var sa = parse12(a.shift && a.shift.start);
+      var sb = parse12(b.shift && b.shift.start);
+      if(!isFinite(sa)) sa = 0;
+      if(!isFinite(sb)) sb = 0;
+      return aLinked + aCovered - bLinked - bCovered || sa - sb;
+    });
+    return entries[0] || null;
+  }catch(e){}
+  return null;
+}
+function clearCoveredSourceForCover(weekIso, dayIndex, coverShiftId){
+  try{
+    coverShiftId = String(coverShiftId || '');
+    if(!coverShiftId) return;
+    var day = (((App.weeks||{})[weekIso]||{})[String(dayIndex)]) || {};
+    Object.keys(day).forEach(function(key){
+      var sh = day[key];
+      if(!sh || !shiftIsCoveredSource(sh)) return;
+      if(String(sh.coveredByShiftId||'') !== coverShiftId) return;
+      clearCoveredSourceMeta(sh);
+    });
+  }catch(e){}
+}
+function ensureCoveredSourceShiftEntry(weekIso, dayIndex, baseStaffId, preferredSourceId, coverSourceCandidate, fallbackShift){
+  try{
+    baseStaffId = String(baseStaffId || '');
+    if(!baseStaffId) return null;
+    if(!App.weeks[weekIso]) App.weeks[weekIso] = {};
+    if(!App.weeks[weekIso][String(dayIndex)]) App.weeks[weekIso][String(dayIndex)] = {};
+    var day = App.weeks[weekIso][String(dayIndex)];
+    var entry = null;
+    if(coverSourceCandidate && coverSourceCandidate.shift && String(coverSourceCandidate.shift.staffId||'') === baseStaffId){
+      entry = coverSourceCandidate;
+    }
+    if(!entry){
+      entry = findSourceShiftEntryForBaseStaff(weekIso, dayIndex, baseStaffId, preferredSourceId);
+    }
+    if(!entry){
+      fallbackShift = fallbackShift || {};
+      var sourceId = String(preferredSourceId || uid());
+      day[sourceId] = buildShiftRecord({
+        id: sourceId,
+        staffId: baseStaffId,
+        baseStaffId: baseStaffId,
+        isCover: false,
+        day: dayIndex,
+        start: fallbackShift.start,
+        end: fallbackShift.end,
+        breakMins: (fallbackShift.breakMins!=null ? fallbackShift.breakMins : ''),
+        notes: fallbackShift.notes || '',
+        penalty: !!fallbackShift.penalty
+      });
+      entry = {id:sourceId, shift:day[sourceId]};
+    }
+    return entry;
+  }catch(e){}
+  return null;
+}
+function upsertCoverShiftForDay(weekIso, dayIndex, staffId, baseStaffId, coverShiftId, seed, preferredSourceId, coverSourceCandidate){
+  if(!App.weeks[weekIso]) App.weeks[weekIso] = {};
+  if(!App.weeks[weekIso][String(dayIndex)]) App.weeks[weekIso][String(dayIndex)] = {};
+  var day = App.weeks[weekIso][String(dayIndex)];
+  seed = seed || {};
+  var sourceEntry = ensureCoveredSourceShiftEntry(weekIso, dayIndex, baseStaffId, preferredSourceId, coverSourceCandidate, seed);
+  var targetId = String(coverShiftId || uid());
+  var rec = buildShiftRecord({
+    id: targetId,
+    staffId: staffId,
+    baseStaffId: baseStaffId,
+    isCover: true,
+    day: dayIndex,
+    start: seed.start,
+    end: seed.end,
+    breakMins: (seed.breakMins!=null ? seed.breakMins : ''),
+    notes: seed.notes || '',
+    penalty: !!seed.penalty
+  });
+  if(sourceEntry && sourceEntry.shift){
+    rec.sourceShiftId = String(sourceEntry.id || '');
+    rec.sourceShiftSnapshot = {
+      staffId: String(baseStaffId || ''),
+      start: sourceEntry.shift.start || seed.start,
+      end: sourceEntry.shift.end || seed.end,
+      breakMins: (sourceEntry.shift.breakMins!=null ? sourceEntry.shift.breakMins : (seed.breakMins!=null ? seed.breakMins : '')),
+      notes: sourceEntry.shift.notes || '',
+      penalty: !!sourceEntry.shift.penalty
+    };
+  }
+  day[targetId] = rec;
+  if(sourceEntry && sourceEntry.shift){
+    var src = sourceEntry.shift;
+    if(seed.start) src.start = seed.start;
+    if(seed.end) src.end = seed.end;
+    if(seed.breakMins!=null) src.breakMins = seed.breakMins;
+    src.baseStaffId = String(baseStaffId || src.staffId || '');
+    applyCoveredSourceMeta(src, staffId, targetId);
+  }
+  return {coverId:targetId, coverShift:rec, sourceEntry:sourceEntry};
 }
 function coveredSourceEntriesForDay(weekIso, dayIndex, staffId){
   var out = [];
@@ -4509,6 +4720,17 @@ function coveredSourceEntriesForDay(weekIso, dayIndex, staffId){
     staffId = String(staffId || '');
     if(!staffId || !App.weeks || !App.weeks[weekIso]) return out;
     var day = App.weeks[weekIso][String(dayIndex)] || {};
+    var linkedCoverIds = Object.create(null);
+
+    Object.keys(day).forEach(function(key){
+      var sh = day[key];
+      if(!sh || !shiftIsCoveredSource(sh)) return;
+      if(String(sh.staffId || '') !== staffId) return;
+      var coverId = String(sh.coveredByShiftId || '');
+      if(coverId) linkedCoverIds[coverId] = true;
+      out.push({id:String(key||''), shift:sh, fromSourceRecord:true});
+    });
+
     Object.keys(day).forEach(function(key){
       var sh = day[key];
       if(!sh || !shiftIsCover(sh)) return;
@@ -4516,8 +4738,25 @@ function coveredSourceEntriesForDay(weekIso, dayIndex, staffId){
       var base = shiftBaseStaffId(sh) || assigned;
       if(!base || assigned===base) return;
       if(String(base)!==staffId) return;
-      out.push({id:String(key||''), shift:sh});
+      if(linkedCoverIds[String(key||'')]) return;
+      var snap = (sh.sourceShiftSnapshot && typeof sh.sourceShiftSnapshot==='object') ? sh.sourceShiftSnapshot : {};
+      var src = {
+        id: String((snap.id!=null ? snap.id : '') || ''),
+        staffId: String((snap.staffId!=null ? snap.staffId : base) || base),
+        baseStaffId: String((snap.baseStaffId!=null ? snap.baseStaffId : base) || base),
+        day: (snap.day!=null ? snap.day : dayIndex),
+        start: (snap.start!=null ? snap.start : sh.start),
+        end: (snap.end!=null ? snap.end : sh.end),
+        breakMins: (snap.breakMins!=null ? snap.breakMins : sh.breakMins),
+        notes: (snap.notes!=null ? snap.notes : ''),
+        penalty: !!(snap.penalty!=null ? snap.penalty : sh.penalty),
+        isCoveredSource: true,
+        coveredByStaffId: assigned,
+        coveredByShiftId: String(key||'')
+      };
+      out.push({id:String(key||''), shift:src, fromSourceRecord:false, derivedFromCover:true});
     });
+
     out.sort(function(a,b){
       var sa = parse12(a && a.shift && a.shift.start);
       var sb = parse12(b && b.shift && b.shift.start);
@@ -4577,7 +4816,7 @@ function coveredShiftInfoLinesFor(iso, staffId){
     coveredSourceEntriesForDay(weekIso, dayIndex, staffId).forEach(function(entry){
       var sh = entry.shift || {};
       var range = shiftDisplayRange(sh);
-      pushLine('Covered shift ' + range + ': ' + coveredByReasonText(sh));
+      pushLine('Covered shift ' + range + ': ' + coveredSourceReasonText(sh));
     });
   }catch(e){}
   return lines;
@@ -4788,6 +5027,30 @@ function applyStaffChipAppearance(el, color, isCover){
   var bg = themeAdj(color || '#5A31F4');
   el.style.background = isCover ? coverChipBackground(color) : bg;
   el.style.color = idealText(bg);
+}
+function appendCoveredSourcePlannerChip(wrap, sh, shiftId, st, dayIndex){
+  if(!wrap || !sh) return;
+  var startM = parse12(sh.start), endM0 = parse12(sh.end);
+  var endM = (endM0<=startM) ? endM0 + 24*60 : endM0;
+  var span = gridEndMins()-gridStartMins();
+  var leftM = Math.max(0, Math.min(span, (isNaN(startM)?0:startM) - gridStartMins()));
+  var rightM = Math.max(0, Math.min(span, (isNaN(endM)?0:endM) - gridStartMins()));
+  var left = (leftM/span)*100;
+  var width = Math.max(0.5, ((rightM-leftM)/span)*100);
+  var work = hoursBetweenAny(sh.start, sh.end);
+  var ghost=document.createElement('div'); ghost.className='shift cover-source-ghost covered-source'; if(endM0<=startM) ghost.classList.add('overnight');
+  ghost.style.left=left+'%'; ghost.style.width=width+'%'; ghost.dataset.id=shiftId;
+  applyStaffChipAppearance(ghost, st.color||'#5A31F4', false);
+  ghost.title = st.name+' — '+shiftDisplayRange(sh)+' ('+coveredSourceReasonText(sh)+')';
+  var label=document.createElement('span'); label.className='label'; label.textContent=st.name; label.style.position='relative'; label.style.zIndex='3';
+  var hrs=document.createElement('span'); hrs.className='hours'; hrs.textContent=shiftDisplayRange(sh)+' ('+work.toFixed(2)+'h)'; hrs.style.position='relative'; hrs.style.zIndex='3';
+  ghost.appendChild(label); ghost.appendChild(hrs);
+  var awayBand=document.createElement('div'); awayBand.className='away-band'; awayBand.style.left='0'; awayBand.style.width='100%';
+  var awayChip=document.createElement('div'); awayChip.className='away-chip'; awayChip.textContent='AWAY';
+  awayChip.title = coveredSourceReasonText(sh);
+  ghost.appendChild(awayBand); ghost.appendChild(awayChip);
+  if(canEdit()) ghost.onclick=function(e){ e.stopPropagation(); openShiftModal({shiftId:shiftId, dayIndex:dayIndex}); };
+  wrap.appendChild(ghost);
 }
 
 // color helpers
@@ -7228,6 +7491,7 @@ function renderMyShifts(){
     Object.keys(ds).forEach(function(key){
       var sh=ds[key];
       if(sh.staffId===App.currentUser.id){
+        if(shiftIsCoveredSource(sh)) return;
         var shiftDur = hoursBetweenAny(sh.start, sh.end);
         var leaveH = leaveOverlapHours(dayISO, sh.staffId, sh);
         var workAfterLeave = Math.max(0, shiftDur - leaveH);
@@ -7727,6 +7991,10 @@ sc.appendChild(mini);
       var sh=dayShifts[sid];
       if(String(sh.staffId)!==String(id)) return;
       var work=hoursBetweenAny(sh.start, sh.end);
+      if(shiftIsCoveredSource(sh)){
+        appendCoveredSourcePlannerChip(wrap, sh, sid, st, Planner.activeDayIndex);
+        return;
+      }
       dayH+=work;
 
       var startM = parse12(sh.start), endM0 = parse12(sh.end);
@@ -7780,28 +8048,8 @@ sc.appendChild(mini);
     });
 
     coveredSourceEntriesForDay(Planner.weekStartISO, Planner.activeDayIndex, id).forEach(function(entry){
-      var sh = entry.shift || {};
-      var startM = parse12(sh.start), endM0 = parse12(sh.end);
-      var endM = (endM0<=startM) ? endM0 + 24*60 : endM0;
-      var span = gridEndMins()-gridStartMins();
-      var leftM = Math.max(0, Math.min(span, (isNaN(startM)?0:startM) - gridStartMins()));
-      var rightM = Math.max(0, Math.min(span, (isNaN(endM)?0:endM) - gridStartMins()));
-      var left = (leftM/span)*100;
-      var width = Math.max(0.5, ((rightM-leftM)/span)*100);
-      var work = hoursBetweenAny(sh.start, sh.end);
-      var ghost=document.createElement('div'); ghost.className='shift cover-source-ghost'; if(endM0<=startM) ghost.classList.add('overnight');
-      ghost.style.left=left+'%'; ghost.style.width=width+'%'; ghost.dataset.id=entry.id;
-      applyStaffChipAppearance(ghost, st.color||'#5A31F4', false);
-      ghost.title = st.name+' — '+shiftDisplayRange(sh)+' ('+coveredByReasonText(sh)+')';
-      var label=document.createElement('span'); label.className='label'; label.textContent=st.name; label.style.position='relative'; label.style.zIndex='3';
-      var hrs=document.createElement('span'); hrs.className='hours'; hrs.textContent=shiftDisplayRange(sh)+' ('+work.toFixed(2)+'h)'; hrs.style.position='relative'; hrs.style.zIndex='3';
-      ghost.appendChild(label); ghost.appendChild(hrs);
-      var awayBand=document.createElement('div'); awayBand.className='away-band'; awayBand.style.left='0'; awayBand.style.width='100%';
-      var awayChip=document.createElement('div'); awayChip.className='away-chip'; awayChip.textContent='AWAY';
-      awayChip.title = coveredByReasonText(sh);
-      ghost.appendChild(awayBand); ghost.appendChild(awayChip);
-      if(canEdit()) ghost.onclick=function(e){ e.stopPropagation(); openShiftModal({shiftId:entry.id, dayIndex:Planner.activeDayIndex}); };
-      wrap.appendChild(ghost);
+      if(entry && entry.fromSourceRecord) return;
+      appendCoveredSourcePlannerChip(wrap, entry.shift || {}, entry.id, st, Planner.activeDayIndex);
     });
 
     // away overlays
@@ -7810,7 +8058,7 @@ sc.appendChild(mini);
     var weekH=0;
     for(var d=0; d<7; d++){
       var ds=week[String(d)]||{};
-      Object.keys(ds).forEach(function(k){ var sh=ds[k]; if(sh.staffId===id) weekH+=hoursBetweenAny(sh.start, sh.end); });
+      Object.keys(ds).forEach(function(k){ var sh=ds[k]; if(sh && sh.staffId===id && shiftCountsAsWorked(sh)) weekH+=hoursBetweenAny(sh.start, sh.end); });
     }
     badge.textContent=weekH.toFixed(2)+'h wk'; badge.title='Today: '+dayH.toFixed(2)+'h';
 
@@ -7869,6 +8117,7 @@ function openShiftModal(opts){
     originalStaffId: '',
     originalBaseStaffId: '',
     coverSourceShiftId: '',
+    originalSourceShiftId: '',
     originalDayIndex: (opts && opts.dayIndex!=null ? parseInt(opts.dayIndex,10) : Planner.activeDayIndex)
   });
 
@@ -8040,27 +8289,44 @@ function openShiftModal(opts){
     if(!sh && wk[dk]){ var keys=Object.keys(wk[dk]); for(var i=0;i<keys.length;i++){ var key=keys[i], val=wk[dk][key]; if(val && val.id===opts.shiftId){ sh=val; opts.shiftId=key; break; } } }
     if(!sh){ alert('Shift not found'); closeShiftModal(); return; }
 
+    var linkedSourceId = '';
+    var sourceShiftId = String(opts.shiftId||'');
+    var shiftForEdit = sh;
+    var editShiftId = String(opts.shiftId||'');
+    if(shiftIsCoveredSource(sh)){
+      linkedSourceId = sourceShiftId;
+      var linkedCoverId = String(sh.coveredByShiftId||'');
+      if(linkedCoverId && wk[dk] && wk[dk][linkedCoverId] && shiftIsCover(wk[dk][linkedCoverId])){
+        shiftForEdit = wk[dk][linkedCoverId];
+        editShiftId = linkedCoverId;
+      }
+    }else if(shiftIsCover(sh)){
+      var linkedSourceEntry = findCoveredSourceEntryLinkedToCover(Planner.weekStartISO, parseInt(opts.dayIndex,10), String(opts.shiftId||''), String(shiftBaseStaffId(sh) || sh.staffId || ''));
+      if(linkedSourceEntry && linkedSourceEntry.id) linkedSourceId = String(linkedSourceEntry.id||'');
+    }
+
     var state = resetShiftModalState({
       openedFromExisting: true,
-      originalShiftId: String(opts.shiftId||''),
-      originalShift: JSON.parse(JSON.stringify(sh)),
-      originalStaffId: String(sh.staffId||''),
-      originalBaseStaffId: String(shiftBaseStaffId(sh) || sh.staffId || ''),
-      coverSourceShiftId: String(opts.shiftId||''),
+      originalShiftId: String((shiftForEdit && shiftForEdit.id) || editShiftId || (opts.shiftId||'')),
+      originalShift: JSON.parse(JSON.stringify(shiftForEdit)),
+      originalStaffId: String((shiftForEdit && shiftForEdit.staffId) || ''),
+      originalBaseStaffId: String(shiftBaseStaffId(shiftForEdit) || (shiftForEdit && shiftForEdit.staffId) || ''),
+      coverSourceShiftId: String(linkedSourceId || opts.shiftId || ''),
+      originalSourceShiftId: String(linkedSourceId || ''),
       originalDayIndex: parseInt(opts.dayIndex,10)
     });
 
-    Planner.editingShift={id:opts.shiftId, dayIndex:opts.dayIndex};
-    selS.value=String(sh.staffId||'');
+    Planner.editingShift={id:state.originalShiftId, dayIndex:opts.dayIndex};
+    selS.value=String((shiftForEdit && shiftForEdit.staffId) || '');
     selD.value=String(opts.dayIndex);
     updateShiftDateLabel();
 
-    applyShiftFieldsFromRecord(sh, {copyNotes:false});
-    byId('shiftNotes').value=sh.notes||'';
-    byId('shiftPenalty').checked=!!sh.penalty;
+    applyShiftFieldsFromRecord(shiftForEdit, {copyNotes:false});
+    byId('shiftNotes').value=(shiftForEdit && shiftForEdit.notes)||'';
+    byId('shiftPenalty').checked=!!(shiftForEdit && shiftForEdit.penalty);
     byId('btnDeleteShift').style.display='inline-block';
 
-    var editIsCover = shiftIsCover(sh);
+    var editIsCover = !!(shiftForEdit && shiftIsCover(shiftForEdit));
     if(coverChk) coverChk.checked = editIsCover;
     if(selCover) selCover.value = state.originalBaseStaffId || state.originalStaffId || selS.value || '';
     syncShiftCoverUi(editIsCover);
@@ -8074,6 +8340,7 @@ function openShiftModal(opts){
       originalStaffId: '',
       originalBaseStaffId: '',
       coverSourceShiftId: '',
+      originalSourceShiftId: '',
       originalDayIndex: String((opts && opts.dayIndex)!=null?opts.dayIndex:Planner.activeDayIndex)
     });
 
@@ -8159,32 +8426,28 @@ function saveShiftFromModal(){
   var coverSource = null;
   if(isCoverShift){
     coverSource = findShiftEntryForCoverSource(Planner.weekStartISO, dayIndex, baseStaffId, {
-      preferredShiftId: state.coverSourceShiftId || '',
+      preferredShiftId: state.coverSourceShiftId || state.originalSourceShiftId || '',
       preferredStart: start12,
       preferredEnd: end12
     });
     if(coverSource && coverSource.id) state.coverSourceShiftId = String(coverSource.id||'');
   }
 
-  var preserveExistingShiftAsRegular = !!(
-    Planner.editingShift &&
-    state && state.originalShift &&
-    !shiftIsCover(state.originalShift) &&
-    isCoverShift &&
-    String(state.originalStaffId||'')===String(staffId||'') &&
-    String(baseStaffId||'')!==String(staffId||'')
-  );
+  var editingExistingCover = !!(Planner.editingShift && state && state.originalShift && shiftIsCover(state.originalShift));
+  var createSeparateCoverFromExisting = !!(Planner.editingShift && state && state.originalShift && !shiftIsCover(state.originalShift) && isCoverShift);
+  var validCoverSource = !!(coverSource && coverSource.shift && String(coverSource.shift.staffId||'')===String(baseStaffId||''));
+  var canCreateSourceFromOriginal = !!(Planner.editingShift && state && state.originalShift && !shiftIsCover(state.originalShift) && String(state.originalStaffId||'')!==String(staffId||''));
 
-  if(preserveExistingShiftAsRegular && !(coverSource && coverSource.id)){
+  if(isCoverShift && !validCoverSource && !editingExistingCover && !canCreateSourceFromOriginal){
     return alert('Could not find the original rostered shift to link this cover. Open the rostered staff shift to assign the cover, or choose the rostered staff with an existing shift on this day.');
   }
 
-  var skipEditingShiftDuringOverlap = !!(Planner.editingShift && !preserveExistingShiftAsRegular);
+  var skipEditingShiftDuringOverlap = !!(Planner.editingShift && !createSeparateCoverFromExisting);
   var keys=Object.keys(existing);
   for(var i=0;i<keys.length;i++){
     var sid=keys[i], sh=existing[sid];
     if(skipEditingShiftDuringOverlap && sid===Planner.editingShift.id) continue;
-    if(sh.staffId!==staffId) continue;
+    if(sh.staffId!==staffId || shiftIsCoveredSource(sh)) continue;
     var s0=parse12(sh.start), e0=parse12(sh.end); if(e0<=s0) e0+=1440;
     if(ns<e0 && ne>s0){ alert('Overlap with another shift for this staff on this day.'); return; }
   }
@@ -8193,25 +8456,40 @@ function saveShiftFromModal(){
     var nextDay = App.weeks[Planner.weekStartISO][String(nextIdx)]||{};
     var nextKeys=Object.keys(nextDay);
     for(var j=0;j<nextKeys.length;j++){
-      var shn=nextDay[nextKeys[j]]; if(shn.staffId!==staffId) continue;
+      var shn=nextDay[nextKeys[j]]; if(shn.staffId!==staffId || shiftIsCoveredSource(shn)) continue;
       var s1=parse12(shn.start), e1=parse12(shn.end); if(e1<=s1) e1+=1440;
       s1+=1440; e1+=1440;
       if(ns<e1 && ne>s1){ if(!confirm('Overnight shift overlaps a shift on next day for this staff. Create anyway?')) return; break; }
     }
   }
 
+  if(Planner.editingShift && state && state.originalShift && (editingExistingCover || state.originalSourceShiftId)){
+    clearCoveredSourceForCover(Planner.weekStartISO, (state.originalDayIndex!=null ? state.originalDayIndex : dayIndex), String(Planner.editingShift.id||''));
+  }
+
   var targetShiftId = '';
-  if(Planner.editingShift && !preserveExistingShiftAsRegular){
-    targetShiftId = String(Planner.editingShift.id||'');
-  }
-  if(isCoverShift && coverSource && coverSource.id){
-    targetShiftId = String(coverSource.id||'');
+  if(isCoverShift){
+    var seed = {start:start12, end:end12, breakMins:breakMins, notes:notes, penalty:penalty};
+    var preferredSourceId = state.originalSourceShiftId || state.coverSourceShiftId || '';
+    var upsert = upsertCoverShiftForDay(Planner.weekStartISO, dayIndex, staffId, baseStaffId, (editingExistingCover ? String(Planner.editingShift.id||'') : ''), seed, preferredSourceId, coverSource);
+    targetShiftId = String(upsert.coverId||'');
+  }else{
+    if(Planner.editingShift && !createSeparateCoverFromExisting){
+      targetShiftId = String(Planner.editingShift.id||'');
+    }
+    if(targetShiftId){
+      existing[targetShiftId] = makeShiftPayload(targetShiftId, dayIndex);
+      clearCoveredSourceMeta(existing[targetShiftId]);
+      delete existing[targetShiftId].sourceShiftId;
+      delete existing[targetShiftId].sourceShiftSnapshot;
+    }
+    else {
+      targetShiftId = uid();
+      existing[targetShiftId] = makeShiftPayload(targetShiftId, dayIndex);
+    }
   }
 
-  if(targetShiftId){ existing[targetShiftId] = makeShiftPayload(targetShiftId, dayIndex); }
-  else { targetShiftId = uid(); existing[targetShiftId] = makeShiftPayload(targetShiftId, dayIndex); }
-
-  if(Planner.editingShift && !preserveExistingShiftAsRegular && String(Planner.editingShift.dayIndex)!==String(dayIndex)){
+  if(Planner.editingShift && !createSeparateCoverFromExisting && String(Planner.editingShift.dayIndex)!==String(dayIndex)){
     var prevDay = (((App.weeks||{})[Planner.weekStartISO]||{})[String(Planner.editingShift.dayIndex)]||{});
     if(prevDay[Planner.editingShift.id]) delete prevDay[Planner.editingShift.id];
   }
@@ -8219,22 +8497,22 @@ function saveShiftFromModal(){
   var checks = byId('daysThisWeek') ? Array.from(byId('daysThisWeek').querySelectorAll('input[type=checkbox]:checked')).map(function(x){return parseInt(x.value,10);}) : [];
   if(checks.length>0){
     checks.forEach(function(di){
-      if(di===dayIndex && (Planner.editingShift || preserveExistingShiftAsRegular)) return;
+      if(di===dayIndex && Planner.editingShift) return;
       if(!App.weeks[Planner.weekStartISO][String(di)]) App.weeks[Planner.weekStartISO][String(di)]={};
       var ex=App.weeks[Planner.weekStartISO][String(di)];
       var clash=false; var ns0=parse12(start12), ne00=parse12(end12); var ne0x = (ne00<=ns0)?ne00+1440:ne00;
-      Object.keys(ex).forEach(function(k){ var s0=ex[k]; if(s0.staffId!==staffId) return; var s=parse12(s0.start), e=parse12(s0.end); if(e<=s) e+=1440; if(ns0<e && ne0x>s) clash=true; });
+      Object.keys(ex).forEach(function(k){ var s0=ex[k]; if(!s0 || s0.staffId!==staffId || shiftIsCoveredSource(s0)) return; var s=parse12(s0.start), e=parse12(s0.end); if(e<=s) e+=1440; if(ns0<e && ne0x>s) clash=true; });
       if(clash) return;
-      var targetIdForDay = '';
       if(isCoverShift){
         var sourceForDay = findShiftEntryForCoverSource(Planner.weekStartISO, di, baseStaffId, {
           preferredStart: start12,
           preferredEnd: end12
         });
-        if(sourceForDay && sourceForDay.id) targetIdForDay = String(sourceForDay.id||'');
+        upsertCoverShiftForDay(Planner.weekStartISO, di, staffId, baseStaffId, '', {start:start12, end:end12, breakMins:breakMins, notes:notes, penalty:penalty}, '', sourceForDay);
+      }else{
+        var targetIdForDay = uid();
+        ex[targetIdForDay]=makeShiftPayload(targetIdForDay, di);
       }
-      if(!targetIdForDay) targetIdForDay = uid();
-      ex[targetIdForDay]=makeShiftPayload(targetIdForDay, di);
     });
   }
 
@@ -8247,16 +8525,16 @@ function saveShiftFromModal(){
       daysToUse.forEach(function(di){
         if(!App.weeks[isoW][String(di)]) App.weeks[isoW][String(di)]={};
         var targetWeekDay = App.weeks[isoW][String(di)];
-        var targetIdForWeek = '';
         if(isCoverShift){
           var sourceForWeek = findShiftEntryForCoverSource(isoW, di, baseStaffId, {
             preferredStart: start12,
             preferredEnd: end12
           });
-          if(sourceForWeek && sourceForWeek.id) targetIdForWeek = String(sourceForWeek.id||'');
+          upsertCoverShiftForDay(isoW, di, staffId, baseStaffId, '', {start:start12, end:end12, breakMins:breakMins, notes:notes, penalty:penalty}, '', sourceForWeek);
+        }else{
+          var targetIdForWeek = uid();
+          targetWeekDay[targetIdForWeek]=makeShiftPayload(targetIdForWeek, di);
         }
-        if(!targetIdForWeek) targetIdForWeek = uid();
-        targetWeekDay[targetIdForWeek]=makeShiftPayload(targetIdForWeek, di);
       });
     }
   }
@@ -8269,7 +8547,17 @@ function deleteShiftFromModal(){
   if(!Planner.editingShift){ closeShiftModal(); return; }
   if(!confirm('Delete this shift? This only affects the current roster until you push changes.')) return;
   var dk=String(Planner.editingShift.dayIndex);
-  if(App.weeks[Planner.weekStartISO] && App.weeks[Planner.weekStartISO][dk] && App.weeks[Planner.weekStartISO][dk][Planner.editingShift.id]) delete App.weeks[Planner.weekStartISO][dk][Planner.editingShift.id];
+  var day = (App.weeks[Planner.weekStartISO] && App.weeks[Planner.weekStartISO][dk]) ? App.weeks[Planner.weekStartISO][dk] : null;
+  var sh = day && day[Planner.editingShift.id] ? day[Planner.editingShift.id] : null;
+  if(day && sh){
+    if(shiftIsCover(sh)){
+      clearCoveredSourceForCover(Planner.weekStartISO, Planner.editingShift.dayIndex, String(Planner.editingShift.id||''));
+    }else if(shiftIsCoveredSource(sh)){
+      var linkedCoverId = String(sh.coveredByShiftId||'');
+      if(linkedCoverId && day[linkedCoverId]) delete day[linkedCoverId];
+    }
+    delete day[Planner.editingShift.id];
+  }
   saveLocal(); closeShiftModal(); renderPlanner(); renderPayroll(); try{ byId('tabMyRequests').style.display='inline-block'; }catch(e){}
   renderMyShifts();
 }
@@ -8426,7 +8714,7 @@ function renderWeekOverview(){
     }
 
     Object.keys(ds).forEach(function(k){
-      var sh = ds[k]; if(!sh || sh.staffId==null) return;
+      var sh = ds[k]; if(!sh || sh.staffId==null || shiftIsCoveredSource(sh)) return;
       var st = App.staff && App.staff[sh.staffId] ? App.staff[sh.staffId] : null;
       if(!st) return;
       if((st.role||'staff')==='admin' || st.hidden) return;
@@ -8502,6 +8790,13 @@ function renderWeekOverview(){
       Object.keys(ds).forEach(function(k){
         var sh=ds[k]; if(sh.staffId!==id) return;
         var chip=document.createElement('div'); chip.className='wo-chip';
+        if(shiftIsCoveredSource(sh)){
+          chip.classList.add('covered-source');
+          chip.textContent='AWAY '+shiftDisplayRange(sh);
+          chip.title = coveredSourceReasonText(sh);
+          cell.appendChild(chip);
+          return;
+        }
         var isCover = shiftIsCover(sh);
         if(isCover) chip.classList.add('cover-shift');
         applyStaffChipAppearance(chip, s.color||'#5A31F4', isCover);
@@ -8544,7 +8839,7 @@ function updateWeekOverviewHours(){
     var dayHours = 0;
     Object.keys(ds).forEach(function(k){
       var sh = ds[k];
-      if(!sh || String(sh.staffId)!==String(sid)) return;
+      if(!sh || String(sh.staffId)!==String(sid) || shiftIsCoveredSource(sh)) return;
       var dur = hoursBetweenAny(sh.start, sh.end);
       var brM = (breakMinutesForShift(sh, st) || 0) / 60;
       if(brM > dur) brM = dur;
@@ -10032,8 +10327,7 @@ function renderAbsenceCalendar(){
         if(!iso2 || !sid2) return;
 
         // Prefer showing the exact clicked entry's reason immediately.
-        var staffName = sid2;
-        try{ if(window.App && App.staff && App.staff[sid2] && App.staff[sid2].name) staffName = App.staff[sid2].name; }catch(e){}
+        var staffName = staffNameForId(sid2, sid2);
         var dateLabel = iso2;
         try{ dateLabel = fmtDMY(fromISO(iso2)); }catch(e){}
 
@@ -12177,7 +12471,7 @@ function weekHasAnyData(weekIso, staffId){
   Object.keys(wk).forEach(function(day){
     if(found) return;
     var ds = wk[day] || {};
-    Object.keys(ds).forEach(function(k){ if(ds[k] && String(ds[k].staffId) === String(staffId)) found = true; });
+    Object.keys(ds).forEach(function(k){ if(ds[k] && String(ds[k].staffId) === String(staffId) && shiftCountsAsWorked(ds[k])) found = true; });
   });
   if(found) return true;
   var adj = ((App.payrollAdjustments||{})[weekIso]||{})[staffId];
@@ -12214,7 +12508,7 @@ function computeWeekPayrollBreakdown(weekIso, staffId){
     var dayCum = 0;
     keys.forEach(function(k){
       var sh = ds[k];
-      if(!sh || String(sh.staffId) !== String(staffId)) return;
+      if(!sh || String(sh.staffId) !== String(staffId) || shiftIsCoveredSource(sh)) return;
       var shiftDur = hoursBetweenAny(sh.start, sh.end);
       var leaveH = leaveOverlapHours(iso, staffId, sh);
       var workAfterLeave = Math.max(0, shiftDur - leaveH);
@@ -15717,11 +16011,18 @@ function buildPrintView(){
         var ds=(App.weeks[ws] && App.weeks[ws][String(day)]) ? App.weeks[ws][String(day)] : {};
         Object.keys(ds).forEach(function(k){
           var sh=ds[k]; if(sh.staffId!==id) return;
-          var chip=document.createElement('span'); chip.className='print-chip'; var isCoverPrint=shiftIsCover(sh); applyStaffChipAppearance(chip, st.color||'#5A31F4', isCoverPrint); chip.textContent=shiftDisplayRange(sh);
-          if(isCoverPrint){
-            chip.classList.add('cover-shift');
-            chip.textContent += ' ↺';
-            chip.title = 'Covering for ' + (shiftBaseStaffName(sh) || 'set roster');
+          var chip=document.createElement('span'); chip.className='print-chip';
+          if(shiftIsCoveredSource(sh)){
+            chip.classList.add('covered-source');
+            chip.textContent='AWAY '+shiftDisplayRange(sh);
+            chip.title = coveredSourceReasonText(sh);
+          }else{
+            var isCoverPrint=shiftIsCover(sh); applyStaffChipAppearance(chip, st.color||'#5A31F4', isCoverPrint); chip.textContent=shiftDisplayRange(sh);
+            if(isCoverPrint){
+              chip.classList.add('cover-shift');
+              chip.textContent += ' ↺';
+              chip.title = 'Covering for ' + (shiftBaseStaffName(sh) || 'set roster');
+            }
           }
           (function(sh){
   try{
@@ -16480,9 +16781,42 @@ var pushedOk = true;
 };
 
 
+try{
+  window.App = App;
+  window.byId = byId;
+  window.fromISO = fromISO;
+  window.fmtDMY = fmtDMY;
+  window.displayTimeRange12 = displayTimeRange12;
+  window.staffNameForId = staffNameForId;
+  window.getRecurringUnavailabilityForDate = getRecurringUnavailabilityForDate;
+  window.coveredShiftInfoLinesFor = coveredShiftInfoLinesFor;
+  window.isoDayIndexMon0 = isoDayIndexMon0;
+}catch(e){}
+
 })();
 // === INFO helpers (dual RTDB paths + robust keys) ===
 (function(){
+  var App = window.App || null;
+  var byId = window.byId || function(id){ return document.getElementById(id); };
+  var fromISO = window.fromISO || function(iso){ return new Date(String(iso || '') + 'T00:00:00'); };
+  var fmtDMY = window.fmtDMY || function(d){ try{ return new Date(d).toLocaleDateString(); }catch(e){ return String(d||''); } };
+  var displayTimeRange12 = window.displayTimeRange12 || function(start, end){ return String(start||'') + '–' + String(end||''); };
+  var staffNameForId = window.staffNameForId || function(sid, fallback){
+    sid = (sid==null ? '' : String(sid));
+    try{
+      if(App && App.staff && App.staff[sid] && App.staff[sid].name) return String(App.staff[sid].name);
+    }catch(e){}
+    return (fallback!=null ? String(fallback) : sid);
+  };
+  var getRecurringUnavailabilityForDate = window.getRecurringUnavailabilityForDate || function(){ return []; };
+  var coveredShiftInfoLinesFor = window.coveredShiftInfoLinesFor || function(){ return []; };
+  var isoDayIndexMon0 = window.isoDayIndexMon0 || function(iso){
+    try{
+      var d = fromISO(iso);
+      var day = d.getDay();
+      return day===0 ? 6 : day-1;
+    }catch(e){ return -1; }
+  };
   function getDayRec(map, iso, sid){
     try{
       var day = (map && map[iso]) ? map[iso] : null;
@@ -16505,8 +16839,9 @@ var pushedOk = true;
     try{
       Object.keys(container).forEach(function(k){
         var r=container[k]; if(!r) return;
-        if(r.reason) out.push('['+k+'] '+prefix+r.reason);
-        if(r.blocks && r.blocks.length){ r.blocks.forEach(function(b){ if(b && b.reason){ out.push('['+k+'] '+prefix+'('+displayTimeRange12(b.start, b.end)+'): '+b.reason); } }); }
+        var who = staffNameForId(k, 'Staff ' + k);
+        if(r.reason) out.push('['+who+'] '+prefix+r.reason);
+        if(r.blocks && r.blocks.length){ r.blocks.forEach(function(b){ if(b && b.reason){ out.push('['+who+'] '+prefix+'('+displayTimeRange12(b.start, b.end)+'): '+b.reason); } }); }
       });
     }catch(e){} return out;
   }
@@ -16517,10 +16852,7 @@ var pushedOk = true;
   }
   window.openInfoForCell = async function(iso, staffId){
     staffId = String(staffId);
-    var staffName = staffId;
-    try{
-      if(window.App && App.staff && App.staff[staffId] && App.staff[staffId].name) staffName = App.staff[staffId].name;
-    }catch(e){}
+    var staffName = staffNameForId(staffId, 'Staff ' + staffId);
     var dateLabel = iso;
     try{ dateLabel = fmtDMY(fromISO(iso)); }catch(e){}
     var title = 'Info for this day — ' + staffName + ' — ' + dateLabel;
@@ -16549,14 +16881,36 @@ var pushedOk = true;
       if(mm && !mm._bound){ mm._bound=true; mm.onclick=function(ev){ if(ev && ev.target===mm) closeInfoModalSafe(); }; }
     }catch(e){}
 
+    var seenLines = Object.create(null);
+    var lines=[];
+    function pushLine(line){
+      line = String(line||'').trim();
+      if(!line || seenLines[line]) return;
+      seenLines[line] = true;
+      lines.push(line);
+    }
+    function labelStaff(k){
+      var nm = staffNameForId(k, 'Staff ' + k);
+      return nm;
+    }
+    function getDayRec(map, iso2, sid){
+      try{
+        var day = (map && map[iso2]) ? map[iso2] : null;
+        if(!day) return null;
+        if(day[sid]!=null) return day[sid];
+        var s = String(sid); if(day[s]!=null) return day[s];
+        var n = Number(sid); if(!isNaN(n) && day[n]!=null) return day[n];
+      }catch(e){}
+      return null;
+    }
     function addLinesFromRec(rec, label, suffix){
       if(!rec) return;
       if(rec.unavailable){
         var r0 = (rec.reason!=null ? String(rec.reason).trim() : '');
         if(!r0) r0='(no reason recorded)';
-        var msg = label + ' away (full-day): ' + r0;
+        var msg = label + ' away (full day): ' + r0;
         if(suffix) msg += ' ' + suffix;
-        lines.push(msg);
+        pushLine(msg);
       }
       if(Array.isArray(rec.blocks) && rec.blocks.length){
         rec.blocks.forEach(function(b){
@@ -16567,12 +16921,35 @@ var pushedOk = true;
           if(!r1) r1='(no reason recorded)';
           seg += ': ' + r1;
           if(suffix) seg += ' ' + suffix;
-          lines.push(seg);
+          pushLine(seg);
         });
       }
     }
+    function collect(container, sid, prefix){
+      if(!container) return;
+      var one = container[sid] || container[String(sid)] || container[Number(sid)];
+      if(one){
+        if(one.reason) pushLine(prefix + one.reason);
+        if(one.blocks && one.blocks.length){
+          for(var i=0;i<one.blocks.length;i++){
+            var b=one.blocks[i];
+            if(b && b.reason) pushLine(prefix+'('+displayTimeRange12(b.start, b.end)+'): '+b.reason);
+          }
+        }
+        return;
+      }
+      try{
+        Object.keys(container).forEach(function(k){
+          var r=container[k]; if(!r) return;
+          var who = labelStaff(k);
+          if(r.reason) pushLine('['+who+'] '+prefix+r.reason);
+          if(r.blocks && r.blocks.length){
+            r.blocks.forEach(function(b){ if(b && b.reason){ pushLine('['+who+'] '+prefix+'('+displayTimeRange12(b.start, b.end)+'): '+b.reason); } });
+          }
+        });
+      }catch(e){}
+    }
 
-    var lines=[];
     try{
       var localApproved = getDayRec(App.availability, iso, staffId);
       addLinesFromRec(localApproved, 'Approved', '— on roster');
@@ -16594,24 +16971,15 @@ var pushedOk = true;
                 range = ' (range ' + sL + ' to ' + eL + ')';
               }
             }catch(err){}
-            lines.push('Recurring unavailable: ' + rr + range);
+            pushLine('Recurring unavailable: ' + rr + range);
           });
         }
       }catch(e){}
       try{
         var coverInfo = coveredShiftInfoLinesFor(iso, staffId) || [];
-        if(coverInfo.length){
-          coverInfo.forEach(function(line){ lines.push(line); });
-        }
+        if(coverInfo.length) coverInfo.forEach(function(line){ pushLine(line); });
       }catch(e){}
     }catch(e){}
-
-    if(lines.length){
-      openInfoModalSafe(title, lines.join('\n\n'));
-      return;
-    }
-
-    openInfoModalSafe(title, 'Loading info...');
 
     try{
       var dbUrlEl = document.getElementById('dbUrlInput');
@@ -16622,76 +16990,63 @@ var pushedOk = true;
       var workspace = (wsEl && wsEl.value.trim()) || (window.App && App.settings && App.settings.workspace) || 'mnc-atrd';
       var auth = (authEl && authEl.value.trim()) || (window.App && App.settings && App.settings.authToken) || '';
 
-      if(!dbUrl || !workspace){
-        openInfoModalSafe(title, 'No info recorded for this day.');
-        return;
-      }
+      if(dbUrl && workspace){
+        dbUrl = dbUrl.replace(/\/+$/,'');
+        workspace = workspace.replace(/^\/+/, '');
+        var base = dbUrl + '/' + workspace;
+        async function fetchJson(path){
+          try{
+            var url = base + path + '.json' + (auth ? ('?auth='+encodeURIComponent(auth)) : '');
+            var res = await fetch(url);
+            if(!res.ok) return null;
+            return await res.json();
+          }catch(e){ return null; }
+        }
 
-      dbUrl = dbUrl.replace(/\/+$/,'');
-      workspace = workspace.replace(/^\/+/,'');
-      var base = dbUrl + '/' + workspace;
+        var dayAvail = await fetchJson('/availability/' + encodeURIComponent(iso));
+        if(dayAvail){
+          addLinesFromRec(dayAvail[staffId] || dayAvail[String(staffId)] || dayAvail[Number(staffId)], 'Approved', '— on roster');
+        }
 
-      async function fetchJson(path){
+        var dayReqs = await fetchJson('/absenceRequests/' + encodeURIComponent(iso));
+        if(dayReqs){
+          addLinesFromRec(dayReqs[staffId] || dayReqs[String(staffId)] || dayReqs[Number(staffId)], 'Pending', '— requested');
+        }
+
         try{
-          var url = base + path + '.json' + (auth ? ('?auth='+encodeURIComponent(auth)) : '');
-          var res = await fetch(url);
-          if(!res.ok) return null;
-          return await res.json();
-        }catch(e){
-          return null;
-        }
-      }
-
-      var dayAvail = await fetchJson('/availability/' + encodeURIComponent(iso));
-      if(dayAvail){
-        var rec = dayAvail[staffId] || dayAvail[String(staffId)] || dayAvail[Number(staffId)];
-        addLinesFromRec(rec, 'Approved', '— on roster');
-      }
-
-      var dayReqs = await fetchJson('/absenceRequests/' + encodeURIComponent(iso));
-      if(dayReqs){
-        var req = dayReqs[staffId] || dayReqs[String(staffId)] || dayReqs[Number(staffId)];
-        addLinesFromRec(req, 'Pending', '— requested');
-      }
-
-      try{
-        var recMap = await fetchJson('/recurringUnavailability/' + encodeURIComponent(staffId));
-        if(recMap){
-          var idx = isoDayIndexMon0(iso);
-          Object.keys(recMap).forEach(function(k){
-            var r = recMap[k]; if(!r) return;
-            var days = r.days; if(!Array.isArray(days)) days=[];
-            var ok=false;
-            for(var i=0;i<days.length;i++){ if(parseInt(days[i],10)===idx){ ok=true; break; } }
-            if(!ok) return;
-            var s = (r.startISO!=null?String(r.startISO):'');
-            var e = (r.endISO!=null?String(r.endISO):'');
-            if(s && String(iso) < s) return;
-            if(e && String(iso) > e) return;
-            var rr = (r.reason!=null ? String(r.reason).trim() : '');
-            if(!rr) rr='(no reason recorded)';
-            var range='';
-            try{
-              if(s || e){
-                var sL = s ? fmtDMY(fromISO(s)) : '?';
-                var eL = e ? fmtDMY(fromISO(e)) : 'ongoing';
-                range = ' (range ' + sL + ' to ' + eL + ')';
-              }
-            }catch(err){}
-            lines.push('Recurring unavailable: ' + rr + range);
-          });
-        }
-      }catch(e){}
-
-      if(!lines.length){
-        openInfoModalSafe(title, 'No info recorded for this day.');
-      }else{
-        openInfoModalSafe(title, lines.join('\n\n'));
+          var recMap = await fetchJson('/recurringUnavailability/' + encodeURIComponent(staffId));
+          if(recMap){
+            var idx = isoDayIndexMon0(iso);
+            Object.keys(recMap).forEach(function(k){
+              var r = recMap[k]; if(!r) return;
+              var days = r.days; if(!Array.isArray(days)) days=[];
+              var ok=false;
+              for(var i=0;i<days.length;i++){ if(parseInt(days[i],10)===idx){ ok=true; break; } }
+              if(!ok) return;
+              var s = (r.startISO!=null?String(r.startISO):'');
+              var e = (r.endISO!=null?String(r.endISO):'');
+              if(s && String(iso) < s) return;
+              if(e && String(iso) > e) return;
+              var rr = (r.reason!=null ? String(r.reason).trim() : '');
+              if(!rr) rr='(no reason recorded)';
+              var range='';
+              try{
+                if(s || e){
+                  var sL = s ? fmtDMY(fromISO(s)) : '?';
+                  var eL = e ? fmtDMY(fromISO(e)) : 'ongoing';
+                  range = ' (range ' + sL + ' to ' + eL + ')';
+                }
+              }catch(err){}
+              pushLine('Recurring unavailable: ' + rr + range);
+            });
+          }
+        }catch(e){}
       }
     }catch(e){
       console.error('INFO lookup failed', e);
-      openInfoModalSafe(title, 'No info recorded for this day.');
     }
+
+    openInfoModalSafe(title, lines.length ? lines.join('\n\n') : 'No info recorded for this day.');
   };
 })();</script>
 
