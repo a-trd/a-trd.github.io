@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1"/>
-  <title>M&C-ATRD-scheduler --=Aspire Group=-- (V4.1.3)</title>
+  <title>M&C-ATRD-scheduler --=Aspire Group=-- (V4.1.8)</title>
   <meta name="theme-color" content="#22c55e"/>
 
   <style>
@@ -884,6 +884,7 @@
       font-size: 11px;
       z-index: 3;
       min-width: 10%;
+      isolation: isolate;
     }
 
     .shift .label {
@@ -911,6 +912,62 @@
 
     [data-theme="light"] .shift .breakpill {
       background: rgba(255,255,255,.25);
+    }
+
+
+    .shift.cover-shift {
+      border-style: solid;
+      border-color: rgba(255,45,149,.96);
+      box-shadow:
+        0 8px 18px rgba(0,0,0,.35),
+        0 0 0 2px rgba(255,45,149,.22),
+        inset 8px 0 0 rgba(255,45,149,.95);
+    }
+
+    .shift .cover-tag {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2px 6px;
+      border-radius: 999px;
+      background: rgba(255,45,149,.94);
+      color: #fff;
+      font-weight: 900;
+      font-size: 10px;
+      line-height: 1;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      white-space: nowrap;
+      box-shadow: 0 0 0 1px rgba(255,255,255,.24);
+    }
+
+    [data-theme="light"] .shift.cover-shift {
+      border-color: rgba(255,45,149,.92);
+      box-shadow:
+        0 6px 14px rgba(0,0,0,.18),
+        0 0 0 2px rgba(255,45,149,.18),
+        inset 8px 0 0 rgba(255,45,149,.92);
+    }
+
+    [data-theme="light"] .shift .cover-tag {
+      background: rgba(255,45,149,.92);
+      color: #fff;
+    }
+
+    .wo-chip.cover-shift,
+    .print-chip.cover-shift {
+      border: 1px solid rgba(255,45,149,.96);
+      box-shadow:
+        inset 5px 0 0 rgba(255,45,149,.96),
+        inset 0 0 0 1px rgba(255,255,255,.10);
+    }
+
+    [data-theme="light"] .wo-chip.cover-shift,
+    [data-theme="light"] .print-chip.cover-shift {
+      border-color: rgba(255,45,149,.92);
+      box-shadow:
+        inset 5px 0 0 rgba(255,45,149,.92),
+        inset 0 0 0 1px rgba(255,255,255,.18);
     }
 
     .away-band {
@@ -1224,6 +1281,8 @@
       margin: 2px;
       font-size: 11px;
       font-weight: 800;
+      position: relative;
+      overflow: hidden;
     }
 
     .availability {
@@ -1371,6 +1430,8 @@
       padding: 2px 6px;
       font-size: 11px;
       font-weight: 800;
+      position: relative;
+      overflow: hidden;
     }
 
     .print-controls {
@@ -2275,7 +2336,7 @@
       <div id="appLogoBox"></div>
       <div class="titlewrap">
         <div class="title" id="appTitle">M&C-ATRD-scheduler --=Aspire Group=--</div>
-        <div class="version-pill" id="appVersion">V4.1.3</div>
+        <div class="version-pill" id="appVersion">V4.1.8</div>
         <div class="sync-pill syncing" id="syncStatusChip" title="Sync status">Starting…</div>
       </div>
     </div>
@@ -3577,7 +3638,7 @@
       <h3>Edit / Add Shift <span id="shiftDateLabel" style="color:#ef4444;font-weight:900;margin-left:8px;"></span></h3>
       <div class="grid-2">
         <div>
-          <label>Staff</label>
+          <label id="shiftStaffLabel">Staff</label>
           <select id="shiftStaff"></select>
         </div>
         <div>
@@ -3610,6 +3671,16 @@
           <input id="shiftRepeat" type="number" min="0" step="1" value="0">
         </div>
       </div>
+      <div class="grid-2">
+        <div style="display:flex;align-items:center;gap:8px;margin-top:22px;">
+          <label><input id="shiftIsCover" type="checkbox"> This shift is being covered</label>
+        </div>
+        <div id="shiftCoverForWrap" style="display:none;">
+          <label id="shiftCoverForLabel">Covering for</label>
+          <select id="shiftCoverFor"></select>
+        </div>
+      </div>
+      <div id="shiftCoverHint" class="muted" style="margin-top:4px;">Cover shifts stay marked as one-off coverage and revert to the set roster when you copy a week or apply a weekly template. Open the original rostered shift to assign a cover directly, or start from the covering staff and link it back.</div>
       <div style="margin-top:8px;">
         <label>Days this week</label>
         <div id="daysThisWeek" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;font-size:12px;">
@@ -3641,6 +3712,7 @@
       <div id="dayToolsSubtitle" class="muted" style="margin:4px 0 12px;"></div>
       <div class="daytools-actions" style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px;">
         <button id="dtEditShift" class="btn-primary">Edit / Add shift</button>
+        <button id="dtDeleteShift" class="btn-outline dt-danger">Delete shift</button>
         <button id="dtProposeAway" class="btn-outline dt-danger">Propose Away (full day)</button>
         <button id="dtPartialAway" class="btn-outline dt-warn">Partial Away</button>
         <button id="dtRecurringUnavail" class="btn-outline dt-mute">Recurring Unavailability</button>
@@ -3990,8 +4062,8 @@ var DAY = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 var App = {
   // IMPORTANT: Increment App.version *and* App.buildId whenever making functional changes to this file.
   // SAFETY NET: This build performs an automatic runtime check against the file name; if mismatched, it shows a blocking warning so it can't be overlooked.
-  version: 'V4.1.3',
-    buildId: '2026-04-20.1',
+  version: 'V4.1.8',
+    buildId: '2026-04-25.1',
 settings: {
     dbUrl:'https://mnc-atrd-default-rtdb.asia-southeast1.firebasedatabase.app/', workspace:'mnc-atrd', authToken:'',
     theme:'light', themeName:'light-pastel-sky', recentColors:[], appTitle:'M&C-ATRD-scheduler --=Aspire Group=--', logoUrl:'',
@@ -4375,35 +4447,140 @@ function normalizeHHMM(v){
   return '';
 }
 
-// Accept "HH:MM" 24h or "H:MM AM/PM"
+// Accept "HH:MM" 24h or common 12h forms like "5 PM", "5pm", "5:30 PM"
 function parse12(s){
   try{
-    if(!s) return NaN;
+    if(s==null || s==='') return NaN;
+    if(typeof s==='number' && isFinite(s)) return s;
     s=String(s).trim();
-    if(s.indexOf(' ')===-1){
-      var parts=s.split(':');
-      var h=parseInt(parts[0],10); if(isNaN(h)) return NaN;
-      var mm=parts.length>1?parseInt(parts[1],10):0; if(isNaN(mm)) mm=0;
-      h=Math.max(0,Math.min(23,h)); mm=Math.max(0,Math.min(59,mm));
-      return h*60+mm;
-    }else{
-      var t=s.split(/\s+/)[0], apRaw=s.split(/\s+/)[1]||'AM';
-      var ap=apRaw.toUpperCase();
-      var sp=t.split(':');
-      var h=parseInt(sp[0]||'0',10), mm=parseInt(sp[1]||'0',10);
-      if(isNaN(h)) h=0; if(isNaN(mm)) mm=0;
-      h=h%12; if(ap==='PM') h+=12; if(ap==='AM' && t.indexOf('12')===0) h=0;
+    if(!s) return NaN;
+    var norm = normalizeHHMM(s);
+    if(norm){
+      var parts = norm.split(':');
+      var h = parseInt(parts[0]||'0',10);
+      var mm = parseInt(parts[1]||'0',10);
+      if(isNaN(h) || isNaN(mm)) return NaN;
+      h=Math.max(0,Math.min(23,h));
+      mm=Math.max(0,Math.min(59,mm));
       return h*60+mm;
     }
+    var parts2=s.split(':');
+    var h2=parseInt(parts2[0],10); if(isNaN(h2)) return NaN;
+    var mm2=parts2.length>1?parseInt(parts2[1],10):0; if(isNaN(mm2)) mm2=0;
+    h2=Math.max(0,Math.min(23,h2)); mm2=Math.max(0,Math.min(59,mm2));
+    return h2*60+mm2;
   }catch(e){ return NaN; }
 }
 function to12hStr(hhmm){
-  if(!hhmm) return '12:00 AM';
-  var sp=String(hhmm).split(':');
-  var h=parseInt(sp[0]||'0',10), m=parseInt(sp[1]||'0',10);
-  if(isNaN(h)) h=0; if(isNaN(m)) m=0;
-  var ap=h>=12?'PM':'AM', h12=((h%12)||12);
-  return h12+':'+pad(m)+' '+ap;
+  if(hhmm==null || hhmm==='') return '12:00 AM';
+  var mins = (typeof hhmm==='number' && isFinite(hhmm)) ? hhmm : parse12(hhmm);
+  if(!isFinite(mins)) return String(hhmm||'');
+  mins = ((mins%1440)+1440)%1440;
+  return times12(mins);
+}
+function displayTime12(value, fallback){
+  if(value==null || value==='') return (fallback!=null ? String(fallback) : '');
+  var norm = normalizeHHMM(value);
+  if(norm) return to12hStr(norm);
+  var mins = parse12(value);
+  if(isFinite(mins)) return to12hStr(mins);
+  return (fallback!=null ? String(fallback) : String(value||''));
+}
+function displayTimeRange12(start, end){
+  return displayTime12(start, start||'') + '–' + displayTime12(end, end||'');
+}
+function shiftDisplayRange(sh){
+  return displayTimeRange12(sh && sh.start, sh && sh.end);
+}
+function shiftAssignedStaffName(sh){
+  var sid = (sh && sh.staffId!=null) ? String(sh.staffId) : '';
+  if(!sid) return '';
+  try{ return (App.staff && App.staff[sid] && App.staff[sid].name) ? String(App.staff[sid].name) : ''; }catch(e){}
+  return '';
+}
+function coveredByReasonText(sh){
+  if(!shiftIsCover(sh)) return '';
+  var who = shiftAssignedStaffName(sh) || 'another staff member';
+  return 'Covered by ' + who;
+}
+function coveredSourceEntriesForDay(weekIso, dayIndex, staffId){
+  var out = [];
+  try{
+    staffId = String(staffId || '');
+    if(!staffId || !App.weeks || !App.weeks[weekIso]) return out;
+    var day = App.weeks[weekIso][String(dayIndex)] || {};
+    Object.keys(day).forEach(function(key){
+      var sh = day[key];
+      if(!sh || !shiftIsCover(sh)) return;
+      var assigned = String(sh.staffId || '');
+      var base = shiftBaseStaffId(sh) || assigned;
+      if(!base || assigned===base) return;
+      if(String(base)!==staffId) return;
+      out.push({id:String(key||''), shift:sh});
+    });
+    out.sort(function(a,b){
+      var sa = parse12(a && a.shift && a.shift.start);
+      var sb = parse12(b && b.shift && b.shift.start);
+      if(!isFinite(sa)) sa = 0;
+      if(!isFinite(sb)) sb = 0;
+      return sa - sb;
+    });
+  }catch(e){}
+  return out;
+}
+function assignedCoverEntriesForDay(weekIso, dayIndex, staffId){
+  var out = [];
+  try{
+    staffId = String(staffId || '');
+    if(!staffId || !App.weeks || !App.weeks[weekIso]) return out;
+    var day = App.weeks[weekIso][String(dayIndex)] || {};
+    Object.keys(day).forEach(function(key){
+      var sh = day[key];
+      if(!sh || !shiftIsCover(sh)) return;
+      var assigned = String(sh.staffId || '');
+      var base = shiftBaseStaffId(sh) || assigned;
+      if(!assigned || assigned!==staffId) return;
+      if(!base || assigned===base) return;
+      out.push({id:String(key||''), shift:sh});
+    });
+    out.sort(function(a,b){
+      var sa = parse12(a && a.shift && a.shift.start);
+      var sb = parse12(b && b.shift && b.shift.start);
+      if(!isFinite(sa)) sa = 0;
+      if(!isFinite(sb)) sb = 0;
+      return sa - sb;
+    });
+  }catch(e){}
+  return out;
+}
+function coveredShiftInfoLinesFor(iso, staffId){
+  var lines = [];
+  try{
+    if(!iso || staffId==null) return lines;
+    var d = fromISO(String(iso));
+    if(!(d instanceof Date) || isNaN(d)) return lines;
+    var weekIso = toISO(weekStart(d));
+    var dayIndex = (d.getDay()+6)%7;
+    var seen = Object.create(null);
+    function pushLine(line){
+      line = String(line || '').trim();
+      if(!line || seen[line]) return;
+      seen[line] = true;
+      lines.push(line);
+    }
+    assignedCoverEntriesForDay(weekIso, dayIndex, staffId).forEach(function(entry){
+      var sh = entry.shift || {};
+      var range = shiftDisplayRange(sh);
+      var baseName = shiftBaseStaffName(sh) || 'set roster';
+      pushLine('Cover shift ' + range + ': Covering for ' + baseName);
+    });
+    coveredSourceEntriesForDay(weekIso, dayIndex, staffId).forEach(function(entry){
+      var sh = entry.shift || {};
+      var range = shiftDisplayRange(sh);
+      pushLine('Covered shift ' + range + ': ' + coveredByReasonText(sh));
+    });
+  }catch(e){}
+  return lines;
 }
 function times12(mins){
   mins=Math.max(0,Math.min(24*60,mins));
@@ -4435,6 +4612,182 @@ function breakMinutesForShift(sh,st){
   if(sh && sh.breakMins!=null && sh.breakMins!=='' && !isNaN(parseInt(sh.breakMins,10))) return parseInt(sh.breakMins,10)||0;
   var h=hoursBetweenAny(sh.start, sh.end);
   return autoBreakMinsForHours(h);
+}
+function shiftBaseStaffId(sh){
+  if(!sh || typeof sh !== 'object') return '';
+  var base = (sh.baseStaffId!=null ? sh.baseStaffId : (sh.coverForStaffId!=null ? sh.coverForStaffId : (sh.originalStaffId!=null ? sh.originalStaffId : sh.staffId)));
+  return (base==null ? '' : String(base));
+}
+function shiftIsCover(sh){
+  if(!sh || typeof sh !== 'object') return false;
+  var assigned = (sh.staffId!=null ? String(sh.staffId) : '');
+  var base = shiftBaseStaffId(sh) || assigned;
+  if(!assigned || !base) return !!sh.isCover;
+  return !!sh.isCover || assigned !== base;
+}
+function shiftBaseStaffName(sh){
+  var sid = shiftBaseStaffId(sh);
+  if(!sid) return '';
+  try{ return (App.staff && App.staff[sid] && App.staff[sid].name) ? String(App.staff[sid].name) : ''; }catch(e){}
+  return '';
+}
+function buildShiftRecord(opts){
+  opts = opts || {};
+  var assigned = (opts.staffId!=null ? String(opts.staffId) : '');
+  var base = (opts.baseStaffId!=null ? String(opts.baseStaffId) : (assigned || ''));
+  var isCover = !!opts.isCover && !!assigned && !!base && assigned !== base;
+  return {
+    id: opts.id || uid(),
+    staffId: assigned || base,
+    baseStaffId: base || assigned,
+    isCover: isCover,
+    day: opts.day,
+    start: opts.start,
+    end: opts.end,
+    breakMins: (opts.breakMins!=null ? opts.breakMins : ''),
+    notes: opts.notes || '',
+    penalty: !!opts.penalty
+  };
+}
+function cloneShiftForDay(sh, dayIndex, opts){
+  opts = opts || {};
+  if(!sh) return null;
+  var rec = buildShiftRecord({
+    id: opts.id || uid(),
+    staffId: (sh.staffId!=null ? sh.staffId : ''),
+    baseStaffId: shiftBaseStaffId(sh) || (sh.staffId!=null ? sh.staffId : ''),
+    isCover: shiftIsCover(sh),
+    day: (dayIndex!=null ? dayIndex : (sh.day!=null ? sh.day : 0)),
+    start: sh.start,
+    end: sh.end,
+    breakMins: (sh.breakMins!=null ? sh.breakMins : ''),
+    notes: sh.notes || '',
+    penalty: !!sh.penalty
+  });
+  if(opts.resetToBase){
+    rec.staffId = rec.baseStaffId || rec.staffId;
+    rec.isCover = false;
+  }
+  if(!rec.baseStaffId) rec.baseStaffId = rec.staffId;
+  if(rec.staffId === rec.baseStaffId) rec.isCover = false;
+  return rec;
+}
+
+function shiftFormTimeValue(v){
+  var hhmm = normalizeHHMM(v);
+  return hhmm ? to12hStr(hhmm) : String(v||'');
+}
+function applyShiftFieldsFromRecord(sh, opts){
+  opts = opts || {};
+  if(!sh) return false;
+  var startVal = shiftFormTimeValue(sh.start);
+  var endVal = shiftFormTimeValue(sh.end);
+  if(startVal) byId('shiftStart').value = startVal;
+  if(endVal) byId('shiftEnd').value = endVal;
+  var dispBreak = (sh.breakMins!=null && sh.breakMins!=='') ? parseInt(sh.breakMins,10) : autoBreakMinsForHours(hoursBetweenAny(sh.start, sh.end));
+  if(!isNaN(dispBreak)) byId('shiftBreak').value = dispBreak;
+  if(opts.copyPenalty!==false) byId('shiftPenalty').checked = !!sh.penalty;
+  if(opts.copyNotes && !String(byId('shiftNotes').value||'').trim()) byId('shiftNotes').value = sh.notes || '';
+  return true;
+}
+function getShiftEntriesForDay(weekIso, dayIndex){
+  var wk = (App.weeks && App.weeks[weekIso]) ? App.weeks[weekIso] : {};
+  var day = wk[String(dayIndex)] || {};
+  return Object.keys(day).map(function(k){ return {id:k, shift:day[k]}; }).filter(function(entry){ return !!entry.shift; });
+}
+function findShiftEntryForCoverSource(weekIso, dayIndex, baseStaffId, opts){
+  opts = opts || {};
+  var baseId = String(baseStaffId || '');
+  if(!baseId) return null;
+  var prefId = String(opts.preferredShiftId || '');
+  var preferredStart = String(opts.preferredStart || '');
+  var preferredEnd = String(opts.preferredEnd || '');
+  var entries = getShiftEntriesForDay(weekIso, dayIndex).filter(function(entry){
+    var sh = entry.shift || {};
+    var assigned = String(sh.staffId!=null ? sh.staffId : '');
+    var base = shiftBaseStaffId(sh) || assigned;
+    return String(base) === baseId || assigned === baseId;
+  });
+  if(!entries.length) return null;
+  if(prefId){
+    for(var i=0;i<entries.length;i++){
+      if(String(entries[i].id||'') === prefId) return entries[i];
+    }
+  }
+  var exact = entries.filter(function(entry){
+    var sh = entry.shift || {};
+    return String(sh.start||'') === preferredStart && String(sh.end||'') === preferredEnd;
+  });
+  var pool = exact.length ? exact.slice() : entries.slice();
+  pool.sort(function(a,b){
+    var aAssigned = String((a.shift && a.shift.staffId) || '');
+    var bAssigned = String((b.shift && b.shift.staffId) || '');
+    var aScore = 0, bScore = 0;
+    if(aAssigned === baseId) aScore -= 20;
+    if(bAssigned === baseId) bScore -= 20;
+    if(!shiftIsCover(a.shift)) aScore -= 10;
+    if(!shiftIsCover(b.shift)) bScore -= 10;
+    var sa = parse12(a.shift && a.shift.start);
+    var sb = parse12(b.shift && b.shift.start);
+    if(!isFinite(sa)) sa = 0;
+    if(!isFinite(sb)) sb = 0;
+    return aScore - bScore || sa - sb;
+  });
+  return pool[0] || null;
+}
+function getShiftModalState(){
+  if(!Planner.shiftModalState) Planner.shiftModalState = {};
+  return Planner.shiftModalState;
+}
+function resetShiftModalState(next){
+  Planner.shiftModalState = next || {};
+  return Planner.shiftModalState;
+}
+function shiftCopyDedupKey(sh, dayIndex){
+  if(!sh) return '';
+  return [
+    String(dayIndex!=null ? dayIndex : (sh.day!=null ? sh.day : '')),
+    String(sh.staffId||''),
+    String(normalizeHHMM(sh.start)||sh.start||''),
+    String(normalizeHHMM(sh.end)||sh.end||'')
+  ].join('|');
+}
+function cloneWeekWithNewIdsNormalized(weekData, opts){
+  var out = {};
+  weekData = weekData || {};
+  opts = opts || {};
+  for(var di=0; di<7; di++){
+    var dk = String(di);
+    var day = weekData[dk];
+    if(!day) continue;
+    var nd = {};
+    var seen = {};
+    Object.keys(day).forEach(function(k){
+      var sh = day[k];
+      if(!sh) return;
+      var nid = uid();
+      var cloned = cloneShiftForDay(sh, di, {id:nid, resetToBase:!!opts.resetToBase});
+      if(!cloned) return;
+      if(opts.resetToBase){
+        var dedupeKey = shiftCopyDedupKey(cloned, di);
+        if(seen[dedupeKey]) return;
+        seen[dedupeKey] = true;
+      }
+      nd[nid] = cloned;
+    });
+    if(Object.keys(nd).length) out[dk] = nd;
+  }
+  return out;
+}
+function coverChipBackground(color){
+  var bg = themeAdj(color || '#5A31F4');
+  return 'linear-gradient(90deg, rgba(255,45,149,.98) 0 10px, rgba(255,45,149,.36) 10px 16px, rgba(255,255,255,0) 16px), repeating-linear-gradient(-55deg, rgba(255,102,178,.50) 0 6px, rgba(255,255,255,0) 6px 12px), ' + bg;
+}
+function applyStaffChipAppearance(el, color, isCover){
+  if(!el) return;
+  var bg = themeAdj(color || '#5A31F4');
+  el.style.background = isCover ? coverChipBackground(color) : bg;
+  el.style.color = idealText(bg);
 }
 
 // color helpers
@@ -4597,7 +4950,7 @@ function buildAbsDecisionMessage(iso, rec){
   var kind = '';
   if(rec && rec.blocks && rec.blocks.length){
     var b = rec.blocks[0] || {};
-    kind = 'Partial away ' + (b.start||'') + '–' + (b.end||'');
+    kind = 'Partial away ' + displayTimeRange12(b.start, b.end);
   }else if(rec && rec.unavailable){
     kind = 'Full day away';
   }else{
@@ -5902,6 +6255,7 @@ function init(){
     var _b;
     _b = byId('btnCloseDayTools'); if(_b) _b.onclick = closeDayTools;
     _b = byId('dtEditShift'); if(_b) _b.onclick = dayToolsEditShift;
+    _b = byId('dtDeleteShift'); if(_b) _b.onclick = dayToolsDeleteShift;
     _b = byId('dtProposeAway'); if(_b) _b.onclick = dayToolsProposeAway;
     _b = byId('dtPartialAway'); if(_b) _b.onclick = dayToolsPartialAway;
     _b = byId('dtRecurringUnavail'); if(_b) _b.onclick = dayToolsRecurringUnavail;
@@ -6097,7 +6451,7 @@ function renderAdminHistory(){
         if(rec.blocks && rec.blocks.length){
           rec.blocks.forEach(function(b){
             if(!b) return;
-            var seg = (b.start||'') + '–' + (b.end||'');
+            var seg = displayTimeRange12(b.start, b.end);
             if(b.reason) seg += ' — ' + b.reason;
             parts.push(seg);
           });
@@ -6291,7 +6645,7 @@ function renderAdminRequestsLog(){
         if(req.blocks && req.blocks.length){
           req.blocks.forEach(function(b){
             if(!b) return;
-            var seg = (b.start||'') + '–' + (b.end||'');
+            var seg = displayTimeRange12(b.start, b.end);
             if(b.reason) seg += ' — ' + b.reason;
             detailsParts.push(seg);
           });
@@ -6339,7 +6693,7 @@ function renderAdminRequestsLog(){
         if(rec.blocks && rec.blocks.length){
           rec.blocks.forEach(function(b){
             if(!b) return;
-            var seg = (b.start||'') + '–' + (b.end||'');
+            var seg = displayTimeRange12(b.start, b.end);
             if(b.reason) seg += ' — ' + b.reason;
             detailsParts.push(seg);
           });
@@ -6901,8 +7255,13 @@ function renderMyShifts(){
         if(leaveH > 0.01){
           leaveText = ', away '+leaveH.toFixed(2)+'h';
         }
+        var coverNote = '';
+        if(shiftIsCover(sh)){
+          var coverBase = shiftBaseStaffName(sh) || 'set roster';
+          coverNote = ' — Covering for '+coverBase;
+        }
         var div=document.createElement('div');
-        div.textContent = fmtDMY(days[i])+': '+sh.start+'–'+sh.end+(overnight?' (next day)':'')+' ('+workAfterLeave.toFixed(2)+'h worked'+leaveText+', break '+br.toFixed(2)+'h, pay '+fmtMoney(pay)+ (split.ot>0?(' incl OT '+split.ot.toFixed(2)+'h'):'') +')';
+        div.textContent = fmtDMY(days[i])+': '+shiftDisplayRange(sh)+(overnight?' (next day)':'')+coverNote+' ('+workAfterLeave.toFixed(2)+'h worked'+leaveText+', break '+br.toFixed(2)+'h, pay '+fmtMoney(pay)+ (split.ot>0?(' incl OT '+split.ot.toFixed(2)+'h'):'') +')';
         list.appendChild(div);
       }
     });
@@ -7112,7 +7471,7 @@ function renderMyRequests(){
       if(rec.blocks && rec.blocks.length){
         rec.blocks.forEach(function(b, idx){
           pendingCount++;
-          var seg = (b.start||'?')+'–'+(b.end||'?');
+          var seg = displayTimeRange12(b.start||'?', b.end||'?');
           var sub = seg + (b.reason ? (' — ' + String(b.reason)) : (reason ? (' — ' + reason) : ''));
           pendingEl.appendChild(_makeReqRow(
             formatIsoForHuman(iso),
@@ -7163,7 +7522,7 @@ function renderMyRequests(){
       var sub = '';
       if(rec.blocks && rec.blocks.length){
         sub = rec.blocks.map(function(b){
-          var seg = (b.start||'?')+'–'+(b.end||'?');
+          var seg = displayTimeRange12(b.start||'?', b.end||'?');
           if(b.reason) seg += ' — ' + String(b.reason);
           return seg;
         }).join(' | ');
@@ -7366,7 +7725,7 @@ sc.appendChild(mini);
     var dayShifts=(week[dayKey])||{}; var dayH=0;
     Object.keys(dayShifts).forEach(function(sid){
       var sh=dayShifts[sid];
-      if(sh.staffId!==id) return;
+      if(String(sh.staffId)!==String(id)) return;
       var work=hoursBetweenAny(sh.start, sh.end);
       dayH+=work;
 
@@ -7379,14 +7738,25 @@ sc.appendChild(mini);
       var width = Math.max(0.5, ((rightM-leftM)/span)*100);
 
       var chip=document.createElement('div'); chip.className='shift'; if(endM0<=startM) chip.classList.add('overnight');
-      var bg=themeAdj(st.color||'#5A31F4'); chip.style.background=bg; chip.style.color=idealText(bg);
       chip.style.left=left+'%'; chip.style.width=width+'%'; chip.dataset.id=sid;
 
       var breakMin = breakMinutesForShift(sh, st);
-      chip.title = st.name+' — '+sh.start+'–'+sh.end+' ('+work.toFixed(2)+'h, break '+breakMin+'m)';
+      var baseStaffId = shiftBaseStaffId(sh) || id;
+      var isCoverShift = shiftIsCover(sh);
+      var displayRange = shiftDisplayRange(sh);
+      applyStaffChipAppearance(chip, st.color||'#5A31F4', isCoverShift);
+      var baseStaffName = shiftBaseStaffName(sh) || ((App.staff[baseStaffId] && App.staff[baseStaffId].name) ? App.staff[baseStaffId].name : 'set roster');
+      if(isCoverShift) chip.classList.add('cover-shift');
+      chip.title = isCoverShift
+        ? (st.name+' covering for '+baseStaffName+' — '+displayRange+' ('+work.toFixed(2)+'h, break '+breakMin+'m)')
+        : (st.name+' — '+displayRange+' ('+work.toFixed(2)+'h, break '+breakMin+'m)');
 
-      var label=document.createElement('span'); label.className='label'; label.textContent=st.name;
-      var hrs=document.createElement('span'); hrs.className='hours'; hrs.textContent=sh.start+'–'+sh.end+' ('+work.toFixed(2)+'h)';
+      if(isCoverShift){
+        var coverTag=document.createElement('span'); coverTag.className='cover-tag'; coverTag.textContent='Cover';
+        chip.appendChild(coverTag);
+      }
+      var label=document.createElement('span'); label.className='label'; label.textContent=isCoverShift ? ('for '+baseStaffName) : st.name;
+      var hrs=document.createElement('span'); hrs.className='hours'; hrs.textContent=displayRange+' ('+work.toFixed(2)+'h)';
       chip.appendChild(label); chip.appendChild(hrs);
 
       var bpill=document.createElement('span'); bpill.className='breakpill'; bpill.textContent='⏱ '+breakMin+'m';
@@ -7407,6 +7777,31 @@ sc.appendChild(mini);
 
       if(canEdit()) chip.onclick=function(e){ e.stopPropagation(); openShiftModal({shiftId:sid, dayIndex:Planner.activeDayIndex}); };
       wrap.appendChild(chip);
+    });
+
+    coveredSourceEntriesForDay(Planner.weekStartISO, Planner.activeDayIndex, id).forEach(function(entry){
+      var sh = entry.shift || {};
+      var startM = parse12(sh.start), endM0 = parse12(sh.end);
+      var endM = (endM0<=startM) ? endM0 + 24*60 : endM0;
+      var span = gridEndMins()-gridStartMins();
+      var leftM = Math.max(0, Math.min(span, (isNaN(startM)?0:startM) - gridStartMins()));
+      var rightM = Math.max(0, Math.min(span, (isNaN(endM)?0:endM) - gridStartMins()));
+      var left = (leftM/span)*100;
+      var width = Math.max(0.5, ((rightM-leftM)/span)*100);
+      var work = hoursBetweenAny(sh.start, sh.end);
+      var ghost=document.createElement('div'); ghost.className='shift cover-source-ghost'; if(endM0<=startM) ghost.classList.add('overnight');
+      ghost.style.left=left+'%'; ghost.style.width=width+'%'; ghost.dataset.id=entry.id;
+      applyStaffChipAppearance(ghost, st.color||'#5A31F4', false);
+      ghost.title = st.name+' — '+shiftDisplayRange(sh)+' ('+coveredByReasonText(sh)+')';
+      var label=document.createElement('span'); label.className='label'; label.textContent=st.name; label.style.position='relative'; label.style.zIndex='3';
+      var hrs=document.createElement('span'); hrs.className='hours'; hrs.textContent=shiftDisplayRange(sh)+' ('+work.toFixed(2)+'h)'; hrs.style.position='relative'; hrs.style.zIndex='3';
+      ghost.appendChild(label); ghost.appendChild(hrs);
+      var awayBand=document.createElement('div'); awayBand.className='away-band'; awayBand.style.left='0'; awayBand.style.width='100%';
+      var awayChip=document.createElement('div'); awayChip.className='away-chip'; awayChip.textContent='AWAY';
+      awayChip.title = coveredByReasonText(sh);
+      ghost.appendChild(awayBand); ghost.appendChild(awayChip);
+      if(canEdit()) ghost.onclick=function(e){ e.stopPropagation(); openShiftModal({shiftId:entry.id, dayIndex:Planner.activeDayIndex}); };
+      wrap.appendChild(ghost);
     });
 
     // away overlays
@@ -7467,6 +7862,15 @@ function renderCoverageBar(){
 // ---------- Shift modal ----------
 function openShiftModal(opts){
   var m=byId('shiftModal'); m.style.display='flex';
+  resetShiftModalState({
+    openedFromExisting: false,
+    originalShiftId: '',
+    originalShift: null,
+    originalStaffId: '',
+    originalBaseStaffId: '',
+    coverSourceShiftId: '',
+    originalDayIndex: (opts && opts.dayIndex!=null ? parseInt(opts.dayIndex,10) : Planner.activeDayIndex)
+  });
 
   // selection mode (week vs range)
   try{
@@ -7483,26 +7887,39 @@ function openShiftModal(opts){
   }catch(e){}
 
   // reset day checkboxes every time
-  var chks=$$('#daysThisWeek input[type=checkbox]'); for(var ci=0;ci<chks.length;ci++){ chks[ci].checked=false; }
+  var chks=$$('#daysThisWeek input[type=checkbox]');
+  for(var ci=0;ci<chks.length;ci++){ chks[ci].checked=false; }
 
   var selS=byId('shiftStaff'); selS.innerHTML='';
-  Object.keys(App.staff).map(function(id){ return [id,App.staff[id]]; }).filter(function(p){
+  var selCover=byId('shiftCoverFor'); if(selCover) selCover.innerHTML='';
+  var shiftStaffOptions = Object.keys(App.staff).map(function(id){ return [id,App.staff[id]]; }).filter(function(p){
     var st = p[1] || {};
     return (st.role||'staff')!=='admin' && !st.hidden;
-  }).sort(function(a,b){ return (a[1].name||'').localeCompare(b[1].name||''); }).forEach(function(p){ var id=p[0], s=p[1]; var o=document.createElement('option'); o.value=id; o.textContent=s.name; selS.appendChild(o); });
-  var selD=byId('shiftDay'); selD.innerHTML=''; DAY.forEach(function(n,i){ var o=document.createElement('option'); o.value=i; o.textContent=n; selD.appendChild(o); });
+  }).sort(function(a,b){ return (a[1].name||'').localeCompare(b[1].name||''); });
+  shiftStaffOptions.forEach(function(p){
+    var id=p[0], s=p[1];
+    var o=document.createElement('option'); o.value=id; o.textContent=s.name; selS.appendChild(o);
+    if(selCover){ var c=document.createElement('option'); c.value=id; c.textContent=s.name; selCover.appendChild(c); }
+  });
 
-  
+  var coverChk = byId('shiftIsCover');
+  var coverWrap = byId('shiftCoverForWrap');
+  var staffLabelEl = byId('shiftStaffLabel');
+  var coverLabelEl = byId('shiftCoverForLabel');
+  var coverHintEl = byId('shiftCoverHint');
 
-function updateShiftDateLabel(){
-  try{
-    var idx = parseInt(byId('shiftDay').value||'0',10);
-    var d0 = fromISO(Planner.weekStartISO); d0.setDate(d0.getDate()+idx);
-    var el = byId('shiftDateLabel'); if(el){ el.textContent = DAY[idx]+' '+fmtDMY(d0); }
-  }catch(e){}
-}
-selD.onchange = updateShiftDateLabel;
-// adapt time step to slot minutes
+  var selD=byId('shiftDay'); selD.innerHTML='';
+  DAY.forEach(function(n,i){ var o=document.createElement('option'); o.value=i; o.textContent=n; selD.appendChild(o); });
+
+  function updateShiftDateLabel(){
+    try{
+      var idx = parseInt(byId('shiftDay').value||'0',10);
+      var d0 = fromISO(Planner.weekStartISO); d0.setDate(d0.getDate()+idx);
+      var el = byId('shiftDateLabel'); if(el){ el.textContent = DAY[idx]+' '+fmtDMY(d0); }
+    }catch(e){}
+  }
+
+  // adapt time step to slot minutes
   var step = Math.max(1, slotMinutes())*60;
   byId('shiftStart').step = step;
   byId('shiftEnd').step = step;
@@ -7522,13 +7939,99 @@ selD.onchange = updateShiftDateLabel;
   }
   function normalizeField(el){
     var v = normalizeHHMM(el.value);
-    if(v){ el.value = v; }
+    if(v){ el.value = to12hStr(v); }
   }
+
+  function resolveCoverSource(forceCopy){
+    var state = getShiftModalState();
+    if(!(coverChk && coverChk.checked)) return null;
+    var baseStaffId = String((selCover && selCover.value) || '');
+    if(!baseStaffId) return null;
+    var dayIndex = parseInt(selD.value||'0',10);
+    var entry = null;
+
+    if(state.originalShift && String(baseStaffId)===String(state.originalBaseStaffId || state.originalStaffId || '')){
+      entry = {id:String(state.originalShiftId||''), shift:state.originalShift};
+    }
+    if(!entry){
+      entry = findShiftEntryForCoverSource(Planner.weekStartISO, dayIndex, baseStaffId, {
+        preferredShiftId: state.coverSourceShiftId || '',
+        preferredStart: String(byId('shiftStart').value||''),
+        preferredEnd: String(byId('shiftEnd').value||'')
+      });
+    }
+
+    state.coverSourceShiftId = entry ? String(entry.id||'') : '';
+    if(entry && entry.shift && forceCopy){
+      manualBreakEdited = false;
+      applyShiftFieldsFromRecord(entry.shift, {copyNotes:true});
+      manualBreakEdited = false;
+    }
+    return entry;
+  }
+
+  function syncShiftCoverUi(forceSuggest){
+    var isCover = !!(coverChk && coverChk.checked);
+    var state = getShiftModalState();
+
+    if(staffLabelEl) staffLabelEl.textContent = isCover ? 'Covered by' : 'Staff';
+    if(coverLabelEl) coverLabelEl.textContent = isCover ? 'Original rostered staff' : 'Covering for';
+    if(coverWrap) coverWrap.style.display = isCover ? '' : 'none';
+    if(coverHintEl){
+      coverHintEl.textContent = isCover
+        ? 'Assign a replacement while keeping the original rostered staff linked to this shift. Matching shift times are reused automatically when a source shift is found.'
+        : 'Cover shifts stay marked as one-off coverage and revert to the set roster when you copy a week or apply a weekly template. Open the original rostered shift to assign a cover directly, or start from the covering staff and link it back.';
+    }
+    if(!selCover) return;
+
+    if(!isCover){
+      state.coverSourceShiftId = '';
+      if(state.originalShift && shiftIsCover(state.originalShift) && selS){
+        var restoreStaffId = String(state.originalBaseStaffId || state.originalStaffId || selS.value || '');
+        if(restoreStaffId) selS.value = restoreStaffId;
+      }
+      if(selS && selS.value) selCover.value = selS.value;
+      return;
+    }
+
+    var preferredBase = String(state.originalBaseStaffId || state.originalStaffId || '');
+    if(forceSuggest || !selCover.value || (!preferredBase && String(selCover.value||'')===String(selS.value||''))){
+      if(preferredBase){
+        selCover.value = preferredBase;
+      }else{
+        var fallback = '';
+        Array.prototype.slice.call(selCover.options||[]).some(function(opt){
+          if(String(opt.value||'') !== String(selS.value||'')){ fallback = String(opt.value||''); return true; }
+          return false;
+        });
+        if(fallback) selCover.value = fallback;
+      }
+    }
+
+    resolveCoverSource(!!forceSuggest);
+  }
+
   var sEl=byId('shiftStart'), eEl=byId('shiftEnd');
   sEl.addEventListener('change', function(){ normalizeField(sEl); recalcAutoBreak(); });
   eEl.addEventListener('change', function(){ normalizeField(eEl); recalcAutoBreak(); });
   sEl.addEventListener('blur', function(){ normalizeField(sEl); recalcAutoBreak(); });
   eEl.addEventListener('blur', function(){ normalizeField(eEl); recalcAutoBreak(); });
+
+  if(coverChk){ coverChk.onchange = function(){ syncShiftCoverUi(true); }; }
+  if(selS){
+    selS.onchange = function(){
+      if(coverChk && coverChk.checked && selCover && String(selCover.value||'')===String(selS.value||'')){
+        syncShiftCoverUi(true);
+      }
+    };
+  }
+  if(selCover){
+    selCover.onchange = function(){ resolveCoverSource(true); };
+  }
+  selD.onchange = function(){
+    updateShiftDateLabel();
+    if(coverChk && coverChk.checked) resolveCoverSource(true);
+  };
 
   if(opts && opts.shiftId){
     var dk=String(opts.dayIndex);
@@ -7536,23 +8039,57 @@ selD.onchange = updateShiftDateLabel;
     var sh = (wk[dk]&&wk[dk][opts.shiftId]) ? wk[dk][opts.shiftId] : null;
     if(!sh && wk[dk]){ var keys=Object.keys(wk[dk]); for(var i=0;i<keys.length;i++){ var key=keys[i], val=wk[dk][key]; if(val && val.id===opts.shiftId){ sh=val; opts.shiftId=key; break; } } }
     if(!sh){ alert('Shift not found'); closeShiftModal(); return; }
+
+    var state = resetShiftModalState({
+      openedFromExisting: true,
+      originalShiftId: String(opts.shiftId||''),
+      originalShift: JSON.parse(JSON.stringify(sh)),
+      originalStaffId: String(sh.staffId||''),
+      originalBaseStaffId: String(shiftBaseStaffId(sh) || sh.staffId || ''),
+      coverSourceShiftId: String(opts.shiftId||''),
+      originalDayIndex: parseInt(opts.dayIndex,10)
+    });
+
     Planner.editingShift={id:opts.shiftId, dayIndex:opts.dayIndex};
-    selS.value=sh.staffId; selD.value=String(opts.dayIndex); updateShiftDateLabel();
-    var toHHMM=function(v){ var m=parse12(v); var hh=('0'+Math.floor((isNaN(m)?0:m)/60)).slice(-2); var mm=('0'+((isNaN(m)?0:m)%60)).slice(-2); return hh+':'+mm; };
-    byId('shiftStart').value=to12hStr(toHHMM(sh.start)); byId('shiftEnd').value=to12hStr(toHHMM(sh.end));
-    var dispBreak = (sh.breakMins!=null && sh.breakMins!=='') ? parseInt(sh.breakMins,10) : autoBreakMinsForHours(hoursBetweenAny(sh.start, sh.end));
-    byId('shiftBreak').value=dispBreak; byId('shiftNotes').value=sh.notes||''; byId('shiftPenalty').checked=!!sh.penalty; byId('btnDeleteShift').style.display='inline-block';
+    selS.value=String(sh.staffId||'');
+    selD.value=String(opts.dayIndex);
+    updateShiftDateLabel();
+
+    applyShiftFieldsFromRecord(sh, {copyNotes:false});
+    byId('shiftNotes').value=sh.notes||'';
+    byId('shiftPenalty').checked=!!sh.penalty;
+    byId('btnDeleteShift').style.display='inline-block';
+
+    var editIsCover = shiftIsCover(sh);
+    if(coverChk) coverChk.checked = editIsCover;
+    if(selCover) selCover.value = state.originalBaseStaffId || state.originalStaffId || selS.value || '';
+    syncShiftCoverUi(editIsCover);
   } else {
     Planner.editingShift=null;
-    var firstStaffId = (opts && opts.staffId) || (function(){ var ks=Object.keys(App.staff).filter(function(k){ return (App.staff[k].role||'staff')!=='admin'; }); return ks.length?ks[0]:''; })();
+    var firstStaffId = (opts && opts.staffId) || (function(){ var ks=Object.keys(App.staff).filter(function(k){ return (App.staff[k].role||'staff')!=='admin' && !App.staff[k].hidden; }); return ks.length?ks[0]:''; })();
+    resetShiftModalState({
+      openedFromExisting: false,
+      originalShiftId: '',
+      originalShift: null,
+      originalStaffId: '',
+      originalBaseStaffId: '',
+      coverSourceShiftId: '',
+      originalDayIndex: String((opts && opts.dayIndex)!=null?opts.dayIndex:Planner.activeDayIndex)
+    });
+
     selS.value=firstStaffId;
-    selD.value=String((opts && opts.dayIndex)!=null?opts.dayIndex:Planner.activeDayIndex); updateShiftDateLabel();
+    selD.value=String((opts && opts.dayIndex)!=null?opts.dayIndex:Planner.activeDayIndex);
+    updateShiftDateLabel();
     byId('shiftStart').value=(opts&&opts.start)?to12hStr(normalizeHHMM(opts.start)):'9:00 AM';
     byId('shiftEnd').value=(opts&&opts.end)?to12hStr(normalizeHHMM(opts.end)):'5:00 PM';
     var ss=normalizeHHMM(byId('shiftStart').value), ee=normalizeHHMM(byId('shiftEnd').value);
     if(ss) byId('shiftStart').value=to12hStr(ss); if(ee) byId('shiftEnd').value=to12hStr(ee);
+    manualBreakEdited = false;
     byId('shiftBreak').value=autoBreakMinsForHours(hoursBetweenAny(to12hStr(ss),to12hStr(ee)));
     byId('shiftNotes').value=''; byId('shiftPenalty').checked=false; byId('btnDeleteShift').style.display='none';
+    if(coverChk) coverChk.checked = false;
+    if(selCover) selCover.value = firstStaffId || '';
+    syncShiftCoverUi(false);
   }
 }
 function closeShiftModal(){ byId('shiftModal').style.display='none'; }
@@ -7562,6 +8099,8 @@ function saveShiftFromModal(){
   if(App.settings.publishedWeeks[Planner.weekStartISO]){
     if(!confirm('This week is marked Published. Proceed with edit?')) return;
   }
+
+  var state = getShiftModalState();
   var staffId=byId('shiftStaff').value;
   var dayIndex=parseInt(byId('shiftDay').value||'0',10);
   var startNorm=normalizeHHMM(byId('shiftStart').value);
@@ -7573,6 +8112,27 @@ function saveShiftFromModal(){
   var notes=byId('shiftNotes').value||'';
   var penalty=!!byId('shiftPenalty').checked;
   var repeat=Math.max(0, parseInt(byId('shiftRepeat').value||'0',10));
+  var isCoverShift=!!(byId('shiftIsCover') && byId('shiftIsCover').checked);
+  var baseStaffId = isCoverShift ? String((byId('shiftCoverFor') && byId('shiftCoverFor').value) || '') : String(staffId||'');
+  if(isCoverShift){
+    if(!baseStaffId) return alert('Select who this cover shift is for.');
+    if(String(baseStaffId)===String(staffId)) return alert('The covering staff must be different from the set roster staff.');
+  }
+
+  function makeShiftPayload(shiftId, targetDayIndex){
+    return buildShiftRecord({
+      id: shiftId,
+      staffId: staffId,
+      baseStaffId: baseStaffId,
+      isCover: isCoverShift,
+      day: targetDayIndex,
+      start: start12,
+      end: end12,
+      breakMins: breakMins,
+      notes: notes,
+      penalty: penalty
+    });
+  }
 
   var d0=fromISO(Planner.weekStartISO); d0.setDate(d0.getDate()+dayIndex);
   var iso=toISO(d0);
@@ -7596,10 +8156,34 @@ function saveShiftFromModal(){
   var ns=parse12(start12), ne0=parse12(end12); if(isNaN(ns)||isNaN(ne0)){ alert('Invalid time. Try HH or HH:MM (minutes default to :00).'); return; }
   var ne = (ne0<=ns) ? ne0+1440 : ne0;
 
+  var coverSource = null;
+  if(isCoverShift){
+    coverSource = findShiftEntryForCoverSource(Planner.weekStartISO, dayIndex, baseStaffId, {
+      preferredShiftId: state.coverSourceShiftId || '',
+      preferredStart: start12,
+      preferredEnd: end12
+    });
+    if(coverSource && coverSource.id) state.coverSourceShiftId = String(coverSource.id||'');
+  }
+
+  var preserveExistingShiftAsRegular = !!(
+    Planner.editingShift &&
+    state && state.originalShift &&
+    !shiftIsCover(state.originalShift) &&
+    isCoverShift &&
+    String(state.originalStaffId||'')===String(staffId||'') &&
+    String(baseStaffId||'')!==String(staffId||'')
+  );
+
+  if(preserveExistingShiftAsRegular && !(coverSource && coverSource.id)){
+    return alert('Could not find the original rostered shift to link this cover. Open the rostered staff shift to assign the cover, or choose the rostered staff with an existing shift on this day.');
+  }
+
+  var skipEditingShiftDuringOverlap = !!(Planner.editingShift && !preserveExistingShiftAsRegular);
   var keys=Object.keys(existing);
   for(var i=0;i<keys.length;i++){
     var sid=keys[i], sh=existing[sid];
-    if(Planner.editingShift && sid===Planner.editingShift.id) continue;
+    if(skipEditingShiftDuringOverlap && sid===Planner.editingShift.id) continue;
     if(sh.staffId!==staffId) continue;
     var s0=parse12(sh.start), e0=parse12(sh.end); if(e0<=s0) e0+=1440;
     if(ns<e0 && ne>s0){ alert('Overlap with another shift for this staff on this day.'); return; }
@@ -7616,18 +8200,41 @@ function saveShiftFromModal(){
     }
   }
 
-  if(Planner.editingShift){ existing[Planner.editingShift.id] = { id:Planner.editingShift.id, staffId:staffId, day:dayIndex, start:start12, end:end12, breakMins:breakMins, notes:notes, penalty:penalty }; }
-  else { var nid=uid(); existing[nid] = { id:nid, staffId:staffId, day:dayIndex, start:start12, end:end12, breakMins:breakMins, notes:notes, penalty:penalty }; }
+  var targetShiftId = '';
+  if(Planner.editingShift && !preserveExistingShiftAsRegular){
+    targetShiftId = String(Planner.editingShift.id||'');
+  }
+  if(isCoverShift && coverSource && coverSource.id){
+    targetShiftId = String(coverSource.id||'');
+  }
+
+  if(targetShiftId){ existing[targetShiftId] = makeShiftPayload(targetShiftId, dayIndex); }
+  else { targetShiftId = uid(); existing[targetShiftId] = makeShiftPayload(targetShiftId, dayIndex); }
+
+  if(Planner.editingShift && !preserveExistingShiftAsRegular && String(Planner.editingShift.dayIndex)!==String(dayIndex)){
+    var prevDay = (((App.weeks||{})[Planner.weekStartISO]||{})[String(Planner.editingShift.dayIndex)]||{});
+    if(prevDay[Planner.editingShift.id]) delete prevDay[Planner.editingShift.id];
+  }
 
   var checks = byId('daysThisWeek') ? Array.from(byId('daysThisWeek').querySelectorAll('input[type=checkbox]:checked')).map(function(x){return parseInt(x.value,10);}) : [];
   if(checks.length>0){
     checks.forEach(function(di){
-      if(di===dayIndex && Planner.editingShift) return;
+      if(di===dayIndex && (Planner.editingShift || preserveExistingShiftAsRegular)) return;
       if(!App.weeks[Planner.weekStartISO][String(di)]) App.weeks[Planner.weekStartISO][String(di)]={};
       var ex=App.weeks[Planner.weekStartISO][String(di)];
       var clash=false; var ns0=parse12(start12), ne00=parse12(end12); var ne0x = (ne00<=ns0)?ne00+1440:ne00;
       Object.keys(ex).forEach(function(k){ var s0=ex[k]; if(s0.staffId!==staffId) return; var s=parse12(s0.start), e=parse12(s0.end); if(e<=s) e+=1440; if(ns0<e && ne0x>s) clash=true; });
-      if(!clash){ var id2=uid(); ex[id2]={ id:id2, staffId:staffId, day:di, start:start12, end:end12, breakMins:breakMins, notes:notes, penalty:penalty }; }
+      if(clash) return;
+      var targetIdForDay = '';
+      if(isCoverShift){
+        var sourceForDay = findShiftEntryForCoverSource(Planner.weekStartISO, di, baseStaffId, {
+          preferredStart: start12,
+          preferredEnd: end12
+        });
+        if(sourceForDay && sourceForDay.id) targetIdForDay = String(sourceForDay.id||'');
+      }
+      if(!targetIdForDay) targetIdForDay = uid();
+      ex[targetIdForDay]=makeShiftPayload(targetIdForDay, di);
     });
   }
 
@@ -7637,7 +8244,20 @@ function saveShiftFromModal(){
       var isoW=toISO(weekStart(d));
       if(!App.weeks[isoW]) App.weeks[isoW]={};
       var daysToUse = (checks.length>0 ? checks : [dayIndex]);
-      daysToUse.forEach(function(di){ if(!App.weeks[isoW][String(di)]) App.weeks[isoW][String(di)]={}; var id3=uid(); App.weeks[isoW][String(di)][id3]={ id:id3, staffId:staffId, day:di, start:start12, end:end12, breakMins:breakMins, notes:notes, penalty:penalty }; });
+      daysToUse.forEach(function(di){
+        if(!App.weeks[isoW][String(di)]) App.weeks[isoW][String(di)]={};
+        var targetWeekDay = App.weeks[isoW][String(di)];
+        var targetIdForWeek = '';
+        if(isCoverShift){
+          var sourceForWeek = findShiftEntryForCoverSource(isoW, di, baseStaffId, {
+            preferredStart: start12,
+            preferredEnd: end12
+          });
+          if(sourceForWeek && sourceForWeek.id) targetIdForWeek = String(sourceForWeek.id||'');
+        }
+        if(!targetIdForWeek) targetIdForWeek = uid();
+        targetWeekDay[targetIdForWeek]=makeShiftPayload(targetIdForWeek, di);
+      });
     }
   }
 
@@ -7879,7 +8499,19 @@ function renderWeekOverview(){
       drawAwayOverlays(cell, iso, id);
       
       var ds=week[String(i)]||{};
-      Object.keys(ds).forEach(function(k){ var sh=ds[k]; if(sh.staffId!==id) return; var chip=document.createElement('div'); chip.className='wo-chip'; var bg=themeAdj(s.color||'#5A31F4'); chip.style.background=bg; chip.style.color=idealText(bg); chip.textContent=(sh.start||'')+'–'+(sh.end||''); cell.appendChild(chip); });
+      Object.keys(ds).forEach(function(k){
+        var sh=ds[k]; if(sh.staffId!==id) return;
+        var chip=document.createElement('div'); chip.className='wo-chip';
+        var isCover = shiftIsCover(sh);
+        if(isCover) chip.classList.add('cover-shift');
+        applyStaffChipAppearance(chip, s.color||'#5A31F4', isCover);
+        chip.textContent=shiftDisplayRange(sh)+(isCover?' ↺':'');
+        if(shiftIsCover(sh)){
+          var baseNm = shiftBaseStaffName(sh) || 'set roster';
+          chip.title = 'Covering for '+baseNm;
+        }
+        cell.appendChild(chip);
+      });
       el.appendChild(cell);
     }
   });
@@ -8007,6 +8639,8 @@ function openDayToolsFor(staffId, dayIndex){
   var btnPartialAway = byId('dtPartialAway'); if(btnPartialAway) btnPartialAway.style.display = canAwayActions ? '' : 'none';
   var btnRecurringUnavail = byId('dtRecurringUnavail'); if(btnRecurringUnavail) btnRecurringUnavail.style.display = canAwayActions ? '' : 'none';
   var btnClearAway = byId('dtClearAway'); if(btnClearAway) btnClearAway.style.display = canModerateAbsences() ? '' : 'none';
+  var btnDeleteShift = byId('dtDeleteShift');
+  if(btnDeleteShift) btnDeleteShift.style.display = (canEdit() && !!dayToolsResolveShiftKey(staffId, dayIndex)) ? '' : 'none';
   modal.style.display = 'flex';
 }
 
@@ -8015,28 +8649,61 @@ function closeDayTools(){
   if(modal) modal.style.display = 'none';
 }
 
+function dayToolsResolveShiftKey(staffId, dayIndex){
+  try{
+    staffId = String(staffId || '');
+    dayIndex = parseInt(dayIndex||0, 10);
+    var week = App.weeks[Planner.weekStartISO] || {};
+    var dayBucket = week[String(dayIndex)] || {};
+    var directKey = null;
+    Object.keys(dayBucket).some(function(k){
+      var sh = dayBucket[k];
+      if(sh && String(sh.staffId)===staffId){
+        directKey = k;
+        return true;
+      }
+      return false;
+    });
+    if(directKey) return directKey;
+    var coverKey = null;
+    Object.keys(dayBucket).some(function(k){
+      var sh = dayBucket[k];
+      if(sh && shiftIsCover(sh) && String(shiftBaseStaffId(sh) || '')===staffId){
+        coverKey = k;
+        return true;
+      }
+      return false;
+    });
+    return coverKey || null;
+  }catch(e){
+    return null;
+  }
+}
+
 function dayToolsEditShift(){
   if(!DayToolsCtx || DayToolsCtx.staffId==null) return;
   var staffId = DayToolsCtx.staffId;
   var dayIndex = DayToolsCtx.dayIndex || 0;
   closeDayTools();
   Planner.activeDayIndex = dayIndex;
-  var week = App.weeks[Planner.weekStartISO] || {};
-  var dayBucket = week[String(dayIndex)] || {};
-  var firstKey = null;
-  Object.keys(dayBucket).some(function(k){
-    var sh = dayBucket[k];
-    if(sh && String(sh.staffId)===String(staffId)){
-      firstKey = k;
-      return true;
-    }
-    return false;
-  });
+  var firstKey = dayToolsResolveShiftKey(staffId, dayIndex);
   if(firstKey){
     openShiftModal({shiftId:firstKey, dayIndex:dayIndex});
   } else {
     openShiftModal({staffId:staffId, dayIndex:dayIndex});
   }
+}
+
+function dayToolsDeleteShift(){
+  if(!canEdit()) return alert('Only manager or admin can delete shifts.');
+  if(!DayToolsCtx || DayToolsCtx.staffId==null) return;
+  var staffId = DayToolsCtx.staffId;
+  var dayIndex = DayToolsCtx.dayIndex || 0;
+  var shiftKey = dayToolsResolveShiftKey(staffId, dayIndex);
+  if(!shiftKey) return alert('No shift found for this day.');
+  closeDayTools();
+  Planner.editingShift = {id:String(shiftKey||''), dayIndex:dayIndex};
+  deleteShiftFromModal();
 }
 
 function dayToolsProposeAway(){
@@ -8073,11 +8740,25 @@ function dayToolsProposeShift(){
   }
 }
 
-function dayToolsInfo(){
+function dayToolsInfo(ev){
+  try{
+    if(ev){
+      ev.preventDefault();
+      ev.stopPropagation();
+    }
+  }catch(e){}
   if(!DayToolsCtx || !DayToolsCtx.iso) return;
+  var iso = DayToolsCtx.iso;
+  var staffId = DayToolsCtx.staffId;
   closeDayTools();
   if(window.openInfoForCell){
-    window.openInfoForCell(DayToolsCtx.iso, DayToolsCtx.staffId);
+    try{
+      window.setTimeout(function(){
+        try{ window.openInfoForCell(iso, staffId); }catch(err){ console.error('dayToolsInfo error', err); }
+      }, 0);
+    }catch(e){
+      try{ window.openInfoForCell(iso, staffId); }catch(err){ console.error('dayToolsInfo error', err); }
+    }
   }
 }
 
@@ -9129,7 +9810,7 @@ function awayReasonTextFor(iso, staffId){
             if(!b) return;
             var seg = 'Partial away';
             if(b.start || b.end){
-              seg += ' ' + (b.start||'') + '–' + (b.end||'');
+              seg += ' ' + displayTimeRange12(b.start, b.end);
             }
             var r1 = (b.reason!=null ? String(b.reason).trim() : '');
             if(!r1) r1 = '(no reason recorded)';
@@ -9145,6 +9826,12 @@ function awayReasonTextFor(iso, staffId){
       var recLines = recurringUnavailabilityLinesFor(iso, staffId);
       if(recLines && recLines.length){
         for(var i=0;i<recLines.length;i++) lines.push(recLines[i]);
+      }
+    }catch(e){}
+    try{
+      var coverLines = coveredShiftInfoLinesFor(iso, staffId);
+      if(coverLines && coverLines.length){
+        for(var j=0;j<coverLines.length;j++) lines.push(coverLines[j]);
       }
     }catch(e){}
 
@@ -9415,7 +10102,7 @@ function renderAbsenceCalendar(){
       var sid=keys[k]; if(filterId && sid!==filterId) continue;
       var val=rec[sid]; var st=App.staff[sid]; if(!st) continue;
       if(val.unavailable){ var ch=document.createElement('div'); ch.className='abs-chip full'; ch.setAttribute('data-iso', iso); ch.setAttribute('data-staff', sid); ch.setAttribute('data-type','full'); ch.setAttribute('data-reason', (val.reason!=null?String(val.reason):'')); ch.title='Click to view reason'; ch.textContent=(st.name||'')+' — AWAY'; cell.appendChild(ch); }
-      if(val.blocks && val.blocks.length){ for(var b=0;b<val.blocks.length;b++){ var bl=val.blocks[b]; if(!bl) continue; var ch2=document.createElement('div'); ch2.className='abs-chip block'; ch2.setAttribute('data-iso', iso); ch2.setAttribute('data-staff', sid); ch2.setAttribute('data-type','block'); ch2.setAttribute('data-start', (bl.start!=null?String(bl.start):'')); ch2.setAttribute('data-end', (bl.end!=null?String(bl.end):'')); ch2.setAttribute('data-reason', (bl.reason!=null?String(bl.reason):'')); ch2.title='Click to view reason'; ch2.textContent=(st.name||'')+' — '+(bl.start||'')+'–'+(bl.end||''); cell.appendChild(ch2); } }
+      if(val.blocks && val.blocks.length){ for(var b=0;b<val.blocks.length;b++){ var bl=val.blocks[b]; if(!bl) continue; var ch2=document.createElement('div'); ch2.className='abs-chip block'; ch2.setAttribute('data-iso', iso); ch2.setAttribute('data-staff', sid); ch2.setAttribute('data-type','block'); ch2.setAttribute('data-start', (bl.start!=null?String(bl.start):'')); ch2.setAttribute('data-end', (bl.end!=null?String(bl.end):'')); ch2.setAttribute('data-reason', (bl.reason!=null?String(bl.reason):'')); ch2.title='Click to view reason'; ch2.textContent=(st.name||'')+' — '+displayTimeRange12(bl.start, bl.end); cell.appendChild(ch2); } }
     }
     grid.appendChild(cell);
   }
@@ -9591,7 +10278,7 @@ function openRequestsModal(){
       var details = '';
       if(req.blocks && req.blocks.length){
         details = req.blocks.map(function(b){
-          var seg = (b.start||'?') + '–' + (b.end||'?');
+          var seg = displayTimeRange12(b.start||'?', b.end||'?');
           if(b.reason) seg += ' — ' + String(b.reason);
           return seg;
         }).join(' | ');
@@ -9853,6 +10540,8 @@ function approveShiftChange(iso,key,req){
       dayBucket[createdShiftId] = {
         id: createdShiftId,
         staffId: String(req.staffId || ''),
+        baseStaffId: String(req.staffId || ''),
+        isCover: false,
         day: parseInt(dayIndex, 10) || 0,
         start: to12hStr(req.newStart || ''),
         end: to12hStr(req.newEnd || ''),
@@ -10525,9 +11214,17 @@ function proposePartial(iso, staffId, start, end){
   if(!canManageAwayForStaff(staffId)){
     alert(awayActionDeniedMessage()); return;
   }
+  var startNorm = normalizeHHMM(start);
+  var endNorm = normalizeHHMM(end);
+  if(!startNorm || !endNorm){
+    alert('Please enter valid start and end times for the partial away.');
+    return;
+  }
+  start = to12hStr(startNorm);
+  end = to12hStr(endNorm);
   var startM = parse12(start);
   var endM = parse12(end);
-  if(startM==null || endM==null){
+  if(!isFinite(startM) || !isFinite(endM)){
     alert('Please enter valid start and end times for the partial away.');
     return;
   }
@@ -10594,54 +11291,42 @@ renderPlanner();
   if(typeof window._refreshSchedulerDebug==='function') window._refreshSchedulerDebug();
 }
 // ---------- Copy & Payroll ----------
-function copyDayToNext(){ var f=Planner.activeDayIndex; var t=(f+1)%7; if(!confirm('Copy ' + DAY[f] + ' into ' + DAY[t] + '? This replaces any roster already on ' + DAY[t] + ' for the current week.')) return; var wk=App.weeks[Planner.weekStartISO]||{}; var src=JSON.parse(JSON.stringify(wk[String(f)]||{})); wk[String(t)]={}; Object.keys(src).forEach(function(k){ var sh=src[k]; var id=uid(); wk[String(t)][id]={id:id,staffId:sh.staffId,day:t,start:sh.start,end:sh.end,breakMins:sh.breakMins,notes:sh.notes,penalty:sh.penalty}; }); App.weeks[Planner.weekStartISO]=wk; saveLocal(); Planner.activeDayIndex=t; renderPlanner(); renderPayroll(); try{ byId('tabMyRequests').style.display='inline-block'; }catch(e){}
-  renderMyShifts(); }
+function copyDayToNext(){
+  var f=Planner.activeDayIndex;
+  var t=(f+1)%7;
+  if(!confirm('Copy ' + DAY[f] + ' into ' + DAY[t] + '? This replaces any roster already on ' + DAY[t] + ' for the current week.')) return;
+  var wk=App.weeks[Planner.weekStartISO]||{};
+  var src=JSON.parse(JSON.stringify(wk[String(f)]||{}));
+  wk[String(t)]={};
+  Object.keys(src).forEach(function(k){
+    var sh=src[k];
+    var id=uid();
+    var cloned = cloneShiftForDay(sh, t, {id:id});
+    if(cloned) wk[String(t)][id]=cloned;
+  });
+  App.weeks[Planner.weekStartISO]=wk;
+  saveLocal();
+  Planner.activeDayIndex=t;
+  renderPlanner();
+  renderPayroll();
+  try{ byId('tabMyRequests').style.display='inline-block'; }catch(e){}
+  renderMyShifts();
+}
 function copyWeekToNext(){
   var from = Planner.weekStartISO;
   var previewTo = fromISO(from); previewTo.setDate(previewTo.getDate()+7);
   var toLabel = toISO(weekStart(previewTo));
-  if(!confirm('Copy the entire current week into the next week starting ' + toLabel + '? Existing rostered shifts in that destination week will be replaced.')) return;
+  var msg = 'Copy the entire current week into the next week starting ' + toLabel + '? Existing rostered shifts in that destination week will be replaced.\n\nCover shifts will revert to the set roster staff.\nOne-off Away / Partial Away will not be copied. Recurring unavailability still applies automatically.';
+  if(!confirm(msg)) return;
   var d = fromISO(from);
   d.setDate(d.getDate()+7);
   var to = toISO(weekStart(d));
 
-  // copy shifts
   var src = JSON.parse(JSON.stringify(App.weeks[from]||{}));
-  App.weeks[to] = {};
-  Object.keys(src).forEach(function(k){
-    var shs = src[k];
-    App.weeks[to][k] = {};
-    Object.keys(shs).forEach(function(sk){
-      var sh = shs[sk];
-      var id = uid();
-      App.weeks[to][k][id] = {id:id,staffId:sh.staffId,day:sh.day,start:sh.start,end:sh.end,breakMins:sh.breakMins,notes:sh.notes,penalty:sh.penalty};
-    });
-  });
-
-  // copy away status (full-day + partial blocks) for the whole week
-  try{
-    if(!App.availability) App.availability = {};
-    var srcStart = fromISO(from);
-    var dstStart = fromISO(to);
-    for(var i=0;i<7;i++){
-      var sdt = new Date(srcStart); sdt.setDate(srcStart.getDate()+i);
-      var ddt = new Date(dstStart); ddt.setDate(dstStart.getDate()+i);
-      var sIso = toISO(sdt);
-      var dIso = toISO(ddt);
-      var sDay = (App.availability && App.availability[sIso]) ? App.availability[sIso] : null;
-      if(!sDay) continue;
-      var dDay = (App.availability && App.availability[dIso]) ? App.availability[dIso] : {};
-      // merge: copy entries that don't already exist in destination
-      Object.keys(sDay).forEach(function(sid){
-        if(dDay && dDay[sid]) return;
-        dDay[sid] = JSON.parse(JSON.stringify(sDay[sid]));
-      });
-      App.availability[dIso] = dDay;
-    }
-  }catch(e){}
+  App.weeks[to] = cloneWeekWithNewIdsNormalized(src, {resetToBase:true});
 
   saveLocal();
-Planner.weekStartISO = to;
+  Planner.weekStartISO = to;
   renderPlanner();
   renderPayroll();
 }
@@ -11555,7 +12240,7 @@ function computeWeekPayrollBreakdown(weekIso, staffId){
         iso:iso,
         dayLabel:DAY[j],
         dateLabel:fmtDMY(d),
-        shiftLabel:String(sh.start||'') + '–' + String(sh.end||''),
+        shiftLabel:shiftDisplayRange(sh),
         workHours:round2(workAfterLeave),
         breakHours:round2(br),
         payableHours:round2(payH),
@@ -15032,7 +15717,12 @@ function buildPrintView(){
         var ds=(App.weeks[ws] && App.weeks[ws][String(day)]) ? App.weeks[ws][String(day)] : {};
         Object.keys(ds).forEach(function(k){
           var sh=ds[k]; if(sh.staffId!==id) return;
-          var chip=document.createElement('span'); chip.className='print-chip'; var bg=themeAdj(st.color||'#5A31F4'); chip.style.background=bg; chip.style.color=idealText(bg); chip.textContent=sh.start+'–'+sh.end;
+          var chip=document.createElement('span'); chip.className='print-chip'; var isCoverPrint=shiftIsCover(sh); applyStaffChipAppearance(chip, st.color||'#5A31F4', isCoverPrint); chip.textContent=shiftDisplayRange(sh);
+          if(isCoverPrint){
+            chip.classList.add('cover-shift');
+            chip.textContent += ' ↺';
+            chip.title = 'Covering for ' + (shiftBaseStaffName(sh) || 'set roster');
+          }
           (function(sh){
   try{
     function toMin(v){ if(v==null) return null; if(typeof v==='number') return v;
@@ -15052,7 +15742,7 @@ cell.appendChild(chip);
         var avrec=(App.availability && App.availability[toISO(new Date(start.getFullYear(), start.getMonth(), start.getDate()+day))])||{};
         var astate=avrec[id];
         if(astate){
-          var chip2=document.createElement('span'); chip2.className='print-chip'; chip2.style.border='1px dashed rgba(239,68,68,.6)'; chip2.style.color='#ef4444'; chip2.textContent = astate.unavailable ? 'AWAY' : (astate.blocks && astate.blocks.length?('AWAY '+(astate.blocks[0].start||'')+'–'+(astate.blocks[0].end||'')):'AWAY');
+          var chip2=document.createElement('span'); chip2.className='print-chip'; chip2.style.border='1px dashed rgba(239,68,68,.6)'; chip2.style.color='#ef4444'; chip2.textContent = astate.unavailable ? 'AWAY' : (astate.blocks && astate.blocks.length?('AWAY '+displayTimeRange12(astate.blocks[0].start, astate.blocks[0].end)):'AWAY');
           cell.appendChild(chip2);
         }
         grid.appendChild(cell);
@@ -15285,33 +15975,8 @@ function __tplWeekIsoFromAnyDateInput(val){
     return Planner.weekStartISO;
   }
 }
-function __tplCloneWeekWithNewIds(weekData){
-  var out = {};
-  weekData = weekData || {};
-  for(var di=0; di<7; di++){
-    var dk = String(di);
-    var day = weekData[dk];
-    if(!day) continue;
-    var nd = {};
-    Object.keys(day).forEach(function(k){
-      var sh = day[k];
-      if(!sh) return;
-      var nid = uid();
-      // Copy only shift fields (defensive)
-      nd[nid] = {
-        id: nid,
-        staffId: sh.staffId,
-        day: sh.day!=null ? sh.day : di,
-        start: sh.start,
-        end: sh.end,
-        breakMins: sh.breakMins!=null ? sh.breakMins : '',
-        notes: sh.notes||'',
-        penalty: !!sh.penalty
-      };
-    });
-    if(Object.keys(nd).length) out[dk] = nd;
-  }
-  return out;
+function __tplCloneWeekWithNewIds(weekData, opts){
+  return cloneWeekWithNewIdsNormalized(weekData, opts);
 }
 function __tplHasShiftForStaffOnDay(weekIso, dayIndex, staffId){
   try{
@@ -15320,7 +15985,9 @@ function __tplHasShiftForStaffOnDay(weekIso, dayIndex, staffId){
     var keys = Object.keys(day);
     for(var i=0;i<keys.length;i++){
       var sh = day[keys[i]];
-      if(sh && String(sh.staffId)===String(staffId)) return true;
+      if(!sh) continue;
+      if(String(sh.staffId)===String(staffId)) return true;
+      if(String(shiftBaseStaffId(sh) || '')===String(staffId)) return true;
     }
   }catch(e){}
   return false;
@@ -15330,7 +15997,7 @@ function createRosterTemplateFromCurrentWeek(name){
   name = String(name||'').trim();
   if(!name) throw new Error('Enter a template name');
   var ws = Planner.weekStartISO;
-  var wk = __tplDeepClone(App.weeks[ws] || {});
+  var wk = __tplCloneWeekWithNewIds(App.weeks[ws] || {}, {resetToBase:true});
   var key = 'tpl_' + uid();
   App.rosterTemplates[key] = {
     id: key,
@@ -15360,7 +16027,7 @@ function applyRosterTemplateToWeek(key, targetWeekISO, mode){
   if(!App.weeks[targetWeekISO]) App.weeks[targetWeekISO] = {};
 
   var sourceWeek = App.rosterTemplates[key].week || {};
-  var cloned = __tplCloneWeekWithNewIds(sourceWeek);
+  var cloned = __tplCloneWeekWithNewIds(sourceWeek, {resetToBase:true});
 
   if(mode === 'replace'){
     App.weeks[targetWeekISO] = cloned;
@@ -15728,12 +16395,12 @@ window.proposeShiftEdit = async function(iso, staffId){
     var selected = options[pickIndex];
     var sh = selected.shift;
 
-    var currentRange = (sh.start || '?') + '–' + (sh.end || '?');
+    var currentRange = shiftDisplayRange(sh) || '?';
     var promptMsg =
       'Enter requested start and end times as "start-end".\n' +
       'You can leave start or end blank to only change one.\n\n' +
       'Current: ' + currentRange;
-    var defVal = (sh.start || '') + ' - ' + (sh.end || '');
+    var defVal = displayTime12(sh.start, '') + ' - ' + displayTime12(sh.end, '');
     var val = prompt(promptMsg, defVal);
     if(val == null) return;
     var raw = String(val).trim();
@@ -15831,7 +16498,7 @@ var pushedOk = true;
     if(one){
       if(one.reason) out.push(prefix + one.reason);
       if(one.blocks && one.blocks.length){
-        for(var i=0;i<one.blocks.length;i++){ var b=one.blocks[i]; if(b && b.reason){ out.push(prefix+'('+(b.start||'')+'–'+(b.end||'')+'): '+b.reason); } }
+        for(var i=0;i<one.blocks.length;i++){ var b=one.blocks[i]; if(b && b.reason){ out.push(prefix+'('+displayTimeRange12(b.start, b.end)+'): '+b.reason); } }
       }
       return out;
     }
@@ -15839,7 +16506,7 @@ var pushedOk = true;
       Object.keys(container).forEach(function(k){
         var r=container[k]; if(!r) return;
         if(r.reason) out.push('['+k+'] '+prefix+r.reason);
-        if(r.blocks && r.blocks.length){ r.blocks.forEach(function(b){ if(b && b.reason){ out.push('['+k+'] '+prefix+'('+(b.start||'')+'–'+(b.end||'')+'): '+b.reason); } }); }
+        if(r.blocks && r.blocks.length){ r.blocks.forEach(function(b){ if(b && b.reason){ out.push('['+k+'] '+prefix+'('+displayTimeRange12(b.start, b.end)+'): '+b.reason); } }); }
       });
     }catch(e){} return out;
   }
@@ -15856,7 +16523,7 @@ var pushedOk = true;
     }catch(e){}
     var dateLabel = iso;
     try{ dateLabel = fmtDMY(fromISO(iso)); }catch(e){}
-    var title = 'Away info — ' + staffName + ' — ' + dateLabel;
+    var title = 'Info for this day — ' + staffName + ' — ' + dateLabel;
 
     function openInfoModalSafe(t, body){
       try{
@@ -15895,7 +16562,7 @@ var pushedOk = true;
         rec.blocks.forEach(function(b){
           if(!b) return;
           var seg = label + ' away';
-          if(b.start || b.end) seg += ' ' + (b.start||'') + '–' + (b.end||'');
+          if(b.start || b.end) seg += ' ' + displayTimeRange12(b.start, b.end);
           var r1 = (b.reason!=null ? String(b.reason).trim() : '');
           if(!r1) r1='(no reason recorded)';
           seg += ': ' + r1;
@@ -15931,12 +16598,20 @@ var pushedOk = true;
           });
         }
       }catch(e){}
+      try{
+        var coverInfo = coveredShiftInfoLinesFor(iso, staffId) || [];
+        if(coverInfo.length){
+          coverInfo.forEach(function(line){ lines.push(line); });
+        }
+      }catch(e){}
     }catch(e){}
 
     if(lines.length){
       openInfoModalSafe(title, lines.join('\n\n'));
       return;
     }
+
+    openInfoModalSafe(title, 'Loading info...');
 
     try{
       var dbUrlEl = document.getElementById('dbUrlInput');
