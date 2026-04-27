@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1"/>
-  <title>M&C-ATRD-scheduler --=Aspire Group=-- (V4.1.10)</title>
+  <title>M&C-ATRD-scheduler --=Aspire Group=-- (V4.1.11)</title>
   <meta name="theme-color" content="#22c55e"/>
 
   <style>
@@ -2369,7 +2369,7 @@
       <div id="appLogoBox"></div>
       <div class="titlewrap">
         <div class="title" id="appTitle">M&C-ATRD-scheduler --=Aspire Group=--</div>
-        <div class="version-pill" id="appVersion">V4.1.10</div>
+        <div class="version-pill" id="appVersion">V4.1.11</div>
         <div class="sync-pill syncing" id="syncStatusChip" title="Sync status">Starting…</div>
       </div>
     </div>
@@ -3480,8 +3480,20 @@
               <select id="existingStaffSelect"></select>
             </div>
             <div>
-              <label>Staff Name</label>
-              <input id="staffNameInput" type="text" placeholder="Full name">
+              <label>Staff Full Name</label>
+              <input id="staffNameInput" type="text" placeholder="Full legal / formal name">
+            </div>
+          </div>
+          <div class="grid-2">
+            <div>
+              <label>Nickname / planner name</label>
+              <input id="staffNickNameInput" type="text" placeholder="Short name shown on Planner and Payroll page">
+            </div>
+            <div>
+              <label>&nbsp;</label>
+              <div class="muted" style="font-size:12px;margin-top:2px;">
+                Payslips and formal payroll documents keep using the staff full name.
+              </div>
             </div>
           </div>
           <div class="grid-2">
@@ -4095,8 +4107,8 @@ var DAY = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 var App = {
   // IMPORTANT: Increment App.version *and* App.buildId whenever making functional changes to this file.
   // SAFETY NET: This build performs an automatic runtime check against the file name; if mismatched, it shows a blocking warning so it can't be overlooked.
-  version: 'V4.1.10',
-    buildId: '2026-04-25.1',
+  version: 'V4.1.11',
+    buildId: '2026-04-27.1',
 settings: {
     dbUrl:'https://mnc-atrd-default-rtdb.asia-southeast1.firebasedatabase.app/', workspace:'mnc-atrd', authToken:'',
     theme:'light', themeName:'light-pastel-sky', recentColors:[], appTitle:'M&C-ATRD-scheduler --=Aspire Group=--', logoUrl:'',
@@ -4525,19 +4537,56 @@ function displayTimeRange12(start, end){
 function shiftDisplayRange(sh){
   return displayTimeRange12(sh && sh.start, sh && sh.end);
 }
-function shiftAssignedStaffName(sh){
-  var sid = (sh && sh.staffId!=null) ? String(sh.staffId) : '';
-  if(!sid) return '';
-  try{ return (App.staff && App.staff[sid] && App.staff[sid].name) ? String(App.staff[sid].name) : ''; }catch(e){}
-  return '';
+function cleanStaffNameValue(v){
+  v = (v==null ? '' : String(v)).trim();
+  return v;
 }
-function staffNameForId(sid, fallback){
+function staffFullNameFromRecord(st, fallback){
+  st = st || {};
+  var v = cleanStaffNameValue(st.name || st.fullName || st.full_name || st.legalName || st.nickName || st.nickname || st.displayName);
+  return v || (fallback!=null ? String(fallback) : '');
+}
+function staffAutoShortName(v){
+  v = cleanStaffNameValue(v);
+  if(!v) return '';
+  var parts = v.split(/\s+/).filter(Boolean);
+  return parts.length ? parts[0] : v;
+}
+function staffDisplayNameFromRecord(st, fallback){
+  st = st || {};
+  var explicit = cleanStaffNameValue(st.nickName || st.nickname || st.shortName || st.displayName);
+  if(explicit) return explicit;
+  var full = staffFullNameFromRecord(st, '');
+  var shortName = staffAutoShortName(full);
+  return shortName || full || (fallback!=null ? String(fallback) : '');
+}
+function staffFullNameForId(sid, fallback){
   sid = (sid==null ? '' : String(sid));
   if(!sid) return (fallback!=null ? String(fallback) : '');
   try{
-    if(App && App.staff && App.staff[sid] && App.staff[sid].name) return String(App.staff[sid].name);
+    if(App && App.staff && App.staff[sid]) return staffFullNameFromRecord(App.staff[sid], fallback!=null ? fallback : sid);
   }catch(e){}
   return (fallback!=null ? String(fallback) : sid);
+}
+function staffDisplayNameForId(sid, fallback){
+  sid = (sid==null ? '' : String(sid));
+  if(!sid) return (fallback!=null ? String(fallback) : '');
+  try{
+    if(App && App.staff && App.staff[sid]) return staffDisplayNameFromRecord(App.staff[sid], fallback!=null ? fallback : sid);
+  }catch(e){}
+  return (fallback!=null ? String(fallback) : sid);
+}
+function staffSortNameForId(sid){
+  var display = staffDisplayNameForId(sid, '');
+  var full = staffFullNameForId(sid, '');
+  return (display + ' ' + full).toLowerCase();
+}
+function staffNameForId(sid, fallback){
+  return staffFullNameForId(sid, fallback);
+}
+function shiftAssignedStaffName(sh){
+  var sid = (sh && sh.staffId!=null) ? String(sh.staffId) : '';
+  return sid ? staffDisplayNameForId(sid, '') : '';
 }
 function shiftCoveredByStaffId(sh){
   if(!sh || typeof sh !== 'object') return '';
@@ -4546,7 +4595,7 @@ function shiftCoveredByStaffId(sh){
 function shiftCoveredByStaffName(sh){
   var sid = shiftCoveredByStaffId(sh);
   if(!sid) return '';
-  return staffNameForId(sid, sid);
+  return staffDisplayNameForId(sid, sid);
 }
 function shiftIsCoveredSource(sh){
   if(!sh || typeof sh !== 'object') return false;
@@ -4866,9 +4915,7 @@ function shiftIsCover(sh){
 }
 function shiftBaseStaffName(sh){
   var sid = shiftBaseStaffId(sh);
-  if(!sid) return '';
-  try{ return (App.staff && App.staff[sid] && App.staff[sid].name) ? String(App.staff[sid].name) : ''; }catch(e){}
-  return '';
+  return sid ? staffDisplayNameForId(sid, '') : '';
 }
 function buildShiftRecord(opts){
   opts = opts || {};
@@ -5041,8 +5088,9 @@ function appendCoveredSourcePlannerChip(wrap, sh, shiftId, st, dayIndex){
   var ghost=document.createElement('div'); ghost.className='shift cover-source-ghost covered-source'; if(endM0<=startM) ghost.classList.add('overnight');
   ghost.style.left=left+'%'; ghost.style.width=width+'%'; ghost.dataset.id=shiftId;
   applyStaffChipAppearance(ghost, st.color||'#5A31F4', false);
-  ghost.title = st.name+' — '+shiftDisplayRange(sh)+' ('+coveredSourceReasonText(sh)+')';
-  var label=document.createElement('span'); label.className='label'; label.textContent=st.name; label.style.position='relative'; label.style.zIndex='3';
+  var ghostStaffName = staffDisplayNameFromRecord(st, 'Staff');
+  ghost.title = ghostStaffName+' — '+shiftDisplayRange(sh)+' ('+coveredSourceReasonText(sh)+')';
+  var label=document.createElement('span'); label.className='label'; label.textContent=ghostStaffName; label.style.position='relative'; label.style.zIndex='3';
   var hrs=document.createElement('span'); hrs.className='hours'; hrs.textContent=shiftDisplayRange(sh)+' ('+work.toFixed(2)+'h)'; hrs.style.position='relative'; hrs.style.zIndex='3';
   ghost.appendChild(label); ghost.appendChild(hrs);
   var awayBand=document.createElement('div'); awayBand.className='away-band'; awayBand.style.left='0'; awayBand.style.width='100%';
@@ -6599,7 +6647,7 @@ function setLoginMessage(msg){
 }
 function completeLoginAsStaff(id, staff, opts){
   opts = opts || {};
-  App.currentUser={id:id, name:staff.name, role:staff.role||'staff', rate:staff.rate||0};
+  App.currentUser={id:id, name:staffDisplayNameForId(id, staff.name||id), fullName:staffFullNameForId(id, staff.name||id), role:staff.role||'staff', rate:staff.rate||0};
   try{ if(App.currentUser.role!=='staff'){ applyTheme(App.__globalThemeName||App.settings.themeName||'dark-classic'); } }catch(e){}
   enterApp();
   startAutoSyncTimers();
@@ -6649,13 +6697,13 @@ function showLogin(){ var nodes=$$('.section'); for(var i=0;i<nodes.length;i++){
 function populateLoginSelects(){
   var sel=byId('loginStaffSelect'); sel.innerHTML='<option value="">-- select --</option>';
   Object.keys(App.staff).sort(function(a,b){ return (App.staff[a].name||'').localeCompare(App.staff[b].name||''); }).forEach(function(id){
-    var s=App.staff[id]; var o=document.createElement('option'); o.value=id; o.textContent=s.name; sel.appendChild(o);
+    var s=App.staff[id]; var o=document.createElement('option'); o.value=id; o.textContent=staffFullNameFromRecord(s, id); sel.appendChild(o);
   });
 }
 function populateExistingStaff(){
   var sel=byId('existingStaffSelect'); if(!sel) return; sel.innerHTML='<option value="">-- select staff --</option>';
   Object.keys(App.staff).sort(function(a,b){ return (App.staff[a].name||'').localeCompare(App.staff[b].name||''); }).forEach(function(id){
-    var s=App.staff[id]; var o=document.createElement('option'); o.value=id; o.textContent=s.name; sel.appendChild(o);
+    var s=App.staff[id]; var o=document.createElement('option'); o.value=id; o.textContent=staffFullNameFromRecord(s, id) + (staffDisplayNameFromRecord(s, '') && staffDisplayNameFromRecord(s, '') !== staffFullNameFromRecord(s, id) ? ' ('+staffDisplayNameFromRecord(s, '')+')' : ''); sel.appendChild(o);
   });
 }
 
@@ -6665,12 +6713,12 @@ function populateAdminHistoryStaffFilter(){
   var current = sel.value || '';
   sel.innerHTML = '<option value="">All staff</option>';
   Object.keys(App.staff||{}).sort(function(a,b){
-    return (App.staff[a].name||'').localeCompare(App.staff[b].name||'');
+    return staffSortNameForId(a).localeCompare(staffSortNameForId(b));
   }).forEach(function(id){
     var s = App.staff[id]||{};
     var o = document.createElement('option');
     o.value = id;
-    o.textContent = s.name || id;
+    o.textContent = staffDisplayNameForId(id, id);
     sel.appendChild(o);
   });
   if(current){
@@ -6707,7 +6755,7 @@ function renderAdminHistory(){
         var rec = day[sid];
         if(!rec) return;
         var staff = (App.staff && App.staff[sid]) || {};
-        var name = staff.name || sid;
+        var name = staffDisplayNameForId(sid, sid);
         var status = rec.status || 'approved';
         var type = (rec.blocks && rec.blocks.length ? 'Away (partial)' : (rec.unavailable ? 'Away (full day)' : 'Away'));
         var parts = [];
@@ -6745,7 +6793,7 @@ function renderAdminHistory(){
         if(filterId && !sid) return;
 
         var staff = (sid && App.staff && App.staff[sid]) ? App.staff[sid] : {};
-        var name = staff.name || sid || '(unknown)';
+        var name = staffDisplayNameForId(sid, sid || '(unknown)');
         var status = rec.status || 'approved';
 
         var when = rec.resolvedAt || (iso + ' (no timestamp)');
@@ -6805,12 +6853,12 @@ function populateAdminReqLogStaffFilter(){
   sel.innerHTML = '<option value="">All staff</option>';
   try{
     Object.keys(App.staff||{}).sort(function(a,b){
-      return (App.staff[a].name||'').localeCompare(App.staff[b].name||'');
+      return staffSortNameForId(a).localeCompare(staffSortNameForId(b));
     }).forEach(function(id){
       var s = App.staff[id] || {};
       var o = document.createElement('option');
       o.value = String(id);
-      o.textContent = s.name || id;
+      o.textContent = staffDisplayNameForId(id, id);
       sel.appendChild(o);
     });
   }catch(e){}
@@ -6901,7 +6949,7 @@ function renderAdminRequestsLog(){
         var st = _normReqStatus(req.status||'pending');
         if(st !== 'pending') return;
         var staff = (App.staff && App.staff[sid]) ? App.staff[sid] : {};
-        var name = staff.name || sid;
+        var name = staffDisplayNameForId(sid, sid);
 
         var type = (req.blocks && req.blocks.length) ? 'Away (partial)' : (req.unavailable ? 'Away (full day)' : 'Away');
         var detailsParts=[];
@@ -6949,7 +6997,7 @@ function renderAdminRequestsLog(){
         if(!rec) return;
         var st = _normReqStatus(rec.status||'approved');
         var staff = (App.staff && App.staff[sid]) ? App.staff[sid] : {};
-        var name = staff.name || sid;
+        var name = staffDisplayNameForId(sid, sid);
 
         var type = (rec.blocks && rec.blocks.length) ? 'Away (partial)' : (rec.unavailable ? 'Away (full day)' : 'Away');
         var detailsParts=[];
@@ -6997,7 +7045,7 @@ function renderAdminRequestsLog(){
         if(st !== 'pending') return;
         var sid = (req.staffId!=null) ? String(req.staffId) : '';
         var staff = (sid && App.staff && App.staff[sid]) ? App.staff[sid] : {};
-        var name = staff.name || sid || '(unknown)';
+        var name = staffDisplayNameForId(sid, sid || '(unknown)');
 
         var requestedAt = req.createdAt || req.requestedAt || req.ts || req.submittedAt || iso;
 
@@ -7029,7 +7077,7 @@ function renderAdminRequestsLog(){
         var st = _normReqStatus(rec.status||'approved');
         var sid = (rec.staffId!=null) ? String(rec.staffId) : '';
         var staff = (sid && App.staff && App.staff[sid]) ? App.staff[sid] : {};
-        var name = staff.name || sid || '(unknown)';
+        var name = staffDisplayNameForId(sid, sid || '(unknown)');
 
         addRow({
           requestedAt: rec.createdAt || rec.requestedAt || rec.ts || '',
@@ -7938,7 +7986,7 @@ function renderPlanner(){
       var st = x[1] || {};
       return (st.role||'staff')!=='admin' && !st.hidden;
     })
-    .sort(function(a,b){ return (a[1].name||'').localeCompare(b[1].name||''); });
+    .sort(function(a,b){ return staffSortNameForId(a[0]).localeCompare(staffSortNameForId(b[0])); });
 
   var dayKey=String(Planner.activeDayIndex);
   var week=App.weeks[Planner.weekStartISO]||{};
@@ -7956,7 +8004,9 @@ function renderPlanner(){
     var sc=document.createElement('div'); sc.className='staffcell';
     var nameWrap=document.createElement('div'); nameWrap.style.display='flex'; nameWrap.style.alignItems='center'; nameWrap.style.gap='8px'; nameWrap.style.width='100%';
     var dot=document.createElement('div'); dot.className='dot'; dot.style.background=st.color||'#5A31F4';
-    var name=document.createElement('div'); name.textContent=st.name;
+    var displayName = staffDisplayNameForId(id, st.name||id);
+    var fullName = staffFullNameForId(id, displayName);
+    var name=document.createElement('div'); name.textContent=displayName; if(fullName && fullName !== displayName) name.title=fullName;
     try{ if(awayReasonTextFor(curISO, id)){ attachAwayReasonHover(name, curISO, id); name.style.cursor='help'; } }catch(e){}
     var badge=document.createElement('div'); badge.className='badge'; badge.textContent='0.00h wk';
     nameWrap.appendChild(dot); nameWrap.appendChild(name); nameWrap.appendChild(badge);
@@ -8013,17 +8063,18 @@ sc.appendChild(mini);
       var isCoverShift = shiftIsCover(sh);
       var displayRange = shiftDisplayRange(sh);
       applyStaffChipAppearance(chip, st.color||'#5A31F4', isCoverShift);
-      var baseStaffName = shiftBaseStaffName(sh) || ((App.staff[baseStaffId] && App.staff[baseStaffId].name) ? App.staff[baseStaffId].name : 'set roster');
+      var baseStaffName = shiftBaseStaffName(sh) || staffDisplayNameForId(baseStaffId, 'set roster');
+      var chipStaffName = staffDisplayNameForId(id, st.name||id);
       if(isCoverShift) chip.classList.add('cover-shift');
       chip.title = isCoverShift
-        ? (st.name+' covering for '+baseStaffName+' — '+displayRange+' ('+work.toFixed(2)+'h, break '+breakMin+'m)')
-        : (st.name+' — '+displayRange+' ('+work.toFixed(2)+'h, break '+breakMin+'m)');
+        ? (chipStaffName+' covering for '+baseStaffName+' — '+displayRange+' ('+work.toFixed(2)+'h, break '+breakMin+'m)')
+        : (chipStaffName+' — '+displayRange+' ('+work.toFixed(2)+'h, break '+breakMin+'m)');
 
       if(isCoverShift){
         var coverTag=document.createElement('span'); coverTag.className='cover-tag'; coverTag.textContent='Cover';
         chip.appendChild(coverTag);
       }
-      var label=document.createElement('span'); label.className='label'; label.textContent=isCoverShift ? ('for '+baseStaffName) : st.name;
+      var label=document.createElement('span'); label.className='label'; label.textContent=isCoverShift ? ('for '+baseStaffName) : chipStaffName;
       var hrs=document.createElement('span'); hrs.className='hours'; hrs.textContent=displayRange+' ('+work.toFixed(2)+'h)';
       chip.appendChild(label); chip.appendChild(hrs);
 
@@ -8144,11 +8195,13 @@ function openShiftModal(opts){
   var shiftStaffOptions = Object.keys(App.staff).map(function(id){ return [id,App.staff[id]]; }).filter(function(p){
     var st = p[1] || {};
     return (st.role||'staff')!=='admin' && !st.hidden;
-  }).sort(function(a,b){ return (a[1].name||'').localeCompare(b[1].name||''); });
+  }).sort(function(a,b){ return staffSortNameForId(a[0]).localeCompare(staffSortNameForId(b[0])); });
   shiftStaffOptions.forEach(function(p){
     var id=p[0], s=p[1];
-    var o=document.createElement('option'); o.value=id; o.textContent=s.name; selS.appendChild(o);
-    if(selCover){ var c=document.createElement('option'); c.value=id; c.textContent=s.name; selCover.appendChild(c); }
+    var disp=staffDisplayNameForId(id, s.name||id);
+    var full=staffFullNameForId(id, disp);
+    var o=document.createElement('option'); o.value=id; o.textContent=disp; if(full && full!==disp) o.title=full; selS.appendChild(o);
+    if(selCover){ var c=document.createElement('option'); c.value=id; c.textContent=disp; if(full && full!==disp) c.title=full; selCover.appendChild(c); }
   });
 
   var coverChk = byId('shiftIsCover');
@@ -8405,13 +8458,13 @@ function saveShiftFromModal(){
   var iso=toISO(d0);
   var unavail = (((App.availability||{})[iso]||{})[staffId]||{}).unavailable===true;
   if(unavail){
-    var nm=(App.staff[staffId]&&App.staff[staffId].name)||'Staff';
+    var nm=staffDisplayNameForId(staffId, 'Staff');
     if(!confirm(nm+' marked unavailable on '+fmtDMY(d0)+'. Create shift anyway?')) return;
   }
 
   try{
     if(isRecurringUnavailableForShift(iso, staffId, start12, end12)){
-      var nm2=(App.staff[staffId]&&App.staff[staffId].name)||'Staff';
+      var nm2=staffDisplayNameForId(staffId, 'Staff');
       if(!confirm(nm2+' has recurring unavailability on '+DAY[dayIndex]+' ('+fmtDMY(d0)+'). Create shift anyway?')) return;
     }
   }catch(e){}
@@ -8567,6 +8620,8 @@ async function onSaveStaff(){
   if(!isAdmin()) return alert('Admin only.');
   var selectedId = byId('existingStaffSelect').value || null;
   var name=byId('staffNameInput').value.trim();
+  var nickEl=byId('staffNickNameInput');
+  var nickName=nickEl ? nickEl.value.trim() : '';
   var rate=parseFloat(byId('staffRateInput').value||'0');
   var rateWeekend=parseFloat(byId('staffWeekendRateInput').value||'0');
   var ratePenalty=parseFloat(byId('staffPenaltyRateInput').value||'0');
@@ -8592,7 +8647,7 @@ async function onSaveStaff(){
     return;
   }
   var id = selectedId || uid();
-  App.staff[id]={name:name,rate:rate,rateWeekend:rateWeekend,ratePenalty:ratePenalty,otMult:otMult,otWeekly:otWeekly,otDaily:otDaily,breakDefault:br,role:role,color:color,hidden:hidden,passHash:passHash};
+  App.staff[id]={name:name,nickName:nickName,rate:rate,rateWeekend:rateWeekend,ratePenalty:ratePenalty,otMult:otMult,otWeekly:otWeekly,otDaily:otDaily,breakDefault:br,role:role,color:color,hidden:hidden,passHash:passHash};
   App.settings.recentColors=[color].concat((App.settings.recentColors||[]).filter(function(c){return c!==color;})).slice(0,12);
   saveLocal(); populateLoginSelects(); populateExistingStaff(); try{ syncPayrollFormsFromApp(); }catch(e){} alert('Saved staff.');
 }
@@ -8606,6 +8661,7 @@ function loadStaffIntoForm(){
   var id=this.value; if(!id){ clearStaffForm(); return; }
   var s=App.staff[id]; if(!s) return;
   byId('staffNameInput').value=s.name||'';
+  var nickEl=byId('staffNickNameInput'); if(nickEl) nickEl.value=s.nickName||s.nickname||s.shortName||s.displayName||'';
   byId('staffRateInput').value=s.rate||0;
   byId('staffWeekendRateInput').value=s.rateWeekend||0;
   byId('staffPenaltyRateInput').value=s.ratePenalty||0;
@@ -8621,6 +8677,7 @@ function loadStaffIntoForm(){
 }
 function clearStaffForm(){
   byId('staffNameInput').value='';
+  var nickEl=byId('staffNickNameInput'); if(nickEl) nickEl.value='';
   byId('staffRateInput').value='25';
   byId('staffWeekendRateInput').value='0';
   byId('staffPenaltyRateInput').value='0';
@@ -8765,11 +8822,11 @@ function renderWeekOverview(){
   Object.keys(App.staff).filter(function(id){
     var s = App.staff[id] || {};
     return (s.role||'staff')!=='admin' && !s.hidden;
-  }).sort(function(a,b){ return (App.staff[a].name||'').localeCompare(App.staff[b].name||''); }).forEach(function(id){
+  }).sort(function(a,b){ return staffSortNameForId(a).localeCompare(staffSortNameForId(b)); }).forEach(function(id){
     var s=App.staff[id];
     var nm=document.createElement('div'); nm.className='wo-name';
     var dot=document.createElement('div'); dot.style.width='10px'; dot.style.height='10px'; dot.style.borderRadius='50%'; dot.style.background=s.color||'#5A31F4'; nm.appendChild(dot);
-    var t=document.createElement('div'); t.textContent=s.name; nm.appendChild(t); el.appendChild(nm);
+    var t=document.createElement('div'); t.textContent=staffDisplayNameForId(id, s.name||id); var full=staffFullNameForId(id, t.textContent); if(full && full!==t.textContent) t.title=full; nm.appendChild(t); el.appendChild(nm);
     for(var i=0;i<7;i++){
       var cell=document.createElement('div'); cell.className='wo-cell';
       cell.dataset.staffId = id;
@@ -8867,16 +8924,14 @@ function updateWeekOverviewHours(){
     var st = App.staff[id] || {};
     return (st.role||'staff')!=='admin' && !st.hidden;
   }).sort(function(a,b){
-    var an = (App.staff[a] && App.staff[a].name) || '';
-    var bn = (App.staff[b] && App.staff[b].name) || '';
-    return an.localeCompare(bn);
+    return staffSortNameForId(a).localeCompare(staffSortNameForId(b));
   });
   var names = cont.querySelectorAll('.wo-name');
   for(var j=0;j<names.length && j<staffIds.length;j++){
     var sid2 = staffIds[j];
     var nm = names[j];
     var st2 = App.staff[sid2] || {};
-    var baseName = st2.name || '';
+    var baseName = staffDisplayNameForId(sid2, st2.name || sid2);
     var wkH = totalsByStaff[sid2] || 0;
 
     // try to update second inner div (after color dot)
@@ -8918,7 +8973,7 @@ function openDayToolsFor(staffId, dayIndex){
   d0.setDate(d0.getDate()+dayIndex);
   DayToolsCtx.iso = toISO(d0);
   var staff = App.staff[staffId] || {};
-  var name = staff.name || ('Staff ' + staffId);
+  var name = staffDisplayNameForId(staffId, staff.name || ('Staff ' + staffId));
   var titleEl = byId('dayToolsTitle');
   var subEl = byId('dayToolsSubtitle');
   if(titleEl) titleEl.textContent = 'Day tools';
@@ -9172,9 +9227,9 @@ function openAwayMultiModal(mode){
   try{
     var start = fromISO(Planner.weekStartISO);
     var end = new Date(start); end.setDate(end.getDate()+6);
-    if(sub) sub.textContent = (staff.name||staffId) + ' — Week of ' + fmtDMY(start) + ' – ' + fmtDMY(end);
+    if(sub) sub.textContent = staffDisplayNameForId(staffId, staffId) + ' — Week of ' + fmtDMY(start) + ' – ' + fmtDMY(end);
   }catch(e){
-    if(sub) sub.textContent = (staff.name||staffId);
+    if(sub) sub.textContent = staffDisplayNameForId(staffId, staffId);
   }
 
   // selection mode (this week vs date range)
@@ -9248,7 +9303,7 @@ function openRecurringUnavailModal(staffId, ruleId, baseISO, dayIndex){
     if(!App.recurringUnavailability[sid]) App.recurringUnavailability[sid] = {};
 
     var staff = (App.staff && App.staff[sid]) || {};
-    var nm = staff.name || 'Staff';
+    var nm = staffDisplayNameForId(sid, 'Staff');
     var m = byId('recUnavailModal');
     if(!m) return;
 
@@ -10377,8 +10432,8 @@ function renderAbsenceCalendar(){
   var lab=byId('absMonthLabel'); var staffSel=byId('absStaffFilter');
   if(staffSel && staffSel.options.length===0){
     var optAll=document.createElement('option'); optAll.value=''; optAll.textContent='All staff'; staffSel.appendChild(optAll);
-    var arr = Object.keys(App.staff).map(function(id){ return [id,App.staff[id]]; }).sort(function(a,b){ return (a[1].name||'').localeCompare(b[1].name||''); });
-    for(var i=0;i<arr.length;i++){ var sid=arr[i][0], s=arr[i][1]; if((s.role||'staff')==='admin') continue; var o=document.createElement('option'); o.value=sid; o.textContent=s.name||''; staffSel.appendChild(o); }
+    var arr = Object.keys(App.staff).map(function(id){ return [id,App.staff[id]]; }).sort(function(a,b){ return staffSortNameForId(a[0]).localeCompare(staffSortNameForId(b[0])); });
+    for(var i=0;i<arr.length;i++){ var sid=arr[i][0], s=arr[i][1]; if((s.role||'staff')==='admin') continue; var o=document.createElement('option'); o.value=sid; o.textContent=staffDisplayNameForId(sid, sid); staffSel.appendChild(o); }
   }
   var y=AbsCal.date.getFullYear(), m=AbsCal.date.getMonth();
   var first=new Date(y,m,1); var start=weekStart(first);
@@ -10395,8 +10450,8 @@ function renderAbsenceCalendar(){
     for(var k=0;k<keys.length;k++){
       var sid=keys[k]; if(filterId && sid!==filterId) continue;
       var val=rec[sid]; var st=App.staff[sid]; if(!st) continue;
-      if(val.unavailable){ var ch=document.createElement('div'); ch.className='abs-chip full'; ch.setAttribute('data-iso', iso); ch.setAttribute('data-staff', sid); ch.setAttribute('data-type','full'); ch.setAttribute('data-reason', (val.reason!=null?String(val.reason):'')); ch.title='Click to view reason'; ch.textContent=(st.name||'')+' — AWAY'; cell.appendChild(ch); }
-      if(val.blocks && val.blocks.length){ for(var b=0;b<val.blocks.length;b++){ var bl=val.blocks[b]; if(!bl) continue; var ch2=document.createElement('div'); ch2.className='abs-chip block'; ch2.setAttribute('data-iso', iso); ch2.setAttribute('data-staff', sid); ch2.setAttribute('data-type','block'); ch2.setAttribute('data-start', (bl.start!=null?String(bl.start):'')); ch2.setAttribute('data-end', (bl.end!=null?String(bl.end):'')); ch2.setAttribute('data-reason', (bl.reason!=null?String(bl.reason):'')); ch2.title='Click to view reason'; ch2.textContent=(st.name||'')+' — '+displayTimeRange12(bl.start, bl.end); cell.appendChild(ch2); } }
+      if(val.unavailable){ var ch=document.createElement('div'); ch.className='abs-chip full'; ch.setAttribute('data-iso', iso); ch.setAttribute('data-staff', sid); ch.setAttribute('data-type','full'); ch.setAttribute('data-reason', (val.reason!=null?String(val.reason):'')); ch.title='Click to view reason'; ch.textContent=staffDisplayNameForId(sid, '')+' — AWAY'; cell.appendChild(ch); }
+      if(val.blocks && val.blocks.length){ for(var b=0;b<val.blocks.length;b++){ var bl=val.blocks[b]; if(!bl) continue; var ch2=document.createElement('div'); ch2.className='abs-chip block'; ch2.setAttribute('data-iso', iso); ch2.setAttribute('data-staff', sid); ch2.setAttribute('data-type','block'); ch2.setAttribute('data-start', (bl.start!=null?String(bl.start):'')); ch2.setAttribute('data-end', (bl.end!=null?String(bl.end):'')); ch2.setAttribute('data-reason', (bl.reason!=null?String(bl.reason):'')); ch2.title='Click to view reason'; ch2.textContent=staffDisplayNameForId(sid, '')+' — '+displayTimeRange12(bl.start, bl.end); cell.appendChild(ch2); } }
     }
     grid.appendChild(cell);
   }
@@ -10555,9 +10610,7 @@ function openRequestsModal(){
   absItems.sort(function(a,b){
     if(a.iso < b.iso) return -1;
     if(a.iso > b.iso) return 1;
-    var na = ((App.staff && App.staff[a.sid]) ? (App.staff[a.sid].name||'') : '');
-    var nb = ((App.staff && App.staff[b.sid]) ? (App.staff[b.sid].name||'') : '');
-    return String(na).localeCompare(String(nb));
+    return staffSortNameForId(a.sid).localeCompare(staffSortNameForId(b.sid));
   });
   if(absItems.length){
     any = true;
@@ -10588,7 +10641,7 @@ function openRequestsModal(){
       list.appendChild(buildManagerRequestCard({
         kindKey: kindKey,
         typeLabel: typeLabel,
-        staffName: st.name || '',
+        staffName: staffDisplayNameForId(sid, ''),
         dayLabel: formatIsoForHuman(iso),
         requestedAt: req.createdAt || req.requestedAt || req.ts || req.submittedAt || '',
         details: details,
@@ -10637,7 +10690,7 @@ function openRequestsModal(){
       list.appendChild(buildManagerRequestCard({
         kindKey: 'shiftEdit',
         typeLabel: 'Shift edit',
-        staffName: st.name || sid || '(unknown)',
+        staffName: staffDisplayNameForId(sid, sid || '(unknown)'),
         dayLabel: _shiftReqDayLabel(req, it.iso),
         requestedAt: req.createdAt || req.requestedAt || req.ts || req.submittedAt || '',
         details: shiftRequestDetails(req),
@@ -10660,7 +10713,7 @@ function openRequestsModal(){
       list.appendChild(buildManagerRequestCard({
         kindKey: 'shiftProposal',
         typeLabel: 'Shift proposal',
-        staffName: st.name || sid || '(unknown)',
+        staffName: staffDisplayNameForId(sid, sid || '(unknown)'),
         dayLabel: _shiftReqDayLabel(req, it.iso),
         requestedAt: req.createdAt || req.requestedAt || req.ts || req.submittedAt || '',
         details: shiftRequestDetails(req),
@@ -10705,7 +10758,7 @@ function openRequestsModal(){
         list.appendChild(buildManagerRequestCard({
           kindKey: requestTypeKeyForEditRequest(er),
           typeLabel: requestTypeLabelForEditRequest(er),
-          staffName: st.name || '',
+          staffName: staffDisplayNameForId(er.staffId, ''),
           dayLabel: formatIsoForHuman(String(er.iso||'')),
           requestedAt: er.createdAt || '',
           details: summary,
@@ -11570,7 +11623,7 @@ function clearAway(iso, staffId){
   staffId = String(staffId);
   if(!canModerateAbsences()) return alert('Manager/Admin only to clear published away.');
   var st = App.staff && App.staff[staffId] ? App.staff[staffId] : null;
-  var who = st && st.name ? st.name : ('Staff ' + staffId);
+  var who = staffDisplayNameForId(staffId, 'Staff ' + staffId);
   if(!confirm('Clear published away / unavailability for ' + who + ' on ' + formatIsoForHuman(iso) + '?')) return;
   if(App.availability && App.availability[iso] && App.availability[iso][staffId]){
     delete App.availability[iso][staffId];
@@ -11775,7 +11828,7 @@ function openPartialWithheldPaymentPrompt(staffId){
   var staff = App.staff[staffId] || {};
   var bal = round2(getWithheldBalance(staffId));
   if(bal<=0.0001) return alert('No withheld balance to pay.');
-  var amtStr = prompt('Amount of withheld pay to release to '+(staff.name||('staff '+staffId))+' now:', String(bal));
+  var amtStr = prompt('Amount of withheld pay to release to '+staffDisplayNameForId(staffId, 'staff '+staffId)+' now:', String(bal));
   if(amtStr===null) return;
   var amt = round2(parseFloat(amtStr));
   if(!isFinite(amt) || amt<=0){ alert('Enter a positive amount.'); return; }
@@ -11798,7 +11851,7 @@ function openPayrollWithholdPrompt(staffId){
   var staff = App.staff[staffId] || {};
   var weekIso = Planner.weekStartISO;
   var currentWeekW = getWithheldForWeek(weekIso, staffId);
-  var amtStr = prompt("Amount to withhold from this week's pay for "+(staff.name||("staff "+staffId))+" (adds to withheld balance):", currentWeekW>0?String(currentWeekW):"");
+  var amtStr = prompt("Amount to withhold from this week's pay for "+staffDisplayNameForId(staffId, "staff "+staffId)+" (adds to withheld balance):", currentWeekW>0?String(currentWeekW):"");
   if(amtStr===null) return;
   var amt = parseFloat(amtStr);
   if(!isFinite(amt) || amt<=0){ alert('Enter a positive amount.'); return; }
@@ -11814,7 +11867,7 @@ function openClearWithheldPrompt(staffId){
   var staff = App.staff[staffId] || {};
   var bal = getWithheldBalance(staffId);
   if(bal<=0) return;
-  var ok = confirm('Mark withheld as PAID for '+(staff.name||('staff '+staffId))+'? This will reset withheld balance to $0.00.');
+  var ok = confirm('Mark withheld as PAID for '+staffDisplayNameForId(staffId, 'staff '+staffId)+'? This will reset withheld balance to $0.00.');
   if(!ok) return;
   var note = prompt('Note (optional):', '') || '';
   clearWithheld(staffId, note);
@@ -11903,7 +11956,7 @@ function removeWithheldLogEntry(idx){
     ? ('-'+fmtMoney(Math.abs(amt)))
     : (amt>=0 ? fmtMoney(amt) : ('-'+fmtMoney(Math.abs(amt))));
 
-  if(!confirm('Remove this entry?\n\nType: '+typeLabel+'\n'+(staffId?('Staff: '+(App.staff[staffId]&&App.staff[staffId].name?App.staff[staffId].name:staffId)+'\n'):'')+'Amount: '+shownAmt+'\nNote: '+String(entry.note||''))){
+  if(!confirm('Remove this entry?\n\nType: '+typeLabel+'\n'+(staffId?('Staff: '+staffDisplayNameForId(staffId, staffId)+'\n'):'')+'Amount: '+shownAmt+'\nNote: '+String(entry.note||''))){
     return;
   }
 
@@ -11969,7 +12022,7 @@ function openWithholdManageModal(staffId){
   var s = fromISO(weekIso);
   var e = new Date(s); e.setDate(e.getDate()+6);
 
-  byId('withholdManageSubtitle').textContent = (st.name||('staff '+staffId))+' • Week of '+fmtDMY(s)+' – '+fmtDMY(e);
+  byId('withholdManageSubtitle').textContent = staffDisplayNameForId(staffId, 'staff '+staffId)+' • Week of '+fmtDMY(s)+' – '+fmtDMY(e);
 
   var wWeek = getWithheldForWeek(weekIso, staffId);
   var wBal = getWithheldBalance(staffId);
@@ -12037,7 +12090,7 @@ function closeWithholdManageModal(){
     var weekIso = String(Planner.weekStartISO||'');
     var st = App.staff[sid]||{};
     var cur = getWithheldForWeek(weekIso, sid);
-    var valStr = prompt('Set withheld amount for this week for '+(st.name||('staff '+sid))+' (replaces current week withheld):', String(cur||0));
+    var valStr = prompt('Set withheld amount for this week for '+staffDisplayNameForId(sid, 'staff '+sid)+' (replaces current week withheld):', String(cur||0));
     if(valStr===null) return;
     var val = parseFloat(valStr);
     if(!isFinite(val) || val<0){ alert('Enter 0 or a positive amount.'); return; }
@@ -12127,12 +12180,15 @@ function payrollEligibleStaffIds(){
     var st = App.staff[id] || {};
     return !st.hidden;
   }).sort(function(a,b){
-    return ((App.staff[a]&&App.staff[a].name)||'').localeCompare((App.staff[b]&&App.staff[b].name)||'');
+    return staffSortNameForId(a).localeCompare(staffSortNameForId(b));
   });
 }
 function payrollStaffName(staffId){
   var st = (App.staff && App.staff[staffId]) || {};
-  return st.name || staffId || 'Staff';
+  return staffFullNameFromRecord(st, staffId || 'Staff');
+}
+function payrollStaffDisplayName(staffId){
+  return staffDisplayNameForId(staffId, payrollStaffName(staffId));
 }
 function payrollWeekIsoFromAny(raw){
   try{
@@ -12232,7 +12288,7 @@ function populateSelectFromStaff(selectId, currentValue, includeAllLabel){
   var html = '';
   if(includeAllLabel) html += '<option value="">' + escapeHtml(includeAllLabel) + '</option>';
   ids.forEach(function(id){
-    html += '<option value="' + escapeHtml(String(id)) + '">' + escapeHtml(payrollStaffName(id)) + '</option>';
+    html += '<option value="' + escapeHtml(String(id)) + '">' + escapeHtml(payrollStaffDisplayName(id)) + '</option>';
   });
   sel.innerHTML = html;
   if(currentValue && sel.querySelector('option[value="' + String(currentValue).replace(/"/g,'&quot;') + '"]')){
@@ -13150,7 +13206,7 @@ function renderPayroll(){
   var aW=0,aB=0,aP=0,aM=0,aOT=0,aAdj=0;
 
   Object.keys(App.staff).sort(function(a,b){
-    return (App.staff[a].name||'').localeCompare(App.staff[b].name||'');
+    return staffSortNameForId(a).localeCompare(staffSortNameForId(b));
   }).forEach(function(id){
     var st=App.staff[id];
     if(!st) return;
@@ -13258,7 +13314,7 @@ function renderPayroll(){
         + '</label>';
 
       tr.innerHTML =
-        '<td>'+escapeHtml(st.name||'')+'</td>'+
+        '<td>'+escapeHtml(staffDisplayNameForId(id, st.name||id))+'</td>'+
         '<td>'+fmtMoney(st.rate||0)+'</td>'+
         '<td>'+W.toFixed(2)+'</td>'+
         '<td>'+B.toFixed(2)+'</td>'+
@@ -13646,7 +13702,7 @@ function renderStats(){
   var staffSeries=[];
   Object.keys(agg).forEach(function(id){
     var st=App.staff[id]||{};
-    staffSeries.push({id:id, name:st.name||id, color:st.color||'#5A31F4', hours:agg[id].payable||0, pay:agg[id].pay||0, shifts:agg[id].shiftsWorked||0});
+    staffSeries.push({id:id, name:staffDisplayNameForId(id, id), color:st.color||'#5A31F4', hours:agg[id].payable||0, pay:agg[id].pay||0, shifts:agg[id].shiftsWorked||0});
   });
 
   // KPIs
@@ -13688,7 +13744,7 @@ function renderStats(){
         if(t>topTotal){ topTotal=t; topId=id; }
       });
       var topName = '';
-      if(topId){ topName = ((App.staff && App.staff[topId]) ? (App.staff[topId].name||topId) : topId); }
+      if(topId){ topName = staffDisplayNameForId(topId, topId); }
       addKpi('Total requests', String(totalReq), (weeks.length>1?('Across '+weeks.length+' weeks'):'This week'));
       if(topId && topTotal>0){
         var c=rc[topId]||{};
@@ -13843,7 +13899,7 @@ function openPayrollAdjustmentPrompt(staffId){
   var rec = bucket[staffId] || {amount:0, comment:''};
   var staff = App.staff[staffId] || {};
   var currentAmt = parseFloat(rec.amount||0); if(!isFinite(currentAmt)) currentAmt = 0;
-  var amtStr = prompt('Adjustment amount for '+(staff.name||('staff '+staffId))+' this week (use negative for deductions):', currentAmt||0);
+  var amtStr = prompt('Adjustment amount for '+staffDisplayNameForId(staffId, 'staff '+staffId)+' this week (use negative for deductions):', currentAmt||0);
   if(amtStr===null) return;
   var amt = parseFloat(amtStr);
   if(!isFinite(amt)) amt = 0;
@@ -16002,10 +16058,10 @@ function buildPrintView(){
     var entries=Object.keys(App.staff).map(function(id){ return [id,App.staff[id]]; }).filter(function(p){
       var st = p[1] || {};
       return (st.role||'staff')!=='admin' && !st.hidden;
-    }).sort(function(a,b){ return (a[1].name||'').localeCompare(b[1].name||''); });
+    }).sort(function(a,b){ return staffSortNameForId(a[0]).localeCompare(staffSortNameForId(b[0])); });
     entries.forEach(function(p){
       var id=p[0], st=p[1];
-      var nm=document.createElement('div'); nm.className='print-name'; var d=document.createElement('div'); d.style.width='10px'; d.style.height='10px'; d.style.borderRadius='50%'; d.style.background=st.color||'#5A31F4'; nm.appendChild(d); var t=document.createElement('div'); t.textContent=st.name; nm.appendChild(t); grid.appendChild(nm);
+      var nm=document.createElement('div'); nm.className='print-name'; var d=document.createElement('div'); d.style.width='10px'; d.style.height='10px'; d.style.borderRadius='50%'; d.style.background=st.color||'#5A31F4'; nm.appendChild(d); var t=document.createElement('div'); t.textContent=staffDisplayNameForId(id, st.name||id); var full=staffFullNameForId(id, t.textContent); if(full && full!==t.textContent) t.title=full; nm.appendChild(t); grid.appendChild(nm);
       for(var day=0; day<7; day++){
         var cell=document.createElement('div'); cell.className='print-cell';
         var ds=(App.weeks[ws] && App.weeks[ws][String(day)]) ? App.weeks[ws][String(day)] : {};
@@ -16788,6 +16844,8 @@ try{
   window.fmtDMY = fmtDMY;
   window.displayTimeRange12 = displayTimeRange12;
   window.staffNameForId = staffNameForId;
+  window.staffDisplayNameForId = staffDisplayNameForId;
+  window.staffFullNameForId = staffFullNameForId;
   window.getRecurringUnavailabilityForDate = getRecurringUnavailabilityForDate;
   window.coveredShiftInfoLinesFor = coveredShiftInfoLinesFor;
   window.isoDayIndexMon0 = isoDayIndexMon0;
