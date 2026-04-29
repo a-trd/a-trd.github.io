@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1"/>
-  <title>M&C-ATRD-scheduler --=Aspire Group=-- (V4.1.11)</title>
+  <title>M&C-ATRD-scheduler --=Aspire Group=-- (V4.1.15)</title>
   <meta name="theme-color" content="#22c55e"/>
 
   <style>
@@ -2359,7 +2359,71 @@
     }
   </style>
 
+
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+
+  <style id="v413Css">
+    /* ---------- V4.1.15 management/safety layer ---------- */
+    .top-tools-menu { position: relative; display:inline-flex; align-items:center; }
+    .top-tools-menu > button { border:none; padding:6px 10px; border-radius:999px; background:rgba(255,255,255,.16); color:#fff; font-weight:700; cursor:pointer; font-size:12px; white-space:nowrap; }
+    .top-tools-dropdown { display:none; position:fixed; z-index:3100; min-width:230px; max-width:min(280px, calc(100vw - 20px)); padding:8px; border-radius:16px; border:1px solid var(--border); background:var(--card); color:var(--fg); box-shadow:var(--shadow-card); }
+    .top-tools-menu.open .top-tools-dropdown { display:flex; flex-direction:column; gap:6px; }
+    .top-tools-dropdown button { width:100%; justify-content:center; color:var(--fg); }
+    [data-theme="light"] .top-tools-dropdown button { color:#0a0f1a; }
+    .payroll-total-cell { min-width:170px; }
+    .payroll-paid-cell { min-width:112px; text-align:center; vertical-align:middle !important; }
+    .payroll-paid-label { display:inline-flex !important; align-items:center; justify-content:center; gap:7px; margin:0 !important; padding:5px 8px; border:1px solid var(--border); border-radius:999px; background:rgba(255,255,255,.06); color:var(--fg) !important; font-weight:900; cursor:pointer; }
+    .payroll-paid-label input { width:auto !important; margin:0; accent-color:var(--good); }
+    .payroll-paid-badge { display:inline-flex; align-items:center; justify-content:center; min-width:54px; padding:2px 7px; border-radius:999px; font-size:10px; letter-spacing:.06em; font-weight:900; border:1px solid var(--border); }
+    .payroll-paid-badge.paid { background:rgba(34,197,94,.20); color:var(--good); border-color:rgba(34,197,94,.45); }
+    .payroll-paid-badge.unpaid { background:rgba(148,163,184,.12); color:var(--muted); }
+    .payroll-paid-label.is-paid { background:rgba(34,197,94,.12); border-color:rgba(34,197,94,.48); }
+    .payroll-paid-label input:disabled + .payroll-paid-badge { opacity:.72; }
+    .settings-nav { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin:0 0 12px; padding:8px; border:1px solid var(--border); border-radius:18px; background:rgba(255,255,255,.045); }
+    [data-theme="light"] .settings-nav { background:rgba(15,23,42,.035); }
+    .settings-nav button { border:1px solid var(--border); background:transparent; color:var(--fg); border-radius:999px; padding:7px 11px; font-size:12px; font-weight:800; cursor:pointer; }
+    .settings-nav button.active { background:linear-gradient(90deg,var(--accent3),var(--accent)); color:#fff; border-color:transparent; }
+    .planner-warning-panel { display:none; margin:8px 0 10px; padding:10px 12px; border-radius:16px; border:1px solid rgba(245,158,11,.45); background:linear-gradient(180deg,rgba(245,158,11,.14),rgba(245,158,11,.06)); }
+    .planner-warning-panel.show { display:block; }
+    .planner-warning-title { font-weight:900; margin-bottom:6px; }
+    .planner-warning-list { display:flex; flex-direction:column; gap:5px; font-size:12px; }
+    .planner-warning-list .bad { color:var(--bad); font-weight:800; }
+    .planner-warning-list .warn { color:var(--warn); font-weight:800; }
+    .planner-warning-list .info { color:var(--accent2); font-weight:800; }
+    .payrun-panel { display:grid; grid-template-columns:minmax(220px,1fr) auto; gap:10px; align-items:center; margin:8px 0 12px; padding:10px 12px; border:1px solid var(--border); border-radius:16px; background:rgba(255,255,255,.045); }
+    [data-theme="light"] .payrun-panel { background:rgba(15,23,42,.035); }
+    .payrun-status-pill { display:inline-flex; align-items:center; gap:6px; padding:4px 10px; border-radius:999px; border:1px solid var(--border); font-size:12px; font-weight:900; }
+    .payrun-actions { display:flex; gap:6px; flex-wrap:wrap; justify-content:flex-end; }
+    .payroll-actions-menu { margin-top:6px; }
+    .payroll-actions-menu summary { display:inline-flex; cursor:pointer; user-select:none; padding:5px 9px; border-radius:999px; border:1px solid var(--border); font-weight:800; font-size:12px; }
+    .payroll-actions-menu .payroll-actions-body { display:flex; gap:6px; flex-wrap:wrap; margin-top:6px; }
+    .payroll-actions-menu .payroll-actions-body button { margin-top:0 !important; }
+    .payroll-locked-note { margin-top:6px; color:var(--warn); font-size:12px; font-weight:800; }
+    .audit-card .audit-table-wrap { max-height:320px; overflow:auto; margin-top:8px; border:1px solid var(--border); border-radius:14px; }
+    .audit-card table { min-width:760px; }
+    .import-preview-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin:10px 0; }
+    .import-preview-stat { border:1px solid var(--border); border-radius:14px; padding:10px; background:rgba(255,255,255,.04); }
+    [data-theme="light"] .import-preview-stat { background:rgba(15,23,42,.03); }
+    .request-filter-bar { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin:8px 0 12px; }
+    .request-filter-bar label { font-size:11px; color:var(--muted); margin-bottom:3px; }
+    .myreq-columns { align-items:start; }
+    .myreq-panel { min-width:0; }
+    .myreq-month-group { margin:8px 0; border:1px solid var(--border); border-radius:16px; background:rgba(255,255,255,.045); overflow:hidden; }
+    [data-theme="light"] .myreq-month-group { background:rgba(15,23,42,.035); }
+    .myreq-month-group summary { cursor:pointer; user-select:none; list-style:none; display:flex; align-items:center; justify-content:space-between; gap:10px; padding:9px 11px; font-weight:900; }
+    .myreq-month-group summary::-webkit-details-marker { display:none; }
+    .myreq-month-left { display:flex; align-items:center; gap:8px; min-width:0; }
+    .myreq-caret::before { content:'▶'; display:inline-block; width:16px; }
+    .myreq-month-group[open] .myreq-caret::before { content:'▼'; }
+    .myreq-month-title { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .myreq-month-count { color:var(--muted); font-size:11px; font-weight:800; white-space:nowrap; }
+    .myreq-current-badge { display:inline-flex; align-items:center; padding:2px 7px; border-radius:999px; border:1px solid rgba(34,197,94,.45); background:rgba(34,197,94,.14); color:var(--good); font-size:10px; font-weight:900; letter-spacing:.04em; text-transform:uppercase; }
+    .myreq-month-body { padding:0 8px 8px; }
+    .staff-requests-shortcut-card { border-style:dashed; }
+    #staffRequestsQuickHost > #adminRequestsLogCard, #staffRequestsStatsHost > #adminRequestsLogCard { margin-top:12px; }
+    @media (max-width:700px){ .payrun-panel,.request-filter-bar,.import-preview-grid{ grid-template-columns:1fr; } .top-tools-dropdown{ right:auto; left:0; } }
+  </style>
+
 </head>
 <body>
 
@@ -2369,7 +2433,7 @@
       <div id="appLogoBox"></div>
       <div class="titlewrap">
         <div class="title" id="appTitle">M&C-ATRD-scheduler --=Aspire Group=--</div>
-        <div class="version-pill" id="appVersion">V4.1.11</div>
+        <div class="version-pill" id="appVersion">V4.1.15</div>
         <div class="sync-pill syncing" id="syncStatusChip" title="Sync status">Starting…</div>
       </div>
     </div>
@@ -2508,19 +2572,31 @@
             <button id="btnMyRequestsRefresh" class="btn-outline">Refresh</button>
           </div>
         </div>
+        <div class="muted" style="margin-top:8px;">Requests are grouped by month. Open a month to view or cancel individual pending requests.</div>
         <div style="height:10px"></div>
-        <div class="grid-2">
-          <div>
+        <div class="grid-2 myreq-columns">
+          <div class="myreq-panel">
             <label>Pending</label>
             <div id="myReqPendingList" class="muted"></div>
           </div>
-          <div>
+          <div class="myreq-panel">
             <label>History</label>
             <div id="myReqHistoryList" class="muted"></div>
           </div>
         </div>
-        <div class="muted" style="margin-top:10px;">Pending requests can be cancelled until they are approved or rejected.</div>
       </div>
+    </section>
+
+    <!-- Staff / Requests shortcut for admin -->
+    <section id="staffRequestsSection" class="section">
+      <div class="card staff-requests-shortcut-card">
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:space-between;">
+          <h3 style="margin:0;">Staff / Requests</h3>
+          <span class="pill">Admin shortcut</span>
+        </div>
+        <div class="muted" style="margin-top:8px;">This page mirrors the Staff / Requests Analytics and Requests log from Business Analytics for faster access.</div>
+      </div>
+      <div id="staffRequestsQuickHost"></div>
     </section>
     <!-- Planner -->
     <section id="plannerSection" class="section">
@@ -2622,7 +2698,7 @@
             <thead>
               <tr>
                 <th>Staff</th><th>Rate</th><th>Work (hrs)</th><th>Break (hrs)</th>
-                <th>Payable (hrs)</th><th>OT (hrs)</th><th>Total Pay</th>
+                <th>Payable (hrs)</th><th>OT (hrs)</th><th>Total Pay</th><th>Paid</th>
               </tr>
             </thead>
             <tbody></tbody>
@@ -2635,6 +2711,7 @@
                 <td id="allPayable">0</td>
                 <td id="allOT">0</td>
                 <td id="allPay">$0.00</td>
+                <td id="allPaidStatus">0/0 paid</td>
               </tr>
             </tfoot>
           </table>
@@ -3208,8 +3285,9 @@
     </div>
   </div>
 
+  <div id="staffRequestsStatsHost"></div>
   <div style="height:12px"></div>
-  <div class="card">
+  <div class="card" id="staffRequestsAnalyticsCard">
     <div class="stats-toolbar">
       <h3 style="margin:0;">Staff / Requests Analytics</h3>
       <div class="pill" id="statsWeekLabel"></div>
@@ -3677,6 +3755,28 @@
     </section>
   </div>
 
+
+  <!-- V4.1.15 Import preview modal -->
+  <div id="importPreviewModal" class="modal" style="z-index:2250;">
+    <div class="panel" style="max-width:760px;">
+      <h3 id="importPreviewTitle">Import preview</h3>
+      <div id="importPreviewMeta" class="muted" style="margin-top:4px;"></div>
+      <div id="importPreviewStats" class="import-preview-grid"></div>
+      <div>
+        <label>Import mode</label>
+        <select id="importPreviewMode">
+          <option value="replace">Replace matching sections</option>
+          <option value="merge">Merge into current data</option>
+        </select>
+      </div>
+      <div id="importPreviewWarnings" class="muted" style="margin-top:10px;white-space:pre-wrap;"></div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;margin-top:14px;">
+        <button id="btnImportPreviewApply" class="btn-primary">Apply import</button>
+        <button id="btnImportPreviewCancel" class="btn-outline">Cancel</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Shift modal -->
   <div id="shiftModal" class="modal">
     <div class="panel">
@@ -4107,8 +4207,8 @@ var DAY = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 var App = {
   // IMPORTANT: Increment App.version *and* App.buildId whenever making functional changes to this file.
   // SAFETY NET: This build performs an automatic runtime check against the file name; if mismatched, it shows a blocking warning so it can't be overlooked.
-  version: 'V4.1.11',
-    buildId: '2026-04-27.1',
+  version: 'V4.1.15',
+    buildId: '2026-04-29.3',
 settings: {
     dbUrl:'https://mnc-atrd-default-rtdb.asia-southeast1.firebasedatabase.app/', workspace:'mnc-atrd', authToken:'',
     theme:'light', themeName:'light-pastel-sky', recentColors:[], appTitle:'M&C-ATRD-scheduler --=Aspire Group=--', logoUrl:'',
@@ -4154,7 +4254,7 @@ publishedWeeks: {}
   editRequests:{},
   rosterTemplates:{},
   currentUser:null,
-  cacheKey:'mc_scheduler_cache_v14_23_3',
+  cacheKey:'mc_scheduler_cache_v14_23_4',
   connKey:'mc_scheduler_conn_v1'
 };
 
@@ -6603,6 +6703,739 @@ var addBtn=byId('btnAddStaff'); if(addBtn) addBtn.onclick=onSaveStaff;
     __resizeTimer = setTimeout(fitPlanner, 80);
   });
 }
+
+
+// ---------- V4.1.15 safety, workflow, layout and productivity layer ----------
+var V413 = { importPayload:null, importSource:'', importFileName:'', lastRootPayload:null, settingsPanel:'all' };
+
+function v413Now(){ return new Date().toISOString(); }
+function v413Clone(o){ try{ return JSON.parse(JSON.stringify(o)); }catch(e){ return o; } }
+function v413UserLabel(){
+  try{
+    if(!App.currentUser) return 'system';
+    return String(App.currentUser.name || App.currentUser.fullName || App.currentUser.id || 'user') + ' (' + String(App.currentUser.role || '') + ')';
+  }catch(e){ return 'system'; }
+}
+function v413FindExportPayload(data){
+  try{
+    function looks(o){
+      return !!(o && typeof o==='object' && !Array.isArray(o) && (o.staff!==undefined || o.settings!==undefined || o.weeks!==undefined || o.availability!==undefined || o.businessAnalytics!==undefined || o.auditLog!==undefined || o.payRunStatus!==undefined));
+    }
+    if(looks(data)) return data;
+    if(data && typeof data==='object'){
+      if(looks(data.data)) return data.data;
+      if(looks(data.export)) return data.export;
+      var ks = Object.keys(data||{});
+      for(var i=0;i<ks.length;i++){ if(looks(data[ks[i]])) return data[ks[i]]; }
+    }
+  }catch(e){}
+  return data;
+}
+function v413EnsureStores(){
+  try{
+    if(!Array.isArray(App.auditLog)) App.auditLog = [];
+    if(!App.payRunStatus || typeof App.payRunStatus !== 'object') App.payRunStatus = {};
+    if(!App.syncMeta || typeof App.syncMeta !== 'object') App.syncMeta = {};
+    if(!App.syncMeta.clientId){
+      try{
+        var k='mc_scheduler_client_id_v1';
+        var cid=localStorage.getItem(k);
+        if(!cid){ cid='client_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,8); localStorage.setItem(k,cid); }
+        App.syncMeta.clientId = cid;
+      }catch(e){ App.syncMeta.clientId = 'client_local'; }
+    }
+  }catch(e){}
+}
+function v413AddAudit(action, detail, entity){
+  try{
+    v413EnsureStores();
+    var rec = {
+      id:'aud_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,7),
+      ts:v413Now(),
+      action:String(action||''),
+      detail:String(detail||''),
+      entity:String(entity||''),
+      userId:(App.currentUser && App.currentUser.id!=null) ? String(App.currentUser.id) : '',
+      user:v413UserLabel(),
+      version:String(App.version||'')
+    };
+    App.auditLog.unshift(rec);
+    if(App.auditLog.length>750) App.auditLog.length = 750;
+    try{ v413RenderAuditPanel(); }catch(e){}
+    return rec;
+  }catch(e){ return null; }
+}
+
+// Extend core serialization / normalization with new stores.
+(function(){
+  var origNormalize = normalizeCoreState;
+  normalizeCoreState = function(){
+    var r = origNormalize.apply(this, arguments);
+    v413EnsureStores();
+    return r;
+  };
+
+  var origBuild = buildAppExportData;
+  buildAppExportData = function(){
+    var d = origBuild.apply(this, arguments) || {};
+    v413EnsureStores();
+    d.auditLog = App.auditLog || [];
+    d.payRunStatus = App.payRunStatus || {};
+    d.syncMeta = App.syncMeta || {};
+    d.version = App.version;
+    d.buildId = App.buildId;
+    return d;
+  };
+
+  var origApply = applyExportDataToApp;
+  applyExportDataToApp = function(d){
+    var payload = v413FindExportPayload(d);
+    var r = origApply.call(this, payload || d);
+    try{
+      if(payload && Array.isArray(payload.auditLog)) App.auditLog = payload.auditLog;
+      if(payload && payload.payRunStatus && typeof payload.payRunStatus==='object') App.payRunStatus = payload.payRunStatus;
+      if(payload && payload.syncMeta && typeof payload.syncMeta==='object') App.syncMeta = payload.syncMeta;
+      v413EnsureStores();
+    }catch(e){}
+    return r;
+  };
+
+  var origSaveLocal = saveLocal;
+  saveLocal = function(skipHistory, opts){
+    try{
+      v413EnsureStores();
+      opts = opts || {};
+      if(!opts.silentSyncState){
+        App.syncMeta.localUpdatedAt = v413Now();
+        App.syncMeta.localUpdatedBy = v413UserLabel();
+      }
+    }catch(e){}
+    return origSaveLocal.apply(this, arguments);
+  };
+})();
+
+// Sync conflict protection and new synced metadata.
+var __v413DbGetBase = dbGet;
+var __v413DbPatchBase = dbPatch;
+dbGet = async function(p){
+  var data = await __v413DbGetBase.apply(this, arguments);
+  try{
+    if(String(p||'')===''){
+      var payload = v413FindExportPayload(data);
+      V413.lastRootPayload = payload;
+      v413EnsureStores();
+      if(payload && payload.syncMeta){
+        App.syncMeta.lastKnownServerUpdatedAt = payload.syncMeta.serverUpdatedAt || App.syncMeta.lastKnownServerUpdatedAt || '';
+        App.syncMeta.lastPulledAt = v413Now();
+      }
+    }
+  }catch(e){}
+  return data;
+};
+dbPatch = async function(p, data){
+  try{
+    if(String(p||'')===''){
+      v413EnsureStores();
+      data = data || {};
+      App.syncMeta.serverUpdatedAt = v413Now();
+      App.syncMeta.serverUpdatedBy = v413UserLabel();
+      App.syncMeta.version = String(App.version||'');
+      App.syncMeta.buildId = String(App.buildId||'');
+      App.syncMeta.lastKnownServerUpdatedAt = App.syncMeta.serverUpdatedAt;
+      data.syncMeta = App.syncMeta;
+      data.auditLog = App.auditLog || [];
+      data.payRunStatus = App.payRunStatus || {};
+    }
+  }catch(e){}
+  return __v413DbPatchBase.call(this, p, data);
+};
+async function v413CheckSyncConflict(){
+  try{
+    if(!(typeof canEdit==='function' && canEdit())) return true;
+    v413EnsureStores();
+    var remote = await __v413DbGetBase('');
+    var payload = v413FindExportPayload(remote);
+    var rMeta = payload && payload.syncMeta ? payload.syncMeta : null;
+    var remoteTs = rMeta && rMeta.serverUpdatedAt ? String(rMeta.serverUpdatedAt) : '';
+    var knownTs = App.syncMeta && App.syncMeta.lastKnownServerUpdatedAt ? String(App.syncMeta.lastKnownServerUpdatedAt) : '';
+    if(remoteTs && knownTs && remoteTs !== knownTs && Date.parse(remoteTs) > Date.parse(knownTs)){
+      var by = rMeta.serverUpdatedBy ? (' by ' + rMeta.serverUpdatedBy) : '';
+      return confirm('Sync conflict warning:\n\nThe server has newer changes from ' + remoteTs.replace('T',' ').slice(0,16) + by + '.\n\nPull first to avoid overwriting those changes. Push anyway?');
+    }
+    if(remoteTs){ App.syncMeta.lastKnownServerUpdatedAt = remoteTs; }
+  }catch(e){
+    return confirm('Could not verify whether the server has newer changes. Push anyway?');
+  }
+  return true;
+}
+(function(){
+  var origPull = pullData;
+  pullData = async function(silent){
+    var r = await origPull.apply(this, arguments);
+    try{
+      var payload = V413.lastRootPayload;
+      if(payload){
+        if(Array.isArray(payload.auditLog)) App.auditLog = payload.auditLog;
+        if(payload.payRunStatus && typeof payload.payRunStatus==='object') App.payRunStatus = payload.payRunStatus;
+        if(payload.syncMeta && typeof payload.syncMeta==='object'){
+          App.syncMeta = Object.assign({}, App.syncMeta||{}, payload.syncMeta||{}, {lastPulledAt:v413Now(), lastKnownServerUpdatedAt:payload.syncMeta.serverUpdatedAt||''});
+        }
+        v413EnsureStores();
+        saveLocal(true, {silentSyncState:true});
+      }
+      v413RenderPayRunPanel();
+      v413RenderAuditPanel();
+    }catch(e){}
+    return r;
+  };
+  var origPushPlanner = pushPlannerData;
+  pushPlannerData = async function(){
+    if(!(await v413CheckSyncConflict())) throw new Error('Push cancelled to avoid overwriting newer server data.');
+    v413AddAudit('Push planner/payroll', 'Pushed operational data to server', 'sync');
+    return origPushPlanner.apply(this, arguments);
+  };
+  var origPushAll = pushPlannerAndSettingsAdmin;
+  pushPlannerAndSettingsAdmin = async function(){
+    if(!(await v413CheckSyncConflict())) throw new Error('Push cancelled to avoid overwriting newer server data.');
+    v413AddAudit('Push planner + settings', 'Pushed staff, settings and operational data to server', 'sync');
+    return origPushAll.apply(this, arguments);
+  };
+})();
+
+// Passcode rules.
+function v413AnyPasscodesExist(){
+  try{ return Object.keys(App.staff||{}).some(function(id){ return !!((App.staff[id]||{}).passHash); }); }catch(e){ return false; }
+}
+(function(){
+  var origVerify = verifyPasscodeForStaff;
+  verifyPasscodeForStaff = async function(staff, pass){
+    try{
+      if(!staff) return false;
+      if(!staff.passHash){
+        if((staff.role||'staff')==='admin' && !v413AnyPasscodesExist()){
+          setLoginMessage('First setup mode: set passcodes for all staff in Settings.');
+          return true;
+        }
+        return false;
+      }
+    }catch(e){}
+    return origVerify.apply(this, arguments);
+  };
+  var origSaveStaff = onSaveStaff;
+  onSaveStaff = async function(){
+    try{
+      var selectedId = byId('existingStaffSelect') ? (byId('existingStaffSelect').value || '') : '';
+      var pass = byId('staffPassInput') ? (byId('staffPassInput').value || '') : '';
+      var oldHash = selectedId && App.staff[selectedId] ? (App.staff[selectedId].passHash || '') : '';
+      if(!pass && !oldHash){ alert('Every staff account must have a passcode. Enter a passcode before saving.'); return; }
+      var name = byId('staffNameInput') ? byId('staffNameInput').value.trim() : '';
+      var r = await origSaveStaff.apply(this, arguments);
+      v413AddAudit(selectedId ? 'Staff updated' : 'Staff created', name || selectedId || 'staff', 'staff');
+      return r;
+    }catch(e){ throw e; }
+  };
+})();
+
+// Pay run workflow.
+function v413PayRunRec(weekIso, create){
+  v413EnsureStores();
+  weekIso = String(weekIso || Planner.weekStartISO || '');
+  if(!weekIso) return null;
+  if(!App.payRunStatus[weekIso] && create){ App.payRunStatus[weekIso] = {status:'draft', updatedAt:v413Now(), updatedBy:v413UserLabel()}; }
+  return App.payRunStatus[weekIso] || {status:'draft'};
+}
+function v413PayRunStatus(weekIso){ var r=v413PayRunRec(weekIso,false); return String((r&&r.status)||'draft'); }
+function v413IsPayRunLocked(weekIso){ var s=v413PayRunStatus(weekIso); return s==='locked' || s==='paid'; }
+function v413SetPayRunStatus(status){
+  if(!(typeof isAdmin==='function' && isAdmin())) return alert('Admin only.');
+  status = String(status||'draft');
+  if(['draft','reviewed','locked','paid'].indexOf(status)<0) status='draft';
+  var weekIso = Planner.weekStartISO;
+  var rec = v413PayRunRec(weekIso,true);
+  var old = rec.status || 'draft';
+  rec.status = status;
+  rec.updatedAt = v413Now();
+  rec.updatedBy = v413UserLabel();
+  if(status==='locked' && !rec.lockedAt) rec.lockedAt = rec.updatedAt;
+  if(status==='paid') rec.paidAt = rec.updatedAt;
+  if(status==='draft'){ delete rec.lockedAt; delete rec.paidAt; }
+  App.payRunStatus[weekIso] = rec;
+  v413AddAudit('Pay run status changed', 'Week ' + weekIso + ': ' + old + ' -> ' + status, 'payrun');
+  saveLocal();
+  try{ dbPatch('/payRunStatus/' + encodeURIComponent(weekIso), rec).catch(function(){}); }catch(e){}
+  renderPayroll();
+}
+function v413EnsurePayRunPanel(){
+  var sec = byId('payrollSection'); if(!sec) return;
+  var card = sec.querySelector('.card'); if(!card) return;
+  if(byId('payRunPanel')) return;
+  var toolbar = card.querySelector('.toolbar');
+  var panel = document.createElement('div');
+  panel.id = 'payRunPanel';
+  panel.className = 'payrun-panel';
+  panel.innerHTML = '<div><div style="font-weight:900;">Pay run workflow</div><div id="payRunStatusText" class="muted" style="margin-top:3px;"></div></div><div class="payrun-actions"><button class="btn-outline" data-payrun-status="draft">Draft</button><button class="btn-outline" data-payrun-status="reviewed">Reviewed</button><button class="btn-outline" data-payrun-status="locked">Lock</button><button class="btn-good" data-payrun-status="paid">Paid</button></div>';
+  if(toolbar && toolbar.parentNode) toolbar.parentNode.insertBefore(panel, toolbar.nextSibling); else card.insertBefore(panel, card.firstChild);
+  panel.addEventListener('click', function(ev){
+    var b = ev.target && ev.target.closest ? ev.target.closest('[data-payrun-status]') : null;
+    if(!b) return;
+    v413SetPayRunStatus(b.getAttribute('data-payrun-status'));
+  });
+}
+function v413RenderPayRunPanel(){
+  v413EnsurePayRunPanel();
+  var panel = byId('payRunPanel'); if(!panel) return;
+  var rec = v413PayRunRec(Planner.weekStartISO, true);
+  var status = String(rec.status||'draft');
+  var s = fromISO(Planner.weekStartISO); var e = new Date(s); e.setDate(e.getDate()+6);
+  var text = byId('payRunStatusText');
+  if(text){
+    var label = status.charAt(0).toUpperCase()+status.slice(1);
+    var meta = rec.updatedAt ? (' Updated ' + rec.updatedAt.replace('T',' ').slice(0,16) + (rec.updatedBy ? (' by ' + rec.updatedBy) : '')) : '';
+    text.innerHTML = '<span class="payrun-status-pill">' + escapeHtml(label) + '</span> Week of ' + escapeHtml(fmtDMY(s)) + ' - ' + escapeHtml(fmtDMY(e)) + '.' + escapeHtml(meta);
+  }
+  var locked = v413IsPayRunLocked(Planner.weekStartISO);
+  var table = byId('payrollTable');
+  if(table){
+    table.classList.toggle('payrun-locked', locked);
+  }
+}
+(function(){
+  var origSaveShift = saveShiftFromModal;
+  saveShiftFromModal = function(){
+    if(v413IsPayRunLocked(Planner.weekStartISO)){ alert('This week has a locked/paid pay run. Reopen the pay run before changing roster shifts.'); return; }
+    var r = origSaveShift.apply(this, arguments);
+    v413AddAudit('Roster shift saved', 'Week ' + Planner.weekStartISO, 'roster');
+    return r;
+  };
+  var origDeleteShift = deleteShiftFromModal;
+  deleteShiftFromModal = function(){
+    if(v413IsPayRunLocked(Planner.weekStartISO)){ alert('This week has a locked/paid pay run. Reopen the pay run before deleting roster shifts.'); return; }
+    var r = origDeleteShift.apply(this, arguments);
+    v413AddAudit('Roster shift deleted', 'Week ' + Planner.weekStartISO, 'roster');
+    return r;
+  };
+  var origAdjustment = setPayrollAdjustment;
+  setPayrollAdjustment = function(weekIso, staffId, amount, comment){
+    if(v413IsPayRunLocked(weekIso)){ alert('This pay run is locked/paid. Reopen it before changing payroll adjustments.'); return; }
+    var r = origAdjustment.apply(this, arguments);
+    v413AddAudit('Payroll adjustment', staffDisplayNameForId(staffId, staffId) + ' ' + String(weekIso) + ' ' + fmtMoney(amount||0), 'payroll');
+    return r;
+  };
+  var origPaid = setPayrollPaid;
+  setPayrollPaid = function(weekIso, staffId, paid){
+    var r = origPaid.apply(this, arguments);
+    v413AddAudit(paid ? 'Staff marked paid' : 'Staff marked unpaid', staffDisplayNameForId(staffId, staffId) + ' ' + String(weekIso), 'payroll');
+    return r;
+  };
+})();
+
+// Payroll row action cleanup.
+function v413CleanPayrollActions(){
+  try{
+    var locked = v413IsPayRunLocked(Planner.weekStartISO);
+    var rows = byId('payrollTable') ? byId('payrollTable').querySelectorAll('tbody tr') : [];
+    for(var i=0;i<rows.length;i++){
+      var td = rows[i].querySelector('.payroll-total-cell') || rows[i].cells[6] || rows[i].lastElementChild;
+      if(!td || td.querySelector('.payroll-actions-menu')) continue;
+      var actionNodes = [];
+      Array.prototype.slice.call(td.children).forEach(function(n){
+        if(n.matches && n.matches('button')) actionNodes.push(n);
+        else if(n.matches && n.matches('label') && !n.querySelector('.payroll-paid-checkbox')) actionNodes.push(n);
+      });
+      if(!actionNodes.length) continue;
+      var details = document.createElement('details'); details.className='payroll-actions-menu';
+      var summary = document.createElement('summary'); summary.textContent = 'Actions';
+      var body = document.createElement('div'); body.className='payroll-actions-body';
+      actionNodes.forEach(function(n){ body.appendChild(n); });
+      details.appendChild(summary); details.appendChild(body); td.appendChild(details);
+      if(locked){
+        body.querySelectorAll('button,input').forEach(function(el){ el.disabled = true; });
+        var paidCb = rows[i].querySelector('.payroll-paid-checkbox'); if(paidCb) paidCb.disabled = true;
+        var note = document.createElement('div'); note.className='payroll-locked-note'; note.textContent='Pay run locked'; td.appendChild(note);
+      }
+    }
+  }catch(e){}
+}
+(function(){
+  var origRenderPayroll = renderPayroll;
+  renderPayroll = function(){
+    var r = origRenderPayroll.apply(this, arguments);
+    try{ v413RenderPayRunPanel(); v413CleanPayrollActions(); }catch(e){}
+    return r;
+  };
+})();
+
+// Audit panel.
+function v413EnsureAuditPanel(){
+  var sec = byId('settingsSection'); if(!sec || byId('auditLogCard')) return;
+  var card = document.createElement('div');
+  card.className = 'card audit-card';
+  card.id = 'auditLogCard';
+  card.setAttribute('data-settings-panel','admin');
+  card.innerHTML = '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;"><h3 style="margin:0;">Audit log</h3><div style="display:flex;gap:8px;flex-wrap:wrap;"><button id="btnAuditExport" class="btn-outline">Export audit CSV</button><button id="btnAuditClear" class="btn-outline">Clear audit log</button></div></div><div class="muted" style="margin-top:6px;">Records key staff, payroll, pay-run, import and sync actions on this device/workspace.</div><div class="audit-table-wrap"><table class="table"><thead><tr><th>Time</th><th>User</th><th>Action</th><th>Entity</th><th>Details</th></tr></thead><tbody id="auditLogTbody"></tbody></table></div><div id="auditLogEmpty" class="muted" style="margin-top:8px;display:none;">No audit entries yet.</div>';
+  sec.appendChild(card);
+  var exp = byId('btnAuditExport'); if(exp) exp.onclick=function(){ v413ExportAuditCsv(); };
+  var clr = byId('btnAuditClear'); if(clr) clr.onclick=function(){ if(!isAdmin()) return alert('Admin only.'); if(!confirm('Clear the audit log?')) return; App.auditLog=[]; v413AddAudit('Audit log cleared','','audit'); saveLocal(); v413RenderAuditPanel(); };
+}
+function v413RenderAuditPanel(){
+  try{
+    v413EnsureAuditPanel();
+    var body = byId('auditLogTbody'); var empty = byId('auditLogEmpty'); if(!body) return;
+    body.innerHTML='';
+    var rows = (App.auditLog||[]).slice(0,200);
+    if(!rows.length){ if(empty) empty.style.display=''; return; }
+    if(empty) empty.style.display='none';
+    rows.forEach(function(r){
+      var tr = document.createElement('tr');
+      tr.innerHTML = '<td>'+escapeHtml(String(r.ts||'').replace('T',' ').slice(0,19))+'</td><td>'+escapeHtml(r.user||'')+'</td><td>'+escapeHtml(r.action||'')+'</td><td>'+escapeHtml(r.entity||'')+'</td><td>'+escapeHtml(r.detail||'')+'</td>';
+      body.appendChild(tr);
+    });
+  }catch(e){}
+}
+function v413ExportAuditCsv(){
+  v413EnsureStores();
+  var rows = [['Time','User','Action','Entity','Details']];
+  (App.auditLog||[]).forEach(function(r){ rows.push([r.ts||'', r.user||'', r.action||'', r.entity||'', r.detail||'']); });
+  var csv = rows.map(function(row){ return row.map(function(v){ return '"' + String(v).replace(/"/g,'""') + '"'; }).join(','); }).join('\n');
+  var a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'})); a.download='scheduler_audit_log.csv'; a.click();
+}
+
+// Import validation and preview.
+function v413ValidateImportPayload(d){
+  var payload = v413FindExportPayload(d);
+  var known = ['settings','staff','availability','weeks','absenceRequests','absenceHistory','shiftChangeRequests','shiftChangeHistory','payrollAdjustments','payrollPaid','payWithheld','payWithheldByWeek','payWithheldLog','payrollProfiles','payrollWeekData','payslipRecords','businessAnalytics','recurringUnavailability','editRequests','rosterTemplates','auditLog','payRunStatus','syncMeta','version','buildId'];
+  var stats = [];
+  var warnings = [];
+  function cntObj(k){ return payload && payload[k] && typeof payload[k]==='object' ? Object.keys(payload[k]).length : 0; }
+  function cntArr(k){ return payload && Array.isArray(payload[k]) ? payload[k].length : 0; }
+  var ok = !!(payload && typeof payload==='object' && (payload.staff || payload.settings || payload.weeks || payload.businessAnalytics || payload.payRunStatus));
+  stats.push(['Staff', cntObj('staff')]);
+  stats.push(['Weeks', cntObj('weeks')]);
+  stats.push(['Business days', payload && payload.businessAnalytics && payload.businessAnalytics.daily ? Object.keys(payload.businessAnalytics.daily).length : 0]);
+  stats.push(['Payslip records', cntArr('payslipRecords')]);
+  stats.push(['Audit entries', cntArr('auditLog')]);
+  stats.push(['Pay runs', cntObj('payRunStatus')]);
+  if(!ok) warnings.push('This file does not look like a scheduler export.');
+  try{
+    var unknown = Object.keys(payload||{}).filter(function(k){ return known.indexOf(k)<0; });
+    if(unknown.length) warnings.push('Unknown top-level fields: ' + unknown.slice(0,12).join(', ') + (unknown.length>12?'...':''));
+  }catch(e){}
+  if(payload && payload.version && String(payload.version) !== String(App.version)) warnings.push('Import version is ' + payload.version + '; current app is ' + App.version + '.');
+  return {ok:ok, payload:payload, stats:stats, warnings:warnings};
+}
+function v413OpenImportPreview(file, source){
+  if(!file) return;
+  if(!(typeof isAdmin==='function' && isAdmin())){ alert('Admin only.'); return; }
+  var reader = new FileReader();
+  reader.onload = function(){
+    try{
+      var d = JSON.parse(String(reader.result||''));
+      var result = v413ValidateImportPayload(d);
+      if(!result.ok){ alert('Invalid scheduler JSON.'); return; }
+      V413.importPayload = result.payload;
+      V413.importSource = source || 'import';
+      V413.importFileName = file.name || 'import.json';
+      var m = byId('importPreviewModal'); if(!m) return;
+      setTextIfExists('importPreviewTitle', 'Import preview - ' + V413.importFileName);
+      setTextIfExists('importPreviewMeta', 'Review the file before applying. A safety backup will be created first.');
+      var stats = byId('importPreviewStats');
+      if(stats){
+        stats.innerHTML='';
+        result.stats.forEach(function(pair){ var div=document.createElement('div'); div.className='import-preview-stat'; div.innerHTML='<div class="muted">'+escapeHtml(pair[0])+'</div><div style="font-size:20px;font-weight:900;">'+escapeHtml(String(pair[1]))+'</div>'; stats.appendChild(div); });
+      }
+      setTextIfExists('importPreviewWarnings', result.warnings.length ? ('Warnings:\n- ' + result.warnings.join('\n- ')) : 'No validation warnings detected.');
+      m.style.display='flex';
+    }catch(e){ alert('Invalid JSON.'); }
+  };
+  reader.readAsText(file);
+}
+function v413DeepMerge(target, src){
+  if(!src || typeof src!=='object') return target;
+  if(Array.isArray(src)){
+    var base = Array.isArray(target) ? target.slice() : [];
+    var seen = {};
+    base.forEach(function(x){ seen[JSON.stringify(x)] = true; });
+    src.forEach(function(x){ var k=JSON.stringify(x); if(!seen[k]){ seen[k]=true; base.push(x); } });
+    return base;
+  }
+  if(!target || typeof target!=='object' || Array.isArray(target)) target = {};
+  Object.keys(src).forEach(function(k){
+    if(src[k] && typeof src[k]==='object') target[k] = v413DeepMerge(target[k], src[k]);
+    else target[k] = src[k];
+  });
+  return target;
+}
+function v413ApplyImportPreview(){
+  if(!V413.importPayload) return;
+  var mode = byId('importPreviewMode') ? byId('importPreviewMode').value : 'replace';
+  try{
+    createSafetyBackup('Before V4.1.15 import preview apply');
+    if(mode === 'merge'){
+      var current = buildAppExportData();
+      var merged = v413DeepMerge(current, v413Clone(V413.importPayload));
+      applyExportDataToApp(merged);
+    }else{
+      applyExportDataToApp(V413.importPayload);
+    }
+    normalizeCoreState();
+    v413AddAudit('Import applied', (mode==='merge'?'Merged ':'Replaced matching sections from ') + (V413.importFileName||'JSON'), 'import');
+    saveLocal();
+    setSyncStatus('local', 'Imported locally');
+    populateLoginSelects(); populateExistingStaff(); renderAfterLogin(); startAutoSyncTimers();
+    var m=byId('importPreviewModal'); if(m) m.style.display='none';
+    alert('Imported locally. Review the data, then Push when ready.');
+  }catch(e){ alert('Import failed: ' + (e&&e.message?e.message:e)); }
+}
+function v413BindImportHandlers(){
+  var sBtn=byId('btnImportSettings'), sInput=byId('importSettingsInput');
+  if(sBtn && sInput){ sBtn.onclick=function(){ if(!isAdmin()) return alert('Admin only.'); sInput.click(); }; sInput.onchange=function(e){ var f=e.target.files && e.target.files[0]; if(f) v413OpenImportPreview(f,'settings'); e.target.value=''; }; }
+  var pBtn=byId('btnImportJSON'), pInput=byId('importJSONInput');
+  if(pBtn && pInput){ pBtn.onclick=function(){ if(!isAdmin()) return alert('Admin only.'); pInput.click(); }; pInput.onchange=function(e){ var f=e.target.files && e.target.files[0]; if(f) v413OpenImportPreview(f,'payroll'); e.target.value=''; }; }
+  var apply=byId('btnImportPreviewApply'); if(apply) apply.onclick=v413ApplyImportPreview;
+  var cancel=byId('btnImportPreviewCancel'); if(cancel) cancel.onclick=function(){ var m=byId('importPreviewModal'); if(m) m.style.display='none'; V413.importPayload=null; };
+}
+
+// Settings sections.
+function v413SettingsCategoryForCard(card){
+  var h = card && card.querySelector ? card.querySelector('h3') : null;
+  var t = h ? String(h.textContent||'').toLowerCase() : '';
+  if(t.indexOf('sync')>=0 || t.indexOf('connection')>=0) return 'connection';
+  if(t.indexOf('staff')>=0 && t.indexOf('payroll')<0) return 'staff';
+  if(t.indexOf('planner')>=0) return 'planner';
+  if(t.indexOf('request')>=0) return 'requests';
+  if(t.indexOf('admin')>=0 || t.indexOf('audit')>=0) return 'admin';
+  if(t.indexOf('theme')>=0) return 'themes';
+  return 'admin';
+}
+function v413SetupSettingsTabs(){
+  var sec=byId('settingsSection'); if(!sec) return;
+  v413EnsureAuditPanel();
+  if(!byId('settingsNav')){
+    var nav=document.createElement('div'); nav.id='settingsNav'; nav.className='settings-nav';
+    var items=[['all','All'],['connection','Connection'],['staff','Staff'],['planner','Planner'],['requests','Requests'],['admin','Admin'],['themes','Themes']];
+    items.forEach(function(it){ var b=document.createElement('button'); b.type='button'; b.setAttribute('data-settings-tab',it[0]); b.textContent=it[1]; b.onclick=function(){ V413.settingsPanel=it[0]; v413ApplySettingsTab(); }; nav.appendChild(b); });
+    sec.insertBefore(nav, sec.firstChild);
+  }
+  Array.prototype.slice.call(sec.querySelectorAll('.card')).forEach(function(card){ if(!card.getAttribute('data-settings-panel')) card.setAttribute('data-settings-panel', v413SettingsCategoryForCard(card)); });
+  v413ApplySettingsTab();
+}
+function v413ApplySettingsTab(){
+  var sec=byId('settingsSection'); if(!sec) return;
+  var active = V413.settingsPanel || 'all';
+  Array.prototype.slice.call(sec.querySelectorAll('[data-settings-tab]')).forEach(function(b){ b.classList.toggle('active', b.getAttribute('data-settings-tab')===active); });
+  Array.prototype.slice.call(sec.querySelectorAll('.card[data-settings-panel]')).forEach(function(card){ var cat=card.getAttribute('data-settings-panel'); card.style.display = (active==='all' || cat===active) ? '' : 'none'; });
+}
+
+// Top toolbar tools menu.
+function v413SetupTopToolsMenu(){
+  var tabs = document.querySelector('.tabs');
+  if(!tabs) return;
+  if(byId('topToolsMenu')) return;
+  var menu=document.createElement('div'); menu.id='topToolsMenu'; menu.className='top-tools-menu';
+  var btn=document.createElement('button'); btn.type='button'; btn.id='btnTopTools'; btn.textContent='Tools'; btn.setAttribute('aria-haspopup','true'); btn.setAttribute('aria-expanded','false');
+  var drop=document.createElement('div'); drop.id='topToolsDropdown'; drop.className='top-tools-dropdown';
+  menu.appendChild(btn); menu.appendChild(drop); tabs.appendChild(menu);
+  ['btnUndoTop','btnRedoTop','btnPullTop','btnPushTop','btnTheme','btnLogout'].forEach(function(id){ var el=byId(id); if(el) drop.appendChild(el); });
+  function closeMenu(){ menu.classList.remove('open'); btn.setAttribute('aria-expanded','false'); }
+  function positionMenu(){
+    try{
+      var r = btn.getBoundingClientRect();
+      var gap = 8;
+      var width = Math.min(280, Math.max(230, window.innerWidth - 20));
+      var left = Math.min(window.innerWidth - width - 10, Math.max(10, r.right - width));
+      drop.style.width = width + 'px';
+      drop.style.left = left + 'px';
+      drop.style.top = Math.min(window.innerHeight - 10, r.bottom + gap) + 'px';
+      drop.style.right = 'auto';
+    }catch(e){}
+  }
+  btn.onclick=function(ev){
+    ev.preventDefault(); ev.stopPropagation();
+    var open = !menu.classList.contains('open');
+    if(open){ positionMenu(); menu.classList.add('open'); btn.setAttribute('aria-expanded','true'); }
+    else closeMenu();
+  };
+  drop.onclick=function(ev){ ev.stopPropagation(); closeMenu(); };
+  document.addEventListener('click', function(ev){ if(!menu.contains(ev.target)) closeMenu(); });
+  window.addEventListener('resize', function(){ if(menu.classList.contains('open')) positionMenu(); });
+  tabs.addEventListener('scroll', function(){ closeMenu(); });
+}
+
+// Week shortcuts.
+function v413GoCurrentWeek(){
+  var iso = toISO(weekStart(new Date()));
+  try{ Planner.weekStartISO = iso; }catch(e){}
+  try{ if(typeof MyView!=='undefined') MyView.weekStartISO = iso; }catch(e){}
+  try{ renderPlanner(); renderPayroll(); renderMyShifts(); updateRequestsBadge(); }catch(e){}
+}
+function v413SetupWeekShortcuts(){
+  function addAfter(refId, id, label, handler){
+    var ref=byId(refId); if(!ref || byId(id)) return;
+    var b=document.createElement('button'); b.id=id; b.className='btn-outline'; b.type='button'; b.textContent=label; b.onclick=handler;
+    ref.parentNode.insertBefore(b, ref.nextSibling);
+  }
+  addAfter('btnNextWeek','btnThisWeek','This week',v413GoCurrentWeek);
+  addAfter('btnPayrollNextWeek','btnPayrollThisWeek','This week',v413GoCurrentWeek);
+  addAfter('btnMyNextWeek','btnMyThisWeek','This week',function(){ try{ setMyWeek(toISO(weekStart(new Date()))); }catch(e){} });
+}
+
+// Request filters.
+(function(){
+  var origBuildCard = buildManagerRequestCard;
+  buildManagerRequestCard = function(opts){
+    var box = origBuildCard.apply(this, arguments);
+    try{
+      box.classList.add('manager-request-card');
+      box.setAttribute('data-kind', String(opts.kindKey||'neutral'));
+      box.setAttribute('data-staff-name', String(opts.staffName||'').toLowerCase());
+    }catch(e){}
+    return box;
+  };
+  var origOpenRequests = openRequestsModal;
+  openRequestsModal = function(){
+    var r = origOpenRequests.apply(this, arguments);
+    try{ v413EnsureRequestFilters(); v413PopulateRequestFilterStaff(); v413ApplyRequestFilters(); }catch(e){}
+    return r;
+  };
+})();
+function v413EnsureRequestFilters(){
+  var modal=byId('requestsModal'); if(!modal || byId('requestFilterBar')) return;
+  var h=modal.querySelector('h3');
+  var bar=document.createElement('div'); bar.id='requestFilterBar'; bar.className='request-filter-bar';
+  bar.innerHTML = '<div><label>Type</label><select id="requestFilterType"><option value="">All types</option><option value="awayFull">Away full day</option><option value="awayPartial">Away partial</option><option value="shiftEdit">Shift edits</option><option value="shiftProposal">Shift proposals</option><option value="edit">Other edits</option></select></div><div><label>Staff</label><select id="requestFilterStaff"><option value="">All staff</option></select></div><div><label>Search</label><input id="requestFilterSearch" type="text" placeholder="Name, date or detail"></div>';
+  h.parentNode.insertBefore(bar, h.nextSibling);
+  ['requestFilterType','requestFilterStaff','requestFilterSearch'].forEach(function(id){ var el=byId(id); if(el) el.oninput=el.onchange=v413ApplyRequestFilters; });
+}
+function v413PopulateRequestFilterStaff(){
+  var sel=byId('requestFilterStaff'); if(!sel) return;
+  var cur=sel.value||'';
+  sel.innerHTML='<option value="">All staff</option>';
+  Object.keys(App.staff||{}).sort(function(a,b){ return staffSortNameForId(a).localeCompare(staffSortNameForId(b)); }).forEach(function(id){ var o=document.createElement('option'); o.value=String(staffDisplayNameForId(id,id)).toLowerCase(); o.textContent=staffDisplayNameForId(id,id); sel.appendChild(o); });
+  if(cur) sel.value=cur;
+}
+function v413ApplyRequestFilters(){
+  var type=(byId('requestFilterType')&&byId('requestFilterType').value)||'';
+  var staff=(byId('requestFilterStaff')&&byId('requestFilterStaff').value)||'';
+  var q=((byId('requestFilterSearch')&&byId('requestFilterSearch').value)||'').trim().toLowerCase();
+  var cards=document.querySelectorAll('#requestsList .manager-request-card');
+  for(var i=0;i<cards.length;i++){
+    var c=cards[i];
+    var ok=true;
+    if(type && c.getAttribute('data-kind')!==type) ok=false;
+    if(staff && (c.getAttribute('data-staff-name')||'').indexOf(staff)<0) ok=false;
+    if(q && String(c.textContent||'').toLowerCase().indexOf(q)<0) ok=false;
+    c.style.display=ok?'':'none';
+  }
+}
+
+// Planner warnings.
+function v413EnsurePlannerWarnings(){
+  var card = byId('plannerSection') ? byId('plannerSection').querySelector('.card') : null; if(!card || byId('plannerWarnings')) return;
+  var anchor = byId('availabilityBar') || byId('plannerGrid');
+  var div=document.createElement('div'); div.id='plannerWarnings'; div.className='planner-warning-panel'; div.innerHTML='<div class="planner-warning-title">Planner warnings</div><div id="plannerWarningsList" class="planner-warning-list"></div>';
+  if(anchor && anchor.parentNode) anchor.parentNode.insertBefore(div, anchor); else card.appendChild(div);
+}
+function v413ShiftRange(sh){ var s=parse12(sh.start), e=parse12(sh.end); if(e<=s) e+=1440; return {s:s,e:e}; }
+function v413RenderPlannerWarnings(){
+  try{
+    v413EnsurePlannerWarnings();
+    var host=byId('plannerWarnings'), list=byId('plannerWarningsList'); if(!host||!list) return;
+    var warns=[]; var weekIso=Planner.weekStartISO; var wk=App.weeks[weekIso]||{}; var activeDay=String(Planner.activeDayIndex||0);
+    if(v413IsPayRunLocked(weekIso)) warns.push(['warn','Pay run is locked/paid for this week. Roster edits are blocked until reopened.']);
+    var pending = (typeof countPendingRequestsForWeek==='function') ? countPendingRequestsForWeek() : 0;
+    if(pending>0) warns.push(['info',pending+' pending request(s) need review.']);
+    var target=parseInt(App.settings.targetHeadcount||0,10)||0;
+    Object.keys(App.staff||{}).forEach(function(staffId){
+      var st=App.staff[staffId]||{}; if((st.role||'staff')==='admin' || st.hidden) return;
+      var weekPayH=0;
+      for(var d=0; d<7; d++){
+        var day=wk[String(d)]||{}; var shifts=[]; var dayPayH=0;
+        Object.keys(day).forEach(function(k){ var sh=day[k]; if(!sh || String(sh.staffId)!==String(staffId) || shiftIsCoveredSource(sh)) return; shifts.push(sh); var dur=hoursBetweenAny(sh.start,sh.end); var br=(breakMinutesForShift(sh,st)||0)/60; var pay=Math.max(0,dur-br); dayPayH+=pay; weekPayH+=pay; });
+        shifts.sort(function(a,b){ return v413ShiftRange(a).s - v413ShiftRange(b).s; });
+        for(var i=1;i<shifts.length;i++){ var A=v413ShiftRange(shifts[i-1]), B=v413ShiftRange(shifts[i]); if(B.s < A.e) warns.push(['bad','Overlap: '+staffDisplayNameForId(staffId,staffId)+' has overlapping shifts on '+DAY[d]+'.']); }
+        var daily=parseFloat(st.otDaily||0)||0; if(daily && dayPayH>daily) warns.push(['warn','Daily OT risk: '+staffDisplayNameForId(staffId,staffId)+' has '+dayPayH.toFixed(2)+' payable hrs on '+DAY[d]+'.']);
+      }
+      var weekly=parseFloat(st.otWeekly||0)||0; if(weekly && weekPayH>weekly) warns.push(['warn','Weekly OT risk: '+staffDisplayNameForId(staffId,staffId)+' has '+weekPayH.toFixed(2)+' payable hrs.']);
+    });
+    var active = wk[activeDay]||{};
+    Object.keys(active).forEach(function(k){
+      var sh=active[k]; if(!sh || shiftIsCoveredSource(sh)) return;
+      var d0=fromISO(weekIso); d0.setDate(d0.getDate()+parseInt(activeDay,10)); var iso=toISO(d0);
+      var sid=String(sh.staffId||''); var rec=(App.availability&&App.availability[iso])?App.availability[iso][sid]:null;
+      if(rec && rec.unavailable) warns.push(['bad','Unavailable clash: '+staffDisplayNameForId(sid,sid)+' is marked away but has a shift on '+DAY[parseInt(activeDay,10)]+'.']);
+      if(rec && rec.blocks && rec.blocks.length && leaveOverlapHours(iso, sid, sh)>0) warns.push(['warn','Partial away clash: '+staffDisplayNameForId(sid,sid)+' has an away block during a shift.']);
+    });
+    if(target>0){
+      var counts=new Array(colCount()).fill(0);
+      Object.keys(active).forEach(function(k){ var sh=active[k]; if(!sh || shiftIsCoveredSource(sh)) return; var r=v413ShiftRange(sh); var from=Math.max(gridStartMins(),r.s), to=Math.min(gridEndMins(),r.e); var si=Math.max(0,Math.floor((from-gridStartMins())/slotMinutes())); var ei=Math.max(0,Math.ceil((to-gridStartMins())/slotMinutes())); for(var x=si;x<ei;x++) counts[x]++; });
+      var gaps=counts.filter(function(c){return c<target;}).length; if(gaps) warns.push(['warn','Coverage gap: '+gaps+' visible slot(s) are below target headcount on selected day.']);
+    }
+    var seen={}; warns=warns.filter(function(w){ var key=w[0]+'|'+w[1]; if(seen[key]) return false; seen[key]=1; return true; }).slice(0,10);
+    list.innerHTML='';
+    if(!warns.length){ host.classList.remove('show'); return; }
+    host.classList.add('show');
+    warns.forEach(function(w){ var div=document.createElement('div'); div.className=w[0]; div.textContent=w[1]; list.appendChild(div); });
+  }catch(e){}
+}
+(function(){ var origRenderPlanner=renderPlanner; renderPlanner=function(){ var r=origRenderPlanner.apply(this, arguments); try{ v413RenderPlannerWarnings(); }catch(e){} return r; }; })();
+
+// Business KPI: labour percentage of revenue.
+(function(){
+  var origBizKpis = bizRenderKpis;
+  bizRenderKpis = function(rows){
+    var r = origBizKpis.apply(this, arguments);
+    try{
+      var host=byId('bizKpis'); if(host && !byId('bizLabourPctKpi')){
+        var revenue=0, staff=0;
+        (rows||[]).forEach(function(row){ revenue += numOr0(row.revenue); staff += numOr0(row.totalStaffCost); });
+        var pct = revenue ? (staff/revenue*100) : 0;
+        var card=document.createElement('div'); card.className='kpi'; card.id='bizLabourPctKpi';
+        card.innerHTML='<div class="label">Labour % of revenue</div><div class="value">'+escapeHtml(pct.toFixed(1))+'%</div><div class="sub">Staff cost '+escapeHtml(fmtMoney(staff))+' / revenue '+escapeHtml(fmtMoney(revenue))+'</div>';
+        host.insertBefore(card, host.children[4] || null);
+      }
+    }catch(e){}
+    return r;
+  };
+})();
+
+// Extra audit wrapping for payroll/document operations.
+(function(){
+  function wrap(name, action, entity, detailFn){
+    try{
+      var orig = eval(name);
+      if(typeof orig !== 'function') return;
+      eval(name + ' = function(){ var r = orig.apply(this, arguments); try{ v413AddAudit(action, detailFn ? detailFn.apply(this, arguments) : "", entity); }catch(e){} return r; }');
+    }catch(e){}
+  }
+  wrap('addWithheld','Pay withheld added','payroll',function(weekIso,staffId,amount){ return staffDisplayNameForId(staffId,staffId)+' '+String(weekIso)+' '+fmtMoney(amount||0); });
+  wrap('clearWithheld','Withheld balance cleared','payroll',function(staffId){ return staffDisplayNameForId(staffId,staffId); });
+  wrap('payPartialWithheld','Partial withheld paid','payroll',function(staffId,amount){ return staffDisplayNameForId(staffId,staffId)+' '+fmtMoney(amount||0); });
+  wrap('savePayrollBusinessProfile','Business payroll profile saved','payroll',function(){ return ''; });
+  wrap('savePayrollStaffProfile','Staff payroll profile saved','payroll',function(){ return (byId('payrollProfileStaffSelect')&&staffDisplayNameForId(byId('payrollProfileStaffSelect').value,byId('payrollProfileStaffSelect').value))||''; });
+  wrap('savePayrollWeekData','Weekly payslip fields saved','payroll',function(){ return Planner.weekStartISO; });
+})();
+
+// V4.1.15 init wrapper.
+(function(){
+  var origInit = init;
+  init = function(){
+    var r = origInit.apply(this, arguments);
+    try{
+      v413EnsureStores();
+      v413SetupTopToolsMenu();
+      v413SetupSettingsTabs();
+      v413SetupWeekShortcuts();
+      v413EnsurePayRunPanel();
+      v413RenderPayRunPanel();
+      v413EnsurePlannerWarnings();
+      v413BindImportHandlers();
+      v413RenderAuditPanel();
+      v413AddAudit('App opened', 'Build ' + String(App.version||'') + ' / ' + String(App.buildId||''), 'app');
+    }catch(e){ try{ console.error('V4.1.15 init failed', e); }catch(_e){} }
+    return r;
+  };
+})();
+
 document.addEventListener('DOMContentLoaded', init);
 
 // ---------- Theme helpers ----------
@@ -7284,6 +8117,16 @@ function renderAdminRequestsLog(){
 }
 
 // ---------- Tabs & render ----------
+function placeStaffRequestsPanel(target){
+  try{
+    var host = byId(target === 'quick' ? 'staffRequestsQuickHost' : 'staffRequestsStatsHost');
+    var analytics = byId('staffRequestsAnalyticsCard');
+    var log = byId('adminRequestsLogCard');
+    if(!host || !analytics || !log) return;
+    if(analytics.parentNode !== host) host.appendChild(analytics);
+    if(log.parentNode !== host) host.appendChild(log);
+  }catch(e){}
+}
 function initTabs(){
   byId('tabMy').onclick=function(){ showTab('My'); };
   var tMyReq = byId('tabMyRequests'); if(tMyReq) tMyReq.onclick=function(){ showTab('MyRequests'); };
@@ -7307,6 +8150,8 @@ function initTabs(){
   if(bAbs) bAbs.onclick=function(){ showTab('Absences'); };
   var bSettings = byId('bottomSettings');
   if(bSettings) bSettings.onclick=function(){ showTab('Settings'); };
+  var myReqRefresh = byId('btnMyRequestsRefresh');
+  if(myReqRefresh) myReqRefresh.onclick=function(){ try{ renderMyRequests(); }catch(e){} };
 }
 function showTab(name){
   try{ App.ui = App.ui || {}; App.ui.activeTab = name; }catch(e){}
@@ -7343,10 +8188,24 @@ function showTab(name){
   var sects=$$('.section, .login');
   for(var k=0;k<sects.length;k++){ sects[k].classList.remove('show'); }
   if(name==='My'){ byId('mySection').classList.add('show'); try{ renderMyShifts(); }catch(e){} }
-  if(name==='MyRequests'){ byId('myRequestsSection').classList.add('show'); try{ renderMyRequests(); }catch(e){} }
+  if(name==='MyRequests'){
+    if(role==='admin'){
+      try{ placeStaffRequestsPanel('quick'); }catch(e){}
+      byId('staffRequestsSection').classList.add('show');
+      try{ renderStats(); }catch(e){}
+      try{ renderAdminRequestsLog(); }catch(e){}
+    }else{
+      byId('myRequestsSection').classList.add('show');
+      try{ renderMyRequests(); }catch(e){}
+    }
+  }
   if(name==='Planner') byId('plannerSection').classList.add('show');
   if(name==='Payroll'){ byId('payrollSection').classList.add('show'); try{ renderPayroll(); }catch(e){} try{ syncPayrollFormsFromApp(); }catch(e){} try{ renderPayslipHistory(); }catch(e){} }
-  if(name==='Stats'){ byId('statsSection').classList.add('show'); try{ renderStats(); }catch(e){} }
+  if(name==='Stats'){
+    try{ placeStaffRequestsPanel('stats'); }catch(e){}
+    byId('statsSection').classList.add('show');
+    try{ renderStats(); }catch(e){}
+  }
   if(name==='Settings'){ byId('settingsSection').classList.add('show'); try{ renderAdminHistory(); }catch(e){} }
   if(name==='Absences'){
     byId('absencesSection').classList.add('show');
@@ -7378,6 +8237,15 @@ function applySettingsRoleVisibility(){
 
 function renderAfterLogin(){
   var role = App.currentUser ? App.currentUser.role : 'staff';
+  try{
+    var reqTab = byId('tabMyRequests');
+    if(reqTab) reqTab.textContent = (role==='admin') ? 'Staff Requests' : 'My Requests';
+    var reqBottom = byId('bottomRequests');
+    if(reqBottom){
+      var reqLbl = reqBottom.querySelector('.label');
+      if(reqLbl) reqLbl.textContent = (role==='admin') ? 'Staff' : 'Req';
+    }
+  }catch(e){}
 
   // role-based UI: staff should not see manager request controls
   var reqBtn = byId('btnRequests');
@@ -7745,6 +8613,119 @@ try{ var payload={}; payload[key]=null; await dbPatch('/shiftChangeRequests/'+re
 }
 
 
+function _myReqShiftTargetISO(req, fallbackIso){
+  try{
+    if(req && req.weekStartISO!=null && req.dayIndex!=null){
+      var d = fromISO(req.weekStartISO);
+      if(d instanceof Date && !isNaN(d.getTime())){
+        d.setDate(d.getDate() + parseInt(req.dayIndex,10));
+        return toISO(d);
+      }
+    }
+  }catch(e){}
+  fallbackIso = String(fallbackIso||'');
+  return /^\d{4}-\d{2}-\d{2}$/.test(fallbackIso) ? fallbackIso : '';
+}
+function _myReqMonthKey(isoOrDate){
+  var v = String(isoOrDate||'');
+  if(/^\d{4}-\d{2}/.test(v)) return v.slice(0,7);
+  try{
+    var d = new Date(v);
+    if(!isNaN(d.getTime())) return String(d.getFullYear()) + '-' + ('0'+(d.getMonth()+1)).slice(-2);
+  }catch(e){}
+  return 'unknown';
+}
+function _myReqMonthLabel(key){
+  if(!key || key==='unknown') return 'Unknown date';
+  try{
+    var d = new Date(key + '-01T00:00:00');
+    if(!isNaN(d.getTime())) return d.toLocaleString(undefined,{month:'long', year:'numeric'});
+  }catch(e){}
+  return String(key);
+}
+function _renderMyReqMonthGroups(host, items, emptyText){
+  if(!host) return;
+  host.innerHTML = '';
+  items = items || [];
+  if(!items.length){
+    host.innerHTML = '<div class="muted">' + escapeHtml(emptyText || 'No requests.') + '</div>';
+    return;
+  }
+
+  var currentKey = '';
+  try{ currentKey = toISO(new Date()).slice(0,7); }catch(e){ currentKey = ''; }
+
+  items.sort(function(a,b){
+    var ta = Date.parse(a.sortISO || a.dateISO || a.requestedAt || '') || 0;
+    var tb = Date.parse(b.sortISO || b.dateISO || b.requestedAt || '') || 0;
+    if(tb !== ta) return tb - ta;
+    var ra = Date.parse(a.requestedAt || '') || 0;
+    var rb = Date.parse(b.requestedAt || '') || 0;
+    return rb - ra;
+  });
+
+  var groups = {};
+  items.forEach(function(item){
+    var mk = _myReqMonthKey(item.dateISO || item.sortISO || item.requestedAt);
+    if(!groups[mk]) groups[mk] = [];
+    groups[mk].push(item);
+  });
+
+  var keys = Object.keys(groups).sort(function(a,b){
+    if(currentKey){
+      if(a===currentKey && b!==currentKey) return -1;
+      if(b===currentKey && a!==currentKey) return 1;
+    }
+    if(a==='unknown' && b!=='unknown') return 1;
+    if(b==='unknown' && a!=='unknown') return -1;
+    var ta = Date.parse(a + '-01T00:00:00') || 0;
+    var tb = Date.parse(b + '-01T00:00:00') || 0;
+    return tb - ta;
+  });
+
+  var openedOne = false;
+  keys.forEach(function(mk, idx){
+    var arr = groups[mk] || [];
+    var details = document.createElement('details');
+    details.className = 'myreq-month-group';
+    if((mk===currentKey) || (!openedOne && idx===0)){
+      details.open = true;
+      openedOne = true;
+    }
+
+    var summary = document.createElement('summary');
+    var left = document.createElement('span');
+    left.className = 'myreq-month-left';
+    var caret = document.createElement('span');
+    caret.className = 'myreq-caret';
+    var title = document.createElement('span');
+    title.className = 'myreq-month-title';
+    title.textContent = _myReqMonthLabel(mk);
+    left.appendChild(caret);
+    left.appendChild(title);
+    if(mk===currentKey){
+      var cur = document.createElement('span');
+      cur.className = 'myreq-current-badge';
+      cur.textContent = 'Current';
+      left.appendChild(cur);
+    }
+    var count = document.createElement('span');
+    count.className = 'myreq-month-count';
+    count.textContent = arr.length + (arr.length===1 ? ' request' : ' requests');
+    summary.appendChild(left);
+    summary.appendChild(count);
+    details.appendChild(summary);
+
+    var body = document.createElement('div');
+    body.className = 'myreq-month-body';
+    arr.forEach(function(item){
+      body.appendChild(_makeReqRow(item.title, item.sub, item.actionsHtml || '', item.kindKey || 'neutral', item.typeLabel || ''));
+    });
+    details.appendChild(body);
+    host.appendChild(details);
+  });
+}
+
 function renderMyRequests(){
   if(!App.currentUser) return;
   var role = App.currentUser.role || 'staff';
@@ -7756,10 +8737,8 @@ function renderMyRequests(){
   var countEl = byId('myReqCounts');
   if(!pendingEl || !histEl || !countEl) return;
 
-  pendingEl.innerHTML='';
-  histEl.innerHTML='';
-
-  var pendingCount = 0;
+  var pendingItems = [];
+  var historyItems = [];
 
   try{
     var ar = App.absenceRequests || {};
@@ -7771,27 +8750,31 @@ function renderMyRequests(){
       var typeLabel = requestTypeLabelForAbs(rec);
       var reason = rec.reason ? String(rec.reason) : '';
       if(rec.unavailable){
-        pendingCount++;
-        pendingEl.appendChild(_makeReqRow(
-          formatIsoForHuman(iso),
-          (reason || 'Full-day away request'),
-          '<button class="btn-outline" data-cancel-abs="1" data-iso="'+escapeHtml(iso)+'" data-staff="'+escapeHtml(sid)+'">Cancel</button>',
-          'awayFull',
-          'Away (full day)'
-        ));
+        pendingItems.push({
+          dateISO: iso,
+          sortISO: iso,
+          requestedAt: rec.createdAt || rec.requestedAt || rec.ts || rec.submittedAt || '',
+          title: formatIsoForHuman(iso),
+          sub: (reason || 'Full-day away request'),
+          actionsHtml: '<button class="btn-outline" data-cancel-abs="1" data-iso="'+escapeHtml(iso)+'" data-staff="'+escapeHtml(sid)+'">Cancel</button>',
+          kindKey: 'awayFull',
+          typeLabel: 'Away (full day)'
+        });
       }
       if(rec.blocks && rec.blocks.length){
         rec.blocks.forEach(function(b, idx){
-          pendingCount++;
           var seg = displayTimeRange12(b.start||'?', b.end||'?');
           var sub = seg + (b.reason ? (' — ' + String(b.reason)) : (reason ? (' — ' + reason) : ''));
-          pendingEl.appendChild(_makeReqRow(
-            formatIsoForHuman(iso),
-            sub,
-            '<button class="btn-outline" data-cancel-abs="1" data-block="'+idx+'" data-iso="'+escapeHtml(iso)+'" data-staff="'+escapeHtml(sid)+'">Cancel</button>',
-            kindKey,
-            typeLabel
-          ));
+          pendingItems.push({
+            dateISO: iso,
+            sortISO: iso,
+            requestedAt: b.createdAt || rec.createdAt || rec.requestedAt || rec.ts || '',
+            title: formatIsoForHuman(iso),
+            sub: sub,
+            actionsHtml: '<button class="btn-outline" data-cancel-abs="1" data-block="'+idx+'" data-iso="'+escapeHtml(iso)+'" data-staff="'+escapeHtml(sid)+'">Cancel</button>',
+            kindKey: kindKey,
+            typeLabel: typeLabel
+          });
         });
       }
     });
@@ -7804,31 +8787,28 @@ function renderMyRequests(){
       Object.keys(bucket||{}).forEach(function(key){
         var req = bucket[key];
         if(!req || String(req.staffId)!==sid) return;
-        pendingCount++;
+        var dateISO = _myReqShiftTargetISO(req, iso);
         var when = _shiftReqDayLabel(req, iso);
-        pendingEl.appendChild(_makeReqRow(
-          when || iso,
-          shiftRequestDetails(req),
-          '<button class="btn-outline" data-cancel-shift="1" data-iso="'+escapeHtml(iso)+'" data-key="'+escapeHtml(key)+'">Cancel</button>',
-          shiftRequestKindKey(req),
-          shiftRequestTypeLabel(req)
-        ));
+        pendingItems.push({
+          dateISO: dateISO,
+          sortISO: dateISO || iso,
+          requestedAt: req.createdAt || req.requestedAt || req.ts || req.submittedAt || '',
+          title: when || iso,
+          sub: shiftRequestDetails(req),
+          actionsHtml: '<button class="btn-outline" data-cancel-shift="1" data-iso="'+escapeHtml(iso)+'" data-key="'+escapeHtml(key)+'">Cancel</button>',
+          kindKey: shiftRequestKindKey(req),
+          typeLabel: shiftRequestTypeLabel(req)
+        });
       });
     });
   }catch(e){ console.error(e); }
 
-  if(pendingCount===0){
-    pendingEl.innerHTML = '<div class="muted">No pending requests.</div>';
-  }
-
-  var histCount = 0;
   try{
     var ah = App.absenceHistory || {};
     _sortedIsoKeys(ah).forEach(function(iso){
       var day = ah[iso] || {};
       var rec = day[sid];
       if(!rec) return;
-      histCount++;
       var kindKey = requestTypeKeyForAbs(rec);
       var typeLabel = requestTypeLabelForAbs(rec);
       var sub = '';
@@ -7843,13 +8823,16 @@ function renderMyRequests(){
       }else if(rec.reason){
         sub = String(rec.reason);
       }
-      histEl.appendChild(_makeReqRow(
-        (rec.status==='approved'?'Approved':'Rejected') + ' — ' + formatIsoForHuman(iso),
-        sub,
-        '',
-        kindKey,
-        typeLabel
-      ));
+      historyItems.push({
+        dateISO: iso,
+        sortISO: iso,
+        requestedAt: rec.resolvedAt || rec.createdAt || rec.requestedAt || rec.ts || '',
+        title: (rec.status==='approved'?'Approved':'Rejected') + ' — ' + formatIsoForHuman(iso),
+        sub: sub,
+        actionsHtml: '',
+        kindKey: kindKey,
+        typeLabel: typeLabel
+      });
     });
   }catch(e){ console.error(e); }
 
@@ -7860,24 +8843,25 @@ function renderMyRequests(){
       Object.keys(bucket||{}).forEach(function(key){
         var rec = bucket[key];
         if(!rec || String(rec.staffId)!==sid) return;
-        histCount++;
+        var dateISO = _myReqShiftTargetISO(rec, iso);
         var when = _shiftReqDayLabel(rec, iso);
-        histEl.appendChild(_makeReqRow(
-          (rec.status==='approved'?'Approved':'Rejected') + ' — ' + (when || iso),
-          shiftRequestDetails(rec),
-          '',
-          shiftRequestKindKey(rec),
-          shiftRequestTypeLabel(rec)
-        ));
+        historyItems.push({
+          dateISO: dateISO,
+          sortISO: dateISO || iso,
+          requestedAt: rec.resolvedAt || rec.createdAt || rec.requestedAt || rec.ts || '',
+          title: (rec.status==='approved'?'Approved':'Rejected') + ' — ' + (when || iso),
+          sub: shiftRequestDetails(rec),
+          actionsHtml: '',
+          kindKey: shiftRequestKindKey(rec),
+          typeLabel: shiftRequestTypeLabel(rec)
+        });
       });
     });
   }catch(e){ console.error(e); }
 
-  if(histCount===0){
-    histEl.innerHTML = '<div class="muted">No history yet.</div>';
-  }
-
-  countEl.textContent = 'Pending: ' + pendingCount;
+  _renderMyReqMonthGroups(pendingEl, pendingItems, 'No pending requests.');
+  _renderMyReqMonthGroups(histEl, historyItems, 'No history yet.');
+  countEl.textContent = 'Pending: ' + pendingItems.length + ' · History: ' + historyItems.length;
 }
 
 // Delegation for cancel buttons inside My Requests
@@ -13203,7 +14187,7 @@ function renderPayroll(){
   var end=new Date(s); end.setDate(end.getDate()+6);
   var ph=byId('plannerPrintHeader'); if(ph) ph.textContent='Week of '+fmtDMY(s)+' – '+fmtDMY(end);
 
-  var aW=0,aB=0,aP=0,aM=0,aOT=0,aAdj=0;
+  var aW=0,aB=0,aP=0,aM=0,aOT=0,aAdj=0,aPaid=0,aPaidEligible=0;
 
   Object.keys(App.staff).sort(function(a,b){
     return staffSortNameForId(a).localeCompare(staffSortNameForId(b));
@@ -13308,9 +14292,12 @@ function renderPayroll(){
         + '<button type=\"button\" class=\"btn-outline payroll-managewithheld-btn\" data-staff=\"'+escapeHtml(String(id))+'\" style=\"margin-top:4px;\">Fix / Undo withhold</button>'
         + (withheldBal>0.0001 ? ('<button type="button" class="btn-outline payroll-paypartwithheld-btn" data-staff="'+escapeHtml(String(id))+'" style="margin-top:4px;">Pay some withheld</button>') : '')
         + (withheldBal>0.0001 ? ('<button type="button" class="btn-outline payroll-clearwithheld-btn" data-staff="'+escapeHtml(String(id))+'" style="margin-top:4px;">Mark withheld paid</button>') : '')
-        + '<label class="muted small" style="display:flex;align-items:center;gap:4px;margin-top:4px;">'
+        ;
+
+      var paidCell = ''
+        + '<label class="payroll-paid-label '+(isPaid?'is-paid':'')+'" title="Mark this staff member as paid for the selected week">'
           + '<input type="checkbox" class="payroll-paid-checkbox" data-staff="'+escapeHtml(String(id))+'"'+(isPaid?' checked':'')+'>'
-          + '<span>Paid</span>'
+          + '<span class="payroll-paid-badge '+(isPaid?'paid':'unpaid')+'">'+(isPaid?'PAID':'UNPAID')+'</span>'
         + '</label>';
 
       tr.innerHTML =
@@ -13320,9 +14307,11 @@ function renderPayroll(){
         '<td>'+B.toFixed(2)+'</td>'+
         '<td>'+P.toFixed(2)+'</td>'+
         '<td>'+OT.toFixed(2)+'</td>'+
-        '<td>'+totalCell+'</td>';
+        '<td class="payroll-total-cell">'+totalCell+'</td>'+
+        '<td class="payroll-paid-cell">'+paidCell+'</td>';
 
       tb.appendChild(tr);
+      aPaidEligible += 1; if(isPaid) aPaid += 1;
       aW+=W; aB+=B; aP+=P; aM+=netPay; aOT+=OT; aAdj+=adjAmt;
     }
   });
@@ -13332,6 +14321,7 @@ function renderPayroll(){
   byId('allPayable').textContent=aP.toFixed(2);
   byId('allOT').textContent=aOT.toFixed(2);
   byId('allPay').textContent=fmtMoney(aM);
+  var aps = byId('allPaidStatus'); if(aps) aps.textContent = String(aPaid) + '/' + String(aPaidEligible) + ' paid';
   try{ syncPayrollFormsFromApp(); }catch(e){}
   try{ renderPayslipHistory(); }catch(e){}
   try{ if(isAdmin && isAdmin()){ var sec=byId('statsSection'); if(sec && sec.classList.contains('show')) renderStats(); } }catch(e){}
@@ -13943,6 +14933,7 @@ document.addEventListener('change', function(ev){
   if(t.classList && t.classList.contains('payroll-paid-checkbox')){
     var sid = t.getAttribute('data-staff');
     setPayrollPaid(Planner.weekStartISO, sid, !!t.checked);
+    try{ renderPayroll(); }catch(e){}
   }
 });
 
@@ -17106,7 +18097,111 @@ try{
 
     openInfoModalSafe(title, lines.length ? lines.join('\n\n') : 'No info recorded for this day.');
   };
-})();</script>
+})();
+
+
+/* ---------- V4.1.15 final hardening patch ---------- */
+(function(){
+  function v413WeekFromIsoSafe(iso){
+    try{ return toISO(weekStart(fromISO(String(iso||'')))); }catch(e){ return (window.Planner && Planner.weekStartISO) || ''; }
+  }
+  function v413GuardPayRun(weekIso, action){
+    try{
+      weekIso = String(weekIso || (window.Planner && Planner.weekStartISO) || '');
+      if(typeof v413IsPayRunLocked === 'function' && v413IsPayRunLocked(weekIso)){
+        alert('This week has a locked/paid pay run. Reopen the pay run before ' + String(action || 'changing roster or payroll data') + '.');
+        return false;
+      }
+    }catch(e){}
+    return true;
+  }
+  function v413WrapGuardedFunction(name, weekFn, action){
+    try{
+      var orig = eval(name);
+      if(typeof orig !== 'function' || orig.__v413Guarded) return;
+      var wrapped = function(){
+        var weekIso = '';
+        try{ weekIso = weekFn ? weekFn.apply(this, arguments) : ((window.Planner && Planner.weekStartISO) || ''); }catch(e){ weekIso = (window.Planner && Planner.weekStartISO) || ''; }
+        if(!v413GuardPayRun(weekIso, action)) return;
+        return orig.apply(this, arguments);
+      };
+      wrapped.__v413Guarded = true;
+      window[name] = wrapped;
+      try{ eval(name + ' = window[name];'); }catch(e){}
+    }catch(e){}
+  }
+  v413WrapGuardedFunction('copyDayToNext', function(){ return Planner.weekStartISO; }, 'copying day shifts');
+  v413WrapGuardedFunction('copyWeekToNext', function(){ var d=fromISO(Planner.weekStartISO); d.setDate(d.getDate()+7); return toISO(weekStart(d)); }, 'copying a week into it');
+  v413WrapGuardedFunction('applyRosterTemplateToWeek', function(key, targetWeekISO){ return targetWeekISO || Planner.weekStartISO; }, 'applying a roster template');
+  v413WrapGuardedFunction('approveRequest', function(iso){ return v413WeekFromIsoSafe(iso); }, 'approving away requests');
+  v413WrapGuardedFunction('approveShiftChange', function(iso, key, req){ return (req && req.weekStartISO) ? String(req.weekStartISO) : v413WeekFromIsoSafe(iso); }, 'approving shift changes');
+  v413WrapGuardedFunction('approveEditRequest', function(editId){ var r=(App.editRequests||{})[editId]||{}; return r.iso ? v413WeekFromIsoSafe(r.iso) : Planner.weekStartISO; }, 'approving edit requests');
+
+  try{
+    var origStatus = v413SetPayRunStatus;
+    if(typeof origStatus === 'function' && !origStatus.__v413PaidMarksAll){
+      v413SetPayRunStatus = function(status){
+        var weekIso = (window.Planner && Planner.weekStartISO) || '';
+        var out = origStatus.apply(this, arguments);
+        try{
+          if(String(status||'').toLowerCase() === 'paid'){
+            if(!App.payrollPaid) App.payrollPaid = {};
+            if(!App.payrollPaid[weekIso]) App.payrollPaid[weekIso] = {};
+            var stats = (typeof _computeWeekStats === 'function') ? (_computeWeekStats(weekIso)||{}) : {};
+            Object.keys(stats).forEach(function(id){ var r=stats[id]||{}; if((r.work||0)>0 || (r.payable||0)>0 || (r.pay||0)>0) App.payrollPaid[weekIso][id] = true; });
+            try{ v413AddAudit('Pay run paid - staff marked paid', 'Week ' + weekIso, 'payrun'); }catch(e){}
+            saveLocal();
+            try{ renderPayroll(); }catch(e){}
+          }
+        }catch(e){}
+        return out;
+      };
+      v413SetPayRunStatus.__v413PaidMarksAll = true;
+      window.v413SetPayRunStatus = v413SetPayRunStatus;
+    }
+  }catch(e){}
+
+  function v413MissingPasscodes(){
+    var out=[];
+    try{ Object.keys(App.staff||{}).forEach(function(id){ var st=App.staff[id]||{}; if(!st.passHash) out.push(staffDisplayNameForId(id, st.name||id) + ' (' + String(st.role||'staff') + ')'); }); }catch(e){}
+    return out;
+  }
+  function v413RenderSecurityChecklist(){
+    try{
+      var sec=byId('settingsSection'); if(!sec) return;
+      var card=byId('v413SecurityChecklist');
+      if(!card){
+        card=document.createElement('div'); card.id='v413SecurityChecklist'; card.className='card'; card.setAttribute('data-settings-panel','admin');
+        var audit=byId('auditLogCard'); if(audit && audit.parentNode) audit.parentNode.insertBefore(card, audit); else sec.appendChild(card);
+      }
+      var missing=v413MissingPasscodes();
+      var syncTxt='Last server update: ' + escapeHtml((App.syncMeta && App.syncMeta.lastKnownServerUpdatedAt) ? String(App.syncMeta.lastKnownServerUpdatedAt).replace('T',' ').slice(0,16) : 'unknown');
+      card.innerHTML='<h3>Security checklist</h3>'+
+        '<div class="grid-2">'+
+          '<div><label>Passcode coverage</label><div class="muted">'+(missing.length ? escapeHtml(String(missing.length)+' account(s) still need passcodes: '+missing.join(', ')) : 'All staff accounts have passcodes set.')+'</div></div>'+ 
+          '<div><label>Sync conflict protection</label><div class="muted">'+syncTxt+'</div></div>'+ 
+        '</div><div class="muted" style="margin-top:8px;">Client-side role checks improve usability only. Keep Firebase Security Rules enabled for real staff/payroll data protection.</div>';
+    }catch(e){}
+  }
+  window.v413RenderSecurityChecklist = v413RenderSecurityChecklist;
+  try{
+    var origAuditPanel = v413EnsureAuditPanel;
+    if(typeof origAuditPanel === 'function' && !origAuditPanel.__v413Security){
+      v413EnsureAuditPanel = function(){ v413RenderSecurityChecklist(); return origAuditPanel.apply(this, arguments); };
+      v413EnsureAuditPanel.__v413Security = true;
+    }
+  }catch(e){}
+  try{
+    var origSaveStaff = onSaveStaff;
+    if(typeof origSaveStaff === 'function' && !origSaveStaff.__v413SecurityRefresh){
+      onSaveStaff = async function(){ var r = await origSaveStaff.apply(this, arguments); try{ v413RenderSecurityChecklist(); }catch(e){} return r; };
+      onSaveStaff.__v413SecurityRefresh = true;
+    }
+  }catch(e){}
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function(){ setTimeout(v413RenderSecurityChecklist, 0); });
+  else setTimeout(v413RenderSecurityChecklist, 0);
+})();
+</script>
 
 
 </body>
