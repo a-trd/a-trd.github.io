@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1"/>
-  <title>Aspire Workforce Command (V5.0.4)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=0.3, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover"/>
+  <title>Aspire Workforce Command (V5.0.5)</title>
   <meta name="theme-color" content="#22c55e"/>
 
   <style>
@@ -2427,7 +2427,7 @@
 
 
   <style id="v500Css">
-    /* ---------- V5.0.4 Aspire Workforce Command redesign ---------- */
+    /* ---------- V5.0.5 Aspire Workforce Command redesign ---------- */
     :root {
       --v5-bg: #050816;
       --v5-panel: rgba(13,18,35,.84);
@@ -2477,16 +2477,67 @@
       display: none !important;
     }
 
-    body.v5-mode.v5-staff-user #v5OpsDeck,
-    body.v5-mode.v5-staff-user #v5RailPush,
-    body.v5-mode.v5-staff-user #v5TopPush,
-    body.v5-mode.v5-staff-user #btnPushTop,
-    body.v5-mode.v5-staff-user #btnPushPlanner,
-    body.v5-mode.v5-staff-user #btnPush,
-    body.v5-mode.v5-staff-user #bottomPush,
-    body.v5-mode.v5-staff-user #btnPushPlannerAndSettings {
+    /* V5.0.5 staff/mobile safeguards */
+    body.v5-staff-lite #v5OpsDeck,
+    body.v5-staff-lite #btnPushTop,
+    body.v5-staff-lite #btnPushPlanner,
+    body.v5-staff-lite #btnPush,
+    body.v5-staff-lite #bottomPush,
+    body.v5-staff-lite #v5RailPush,
+    body.v5-staff-lite #v5TopPush,
+    body.v5-staff-lite #btnPushPlannerAndSettings {
       display: none !important;
     }
+
+    html, body {
+      touch-action: pan-x pan-y pinch-zoom;
+    }
+
+    #plannerSection .planner {
+      touch-action: pan-x pan-y pinch-zoom;
+      overscroll-behavior: contain;
+      -webkit-overflow-scrolling: touch;
+      overflow: auto;
+    }
+
+    #plannerSection #plannerGrid {
+      touch-action: pan-x pan-y pinch-zoom;
+      transform-origin: top left;
+    }
+
+    .v505-mobile-planner-help {
+      display: none;
+      margin: 8px 0 10px;
+      padding: 8px 10px;
+      border-radius: 14px;
+      border: 1px solid rgba(56,189,248,.32);
+      background: rgba(56,189,248,.09);
+      color: var(--v5-muted, var(--muted));
+      font-size: 12px;
+      font-weight: 800;
+      line-height: 1.35;
+    }
+
+    @media (max-width: 768px) {
+      .v505-mobile-planner-help { display: block; }
+      #plannerSection .planner {
+        max-width: 100%;
+        margin-left: -2px;
+        margin-right: -2px;
+      }
+      #plannerSection #plannerGrid {
+        width: max-content !important;
+        min-width: max(1100px, 100%) !important;
+      }
+      #plannerSection .grid .header,
+      #plannerSection .grid .row {
+        width: max-content;
+      }
+      #plannerSection .grid .staffcell {
+        min-width: 220px;
+      }
+    }
+
 
     .v5-rail {
       position: fixed;
@@ -3305,7 +3356,7 @@
       <div id="appLogoBox"></div>
       <div class="titlewrap">
         <div class="title" id="appTitle">Aspire Workforce Command</div>
-        <div class="version-pill" id="appVersion">V5.0.4</div>
+        <div class="version-pill" id="appVersion">V5.0.5</div>
         <div class="sync-pill syncing" id="syncStatusChip" title="Sync status">Starting…</div>
       </div>
     </div>
@@ -5079,8 +5130,8 @@ var DAY = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 var App = {
   // IMPORTANT: Increment App.version *and* App.buildId whenever making functional changes to this file.
   // SAFETY NET: This build performs an automatic runtime check against the file name; if mismatched, it shows a blocking warning so it can't be overlooked.
-  version: 'V5.0.4',
-    buildId: '2026-04-30.4',
+  version: 'V5.0.5',
+    buildId: '2026-04-30.5',
 settings: {
     dbUrl:'https://mnc-atrd-default-rtdb.asia-southeast1.firebasedatabase.app/', workspace:'mnc-atrd', authToken:'',
     theme:'light', themeName:'light-pastel-sky', recentColors:[], appTitle:'Aspire Workforce Command', logoUrl:'',
@@ -8093,11 +8144,7 @@ function v413SetupSettingsTabs(){
 }
 function v413ApplySettingsTab(){
   var sec=byId('settingsSection'); if(!sec) return;
-  var role = (App.currentUser && App.currentUser.role) ? App.currentUser.role : 'staff';
   var active = V413.settingsPanel || 'all';
-  if(role !== 'admin') active = 'themes';
-  var nav = byId('settingsNav');
-  if(nav) nav.style.display = (role === 'admin') ? '' : 'none';
   Array.prototype.slice.call(sec.querySelectorAll('[data-settings-tab]')).forEach(function(b){ b.classList.toggle('active', b.getAttribute('data-settings-tab')===active); });
   Array.prototype.slice.call(sec.querySelectorAll('.card[data-settings-panel]')).forEach(function(card){ var cat=card.getAttribute('data-settings-panel'); card.style.display = (active==='all' || cat===active) ? '' : 'none'; });
 }
@@ -9098,16 +9145,14 @@ function applySettingsRoleVisibility(){
     var role = App.currentUser ? App.currentUser.role : 'staff';
     var sec = byId('settingsSection');
     if(!sec) return;
-    var nav = byId('settingsNav');
-    if(nav) nav.style.display = (role === 'admin') ? '' : 'none';
     var cards = sec.querySelectorAll('.card');
     for(var i=0;i<cards.length;i++){
       var c = cards[i];
-      if(role==='admin'){
-        if(c) c.style.display='';
-      } else {
+      if(role==='staff'){
         if(c && c.id==='themesCard'){ c.style.display=''; }
         else if(c) { c.style.display='none'; }
+      } else {
+        if(c) c.style.display='';
       }
     }
   }catch(e){}
@@ -9140,14 +9185,8 @@ function renderAfterLogin(){
   var __tStats=byId('tabStats'); if(__tStats) __tStats.style.display='none';
 
   var pullTop=byId('btnPullTop'), pushTop=byId('btnPushTop');
-  var pullPlannerLogin=byId('btnPullPlanner'), pushPlannerLogin=byId('btnPushPlanner');
-  var bottomPullLogin=byId('bottomPull'), bottomPushLogin=byId('bottomPush');
   if(pullTop) pullTop.style.display='none';
   if(pushTop) pushTop.style.display='none';
-  if(pullPlannerLogin) pullPlannerLogin.style.display='none';
-  if(pushPlannerLogin) pushPlannerLogin.style.display='none';
-  if(bottomPullLogin) bottomPullLogin.style.display='none';
-  if(bottomPushLogin) bottomPushLogin.style.display='none';
 
   var lb=byId('btnLogout');
   if(lb) lb.style.display='inline-block';
@@ -9179,11 +9218,6 @@ function renderAfterLogin(){
     byId('tabPlanner').style.display='inline-block';
     byId('tabPrint').style.display='inline-block';
     if(pullTop) pullTop.style.display='inline-block';
-    if(pullPlannerLogin) pullPlannerLogin.style.display='inline-block';
-    if(bottomPullLogin) bottomPullLogin.style.display='';
-    if(bottomPushLogin) bottomPushLogin.style.display='none';
-    if(pushPlannerLogin) pushPlannerLogin.style.display='none';
-    if(pushTop) pushTop.style.display='none';
     if(bPlanner) bPlanner.style.display='';
   }
   if(role==='manager'){
@@ -9191,10 +9225,6 @@ function renderAfterLogin(){
     byId('tabPrint').style.display='inline-block';
     if(pullTop) pullTop.style.display='inline-block';
     if(pushTop) pushTop.style.display='inline-block';
-    if(pullPlannerLogin) pullPlannerLogin.style.display='inline-block';
-    if(pushPlannerLogin) pushPlannerLogin.style.display='inline-block';
-    if(bottomPullLogin) bottomPullLogin.style.display='';
-    if(bottomPushLogin) bottomPushLogin.style.display='';
     if(bPlanner) bPlanner.style.display='';
   }
   if(role==='admin'){
@@ -9205,10 +9235,6 @@ function renderAfterLogin(){
     byId('tabPrint').style.display='inline-block';
     if(pullTop) pullTop.style.display='inline-block';
     if(pushTop) pushTop.style.display='inline-block';
-    if(pullPlannerLogin) pullPlannerLogin.style.display='inline-block';
-    if(pushPlannerLogin) pushPlannerLogin.style.display='inline-block';
-    if(bottomPullLogin) bottomPullLogin.style.display='';
-    if(bottomPushLogin) bottomPushLogin.style.display='';
     if(bPlanner) bPlanner.style.display='';
     if(bPayroll) bPayroll.style.display='';
     if(bStats) bStats.style.display='';
@@ -19105,7 +19131,7 @@ try{
 (function(){
   'use strict';
   var APP_NAME = 'Aspire Workforce Command';
-  var APP_VERSION = 'V5.0.4';
+  var APP_VERSION = 'V5.0.5';
   var OLD_TITLE = 'M&C-ATRD-scheduler --=Aspire Group=--';
 
   var NAVS = [
@@ -19287,7 +19313,7 @@ try{
     var isIn = loggedIn();
     var currentRole = role();
     document.body.classList.toggle('v5-logged-out', !isIn);
-    document.body.classList.toggle('v5-staff-user', !!(isIn && currentRole === 'staff'));
+    document.body.classList.toggle('v5-staff-lite', isIn && currentRole === 'staff');
     var app = window.App || {};
 
     try{
@@ -19343,31 +19369,26 @@ try{
   }
 
   function countPendingRequests(){
-    // V5.0.4: use the same request-count source as the Requests modal/badge.
-    // The previous broad object-walk counted historical/nested request-like records and caused the card to flicker.
-    try{
-      if(typeof window.countPendingRequestsForWeek === 'function'){
-        var n = Number(window.countPendingRequestsForWeek() || 0);
-        return isFinite(n) ? n : 0;
-      }
-    }catch(e){}
     var app = window.App || {};
     var count = 0;
-    function pending(rec){
-      var st = String((rec && rec.status != null) ? rec.status : 'pending').toLowerCase();
-      return rec && (!st || st === 'pending');
+    var seen = {};
+    function walk(x){
+      if(!x || typeof x !== 'object') return;
+      if(Array.isArray(x)){
+        for(var i=0;i<x.length;i++) walk(x[i]);
+        return;
+      }
+      var st = x.status == null ? '' : String(x.status).toLowerCase();
+      var id = String(x.id || x.requestId || x.key || x.createdAt || Math.random());
+      var looks = x.requestType || x.reason || x.staffId || x.dayIndex != null || x.iso || x.start || x.end;
+      if(looks && (!st || st === 'pending')){
+        if(!seen[id]){ seen[id] = true; count++; }
+      }
+      Object.keys(x).forEach(function(k){ if(k !== 'staff' && k !== 'weeks') walk(x[k]); });
     }
-    try{
-      Object.keys(app.absenceRequests || {}).forEach(function(iso){
-        var bucket = app.absenceRequests[iso] || {};
-        Object.keys(bucket).forEach(function(sid){ if(pending(bucket[sid])) count++; });
-      });
-      Object.keys(app.shiftChangeRequests || {}).forEach(function(iso){
-        var bucket = app.shiftChangeRequests[iso] || {};
-        Object.keys(bucket).forEach(function(key){ if(pending(bucket[key])) count++; });
-      });
-      Object.keys(app.editRequests || {}).forEach(function(id){ if(pending(app.editRequests[id])) count++; });
-    }catch(e){}
+    try{ walk(app.absenceRequests || {}); walk(app.shiftChangeRequests || {}); walk(app.editRequests || {}); }catch(e){}
+    var badge = parseInt(text('requestsCountBadge') || '0', 10);
+    if(!isNaN(badge) && badge > count) count = badge;
     return count;
   }
 
@@ -19378,25 +19399,10 @@ try{
     return {paid:paid, total:total};
   }
   function plannerAlerts(){
-    // V5.0.4: count actual warning rows, even when the planner panel is hidden/not active.
-    // This keeps Operations in sync with the clickable details modal.
-    var count = 0;
-    try{
-      var list = byId('plannerWarningsList') || document.querySelector('.planner-warning-list');
-      if(list){
-        Array.prototype.slice.call(list.children || []).forEach(function(el){
-          if(String(el.textContent || '').trim()) count++;
-        });
-      }
-    }catch(e){}
-    if(count) return count;
-    try{
-      if(typeof window.countPendingRequestsForWeek === 'function'){
-        var pending = Number(window.countPendingRequestsForWeek() || 0);
-        if(isFinite(pending) && pending > 0) return 1;
-      }
-    }catch(e2){}
-    return 0;
+    var panel = document.querySelector('.planner-warning-panel.show');
+    if(!panel) return 0;
+    var items = panel.querySelectorAll('.planner-warning-list > *');
+    return items ? items.length : 1;
   }
   function bizSignal(){
     var labour = document.querySelector('#bizLabourPctKpi .value');
@@ -19410,17 +19416,15 @@ try{
     if(!deck) return;
     if(!loggedIn() || role() === 'staff'){
       deck.style.display = 'none';
-      if(deck.getAttribute('data-v504-empty') !== '1'){
+      if(deck.getAttribute('data-v505-hidden') !== '1'){
         deck.innerHTML='';
-        deck.setAttribute('data-v504-empty','1');
-        deck.removeAttribute('data-v503-empty');
-        deck.removeAttribute('data-v503-shell');
+        deck.setAttribute('data-v505-hidden','1');
+        deck.removeAttribute('data-v505-shell');
       }
       return;
     }
     deck.style.display = '';
-    deck.removeAttribute('data-v503-empty');
-    deck.removeAttribute('data-v504-empty');
+    deck.removeAttribute('data-v505-hidden');
 
     var week = text('weekLabel') || text('myWeekLabel') || text('payrollWeekLabel') || 'Current week';
     var pending = countPendingRequests();
@@ -19446,31 +19450,26 @@ try{
       return card;
     }
 
-    var needsShell = deck.getAttribute('data-v503-shell') !== 'stable' || deck.children.length !== cards.length;
+    var needsShell = deck.getAttribute('data-v505-shell') !== 'stable' || deck.children.length !== cards.length;
     if(!needsShell){
       for(var i=0;i<cards.length;i++){
-        var cardCheck = deck.children[i];
-        if(!cardCheck || cardCheck.getAttribute('data-v5-ops-label') !== cards[i].label){ needsShell = true; break; }
+        var c0 = deck.children[i];
+        if(!c0 || c0.getAttribute('data-v5-ops-label') !== cards[i].label){ needsShell = true; break; }
       }
     }
     if(needsShell){
       deck.innerHTML = '';
       for(var c=0;c<cards.length;c++) deck.appendChild(makeCard(cards[c]));
-      deck.setAttribute('data-v503-shell','stable');
+      deck.setAttribute('data-v505-shell','stable');
     }
 
     for(var j=0;j<cards.length;j++){
       var data = cards[j];
       var card = deck.children[j];
       if(!card) continue;
-      var keepActionable = card.classList.contains('v501-actionable');
       card.setAttribute('data-v5-ops-label', data.label);
+      if(card.className !== ('v5-ops-card ' + data.cls)) card.className = 'v5-ops-card ' + data.cls;
       writeText(card.querySelector('.v5-ops-label'), data.label);
-      if(keepActionable && (data.label === 'Requests' || data.label === 'Operations')){
-        continue;
-      }
-      var nextClass = 'v5-ops-card ' + data.cls + (keepActionable ? ' v501-actionable' : '');
-      if(card.className !== nextClass) card.className = nextClass;
       writeText(card.querySelector('.v5-ops-value'), data.value);
       writeText(card.querySelector('.v5-ops-note'), data.note);
     }
@@ -19532,443 +19531,64 @@ try{
 })();
 </script>
 
-<script id="v501Script">
+<style id="v505MobilePlannerPatchStyle">
+  @media (max-width: 768px) {
+    #plannerSection .planner { touch-action: pan-x pan-y pinch-zoom; }
+  }
+</style>
+<script id="v505MobilePlannerPatch">
 (function(){
   'use strict';
-  var APP_VERSION = 'V5.0.4';
-  var DEFAULT_TITLE = 'Aspire Workforce Command';
-  var opsObserver = null;
-  var opsTimer = 0;
-
   function byId(id){ return document.getElementById(id); }
-  function esc(s){
-    return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){
-      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
-    });
-  }
-  function role(){ try{ return (window.App && App.currentUser && App.currentUser.role) ? String(App.currentUser.role) : ''; }catch(e){ return ''; } }
-  function isAdminLike(){ var r = role(); return r === 'admin' || r === 'manager'; }
-  function currentUserId(){ try{ return App.currentUser && App.currentUser.id != null ? String(App.currentUser.id) : ''; }catch(e){ return ''; } }
-  function appSettings(){ if(!window.App) window.App = {}; if(!App.settings) App.settings = {}; return App.settings; }
-  function appTitle(){
+  function role(){ try{ return String((window.App && App.currentUser && App.currentUser.role) || ''); }catch(e){ return ''; } }
+  function loggedIn(){ try{ return !!(window.App && App.currentUser); }catch(e){ return false; } }
+  function applyMobilePlannerWidth(){
+    var grid = byId('plannerGrid');
+    if(!grid) return;
     try{
-      var t = String((appSettings().appTitle || DEFAULT_TITLE)).trim();
-      return t || DEFAULT_TITLE;
-    }catch(e){ return DEFAULT_TITLE; }
-  }
-  function initials(title){
-    title = String(title || DEFAULT_TITLE).replace(/[^A-Za-z0-9 ]+/g, ' ').trim();
-    var parts = title.split(/\s+/).filter(Boolean);
-    if(!parts.length) return 'AW';
-    if(parts.length === 1) return parts[0].slice(0,2).toUpperCase();
-    return (parts[0].charAt(0) + parts[1].charAt(0)).toUpperCase();
-  }
-  function staffName(id){
-    id = String(id == null ? '' : id);
-    try{ if(typeof window.staffDisplayNameForId === 'function') return staffDisplayNameForId(id, id || 'Staff'); }catch(e){}
-    try{ var st = App.staff && App.staff[id]; if(st) return String(st.nickname || st.plannerName || st.name || id); }catch(e){}
-    return id || 'Staff';
-  }
-  function safeDate(iso){
-    try{ if(typeof window.formatIsoForHuman === 'function') return formatIsoForHuman(iso); }catch(e){}
-    try{ var d = new Date(String(iso || '') + 'T00:00:00'); if(!isNaN(d.getTime())) return d.toLocaleDateString(undefined, {weekday:'short', day:'2-digit', month:'short', year:'numeric'}); }catch(e){}
-    return String(iso || '');
-  }
-  function timeRange(s,e){
-    try{ if(typeof window.displayTimeRange12 === 'function') return displayTimeRange12(s,e); }catch(err){}
-    return String(s || '?') + '-' + String(e || '?');
-  }
-  function createdAt(rec){ return String((rec && (rec.createdAt || rec.requestedAt || rec.ts || rec.submittedAt)) || ''); }
-  function isPending(rec){
-    var st = String((rec && rec.status != null) ? rec.status : 'pending').toLowerCase();
-    return !st || st === 'pending';
-  }
-  function canSeeRequest(staffId, rec){
-    var r = role();
-    if(r === 'admin' || r === 'manager') return true;
-    var uid = currentUserId();
-    if(!uid) return false;
-    if(staffId != null && String(staffId) === uid) return true;
-    if(rec && rec.createdBy != null && String(rec.createdBy) === uid) return true;
-    return false;
-  }
-  function absKind(rec){
-    try{ if(typeof window.requestTypeLabelForAbs === 'function') return requestTypeLabelForAbs(rec); }catch(e){}
-    return rec && rec.blocks && rec.blocks.length ? 'Away (partial)' : 'Away (full day)';
-  }
-  function absDetails(rec){
-    if(!rec) return '';
-    try{
-      if(rec.blocks && rec.blocks.length){
-        return rec.blocks.map(function(b){
-          var txt = timeRange(b && b.start, b && b.end);
-          if(b && b.reason) txt += ' - ' + String(b.reason);
-          return txt;
-        }).join(' | ');
-      }
-      if(rec.reason) return String(rec.reason);
-      if(rec.unavailable) return 'Full-day away request';
-    }catch(e){}
-    return '';
-  }
-  function isShiftProposal(rec){
-    try{ if(typeof window.isShiftProposalRequest === 'function') return isShiftProposalRequest(rec); }catch(e){}
-    try{
-      var t = String((rec && (rec.requestType || rec.kind || '')) || '').toLowerCase();
-      return t === 'newshift' || t === 'shiftproposal' || t === 'proposedshift' || t === 'new_shift' || rec.proposedShift === true || rec.isNewShift === true;
-    }catch(e){ return false; }
-  }
-  function shiftDayLabel(rec, iso){
-    try{ if(typeof window._shiftReqDayLabel === 'function') return _shiftReqDayLabel(rec, iso); }catch(e){}
-    try{
-      if(rec && rec.weekStartISO){
-        var d = new Date(String(rec.weekStartISO) + 'T00:00:00');
-        if(rec.dayIndex != null) d.setDate(d.getDate() + parseInt(rec.dayIndex, 10));
-        if(!isNaN(d.getTime())) return d.toLocaleDateString(undefined, {weekday:'short', day:'2-digit', month:'short', year:'numeric'});
+      var columns = (typeof window.colCount === 'function') ? colCount() : 48;
+      var width = Math.max(1100, 220 + columns * 44);
+      grid.style.minWidth = width + 'px';
+      grid.style.width = 'max-content';
+      var planner = grid.closest ? grid.closest('.planner') : null;
+      if(planner){
+        planner.style.touchAction = 'pan-x pan-y pinch-zoom';
+        planner.style.webkitOverflowScrolling = 'touch';
       }
     }catch(e){}
-    return safeDate(iso);
   }
-  function shiftDetails(rec){
-    try{ if(typeof window.shiftRequestDetails === 'function') return shiftRequestDetails(rec); }catch(e){}
-    var parts = [];
-    if(rec && (rec.newStart || rec.newEnd)) parts.push(timeRange(rec.newStart, rec.newEnd));
-    if(rec && rec.reason) parts.push('Reason: ' + String(rec.reason));
-    return parts.join(' | ');
-  }
-  function editType(rec){
-    try{ if(typeof window.requestTypeLabelForEditRequest === 'function') return requestTypeLabelForEditRequest(rec); }catch(e){}
-    return rec && rec.type === 'away' ? 'Away edit' : 'Edit request';
-  }
-  function editDetails(rec){
-    try{
-      if(!rec) return '';
-      if(rec.type === 'away'){
-        if(rec.mode === 'full') return 'Reason - ' + String((rec.proposed && rec.proposed.reason) || '');
-        if(rec.mode === 'partial') return timeRange(rec.proposed && rec.proposed.start, rec.proposed && rec.proposed.end) + ' - ' + String((rec.proposed && rec.proposed.reason) || '');
-      }
-      return JSON.stringify(rec.proposed || {}).slice(0,180);
-    }catch(e){ return ''; }
-  }
-  function collectPendingRequestItems(){
-    var app = window.App || {};
-    var items = [];
-    try{
-      Object.keys(app.absenceRequests || {}).forEach(function(iso){
-        var bucket = app.absenceRequests[iso] || {};
-        Object.keys(bucket).forEach(function(sid){
-          var rec = bucket[sid];
-          if(!rec || !isPending(rec) || !canSeeRequest(sid, rec)) return;
-          items.push({kind:'absence', type:absKind(rec), staff:staffName(sid), staffId:String(sid), day:safeDate(iso), created:createdAt(rec), details:absDetails(rec)});
-        });
-      });
-      Object.keys(app.shiftChangeRequests || {}).forEach(function(iso){
-        var bucket = app.shiftChangeRequests[iso] || {};
-        Object.keys(bucket).forEach(function(key){
-          var rec = bucket[key];
-          var sid = rec && rec.staffId != null ? String(rec.staffId) : '';
-          if(!rec || !isPending(rec) || !canSeeRequest(sid, rec)) return;
-          items.push({kind:isShiftProposal(rec)?'shiftProposal':'shiftEdit', type:isShiftProposal(rec)?'Shift proposal':'Shift edit', staff:staffName(sid), staffId:sid, day:shiftDayLabel(rec, iso), created:createdAt(rec), details:shiftDetails(rec)});
-        });
-      });
-      Object.keys(app.editRequests || {}).forEach(function(id){
-        var rec = app.editRequests[id];
-        var sid = rec && rec.staffId != null ? String(rec.staffId) : '';
-        if(!rec || !isPending(rec) || !canSeeRequest(sid, rec)) return;
-        items.push({kind:'edit', type:editType(rec), staff:staffName(sid), staffId:sid, day:safeDate(rec.iso || ''), created:createdAt(rec), details:editDetails(rec)});
-      });
-    }catch(e){}
-    items.sort(function(a,b){
-      var ad = Date.parse(a.created || '') || 0;
-      var bd = Date.parse(b.created || '') || 0;
-      if(ad !== bd) return ad - bd;
-      return String(a.day || '').localeCompare(String(b.day || ''));
-    });
-    return items;
-  }
-  function requestBreakdown(items){
-    if(!items || !items.length) return 'No pending requests.';
-    var map = {};
-    items.forEach(function(it){ var k = it.type || 'Request'; map[k] = (map[k] || 0) + 1; });
-    return Object.keys(map).map(function(k){ return k + ' ' + map[k]; }).join(' | ');
-  }
-  function collectOperationAlerts(){
-    var out = [];
-    try{
-      var list = byId('plannerWarningsList');
-      if(list){
-        Array.prototype.slice.call(list.children || []).forEach(function(el){
-          var txt = String(el.textContent || '').trim();
-          if(!txt) return;
-          var cls = String(el.className || '');
-          var sev = cls.indexOf('bad') >= 0 ? 'bad' : (cls.indexOf('warn') >= 0 ? 'warn' : 'info');
-          out.push({severity:sev, title:sev === 'bad' ? 'Critical roster warning' : (sev === 'warn' ? 'Roster warning' : 'Planner notice'), details:txt});
-        });
-      }
-      // If planner warnings have not been rendered yet, still surface the pending request as the planner alert.
-      var hasPendingText = out.some(function(it){ return String(it.details || '').toLowerCase().indexOf('pending request') >= 0; });
-      if(!hasPendingText && typeof window.countPendingRequestsForWeek === 'function'){
-        var pending = Number(window.countPendingRequestsForWeek() || 0);
-        if(isFinite(pending) && pending > 0){
-          out.unshift({severity:'info', title:'Pending planner request', details:pending + ' pending request(s) need review.'});
-        }
-      }
-    }catch(e){}
-    return out;
-  }
-  function ensureInsightModal(){
-    var modal = byId('v501InsightModal');
-    if(modal) return modal;
-    modal = document.createElement('div');
-    modal.id = 'v501InsightModal';
-    modal.className = 'modal v501-insight-modal';
-    modal.style.zIndex = '5200';
-    modal.innerHTML = '<div class="panel v501-insight-panel"><div class="v501-insight-head"><div><h3 id="v501InsightTitle">Details</h3><div id="v501InsightIntro" class="muted"></div></div><button id="v501InsightClose" type="button" class="btn-outline">Close</button></div><div id="v501InsightBody" class="v501-insight-body"></div><div id="v501InsightActions" class="v501-insight-actions"></div></div>';
-    document.body.appendChild(modal);
-    var close = byId('v501InsightClose');
-    if(close) close.onclick = function(){ modal.style.display = 'none'; };
-    modal.addEventListener('click', function(ev){ if(ev.target === modal) modal.style.display = 'none'; });
-    return modal;
-  }
-  function openInsight(title, intro, items, actions){
-    var modal = ensureInsightModal();
-    var h = byId('v501InsightTitle'); if(h) h.textContent = title || 'Details';
-    var i = byId('v501InsightIntro'); if(i) i.textContent = intro || '';
-    var body = byId('v501InsightBody');
-    if(body){
-      if(!items || !items.length){
-        body.innerHTML = '<div class="v501-empty">No items to show.</div>';
-      }else{
-        body.innerHTML = items.map(function(it){
-          return '<div class="v501-insight-item ' + esc(it.severity || it.kind || '') + '">' +
-            '<div class="v501-insight-type">' + esc(it.type || it.title || 'Item') + '</div>' +
-            '<div class="v501-insight-main">' + esc(it.staff ? (it.staff + ' - ' + (it.day || '')) : (it.details || '')) + '</div>' +
-            (it.staff ? '<div class="v501-insight-detail">' + esc(it.details || '') + '</div>' : '') +
-            (it.created ? '<div class="v501-insight-meta">Requested ' + esc((new Date(it.created)).toLocaleString()) + '</div>' : '') +
-          '</div>';
-        }).join('');
-      }
-    }
-    var act = byId('v501InsightActions');
-    if(act){
-      act.innerHTML = '';
-      (actions || []).forEach(function(a){
-        var b = document.createElement('button');
-        b.type = 'button';
-        b.className = a.primary ? 'btn-primary' : 'btn-outline';
-        b.textContent = a.label;
-        b.onclick = function(){ try{ a.run(); }catch(e){} };
-        act.appendChild(b);
-      });
-    }
-    modal.style.display = 'flex';
-  }
-  function openRequestsFromOps(){
-    var items = collectPendingRequestItems();
-    if(isAdminLike() && typeof window.openRequestsModal === 'function'){
-      try{
-        openRequestsModal();
-        setTimeout(function(){
-          var title = document.querySelector('#requestsModal .panel h3');
-          if(title) title.textContent = 'Pending Requests';
-        }, 30);
-        return;
-      }catch(e){}
-    }
-    openInsight('Pending requests', items.length ? (items.length + ' request(s) found.') : 'No pending requests found.', items, [
-      {label:'Open My Requests', primary:true, run:function(){ var b=byId('tabMyRequests'); if(b) b.click(); var m=byId('v501InsightModal'); if(m) m.style.display='none'; }}
-    ]);
-  }
-  function openOperationsFromOps(){
-    var alerts = collectOperationAlerts();
-    var intro = alerts.length ? (alerts.length + ' roster warning(s) need attention.') : 'No active roster warnings are currently listed.';
-    var mapped = alerts.length ? alerts : [{severity:'good', title:'Operations clear', details:'No roster warning details are currently active.'}];
-    openInsight('Operations alerts', intro, mapped, [
-      {label:'Open Planner', primary:true, run:function(){ var b=byId('tabPlanner'); if(b) b.click(); var m=byId('v501InsightModal'); if(m) m.style.display='none'; setTimeout(function(){ var w=byId('plannerWarnings'); if(w) w.scrollIntoView({behavior:'smooth', block:'center'}); }, 200); }},
-      {label:'Open Requests', primary:false, run:function(){ var m=byId('v501InsightModal'); if(m) m.style.display='none'; openRequestsFromOps(); }}
-    ]);
-  }
-  function setCardAction(card, action){
+  function ensurePlannerHint(){
+    var sec = byId('plannerSection');
+    if(!sec || byId('v505PlannerZoomHint')) return;
+    var card = sec.querySelector('.card');
     if(!card) return;
-    card.classList.add('v501-actionable');
-    card.setAttribute('role','button');
-    card.setAttribute('tabindex','0');
-    card.onclick = action;
-    card.onkeydown = function(ev){ var k = String(ev.key || ''); if(k === 'Enter' || k === ' '){ ev.preventDefault(); action(); } };
+    var hint = document.createElement('div');
+    hint.id = 'v505PlannerZoomHint';
+    hint.className = 'v505-mobile-planner-help';
+    hint.textContent = 'Mobile planner: pinch with two fingers to zoom in/out. Swipe sideways to view the full roster board.';
+    var ref = byId('dayTabs') || card.firstChild;
+    card.insertBefore(hint, ref);
   }
-  function cardLabel(card){
-    var el = card ? card.querySelector('.v5-ops-label') : null;
-    return String((el && el.textContent) || '').trim().toLowerCase();
-  }
-  function setText(el, value){ if(el && String(el.textContent || '') !== String(value)) el.textContent = value; }
-  function setOpsState(card, cls){
-    if(!card) return;
-    var states = ['v5-ops-blue','v5-ops-good','v5-ops-warn','v5-ops-bad'];
-    var changed = !card.classList.contains(cls);
-    for(var i=0;i<states.length;i++){
-      if(states[i] !== cls && card.classList.contains(states[i])){ changed = true; break; }
-    }
-    if(!changed) return;
-    card.classList.remove('v5-ops-warn','v5-ops-good','v5-ops-bad','v5-ops-blue');
-    card.classList.add(cls);
-  }
-  function enhanceOpsDeck(){
+  function applyStaffUiGuard(){
+    var staff = loggedIn() && role() === 'staff';
+    document.body.classList.toggle('v5-staff-lite', staff);
     var deck = byId('v5OpsDeck');
-    if(!deck) return;
-    if(role() === 'staff'){
-      deck.style.display = 'none';
-      if(deck.getAttribute('data-v504-empty') !== '1'){
-        deck.innerHTML = '';
-        deck.setAttribute('data-v504-empty','1');
-      }
-      return;
-    }
-    deck.style.display = '';
-    deck.removeAttribute('data-v504-empty');
-    var items = collectPendingRequestItems();
-    var alerts = collectOperationAlerts();
-    Array.prototype.slice.call(deck.querySelectorAll('.v5-ops-card')).forEach(function(card){
-      var label = cardLabel(card);
-      if(label === 'requests'){
-        setText(card.querySelector('.v5-ops-value'), String(items.length));
-        setText(card.querySelector('.v5-ops-note'), requestBreakdown(items));
-        setOpsState(card, items.length ? 'v5-ops-warn' : 'v5-ops-good');
-        setCardAction(card, openRequestsFromOps);
-      }else if(label === 'operations'){
-        if(alerts.length){
-          setText(card.querySelector('.v5-ops-value'), alerts.length === 1 ? '1 alert' : (alerts.length + ' alerts'));
-          setText(card.querySelector('.v5-ops-note'), alerts.length === 1 ? alerts[0].details : 'Roster warnings need attention');
-          setOpsState(card, 'v5-ops-warn');
-        }else{
-          setOpsState(card, 'v5-ops-good');
-        }
-        setCardAction(card, openOperationsFromOps);
-      }
+    if(deck && staff){ deck.style.display = 'none'; if(deck.innerHTML) deck.innerHTML = ''; }
+    ['btnPushTop','btnPushPlanner','btnPush','bottomPush','v5RailPush','v5TopPush','btnPushPlannerAndSettings'].forEach(function(id){
+      var el = byId(id); if(!el) return;
+      if(staff){ el.style.display = 'none'; el.disabled = true; el.setAttribute('aria-hidden','true'); }
+    });
+    ['btnPullTop','btnPullPlanner','bottomPull','v5RailPull','v5TopPull'].forEach(function(id){
+      var el = byId(id); if(el && staff){ el.style.display = ''; el.disabled = false; el.setAttribute('aria-hidden','false'); }
     });
   }
-  function scheduleEnhanceOps(){
-    // V5.0.4: apply the accurate clickable-card values before the browser can paint the old base values.
-    clearTimeout(opsTimer);
-    try{ enhanceOpsDeck(); }
-    catch(e){ opsTimer = setTimeout(enhanceOpsDeck, 0); }
-  }
-  function enforceStaffSettingsLock(){
-    try{
-      var r = role();
-      var isStaff = r === 'staff';
-      document.body.classList.toggle('v5-staff-user', !!(window.App && App.currentUser && isStaff));
-      var ids = ['tabSettings','bottomSettings','v5NavSettings'];
-      ids.forEach(function(id){ var el = byId(id); if(el) el.style.display = (r === 'admin') ? '' : 'none'; });
-      ['btnPushTop','btnPushPlanner','btnPush','bottomPush','v5RailPush','v5TopPush','btnPushPlannerAndSettings'].forEach(function(id){
-        var el = byId(id);
-        if(el){
-          var allowed = (r === 'admin' || r === 'manager');
-          el.style.display = allowed ? '' : 'none';
-          el.disabled = !allowed;
-          el.setAttribute('aria-hidden', allowed ? 'false' : 'true');
-        }
-      });
-      ['btnPullTop','btnPullPlanner','bottomPull','v5RailPull','v5TopPull'].forEach(function(id){
-        var el = byId(id);
-        if(el && window.App && App.currentUser) el.style.display = '';
-      });
-      var deck = byId('v5OpsDeck');
-      if(deck && isStaff){ deck.style.display = 'none'; deck.innerHTML = ''; deck.setAttribute('data-v504-empty','1'); }
-      var sec = byId('settingsSection');
-      if(r !== 'admin' && sec && sec.classList && sec.classList.contains('show')){
-        sec.classList.remove('show');
-        var my = byId('mySection'); if(my) my.classList.add('show');
-        var tabMy = byId('tabMy'); if(tabMy) tabMy.classList.add('active');
-      }
-    }catch(e){}
-  }
-  function syncTitleEverywhere(){
-    try{
-      var title = appTitle();
-      var mark = initials(title);
-      var oldTitle = byId('appTitle'); if(oldTitle) oldTitle.textContent = title;
-      var oldInput = byId('appTitleInput'); if(oldInput && document.activeElement !== oldInput) oldInput.value = title;
-      var vTitle = document.querySelector('.v5-brand-title'); if(vTitle) vTitle.textContent = title;
-      var vMark = document.querySelector('.v5-brand-mark'); if(vMark) vMark.textContent = mark;
-      var vSub = document.querySelector('.v5-brand-sub'); if(vSub) vSub.textContent = 'Command ' + APP_VERSION;
-      var version = byId('appVersion'); if(version) version.textContent = APP_VERSION;
-      document.title = title + ' (' + APP_VERSION + ')';
-      var titleInput = byId('v501TitleInput'); if(titleInput && document.activeElement !== titleInput) titleInput.value = title;
-      var label = oldInput && oldInput.previousElementSibling;
-      if(label && String(label.tagName || '').toLowerCase() === 'label') label.textContent = 'App title / top-left title';
-    }catch(e){}
-  }
-  function saveTitleSetting(){
-    var input = byId('v501TitleInput');
-    var value = String((input && input.value) || '').trim();
-    if(!value){ alert('Please enter an app title.'); return; }
-    var settings = appSettings();
-    settings.appTitle = value;
-    var oldInput = byId('appTitleInput'); if(oldInput) oldInput.value = value;
-    syncTitleEverywhere();
-    try{ if(typeof window.saveConnLocal === 'function') saveConnLocal(); }catch(e){}
-    try{ if(typeof window.saveLocal === 'function') saveLocal(); }catch(e){}
-    var done = function(){ try{ if(typeof window.showToast === 'function') showToast('Title saved', value, 'success', 3500); }catch(e){} };
-    if(role() === 'admin' && typeof window.dbPatch === 'function'){
-      try{ dbPatch('', {settings:settings}).then(done).catch(done); return; }catch(e){}
-    }
-    done();
-  }
-  function ensureTitleCard(){
-    var sec = byId('settingsSection');
-    if(!sec) return;
-    var existing = byId('v501TitleCard');
-    if(existing){ syncTitleEverywhere(); return; }
-    var card = document.createElement('div');
-    card.id = 'v501TitleCard';
-    card.className = 'card';
-    card.setAttribute('data-settings-panel', 'connection');
-    card.innerHTML = '<h3>Top-left app title</h3><div class="grid-2"><div><label>Title shown in the command sidebar</label><input id="v501TitleInput" type="text" value="' + esc(appTitle()) + '"></div><div><label>Preview</label><div class="v501-title-preview"><span id="v501TitlePreviewMark">' + esc(initials(appTitle())) + '</span><strong id="v501TitlePreviewText">' + esc(appTitle()) + '</strong></div></div></div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;"><button id="v501SaveTitleBtn" type="button" class="btn-primary">Save title</button></div><div class="muted" style="margin-top:6px;">This controls the title in the top-left command sidebar, browser tab, exports and formal app heading.</div>';
-    var nav = byId('settingsNav');
-    var grid = sec.querySelector('.grid-2');
-    if(nav && nav.nextSibling) sec.insertBefore(card, nav.nextSibling);
-    else if(grid) sec.insertBefore(card, grid);
-    else sec.insertBefore(card, sec.firstChild);
-    var input = byId('v501TitleInput');
-    if(input){
-      input.addEventListener('input', function(){
-        var p = byId('v501TitlePreviewText'); if(p) p.textContent = input.value || DEFAULT_TITLE;
-        var m = byId('v501TitlePreviewMark'); if(m) m.textContent = initials(input.value || DEFAULT_TITLE);
-      });
-      input.addEventListener('keydown', function(ev){ if(String(ev.key || '') === 'Enter'){ ev.preventDefault(); saveTitleSetting(); } });
-    }
-    var btn = byId('v501SaveTitleBtn'); if(btn) btn.onclick = saveTitleSetting;
-    try{ if(typeof window.v413ApplySettingsTab === 'function') v413ApplySettingsTab(); }catch(e){}
-  }
-  function installCss(){
-    if(byId('v501Css')) return;
-    var style = document.createElement('style');
-    style.id = 'v501Css';
-    style.textContent = '#v5OpsDeck .v5-ops-card.v501-actionable{cursor:pointer;transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease;will-change:transform;}#v5OpsDeck .v5-ops-card.v501-actionable:hover{transform:translateY(-2px);border-color:rgba(56,189,248,.52);}#v5OpsDeck .v5-ops-card.v501-actionable:after{content:"Click for details";position:absolute;right:12px;bottom:10px;font-size:10px;font-weight:1000;letter-spacing:.08em;text-transform:uppercase;color:var(--v5-muted);opacity:.82;}.v501-insight-panel{width:min(820px,100%);}.v501-insight-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:10px;}.v501-insight-head h3{margin:0 0 4px;}.v501-insight-body{display:flex;flex-direction:column;gap:8px;max-height:58vh;overflow:auto;padding-right:2px;}.v501-insight-item{border:1px solid var(--border);border-left:5px solid var(--accent2);border-radius:14px;padding:10px 12px;background:rgba(255,255,255,.045);}.v501-insight-item.warn{border-left-color:var(--warn);}.v501-insight-item.bad{border-left-color:var(--bad);}.v501-insight-item.good{border-left-color:var(--good);}.v501-insight-type{font-size:11px;text-transform:uppercase;letter-spacing:.08em;font-weight:1000;color:var(--muted);}.v501-insight-main{margin-top:3px;font-weight:1000;}.v501-insight-detail{margin-top:3px;font-size:12px;color:var(--fg);opacity:.9;}.v501-insight-meta{margin-top:4px;font-size:11px;color:var(--muted);}.v501-insight-actions{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;margin-top:12px;}.v501-empty{padding:14px;color:var(--muted);font-weight:800;}.v501-title-preview{display:flex;align-items:center;gap:10px;min-height:42px;padding:8px 10px;border-radius:14px;border:1px solid var(--border);background:rgba(255,255,255,.045);}.v501-title-preview span{display:grid;place-items:center;width:32px;height:32px;border-radius:12px;background:linear-gradient(135deg,var(--v5-blue),var(--v5-purple));color:#fff;font-weight:1000;letter-spacing:-.06em;}.v501-title-preview strong{overflow-wrap:anywhere;}@media(max-width:640px){.v501-insight-head{flex-direction:column;}.v501-insight-head button{align-self:flex-end;}.v501-insight-actions{justify-content:stretch;}.v501-insight-actions button{flex:1 1 150px;}}';
-    document.head.appendChild(style);
-  }
-  function boot(){
-    try{ if(window.App){ App.version = APP_VERSION; App.buildId = '2026-04-30.4'; } }catch(e){}
-    installCss();
-    ensureTitleCard();
-    syncTitleEverywhere();
-    enforceStaffSettingsLock();
-    enhanceOpsDeck();
-    var deck = byId('v5OpsDeck');
-    if(deck && !opsObserver){
-      try{
-        opsObserver = new MutationObserver(function(muts){
-          for(var i=0;i<muts.length;i++){
-            if(muts[i].type === 'childList'){ scheduleEnhanceOps(); break; }
-          }
-        });
-        opsObserver.observe(deck, {childList:true, subtree:false});
-      }catch(e){}
-    }
-  }
-  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
-  else boot();
-  setInterval(function(){ syncTitleEverywhere(); enforceStaffSettingsLock(); enhanceOpsDeck(); }, 2500);
+  function tick(){ ensurePlannerHint(); applyMobilePlannerWidth(); applyStaffUiGuard(); }
+  window.v505ApplyMobilePlanner = tick;
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', tick);
+  else tick();
+  document.addEventListener('click', function(){ setTimeout(tick, 0); setTimeout(tick, 180); }, true);
+  window.addEventListener('resize', tick);
+  setInterval(tick, 1200);
 })();
 </script>
 </body>
