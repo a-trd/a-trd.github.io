@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1"/>
-  <title>M&C-ATRD-scheduler --=Aspire Group=-- (V4.1.15)</title>
+  <title>Aspire Workforce Command (V5.0.4)</title>
   <meta name="theme-color" content="#22c55e"/>
 
   <style>
@@ -2424,6 +2424,878 @@
     @media (max-width:700px){ .payrun-panel,.request-filter-bar,.import-preview-grid{ grid-template-columns:1fr; } .top-tools-dropdown{ right:auto; left:0; } }
   </style>
 
+
+
+  <style id="v500Css">
+    /* ---------- V5.0.4 Aspire Workforce Command redesign ---------- */
+    :root {
+      --v5-bg: #050816;
+      --v5-panel: rgba(13,18,35,.84);
+      --v5-panel-strong: rgba(15,23,42,.96);
+      --v5-line: rgba(148,163,184,.24);
+      --v5-line-soft: rgba(148,163,184,.14);
+      --v5-text: #f8fafc;
+      --v5-muted: #9fb0c8;
+      --v5-blue: #38bdf8;
+      --v5-purple: #8b5cf6;
+      --v5-pink: #ec4899;
+      --v5-green: #22c55e;
+      --v5-amber: #f59e0b;
+      --v5-red: #ef4444;
+      --v5-radius: 24px;
+      --v5-shadow: 0 24px 70px rgba(0,0,0,.42);
+      --v5-rail-w: 286px;
+      --v5-top-h: 86px;
+    }
+
+    body.v5-mode {
+      min-height: 100vh;
+      color: var(--fg);
+      background:
+        radial-gradient(circle at 15% -10%, rgba(56,189,248,.24), transparent 34%),
+        radial-gradient(circle at 100% 0%, rgba(139,92,246,.22), transparent 42%),
+        radial-gradient(circle at 80% 115%, rgba(236,72,153,.16), transparent 45%),
+        linear-gradient(135deg, #020617 0%, #07111f 48%, #050816 100%);
+      overflow-x: hidden;
+    }
+
+    body.v5-mode[data-theme="light"] {
+      --v5-bg: #eff6ff;
+      --v5-panel: rgba(255,255,255,.82);
+      --v5-panel-strong: rgba(255,255,255,.96);
+      --v5-line: rgba(15,23,42,.12);
+      --v5-line-soft: rgba(15,23,42,.08);
+      --v5-text: #0f172a;
+      --v5-muted: #607089;
+      background:
+        radial-gradient(circle at 15% -10%, rgba(14,165,233,.20), transparent 34%),
+        radial-gradient(circle at 100% 0%, rgba(124,58,237,.13), transparent 42%),
+        linear-gradient(135deg, #f8fbff 0%, #edf6ff 54%, #f8fafc 100%);
+    }
+
+    body.v5-mode .appbar {
+      display: none !important;
+    }
+
+    body.v5-mode.v5-staff-user #v5OpsDeck,
+    body.v5-mode.v5-staff-user #v5RailPush,
+    body.v5-mode.v5-staff-user #v5TopPush,
+    body.v5-mode.v5-staff-user #btnPushTop,
+    body.v5-mode.v5-staff-user #btnPushPlanner,
+    body.v5-mode.v5-staff-user #btnPush,
+    body.v5-mode.v5-staff-user #bottomPush,
+    body.v5-mode.v5-staff-user #btnPushPlannerAndSettings {
+      display: none !important;
+    }
+
+    .v5-rail {
+      position: fixed;
+      inset: 0 auto 0 0;
+      width: var(--v5-rail-w);
+      z-index: 500;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      padding: 18px 16px;
+      background:
+        linear-gradient(180deg, rgba(15,23,42,.94), rgba(15,23,42,.82)),
+        radial-gradient(circle at 0 0, rgba(56,189,248,.20), transparent 45%);
+      border-right: 1px solid rgba(148,163,184,.22);
+      box-shadow: 28px 0 90px rgba(0,0,0,.34);
+      backdrop-filter: blur(24px);
+      color: #f8fafc;
+    }
+
+    [data-theme="light"] .v5-rail {
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.94), rgba(240,249,255,.84)),
+        radial-gradient(circle at 0 0, rgba(56,189,248,.14), transparent 45%);
+      color: #0f172a;
+      border-right-color: rgba(15,23,42,.12);
+    }
+
+    .v5-brand {
+      display: grid;
+      grid-template-columns: 46px minmax(0,1fr);
+      gap: 12px;
+      align-items: center;
+      padding: 8px 8px 14px;
+      border-bottom: 1px solid rgba(148,163,184,.18);
+    }
+
+    .v5-brand-mark {
+      width: 46px;
+      height: 46px;
+      border-radius: 17px;
+      display: grid;
+      place-items: center;
+      font-weight: 1000;
+      letter-spacing: -.08em;
+      color: #fff;
+      background:
+        linear-gradient(135deg, var(--v5-blue), var(--v5-purple) 54%, var(--v5-pink));
+      box-shadow: 0 18px 42px rgba(56,189,248,.24);
+    }
+
+    .v5-brand-title {
+      font-size: 13px;
+      line-height: 1.1;
+      font-weight: 1000;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .v5-brand-sub {
+      margin-top: 4px;
+      color: var(--v5-muted);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+
+    .v5-user-card {
+      border: 1px solid rgba(148,163,184,.20);
+      border-radius: 22px;
+      padding: 12px;
+      background: rgba(255,255,255,.06);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.05);
+    }
+
+    [data-theme="light"] .v5-user-card {
+      background: rgba(15,23,42,.035);
+    }
+
+    .v5-user-label {
+      font-size: 10px;
+      color: var(--v5-muted);
+      text-transform: uppercase;
+      letter-spacing: .12em;
+      font-weight: 900;
+    }
+
+    .v5-user-name {
+      margin-top: 4px;
+      font-weight: 950;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .v5-sync-mini {
+      margin-top: 8px;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 11px;
+      font-weight: 900;
+      color: var(--v5-muted);
+    }
+
+    .v5-sync-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 99px;
+      background: var(--v5-blue);
+      box-shadow: 0 0 0 5px rgba(56,189,248,.10);
+    }
+
+    .v5-sync-dot.synced { background: var(--v5-green); box-shadow: 0 0 0 5px rgba(34,197,94,.10); }
+    .v5-sync-dot.local { background: var(--v5-blue); box-shadow: 0 0 0 5px rgba(56,189,248,.10); }
+    .v5-sync-dot.syncing { background: var(--v5-amber); box-shadow: 0 0 0 5px rgba(245,158,11,.10); }
+    .v5-sync-dot.offline { background: var(--v5-red); box-shadow: 0 0 0 5px rgba(239,68,68,.10); }
+
+    .v5-nav {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      min-height: 0;
+      overflow-y: auto;
+      padding-right: 2px;
+    }
+
+    .v5-nav::-webkit-scrollbar { width: 4px; }
+    .v5-nav::-webkit-scrollbar-thumb { background: rgba(148,163,184,.28); border-radius: 99px; }
+
+    .v5-nav-btn {
+      width: 100%;
+      border: 1px solid transparent;
+      background: transparent;
+      color: inherit;
+      border-radius: 18px;
+      padding: 10px 11px;
+      display: grid;
+      grid-template-columns: 34px minmax(0,1fr) auto;
+      gap: 9px;
+      align-items: center;
+      text-align: left;
+      cursor: pointer;
+      transition: transform .14s ease, background .14s ease, border-color .14s ease;
+    }
+
+    .v5-nav-btn:hover {
+      transform: translateX(2px);
+      background: rgba(255,255,255,.075);
+      border-color: rgba(148,163,184,.20);
+    }
+
+    [data-theme="light"] .v5-nav-btn:hover {
+      background: rgba(15,23,42,.055);
+    }
+
+    .v5-nav-btn.active {
+      background: linear-gradient(135deg, rgba(56,189,248,.20), rgba(139,92,246,.18));
+      border-color: rgba(56,189,248,.35);
+      box-shadow: inset 4px 0 0 var(--v5-blue), 0 14px 30px rgba(15,23,42,.18);
+    }
+
+    .v5-nav-icon {
+      width: 34px;
+      height: 34px;
+      border-radius: 13px;
+      display: grid;
+      place-items: center;
+      font-size: 12px;
+      font-weight: 1000;
+      color: #fff;
+      background: linear-gradient(135deg, rgba(56,189,248,.95), rgba(139,92,246,.95));
+    }
+
+    .v5-nav-name {
+      font-weight: 950;
+      font-size: 13px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .v5-nav-sub {
+      margin-top: 2px;
+      color: var(--v5-muted);
+      font-size: 10.5px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-weight: 750;
+    }
+
+    .v5-nav-arrow {
+      color: var(--v5-muted);
+      font-weight: 1000;
+      font-size: 13px;
+    }
+
+    .v5-rail-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      padding-top: 8px;
+      border-top: 1px solid rgba(148,163,184,.18);
+    }
+
+    .v5-pill-btn,
+    .v5-icon-btn {
+      border: 1px solid rgba(148,163,184,.24);
+      border-radius: 14px;
+      background: rgba(255,255,255,.07);
+      color: inherit;
+      font-weight: 950;
+      cursor: pointer;
+      transition: transform .14s ease, background .14s ease;
+    }
+
+    .v5-pill-btn {
+      padding: 9px 10px;
+      font-size: 12px;
+    }
+
+    .v5-pill-btn:hover,
+    .v5-icon-btn:hover {
+      transform: translateY(-1px);
+      background: rgba(255,255,255,.12);
+    }
+
+    [data-theme="light"] .v5-pill-btn,
+    [data-theme="light"] .v5-icon-btn {
+      background: rgba(15,23,42,.04);
+      border-color: rgba(15,23,42,.12);
+    }
+
+    .v5-topbar {
+      position: sticky;
+      top: 0;
+      z-index: 420;
+      min-height: var(--v5-top-h);
+      margin-left: var(--v5-rail-w);
+      padding: 13px 18px;
+      display: grid;
+      grid-template-columns: minmax(0,1fr) auto;
+      align-items: center;
+      gap: 14px;
+      background: linear-gradient(180deg, rgba(2,6,23,.82), rgba(2,6,23,.54));
+      border-bottom: 1px solid rgba(148,163,184,.18);
+      backdrop-filter: blur(22px);
+      color: #f8fafc;
+    }
+
+    [data-theme="light"] .v5-topbar {
+      background: linear-gradient(180deg, rgba(248,250,252,.90), rgba(248,250,252,.62));
+      color: #0f172a;
+      border-bottom-color: rgba(15,23,42,.10);
+    }
+
+    .v5-eyebrow {
+      color: var(--v5-blue);
+      font-size: 10px;
+      line-height: 1;
+      text-transform: uppercase;
+      letter-spacing: .16em;
+      font-weight: 1000;
+    }
+
+    .v5-title-row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      min-width: 0;
+      margin-top: 5px;
+    }
+
+    .v5-page-title {
+      margin: 0;
+      font-size: clamp(20px, 2vw, 30px);
+      letter-spacing: -.04em;
+      line-height: 1.05;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-weight: 1000;
+    }
+
+    .v5-version-chip {
+      padding: 4px 9px;
+      border-radius: 999px;
+      background: rgba(56,189,248,.14);
+      border: 1px solid rgba(56,189,248,.24);
+      color: var(--v5-blue);
+      font-size: 11px;
+      font-weight: 1000;
+      white-space: nowrap;
+    }
+
+    .v5-page-sub {
+      margin-top: 4px;
+      color: var(--v5-muted);
+      font-size: 12px;
+      font-weight: 750;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .v5-top-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .v5-primary-action {
+      color: #03131f !important;
+      border-color: transparent !important;
+      background: linear-gradient(135deg, var(--v5-blue), #a7f3d0) !important;
+      box-shadow: 0 12px 30px rgba(56,189,248,.18);
+    }
+
+    .v5-danger-action {
+      color: #fff !important;
+      border-color: transparent !important;
+      background: linear-gradient(135deg, #fb7185, #ef4444) !important;
+    }
+
+    body.v5-mode .wrap {
+      margin-left: var(--v5-rail-w);
+      width: calc(100% - var(--v5-rail-w));
+      max-width: none;
+      padding: 14px 18px 42px;
+      display: block;
+    }
+
+    .v5-ops-deck {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0,1fr));
+      gap: 12px;
+      margin: 0 0 14px;
+    }
+
+    .v5-ops-card {
+      position: relative;
+      min-height: 116px;
+      border-radius: var(--v5-radius);
+      padding: 15px;
+      overflow: hidden;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,.09), rgba(255,255,255,.045)),
+        var(--v5-panel);
+      border: 1px solid var(--v5-line);
+      box-shadow: var(--v5-shadow);
+      backdrop-filter: blur(18px);
+    }
+
+    [data-theme="light"] .v5-ops-card {
+      background: linear-gradient(135deg, rgba(255,255,255,.88), rgba(255,255,255,.64));
+      box-shadow: 0 20px 55px rgba(30,64,175,.09);
+    }
+
+    .v5-ops-card:before {
+      content: '';
+      position: absolute;
+      inset: -40% -20% auto auto;
+      width: 120px;
+      height: 120px;
+      border-radius: 99px;
+      background: radial-gradient(circle, rgba(56,189,248,.22), transparent 70%);
+      pointer-events: none;
+    }
+
+    .v5-ops-label {
+      color: var(--v5-muted);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: .16em;
+      font-weight: 1000;
+    }
+
+    .v5-ops-value {
+      margin-top: 8px;
+      color: var(--v5-text);
+      font-weight: 1000;
+      font-size: 24px;
+      line-height: 1.04;
+      letter-spacing: -.04em;
+      overflow-wrap: anywhere;
+    }
+
+    .v5-ops-note {
+      margin-top: 6px;
+      color: var(--v5-muted);
+      font-size: 12px;
+      line-height: 1.35;
+      font-weight: 750;
+    }
+
+    .v5-ops-good .v5-ops-value { color: var(--v5-green); }
+    .v5-ops-warn .v5-ops-value { color: var(--v5-amber); }
+    .v5-ops-bad .v5-ops-value { color: var(--v5-red); }
+    .v5-ops-blue .v5-ops-value { color: var(--v5-blue); }
+
+    body.v5-mode .section.show,
+    body.v5-mode .login.show {
+      animation: v5FadeIn .18s ease both;
+    }
+
+    @keyframes v5FadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    body.v5-mode .card,
+    body.v5-mode .stats-card,
+    body.v5-mode .payroll-box {
+      border-radius: var(--v5-radius) !important;
+      border: 1px solid var(--v5-line) !important;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.075), rgba(255,255,255,.035)),
+        var(--v5-panel) !important;
+      box-shadow: var(--v5-shadow) !important;
+      backdrop-filter: blur(18px);
+    }
+
+    [data-theme="light"] body.v5-mode .card,
+    [data-theme="light"] body.v5-mode .stats-card,
+    [data-theme="light"] body.v5-mode .payroll-box {
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.94), rgba(255,255,255,.72)),
+        var(--v5-panel) !important;
+      box-shadow: 0 20px 55px rgba(30,64,175,.09) !important;
+    }
+
+    body.v5-mode .card h3,
+    body.v5-mode .stats-card h3,
+    body.v5-mode .payroll-box h3 {
+      font-size: 17px;
+      letter-spacing: -.02em;
+    }
+
+    body.v5-mode .toolbar,
+    body.v5-mode .biz-toolbar,
+    body.v5-mode .print-controls,
+    body.v5-mode .stats-toolbar,
+    body.v5-mode .settings-nav,
+    body.v5-mode .requests-strip {
+      border-radius: 20px !important;
+      border: 1px solid var(--v5-line-soft) !important;
+      background: rgba(255,255,255,.045) !important;
+      padding: 8px !important;
+    }
+
+    [data-theme="light"] body.v5-mode .toolbar,
+    [data-theme="light"] body.v5-mode .biz-toolbar,
+    [data-theme="light"] body.v5-mode .print-controls,
+    [data-theme="light"] body.v5-mode .stats-toolbar,
+    [data-theme="light"] body.v5-mode .settings-nav,
+    [data-theme="light"] body.v5-mode .requests-strip {
+      background: rgba(15,23,42,.035) !important;
+    }
+
+    body.v5-mode .btn-primary,
+    body.v5-mode .btn-good,
+    body.v5-mode .btn-outline,
+    body.v5-mode .btn-requests {
+      min-height: 33px;
+      border-radius: 13px !important;
+      font-weight: 950 !important;
+      letter-spacing: -.01em;
+    }
+
+    body.v5-mode .btn-outline {
+      border-color: var(--v5-line) !important;
+      background: rgba(255,255,255,.045) !important;
+    }
+
+    [data-theme="light"] body.v5-mode .btn-outline {
+      background: rgba(15,23,42,.035) !important;
+    }
+
+    body.v5-mode .pill,
+    body.v5-mode .biz-summary-chip,
+    body.v5-mode .biz-tag,
+    body.v5-mode .payrun-status-pill {
+      border-radius: 999px !important;
+      border: 1px solid var(--v5-line) !important;
+      background: rgba(255,255,255,.065) !important;
+      color: var(--fg) !important;
+      font-weight: 950 !important;
+    }
+
+    [data-theme="light"] body.v5-mode .pill,
+    [data-theme="light"] body.v5-mode .biz-summary-chip,
+    [data-theme="light"] body.v5-mode .biz-tag,
+    [data-theme="light"] body.v5-mode .payrun-status-pill {
+      background: rgba(15,23,42,.04) !important;
+      color: #0f172a !important;
+    }
+
+    body.v5-mode input,
+    body.v5-mode select,
+    body.v5-mode textarea {
+      border-radius: 14px !important;
+      min-height: 36px;
+    }
+
+    body.v5-mode .table-wrapper,
+    body.v5-mode .planner,
+    body.v5-mode .audit-card .audit-table-wrap {
+      border-radius: 22px !important;
+      border: 1px solid var(--v5-line) !important;
+      overflow: auto;
+    }
+
+    body.v5-mode .table th,
+    body.v5-mode .stats-table th {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      background: rgba(15,23,42,.92) !important;
+      color: #c7d2fe !important;
+    }
+
+    [data-theme="light"] body.v5-mode .table th,
+    [data-theme="light"] body.v5-mode .stats-table th {
+      background: rgba(241,245,249,.96) !important;
+      color: #334155 !important;
+    }
+
+    body.v5-mode #plannerSection .card {
+      padding: 12px !important;
+    }
+
+    body.v5-mode .planner {
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.05), 0 18px 60px rgba(0,0,0,.25);
+    }
+
+    body.v5-mode .grid .header {
+      background: rgba(15,23,42,.95) !important;
+      backdrop-filter: blur(14px);
+    }
+
+    [data-theme="light"] body.v5-mode .grid .header {
+      background: rgba(248,250,252,.96) !important;
+    }
+
+    body.v5-mode .grid .row .staffcell,
+    body.v5-mode .wo-name,
+    body.v5-mode .print-name {
+      border-radius: 16px !important;
+      background: rgba(15,23,42,.82) !important;
+      backdrop-filter: blur(12px);
+    }
+
+    [data-theme="light"] body.v5-mode .grid .row .staffcell,
+    [data-theme="light"] body.v5-mode .wo-name,
+    [data-theme="light"] body.v5-mode .print-name {
+      background: rgba(248,250,252,.96) !important;
+    }
+
+    body.v5-mode .shift {
+      border-radius: 999px !important;
+      box-shadow: 0 14px 34px rgba(15,23,42,.42) !important;
+    }
+
+    body.v5-mode .payroll-paid-label {
+      min-width: 92px;
+      justify-content: center;
+      background: rgba(255,255,255,.07) !important;
+    }
+
+    body.v5-mode .payroll-paid-label.is-paid {
+      background: rgba(34,197,94,.17) !important;
+      box-shadow: 0 0 0 4px rgba(34,197,94,.08);
+    }
+
+    .v5-command-fab {
+      position: fixed;
+      right: 22px;
+      bottom: 24px;
+      z-index: 620;
+      border: 1px solid rgba(255,255,255,.26);
+      border-radius: 999px;
+      padding: 12px 16px;
+      background: linear-gradient(135deg, var(--v5-blue), var(--v5-purple));
+      color: #fff;
+      font-weight: 1000;
+      cursor: pointer;
+      box-shadow: 0 20px 52px rgba(56,189,248,.26);
+      display: flex;
+      gap: 9px;
+      align-items: center;
+    }
+
+    .v5-command-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 5000;
+      background: rgba(2,6,23,.66);
+      backdrop-filter: blur(8px);
+      align-items: flex-start;
+      justify-content: center;
+      padding: 9vh 16px 16px;
+    }
+
+    .v5-command-modal.open { display: flex; }
+
+    .v5-command-panel {
+      width: min(760px, 100%);
+      max-height: 78vh;
+      display: flex;
+      flex-direction: column;
+      border-radius: 28px;
+      border: 1px solid var(--v5-line);
+      background: var(--v5-panel-strong);
+      box-shadow: 0 40px 90px rgba(0,0,0,.50);
+      overflow: hidden;
+      color: var(--v5-text);
+    }
+
+    [data-theme="light"] .v5-command-panel {
+      background: rgba(255,255,255,.98);
+      color: #0f172a;
+    }
+
+    .v5-command-head {
+      padding: 15px;
+      border-bottom: 1px solid var(--v5-line-soft);
+      display: grid;
+      gap: 10px;
+    }
+
+    .v5-command-head input {
+      width: 100%;
+      border-radius: 18px !important;
+      border: 1px solid var(--v5-line) !important;
+      background: rgba(255,255,255,.06) !important;
+      color: inherit !important;
+      padding: 13px 14px !important;
+      font-weight: 850;
+      font-size: 14px;
+      outline: none;
+    }
+
+    [data-theme="light"] .v5-command-head input {
+      background: rgba(15,23,42,.04) !important;
+    }
+
+    .v5-command-list {
+      overflow: auto;
+      padding: 8px;
+      display: grid;
+      gap: 6px;
+    }
+
+    .v5-command-item {
+      border: 1px solid transparent;
+      background: transparent;
+      color: inherit;
+      text-align: left;
+      border-radius: 18px;
+      padding: 12px;
+      display: grid;
+      grid-template-columns: minmax(0,1fr) auto;
+      gap: 12px;
+      cursor: pointer;
+    }
+
+    .v5-command-item:hover {
+      background: rgba(56,189,248,.12);
+      border-color: rgba(56,189,248,.22);
+    }
+
+    .v5-command-item strong {
+      display: block;
+      font-size: 13px;
+      font-weight: 1000;
+    }
+
+    .v5-command-item span {
+      display: block;
+      margin-top: 3px;
+      color: var(--v5-muted);
+      font-size: 12px;
+      font-weight: 750;
+    }
+
+    .v5-command-key {
+      align-self: center;
+      border: 1px solid var(--v5-line);
+      border-radius: 999px;
+      padding: 4px 8px;
+      font-size: 10px;
+      color: var(--v5-muted);
+      font-weight: 1000;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+
+    body.v5-logged-out .v5-rail,
+    body.v5-logged-out .v5-topbar,
+    body.v5-logged-out .v5-ops-deck,
+    body.v5-logged-out .v5-command-fab {
+      display: none !important;
+    }
+
+    body.v5-mode.v5-logged-out .wrap {
+      width: 100%;
+      margin-left: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
+
+    body.v5-mode.v5-logged-out #loginSection {
+      width: min(760px, 100%);
+    }
+
+    body.v5-mode.v5-logged-out #loginSection .card {
+      position: relative;
+      overflow: hidden;
+      padding: 26px !important;
+    }
+
+    body.v5-mode.v5-logged-out #loginSection .card:before {
+      content: 'Aspire Workforce Command';
+      display: block;
+      margin-bottom: 16px;
+      color: var(--v5-blue);
+      font-size: 24px;
+      font-weight: 1000;
+      letter-spacing: -.04em;
+    }
+
+    body.v5-mode.v5-logged-out #loginSection h3 {
+      margin-bottom: 14px;
+      font-size: 14px;
+      color: var(--v5-muted);
+      text-transform: uppercase;
+      letter-spacing: .12em;
+    }
+
+    @media (max-width: 1200px) {
+      .v5-ops-deck { grid-template-columns: repeat(2, minmax(0,1fr)); }
+    }
+
+    @media (max-width: 980px) {
+      body.v5-mode .v5-rail { display: none !important; }
+      body.v5-mode .v5-topbar {
+        margin-left: 0;
+        grid-template-columns: 1fr;
+        gap: 10px;
+        padding: 10px 12px;
+      }
+      body.v5-mode .v5-top-actions {
+        justify-content: flex-start;
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        padding-bottom: 2px;
+      }
+      body.v5-mode .wrap {
+        margin-left: 0;
+        width: 100%;
+        padding: 12px 10px 98px;
+      }
+      .v5-ops-deck { grid-template-columns: 1fr; }
+      .v5-page-sub { white-space: normal; }
+      .v5-command-fab { right: 14px; bottom: 88px; padding: 10px 13px; }
+      body.v5-mode .bottom-nav {
+        display: flex !important;
+        background: rgba(15,23,42,.92) !important;
+        backdrop-filter: blur(20px);
+        border-top: 1px solid rgba(148,163,184,.22);
+      }
+      [data-theme="light"] body.v5-mode .bottom-nav {
+        background: rgba(255,255,255,.94) !important;
+      }
+      body.v5-mode .bottom-nav button {
+        background: transparent !important;
+        color: #e5eefc !important;
+      }
+      [data-theme="light"] body.v5-mode .bottom-nav button {
+        color: #0f172a !important;
+      }
+      body.v5-mode .bottom-nav button.active {
+        background: linear-gradient(135deg, rgba(56,189,248,.92), rgba(139,92,246,.90)) !important;
+        color: #fff !important;
+      }
+    }
+
+    @media (max-width: 620px) {
+      .v5-top-actions .v5-hide-small { display: none !important; }
+      .v5-page-title { font-size: 20px; }
+      .v5-ops-card { min-height: 98px; }
+      .v5-ops-value { font-size: 22px; }
+    }
+
+    @media print {
+      .v5-rail,
+      .v5-topbar,
+      .v5-ops-deck,
+      .v5-command-fab,
+      .v5-command-modal { display: none !important; }
+      body.v5-mode .wrap { margin-left: 0 !important; width: 100% !important; padding: 0 !important; }
+    }
+  </style>
 </head>
 <body>
 
@@ -2432,8 +3304,8 @@
     <div class="appbar-brand">
       <div id="appLogoBox"></div>
       <div class="titlewrap">
-        <div class="title" id="appTitle">M&C-ATRD-scheduler --=Aspire Group=--</div>
-        <div class="version-pill" id="appVersion">V4.1.15</div>
+        <div class="title" id="appTitle">Aspire Workforce Command</div>
+        <div class="version-pill" id="appVersion">V5.0.4</div>
         <div class="sync-pill syncing" id="syncStatusChip" title="Sync status">Starting…</div>
       </div>
     </div>
@@ -3396,7 +4268,7 @@
         <div class="card">
           <h3>Sync &amp; Connection</h3>
           <label>App Title</label>
-          <input id="appTitleInput" type="text" value="M&C-ATRD-scheduler --=Aspire Group=--">
+          <input id="appTitleInput" type="text" value="Aspire Workforce Command">
           <label>Logo URL (optional)</label>
           <input id="logoUrlInput" type="text" placeholder="Image URL or Google Drive share link">
           <label>Firebase Realtime Database URL</label>
@@ -4207,11 +5079,11 @@ var DAY = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 var App = {
   // IMPORTANT: Increment App.version *and* App.buildId whenever making functional changes to this file.
   // SAFETY NET: This build performs an automatic runtime check against the file name; if mismatched, it shows a blocking warning so it can't be overlooked.
-  version: 'V4.1.15',
-    buildId: '2026-04-29.3',
+  version: 'V5.0.4',
+    buildId: '2026-04-30.4',
 settings: {
     dbUrl:'https://mnc-atrd-default-rtdb.asia-southeast1.firebasedatabase.app/', workspace:'mnc-atrd', authToken:'',
-    theme:'light', themeName:'light-pastel-sky', recentColors:[], appTitle:'M&C-ATRD-scheduler --=Aspire Group=--', logoUrl:'',
+    theme:'light', themeName:'light-pastel-sky', recentColors:[], appTitle:'Aspire Workforce Command', logoUrl:'',
     autoPullMins: 0, autoPushMins: 0,
     // planner
     gridStartHour: 8, gridHours: 16, slotMins: 30, targetHeadcount: 0,
@@ -4341,7 +5213,7 @@ function normalizeCoreState(){
     ensureSettingsDefaults();
     App.settings.dbUrl = String(App.settings.dbUrl || 'https://mnc-atrd-default-rtdb.asia-southeast1.firebasedatabase.app/').trim() || 'https://mnc-atrd-default-rtdb.asia-southeast1.firebasedatabase.app/';
     App.settings.workspace = String(App.settings.workspace || 'mnc-atrd').trim() || 'mnc-atrd';
-    App.settings.appTitle = String(App.settings.appTitle || 'M&C-ATRD-scheduler --=Aspire Group=--');
+    App.settings.appTitle = String(App.settings.appTitle || 'Aspire Workforce Command');
     App.settings.gridStartHour = clampInt(App.settings.gridStartHour, 0, 23, 8);
     App.settings.gridHours = clampInt(App.settings.gridHours, 1, 24, 16);
     var slot = clampInt(App.settings.slotMins, 5, 60, 30);
@@ -5873,7 +6745,7 @@ function historyCapture(label){
 function syncSettingsUIFromApp(){
   try{
     var __title=document.getElementById('appTitle');
-    if(__title) __title.textContent = App.settings.appTitle || 'M&C-ATRD-scheduler --=Aspire Group=--';
+    if(__title) __title.textContent = App.settings.appTitle || 'Aspire Workforce Command';
     var __verEl = byId('appVersion'); if(__verEl) __verEl.textContent = App.version || '';
     try{ document.title = (App.settings.appTitle||'App')+' ('+App.version+')'; }catch(e){}
 
@@ -5898,7 +6770,7 @@ function syncSettingsUIFromApp(){
     var __wsLogin=document.getElementById('wsIdInput');
     if(__wsLogin) __wsLogin.value = App.settings.workspace || '';
     var __titleInput=document.getElementById('appTitleInput');
-    if(__titleInput) __titleInput.value = App.settings.appTitle || 'M&C-ATRD-scheduler --=Aspire Group=--';
+    if(__titleInput) __titleInput.value = App.settings.appTitle || 'Aspire Workforce Command';
     var __logoInput=document.getElementById('logoUrlInput');
     if(__logoInput) __logoInput.value = App.settings.logoUrl || '';
     var __ap=document.getElementById('autoPullMinsInput');
@@ -6346,7 +7218,7 @@ function init(){
     // Safety: ensure only login is shown until user enters app
     document.querySelectorAll('.section').forEach(s=>s.classList.remove('show'));
   var __nav = byId('bottomNav'); if(__nav) __nav.style.display='none';
-  var __appTitleEl = byId('appTitle'); if(__appTitleEl) __appTitleEl.textContent = App.settings.appTitle || 'M&C-ATRD-scheduler --=Aspire Group=--';
+  var __appTitleEl = byId('appTitle'); if(__appTitleEl) __appTitleEl.textContent = App.settings.appTitle || 'Aspire Workforce Command';
   var __verEl = byId('appVersion'); if(__verEl) __verEl.textContent = App.version || 'V3.7.8';
   try{ document.title = (App.settings.appTitle||'App')+' ('+App.version+')'; }catch(e){}
   var __logoBoxInit = byId('appLogoBox'); if(__logoBoxInit){ var __lu=App.settings.logoUrl||''; if(__lu){ __logoBoxInit.style.display='inline-block'; __logoBoxInit.style.backgroundImage='url("'+resolveLogoUrl(__lu)+'")'; } else { __logoBoxInit.style.display='none'; __logoBoxInit.style.backgroundImage='none'; } }
@@ -6388,7 +7260,7 @@ function init(){
   byId('dbUrlInput').value=App.settings.dbUrl;
   byId('workspaceInput').value=App.settings.workspace;
   byId('authTokenInput').value=App.settings.authToken||'';
-  byId('appTitleInput').value=App.settings.appTitle || 'M&C-ATRD-scheduler --=Aspire Group=--';
+  byId('appTitleInput').value=App.settings.appTitle || 'Aspire Workforce Command';
   if(byId('logoUrlInput')) byId('logoUrlInput').value = App.settings.logoUrl || '';
   byId('autoPullMinsInput').value=App.settings.autoPullMins||0;
   byId('autoPushMinsInput').value=App.settings.autoPushMins||0;
@@ -6431,7 +7303,7 @@ function init(){
     App.settings.dbUrl=byId('dbUrlInput').value.trim();
     App.settings.workspace=byId('workspaceInput').value.trim();
     App.settings.authToken=(byId('authTokenInput').value||'').trim();
-    App.settings.appTitle=(byId('appTitleInput').value||'M&C-ATRD-scheduler --=Aspire Group=--');
+    App.settings.appTitle=(byId('appTitleInput').value||'Aspire Workforce Command');
     App.settings.logoUrl=(byId('logoUrlInput') && byId('logoUrlInput').value||'').trim();
     App.settings.autoPullMins=parseInt(byId('autoPullMinsInput').value||'0',10)||0;
     App.settings.autoPushMins=parseInt(byId('autoPushMinsInput').value||'0',10)||0;
@@ -7221,7 +8093,11 @@ function v413SetupSettingsTabs(){
 }
 function v413ApplySettingsTab(){
   var sec=byId('settingsSection'); if(!sec) return;
+  var role = (App.currentUser && App.currentUser.role) ? App.currentUser.role : 'staff';
   var active = V413.settingsPanel || 'all';
+  if(role !== 'admin') active = 'themes';
+  var nav = byId('settingsNav');
+  if(nav) nav.style.display = (role === 'admin') ? '' : 'none';
   Array.prototype.slice.call(sec.querySelectorAll('[data-settings-tab]')).forEach(function(b){ b.classList.toggle('active', b.getAttribute('data-settings-tab')===active); });
   Array.prototype.slice.call(sec.querySelectorAll('.card[data-settings-panel]')).forEach(function(card){ var cat=card.getAttribute('data-settings-panel'); card.style.display = (active==='all' || cat===active) ? '' : 'none'; });
 }
@@ -8156,7 +9032,7 @@ function initTabs(){
 function showTab(name){
   try{ App.ui = App.ui || {}; App.ui.activeTab = name; }catch(e){}
   var role = App.currentUser ? App.currentUser.role : 'staff';
-  if(name==='Settings' && !(role==='admin' || role==='staff')) return;
+  if(name==='Settings' && role!=='admin') return;
   if(name==='Payroll' && role!=='admin') return;
   if(name==='Stats' && role!=='admin') return;
 
@@ -8222,14 +9098,16 @@ function applySettingsRoleVisibility(){
     var role = App.currentUser ? App.currentUser.role : 'staff';
     var sec = byId('settingsSection');
     if(!sec) return;
+    var nav = byId('settingsNav');
+    if(nav) nav.style.display = (role === 'admin') ? '' : 'none';
     var cards = sec.querySelectorAll('.card');
     for(var i=0;i<cards.length;i++){
       var c = cards[i];
-      if(role==='staff'){
+      if(role==='admin'){
+        if(c) c.style.display='';
+      } else {
         if(c && c.id==='themesCard'){ c.style.display=''; }
         else if(c) { c.style.display='none'; }
-      } else {
-        if(c) c.style.display='';
       }
     }
   }catch(e){}
@@ -8262,8 +9140,14 @@ function renderAfterLogin(){
   var __tStats=byId('tabStats'); if(__tStats) __tStats.style.display='none';
 
   var pullTop=byId('btnPullTop'), pushTop=byId('btnPushTop');
+  var pullPlannerLogin=byId('btnPullPlanner'), pushPlannerLogin=byId('btnPushPlanner');
+  var bottomPullLogin=byId('bottomPull'), bottomPushLogin=byId('bottomPush');
   if(pullTop) pullTop.style.display='none';
   if(pushTop) pushTop.style.display='none';
+  if(pullPlannerLogin) pullPlannerLogin.style.display='none';
+  if(pushPlannerLogin) pushPlannerLogin.style.display='none';
+  if(bottomPullLogin) bottomPullLogin.style.display='none';
+  if(bottomPushLogin) bottomPushLogin.style.display='none';
 
   var lb=byId('btnLogout');
   if(lb) lb.style.display='inline-block';
@@ -8294,16 +9178,23 @@ function renderAfterLogin(){
   if(role==='staff'){
     byId('tabPlanner').style.display='inline-block';
     byId('tabPrint').style.display='inline-block';
-    byId('tabSettings').style.display='inline-block';
     if(pullTop) pullTop.style.display='inline-block';
+    if(pullPlannerLogin) pullPlannerLogin.style.display='inline-block';
+    if(bottomPullLogin) bottomPullLogin.style.display='';
+    if(bottomPushLogin) bottomPushLogin.style.display='none';
+    if(pushPlannerLogin) pushPlannerLogin.style.display='none';
+    if(pushTop) pushTop.style.display='none';
     if(bPlanner) bPlanner.style.display='';
-    if(bSettings) bSettings.style.display='';
   }
   if(role==='manager'){
     byId('tabPlanner').style.display='inline-block';
     byId('tabPrint').style.display='inline-block';
     if(pullTop) pullTop.style.display='inline-block';
     if(pushTop) pushTop.style.display='inline-block';
+    if(pullPlannerLogin) pullPlannerLogin.style.display='inline-block';
+    if(pushPlannerLogin) pushPlannerLogin.style.display='inline-block';
+    if(bottomPullLogin) bottomPullLogin.style.display='';
+    if(bottomPushLogin) bottomPushLogin.style.display='';
     if(bPlanner) bPlanner.style.display='';
   }
   if(role==='admin'){
@@ -8314,6 +9205,10 @@ function renderAfterLogin(){
     byId('tabPrint').style.display='inline-block';
     if(pullTop) pullTop.style.display='inline-block';
     if(pushTop) pushTop.style.display='inline-block';
+    if(pullPlannerLogin) pullPlannerLogin.style.display='inline-block';
+    if(pushPlannerLogin) pushPlannerLogin.style.display='inline-block';
+    if(bottomPullLogin) bottomPullLogin.style.display='';
+    if(bottomPushLogin) bottomPushLogin.style.display='';
     if(bPlanner) bPlanner.style.display='';
     if(bPayroll) bPayroll.style.display='';
     if(bStats) bStats.style.display='';
@@ -17216,7 +18111,7 @@ try{
   if(!silent || !App.currentUser){ try{ populateLoginSelects(); populateExistingStaff(); }catch(e){} }
 
   var __title=document.getElementById('appTitle');
-  if(__title) __title.textContent = App.settings.appTitle || 'M&C-ATRD-scheduler --=Aspire Group=--';
+  if(__title) __title.textContent = App.settings.appTitle || 'Aspire Workforce Command';
   var __logo=document.getElementById('appLogoBox');
   if(__logo){
     var __lu2=App.settings.logoUrl||'';
@@ -17237,7 +18132,7 @@ try{
   var __wsLogin=document.getElementById('wsIdInput');
   if(__wsLogin) __wsLogin.value = App.settings.workspace || '';
   var __titleInput=document.getElementById('appTitleInput');
-  if(__titleInput) __titleInput.value = App.settings.appTitle || 'M&C-ATRD-scheduler --=Aspire Group=--';
+  if(__titleInput) __titleInput.value = App.settings.appTitle || 'Aspire Workforce Command';
   var __logoInput=document.getElementById('logoUrlInput');
   if(__logoInput) __logoInput.value = App.settings.logoUrl || '';
   var __ap=document.getElementById('autoPullMinsInput');
@@ -18204,5 +19099,877 @@ try{
 </script>
 
 
+
+
+<script id="v500Script">
+(function(){
+  'use strict';
+  var APP_NAME = 'Aspire Workforce Command';
+  var APP_VERSION = 'V5.0.4';
+  var OLD_TITLE = 'M&C-ATRD-scheduler --=Aspire Group=--';
+
+  var NAVS = [
+    {key:'My', tab:'tabMy', section:'mySection', label:'My Shifts', adminLabel:'My Shifts', sub:'Personal roster and wage view', code:'MY'},
+    {key:'MyRequests', tab:'tabMyRequests', section:'myRequestsSection', altSection:'staffRequestsSection', label:'My Requests', adminLabel:'Staff Requests', sub:'Leave, edits and approvals', code:'RQ'},
+    {key:'Planner', tab:'tabPlanner', section:'plannerSection', label:'Planner', adminLabel:'Planner', sub:'Roster board and coverage', code:'PL'},
+    {key:'Payroll', tab:'tabPayroll', section:'payrollSection', label:'Payroll', adminLabel:'Payroll', sub:'Pay runs, payslips and paid status', code:'PY'},
+    {key:'Stats', tab:'tabStats', section:'statsSection', label:'Business Analytics', adminLabel:'Business Analytics', sub:'Revenue, cost and staff insight', code:'BI'},
+    {key:'Print', tab:'tabPrint', section:'printSection', label:'Print View', adminLabel:'Print View', sub:'Multi-week printable roster', code:'PR'},
+    {key:'Absences', tab:'tabAbsences', section:'absencesSection', label:'Absences', adminLabel:'Absences', sub:'Away calendar and unavailability', code:'AW'},
+    {key:'Settings', tab:'tabSettings', section:'settingsSection', label:'Settings', adminLabel:'Settings', sub:'Staff, sync, security and themes', code:'ST'}
+  ];
+
+  function byId(id){ return document.getElementById(id); }
+  function text(id){ var el=byId(id); return el ? String(el.textContent||'').trim() : ''; }
+  function esc(s){
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+    });
+  }
+  function role(){ try{ return (window.App && App.currentUser && App.currentUser.role) ? String(App.currentUser.role) : ''; }catch(e){ return ''; } }
+  function loggedIn(){ try{ return !!(window.App && App.currentUser); }catch(e){ return false; } }
+  function trigger(id){ var el=byId(id); if(el){ try{ el.click(); }catch(e){} } }
+  function isNavAllowed(item){
+    var r = role();
+    if(!loggedIn()) return false;
+    if(item.key === 'Payroll' || item.key === 'Stats') return r === 'admin';
+    if(item.key === 'Settings') return r === 'admin';
+    if(item.key === 'Planner') return r === 'admin' || r === 'manager' || r === 'staff';
+    if(item.key === 'Print') return r === 'admin' || r === 'manager' || r === 'staff';
+    return true;
+  }
+  function activeNavKey(){
+    for(var i=0;i<NAVS.length;i++){
+      var item = NAVS[i];
+      var sec = byId(item.section);
+      var alt = item.altSection ? byId(item.altSection) : null;
+      if((sec && sec.classList.contains('show')) || (alt && alt.classList.contains('show'))) return item.key;
+    }
+    return 'My';
+  }
+  function itemLabel(item){ return role() === 'admin' ? (item.adminLabel || item.label) : item.label; }
+
+  function ensureShell(){
+    if(document.body.classList.contains('v5-mode')) return;
+    document.body.classList.add('v5-mode');
+    document.documentElement.setAttribute('data-v5','1');
+    try{ document.title = APP_NAME + ' (' + APP_VERSION + ')'; }catch(e){}
+
+    var rail = document.createElement('aside');
+    rail.id = 'v5Rail';
+    rail.className = 'v5-rail';
+    rail.innerHTML =
+      '<div class="v5-brand">' +
+        '<div class="v5-brand-mark">AW</div>' +
+        '<div><div class="v5-brand-title">Aspire Workforce</div><div class="v5-brand-sub">Command ' + esc(APP_VERSION) + '</div></div>' +
+      '</div>' +
+      '<div class="v5-user-card">' +
+        '<div class="v5-user-label">Signed in</div>' +
+        '<div class="v5-user-name" id="v5UserName">Not logged in</div>' +
+        '<div class="v5-sync-mini"><span class="v5-sync-dot" id="v5SyncDot"></span><span id="v5SyncText">Ready</span></div>' +
+      '</div>' +
+      '<nav class="v5-nav" id="v5Nav" aria-label="Command navigation"></nav>' +
+      '<div class="v5-rail-actions">' +
+        '<button type="button" class="v5-pill-btn" id="v5RailPull">Pull</button>' +
+        '<button type="button" class="v5-pill-btn" id="v5RailPush">Push</button>' +
+        '<button type="button" class="v5-pill-btn" id="v5RailTheme">Theme</button>' +
+        '<button type="button" class="v5-pill-btn" id="v5RailLogout">Logout</button>' +
+      '</div>';
+    document.body.insertBefore(rail, document.body.firstChild);
+
+    var navHost = byId('v5Nav');
+    if(navHost){
+      for(var i=0;i<NAVS.length;i++){
+        var item = NAVS[i];
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'v5-nav-btn';
+        b.id = 'v5Nav' + item.key;
+        b.setAttribute('data-v5-nav', item.key);
+        b.setAttribute('data-tab-target', item.tab);
+        b.innerHTML = '<span class="v5-nav-icon">' + esc(item.code) + '</span><span><span class="v5-nav-name">' + esc(item.label) + '</span><span class="v5-nav-sub">' + esc(item.sub) + '</span></span><span class="v5-nav-arrow">&gt;</span>';
+        b.onclick = (function(tabId){ return function(){ trigger(tabId); setTimeout(syncShell, 40); }; })(item.tab);
+        navHost.appendChild(b);
+      }
+    }
+
+    var top = document.createElement('header');
+    top.id = 'v5Topbar';
+    top.className = 'v5-topbar';
+    top.innerHTML =
+      '<div class="v5-top-left">' +
+        '<div class="v5-eyebrow" id="v5Eyebrow">Workforce OS</div>' +
+        '<div class="v5-title-row"><h1 class="v5-page-title" id="v5PageTitle">My Shifts</h1><span class="v5-version-chip">' + esc(APP_VERSION) + '</span></div>' +
+        '<div class="v5-page-sub" id="v5PageSub">Personal roster and wage view</div>' +
+      '</div>' +
+      '<div class="v5-top-actions">' +
+        '<button type="button" class="v5-pill-btn v5-primary-action" id="v5CommandOpenTop">Command</button>' +
+        '<button type="button" class="v5-pill-btn v5-hide-small" id="v5TopPull">Pull</button>' +
+        '<button type="button" class="v5-pill-btn v5-hide-small" id="v5TopPush">Push</button>' +
+        '<button type="button" class="v5-pill-btn v5-hide-small" id="v5TopUndo">Undo</button>' +
+        '<button type="button" class="v5-pill-btn v5-hide-small" id="v5TopRedo">Redo</button>' +
+        '<button type="button" class="v5-pill-btn v5-hide-small" id="v5TopTheme">Theme</button>' +
+      '</div>';
+    var appbar = document.querySelector('.appbar');
+    if(appbar && appbar.parentNode) appbar.parentNode.insertBefore(top, appbar.nextSibling);
+    else document.body.insertBefore(top, document.body.firstChild);
+
+    var wrap = document.querySelector('.wrap');
+    if(wrap && !byId('v5OpsDeck')){
+      var deck = document.createElement('div');
+      deck.id = 'v5OpsDeck';
+      deck.className = 'v5-ops-deck';
+      wrap.insertBefore(deck, wrap.firstChild);
+    }
+
+    var fab = document.createElement('button');
+    fab.type = 'button';
+    fab.id = 'v5CommandFab';
+    fab.className = 'v5-command-fab';
+    fab.innerHTML = '<span>Command</span><span>Ctrl+K</span>';
+    document.body.appendChild(fab);
+
+    var modal = document.createElement('div');
+    modal.id = 'v5CommandModal';
+    modal.className = 'v5-command-modal';
+    modal.innerHTML = '<div class="v5-command-panel" role="dialog" aria-modal="true" aria-label="Command palette"><div class="v5-command-head"><div><strong>Command centre</strong><div style="color:var(--v5-muted);font-size:12px;margin-top:3px;font-weight:750;">Jump anywhere or run common actions without hunting through menus.</div></div><input id="v5CommandSearch" type="text" autocomplete="off" placeholder="Search pages and actions..."></div><div class="v5-command-list" id="v5CommandList"></div></div>';
+    document.body.appendChild(modal);
+
+    bindShellButtons();
+    setupObservers();
+  }
+
+  function bindShellButtons(){
+    var map = {
+      v5RailPull:'btnPullTop', v5TopPull:'btnPullTop',
+      v5RailPush:'btnPushTop', v5TopPush:'btnPushTop',
+      v5RailTheme:'btnTheme', v5TopTheme:'btnTheme',
+      v5RailLogout:'btnLogout',
+      v5TopUndo:'btnUndoTop', v5TopRedo:'btnRedoTop'
+    };
+    Object.keys(map).forEach(function(src){ var el=byId(src); if(el) el.onclick=function(){ trigger(map[src]); setTimeout(syncShell, 80); }; });
+    var openTop = byId('v5CommandOpenTop');
+    var fab = byId('v5CommandFab');
+    if(openTop) openTop.onclick = openCommand;
+    if(fab) fab.onclick = openCommand;
+    var modal = byId('v5CommandModal');
+    if(modal){ modal.addEventListener('click', function(ev){ if(ev.target === modal) closeCommand(); }); }
+    var search = byId('v5CommandSearch');
+    if(search) search.addEventListener('input', renderCommandList);
+    document.addEventListener('keydown', function(ev){
+      var k = String(ev.key||'').toLowerCase();
+      if((ev.ctrlKey || ev.metaKey) && k === 'k'){
+        ev.preventDefault(); openCommand();
+      }else if(k === 'escape'){
+        closeCommand();
+      }
+    });
+  }
+
+  var syncTimer = 0;
+  function requestSyncShell(){
+    clearTimeout(syncTimer);
+    syncTimer = setTimeout(syncShell, 60);
+  }
+
+  function setupObservers(){
+    try{
+      var mo = new MutationObserver(requestSyncShell);
+      mo.observe(document.body, {subtree:true, attributes:true, attributeFilter:['class','style']});
+    }catch(e){}
+    window.addEventListener('resize', requestSyncShell);
+    document.addEventListener('click', function(){ setTimeout(syncShell, 120); }, true);
+    setInterval(syncShell, 1200);
+  }
+
+  function syncShell(){
+    ensureShell();
+    var isIn = loggedIn();
+    var currentRole = role();
+    document.body.classList.toggle('v5-logged-out', !isIn);
+    document.body.classList.toggle('v5-staff-user', !!(isIn && currentRole === 'staff'));
+    var app = window.App || {};
+
+    try{
+      if(app.settings && app.settings.appTitle === OLD_TITLE){ app.settings.appTitle = APP_NAME; }
+      var t = byId('appTitle'); if(t && (!t.textContent || t.textContent === OLD_TITLE)) t.textContent = APP_NAME;
+      var v = byId('appVersion'); if(v) v.textContent = APP_VERSION;
+      document.title = APP_NAME + ' (' + APP_VERSION + ')';
+    }catch(e){}
+
+    var userText = text('userChip') || (isIn ? 'Signed in' : 'Not logged in');
+    var u = byId('v5UserName'); if(u) u.textContent = userText || 'Not logged in';
+
+    var syncEl = byId('syncStatusChip');
+    var sText = syncEl ? String(syncEl.textContent||'Ready').trim() : 'Ready';
+    var sClass = syncEl ? String(syncEl.className||'') : '';
+    var dot = byId('v5SyncDot');
+    if(dot){ dot.className = 'v5-sync-dot'; if(sClass.indexOf('offline')>=0) dot.classList.add('offline'); else if(sClass.indexOf('local')>=0) dot.classList.add('local'); else if(sClass.indexOf('syncing')>=0) dot.classList.add('syncing'); else dot.classList.add('synced'); }
+    var st = byId('v5SyncText'); if(st) st.textContent = sText || 'Ready';
+
+    var active = activeNavKey();
+    for(var i=0;i<NAVS.length;i++){
+      var item = NAVS[i];
+      var btn = byId('v5Nav' + item.key);
+      if(!btn) continue;
+      var allowed = isNavAllowed(item);
+      btn.style.display = allowed ? '' : 'none';
+      btn.classList.toggle('active', active === item.key);
+      var name = btn.querySelector('.v5-nav-name');
+      if(name) name.textContent = itemLabel(item);
+      var sub = btn.querySelector('.v5-nav-sub');
+      if(sub) sub.textContent = item.sub;
+    }
+
+    var meta = NAVS.filter(function(n){ return n.key === active; })[0] || NAVS[0];
+    var title = byId('v5PageTitle'); if(title) title.textContent = itemLabel(meta);
+    var subEl = byId('v5PageSub'); if(subEl) subEl.textContent = meta.sub;
+    var eye = byId('v5Eyebrow'); if(eye) eye.textContent = isIn ? ((currentRole || 'staff') + ' workspace') : 'Workforce OS';
+
+    var pullVis = currentRole === 'admin' || currentRole === 'manager' || currentRole === 'staff';
+    var pushVis = currentRole === 'admin' || currentRole === 'manager';
+    ['v5RailPull','v5TopPull','btnPullTop','btnPullPlanner','bottomPull'].forEach(function(id){ var el=byId(id); if(el) el.style.display = (isIn && pullVis) ? '' : 'none'; });
+    ['v5RailPush','v5TopPush','btnPushTop','btnPushPlanner','btnPush','bottomPush','btnPushPlannerAndSettings'].forEach(function(id){
+      var el=byId(id);
+      if(el){
+        el.style.display = (isIn && pushVis) ? '' : 'none';
+        el.disabled = !(isIn && pushVis);
+        el.setAttribute('aria-hidden', (isIn && pushVis) ? 'false' : 'true');
+      }
+    });
+    ['v5RailLogout'].forEach(function(id){ var el=byId(id); if(el) el.style.display = isIn ? '' : 'none'; });
+
+    refreshOpsDeck();
+  }
+
+  function countPendingRequests(){
+    // V5.0.4: use the same request-count source as the Requests modal/badge.
+    // The previous broad object-walk counted historical/nested request-like records and caused the card to flicker.
+    try{
+      if(typeof window.countPendingRequestsForWeek === 'function'){
+        var n = Number(window.countPendingRequestsForWeek() || 0);
+        return isFinite(n) ? n : 0;
+      }
+    }catch(e){}
+    var app = window.App || {};
+    var count = 0;
+    function pending(rec){
+      var st = String((rec && rec.status != null) ? rec.status : 'pending').toLowerCase();
+      return rec && (!st || st === 'pending');
+    }
+    try{
+      Object.keys(app.absenceRequests || {}).forEach(function(iso){
+        var bucket = app.absenceRequests[iso] || {};
+        Object.keys(bucket).forEach(function(sid){ if(pending(bucket[sid])) count++; });
+      });
+      Object.keys(app.shiftChangeRequests || {}).forEach(function(iso){
+        var bucket = app.shiftChangeRequests[iso] || {};
+        Object.keys(bucket).forEach(function(key){ if(pending(bucket[key])) count++; });
+      });
+      Object.keys(app.editRequests || {}).forEach(function(id){ if(pending(app.editRequests[id])) count++; });
+    }catch(e){}
+    return count;
+  }
+
+  function staffCount(){ try{ return Object.keys((window.App && App.staff) || {}).length; }catch(e){ return 0; } }
+  function currentPayRun(){
+    var paid = text('allPaidStatus') || 'Not reviewed';
+    var total = text('allPay') || '$0.00';
+    return {paid:paid, total:total};
+  }
+  function plannerAlerts(){
+    // V5.0.4: count actual warning rows, even when the planner panel is hidden/not active.
+    // This keeps Operations in sync with the clickable details modal.
+    var count = 0;
+    try{
+      var list = byId('plannerWarningsList') || document.querySelector('.planner-warning-list');
+      if(list){
+        Array.prototype.slice.call(list.children || []).forEach(function(el){
+          if(String(el.textContent || '').trim()) count++;
+        });
+      }
+    }catch(e){}
+    if(count) return count;
+    try{
+      if(typeof window.countPendingRequestsForWeek === 'function'){
+        var pending = Number(window.countPendingRequestsForWeek() || 0);
+        if(isFinite(pending) && pending > 0) return 1;
+      }
+    }catch(e2){}
+    return 0;
+  }
+  function bizSignal(){
+    var labour = document.querySelector('#bizLabourPctKpi .value');
+    var range = text('bizRangeSummary');
+    var net = text('bizEntryNet');
+    return {value: labour ? String(labour.textContent||'').trim() : (net || '$0.00'), note: range || 'Business analytics ready'};
+  }
+
+  function refreshOpsDeck(){
+    var deck = byId('v5OpsDeck');
+    if(!deck) return;
+    if(!loggedIn() || role() === 'staff'){
+      deck.style.display = 'none';
+      if(deck.getAttribute('data-v504-empty') !== '1'){
+        deck.innerHTML='';
+        deck.setAttribute('data-v504-empty','1');
+        deck.removeAttribute('data-v503-empty');
+        deck.removeAttribute('data-v503-shell');
+      }
+      return;
+    }
+    deck.style.display = '';
+    deck.removeAttribute('data-v503-empty');
+    deck.removeAttribute('data-v504-empty');
+
+    var week = text('weekLabel') || text('myWeekLabel') || text('payrollWeekLabel') || 'Current week';
+    var pending = countPendingRequests();
+    var pay = currentPayRun();
+    var alerts = plannerAlerts();
+    var biz = bizSignal();
+    var roleName = role() || 'staff';
+    var cards = [
+      {label:'Active week', value:week, note:staffCount() + ' staff loaded - ' + roleName + ' access', cls:'v5-ops-blue'},
+      {label:'Requests', value:String(pending), note:pending === 1 ? 'pending item requires review' : 'pending items require review', cls: pending ? 'v5-ops-warn' : 'v5-ops-good'},
+      {label:'Payroll', value:pay.total, note:pay.paid, cls:'v5-ops-blue'},
+      {label:'Operations', value:alerts ? String(alerts) + ' alerts' : biz.value, note:alerts ? 'Roster warnings need attention' : biz.note, cls:alerts ? 'v5-ops-warn' : 'v5-ops-good'}
+    ];
+
+    function writeText(el, value){
+      if(el && String(el.textContent || '') !== String(value)) el.textContent = String(value);
+    }
+    function makeCard(c){
+      var card = document.createElement('div');
+      card.className = 'v5-ops-card ' + c.cls;
+      card.setAttribute('data-v5-ops-label', c.label);
+      card.innerHTML = '<div class="v5-ops-label"></div><div class="v5-ops-value"></div><div class="v5-ops-note"></div>';
+      return card;
+    }
+
+    var needsShell = deck.getAttribute('data-v503-shell') !== 'stable' || deck.children.length !== cards.length;
+    if(!needsShell){
+      for(var i=0;i<cards.length;i++){
+        var cardCheck = deck.children[i];
+        if(!cardCheck || cardCheck.getAttribute('data-v5-ops-label') !== cards[i].label){ needsShell = true; break; }
+      }
+    }
+    if(needsShell){
+      deck.innerHTML = '';
+      for(var c=0;c<cards.length;c++) deck.appendChild(makeCard(cards[c]));
+      deck.setAttribute('data-v503-shell','stable');
+    }
+
+    for(var j=0;j<cards.length;j++){
+      var data = cards[j];
+      var card = deck.children[j];
+      if(!card) continue;
+      var keepActionable = card.classList.contains('v501-actionable');
+      card.setAttribute('data-v5-ops-label', data.label);
+      writeText(card.querySelector('.v5-ops-label'), data.label);
+      if(keepActionable && (data.label === 'Requests' || data.label === 'Operations')){
+        continue;
+      }
+      var nextClass = 'v5-ops-card ' + data.cls + (keepActionable ? ' v501-actionable' : '');
+      if(card.className !== nextClass) card.className = nextClass;
+      writeText(card.querySelector('.v5-ops-value'), data.value);
+      writeText(card.querySelector('.v5-ops-note'), data.note);
+    }
+  }
+
+  function commandItems(){
+    var out = [];
+    NAVS.forEach(function(item){
+      if(isNavAllowed(item)) out.push({title:itemLabel(item), sub:item.sub, key:'Page', run:function(){ trigger(item.tab); }});
+    });
+    var actions = [
+      ['Pull latest data','Sync from Firebase/local source','Action','btnPullTop', role() === 'admin' || role() === 'manager' || role() === 'staff'],
+      ['Push changes','Send local changes to workspace','Action','btnPushTop', role() === 'admin' || role() === 'manager'],
+      ['Undo last change','Step back one local edit','Action','btnUndoTop', true],
+      ['Redo last change','Restore an undone edit','Action','btnRedoTop', true],
+      ['Theme toggle','Switch light/dark theme','Action','btnTheme', true],
+      ['Print current planner','Open browser print for current planner','Print','btnPrint', role() === 'admin' || role() === 'manager' || role() === 'staff'],
+      ['Build multi-week print view','Open printable roster builder','Print','tabPrint', role() === 'admin' || role() === 'manager' || role() === 'staff'],
+      ['Logout','End current session','Account','btnLogout', loggedIn()]
+    ];
+    actions.forEach(function(a){ if(a[4]) out.push({title:a[0], sub:a[1], key:a[2], run:function(){ trigger(a[3]); }}); });
+    return out;
+  }
+
+  function openCommand(){
+    var modal = byId('v5CommandModal');
+    if(!modal) return;
+    modal.classList.add('open');
+    renderCommandList();
+    setTimeout(function(){ var s=byId('v5CommandSearch'); if(s){ s.value=''; s.focus(); renderCommandList(); } }, 20);
+  }
+  function closeCommand(){ var modal=byId('v5CommandModal'); if(modal) modal.classList.remove('open'); }
+  function renderCommandList(){
+    var host = byId('v5CommandList');
+    if(!host) return;
+    var q = String((byId('v5CommandSearch') && byId('v5CommandSearch').value) || '').toLowerCase().trim();
+    var list = commandItems().filter(function(item){ return !q || (item.title + ' ' + item.sub + ' ' + item.key).toLowerCase().indexOf(q) >= 0; });
+    if(!list.length){ host.innerHTML = '<div style="padding:18px;color:var(--v5-muted);font-weight:800;">No matching command.</div>'; return; }
+    host.innerHTML = '';
+    list.forEach(function(item){
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'v5-command-item';
+      b.innerHTML = '<span><strong>' + esc(item.title) + '</strong><span>' + esc(item.sub) + '</span></span><em class="v5-command-key">' + esc(item.key) + '</em>';
+      b.onclick = function(){ closeCommand(); try{ item.run(); }catch(e){} setTimeout(syncShell, 80); };
+      host.appendChild(b);
+    });
+  }
+
+  function start(){
+    ensureShell();
+    syncShell();
+    setTimeout(syncShell, 250);
+    setTimeout(syncShell, 1000);
+  }
+
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
+  else start();
+})();
+</script>
+
+<script id="v501Script">
+(function(){
+  'use strict';
+  var APP_VERSION = 'V5.0.4';
+  var DEFAULT_TITLE = 'Aspire Workforce Command';
+  var opsObserver = null;
+  var opsTimer = 0;
+
+  function byId(id){ return document.getElementById(id); }
+  function esc(s){
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+    });
+  }
+  function role(){ try{ return (window.App && App.currentUser && App.currentUser.role) ? String(App.currentUser.role) : ''; }catch(e){ return ''; } }
+  function isAdminLike(){ var r = role(); return r === 'admin' || r === 'manager'; }
+  function currentUserId(){ try{ return App.currentUser && App.currentUser.id != null ? String(App.currentUser.id) : ''; }catch(e){ return ''; } }
+  function appSettings(){ if(!window.App) window.App = {}; if(!App.settings) App.settings = {}; return App.settings; }
+  function appTitle(){
+    try{
+      var t = String((appSettings().appTitle || DEFAULT_TITLE)).trim();
+      return t || DEFAULT_TITLE;
+    }catch(e){ return DEFAULT_TITLE; }
+  }
+  function initials(title){
+    title = String(title || DEFAULT_TITLE).replace(/[^A-Za-z0-9 ]+/g, ' ').trim();
+    var parts = title.split(/\s+/).filter(Boolean);
+    if(!parts.length) return 'AW';
+    if(parts.length === 1) return parts[0].slice(0,2).toUpperCase();
+    return (parts[0].charAt(0) + parts[1].charAt(0)).toUpperCase();
+  }
+  function staffName(id){
+    id = String(id == null ? '' : id);
+    try{ if(typeof window.staffDisplayNameForId === 'function') return staffDisplayNameForId(id, id || 'Staff'); }catch(e){}
+    try{ var st = App.staff && App.staff[id]; if(st) return String(st.nickname || st.plannerName || st.name || id); }catch(e){}
+    return id || 'Staff';
+  }
+  function safeDate(iso){
+    try{ if(typeof window.formatIsoForHuman === 'function') return formatIsoForHuman(iso); }catch(e){}
+    try{ var d = new Date(String(iso || '') + 'T00:00:00'); if(!isNaN(d.getTime())) return d.toLocaleDateString(undefined, {weekday:'short', day:'2-digit', month:'short', year:'numeric'}); }catch(e){}
+    return String(iso || '');
+  }
+  function timeRange(s,e){
+    try{ if(typeof window.displayTimeRange12 === 'function') return displayTimeRange12(s,e); }catch(err){}
+    return String(s || '?') + '-' + String(e || '?');
+  }
+  function createdAt(rec){ return String((rec && (rec.createdAt || rec.requestedAt || rec.ts || rec.submittedAt)) || ''); }
+  function isPending(rec){
+    var st = String((rec && rec.status != null) ? rec.status : 'pending').toLowerCase();
+    return !st || st === 'pending';
+  }
+  function canSeeRequest(staffId, rec){
+    var r = role();
+    if(r === 'admin' || r === 'manager') return true;
+    var uid = currentUserId();
+    if(!uid) return false;
+    if(staffId != null && String(staffId) === uid) return true;
+    if(rec && rec.createdBy != null && String(rec.createdBy) === uid) return true;
+    return false;
+  }
+  function absKind(rec){
+    try{ if(typeof window.requestTypeLabelForAbs === 'function') return requestTypeLabelForAbs(rec); }catch(e){}
+    return rec && rec.blocks && rec.blocks.length ? 'Away (partial)' : 'Away (full day)';
+  }
+  function absDetails(rec){
+    if(!rec) return '';
+    try{
+      if(rec.blocks && rec.blocks.length){
+        return rec.blocks.map(function(b){
+          var txt = timeRange(b && b.start, b && b.end);
+          if(b && b.reason) txt += ' - ' + String(b.reason);
+          return txt;
+        }).join(' | ');
+      }
+      if(rec.reason) return String(rec.reason);
+      if(rec.unavailable) return 'Full-day away request';
+    }catch(e){}
+    return '';
+  }
+  function isShiftProposal(rec){
+    try{ if(typeof window.isShiftProposalRequest === 'function') return isShiftProposalRequest(rec); }catch(e){}
+    try{
+      var t = String((rec && (rec.requestType || rec.kind || '')) || '').toLowerCase();
+      return t === 'newshift' || t === 'shiftproposal' || t === 'proposedshift' || t === 'new_shift' || rec.proposedShift === true || rec.isNewShift === true;
+    }catch(e){ return false; }
+  }
+  function shiftDayLabel(rec, iso){
+    try{ if(typeof window._shiftReqDayLabel === 'function') return _shiftReqDayLabel(rec, iso); }catch(e){}
+    try{
+      if(rec && rec.weekStartISO){
+        var d = new Date(String(rec.weekStartISO) + 'T00:00:00');
+        if(rec.dayIndex != null) d.setDate(d.getDate() + parseInt(rec.dayIndex, 10));
+        if(!isNaN(d.getTime())) return d.toLocaleDateString(undefined, {weekday:'short', day:'2-digit', month:'short', year:'numeric'});
+      }
+    }catch(e){}
+    return safeDate(iso);
+  }
+  function shiftDetails(rec){
+    try{ if(typeof window.shiftRequestDetails === 'function') return shiftRequestDetails(rec); }catch(e){}
+    var parts = [];
+    if(rec && (rec.newStart || rec.newEnd)) parts.push(timeRange(rec.newStart, rec.newEnd));
+    if(rec && rec.reason) parts.push('Reason: ' + String(rec.reason));
+    return parts.join(' | ');
+  }
+  function editType(rec){
+    try{ if(typeof window.requestTypeLabelForEditRequest === 'function') return requestTypeLabelForEditRequest(rec); }catch(e){}
+    return rec && rec.type === 'away' ? 'Away edit' : 'Edit request';
+  }
+  function editDetails(rec){
+    try{
+      if(!rec) return '';
+      if(rec.type === 'away'){
+        if(rec.mode === 'full') return 'Reason - ' + String((rec.proposed && rec.proposed.reason) || '');
+        if(rec.mode === 'partial') return timeRange(rec.proposed && rec.proposed.start, rec.proposed && rec.proposed.end) + ' - ' + String((rec.proposed && rec.proposed.reason) || '');
+      }
+      return JSON.stringify(rec.proposed || {}).slice(0,180);
+    }catch(e){ return ''; }
+  }
+  function collectPendingRequestItems(){
+    var app = window.App || {};
+    var items = [];
+    try{
+      Object.keys(app.absenceRequests || {}).forEach(function(iso){
+        var bucket = app.absenceRequests[iso] || {};
+        Object.keys(bucket).forEach(function(sid){
+          var rec = bucket[sid];
+          if(!rec || !isPending(rec) || !canSeeRequest(sid, rec)) return;
+          items.push({kind:'absence', type:absKind(rec), staff:staffName(sid), staffId:String(sid), day:safeDate(iso), created:createdAt(rec), details:absDetails(rec)});
+        });
+      });
+      Object.keys(app.shiftChangeRequests || {}).forEach(function(iso){
+        var bucket = app.shiftChangeRequests[iso] || {};
+        Object.keys(bucket).forEach(function(key){
+          var rec = bucket[key];
+          var sid = rec && rec.staffId != null ? String(rec.staffId) : '';
+          if(!rec || !isPending(rec) || !canSeeRequest(sid, rec)) return;
+          items.push({kind:isShiftProposal(rec)?'shiftProposal':'shiftEdit', type:isShiftProposal(rec)?'Shift proposal':'Shift edit', staff:staffName(sid), staffId:sid, day:shiftDayLabel(rec, iso), created:createdAt(rec), details:shiftDetails(rec)});
+        });
+      });
+      Object.keys(app.editRequests || {}).forEach(function(id){
+        var rec = app.editRequests[id];
+        var sid = rec && rec.staffId != null ? String(rec.staffId) : '';
+        if(!rec || !isPending(rec) || !canSeeRequest(sid, rec)) return;
+        items.push({kind:'edit', type:editType(rec), staff:staffName(sid), staffId:sid, day:safeDate(rec.iso || ''), created:createdAt(rec), details:editDetails(rec)});
+      });
+    }catch(e){}
+    items.sort(function(a,b){
+      var ad = Date.parse(a.created || '') || 0;
+      var bd = Date.parse(b.created || '') || 0;
+      if(ad !== bd) return ad - bd;
+      return String(a.day || '').localeCompare(String(b.day || ''));
+    });
+    return items;
+  }
+  function requestBreakdown(items){
+    if(!items || !items.length) return 'No pending requests.';
+    var map = {};
+    items.forEach(function(it){ var k = it.type || 'Request'; map[k] = (map[k] || 0) + 1; });
+    return Object.keys(map).map(function(k){ return k + ' ' + map[k]; }).join(' | ');
+  }
+  function collectOperationAlerts(){
+    var out = [];
+    try{
+      var list = byId('plannerWarningsList');
+      if(list){
+        Array.prototype.slice.call(list.children || []).forEach(function(el){
+          var txt = String(el.textContent || '').trim();
+          if(!txt) return;
+          var cls = String(el.className || '');
+          var sev = cls.indexOf('bad') >= 0 ? 'bad' : (cls.indexOf('warn') >= 0 ? 'warn' : 'info');
+          out.push({severity:sev, title:sev === 'bad' ? 'Critical roster warning' : (sev === 'warn' ? 'Roster warning' : 'Planner notice'), details:txt});
+        });
+      }
+      // If planner warnings have not been rendered yet, still surface the pending request as the planner alert.
+      var hasPendingText = out.some(function(it){ return String(it.details || '').toLowerCase().indexOf('pending request') >= 0; });
+      if(!hasPendingText && typeof window.countPendingRequestsForWeek === 'function'){
+        var pending = Number(window.countPendingRequestsForWeek() || 0);
+        if(isFinite(pending) && pending > 0){
+          out.unshift({severity:'info', title:'Pending planner request', details:pending + ' pending request(s) need review.'});
+        }
+      }
+    }catch(e){}
+    return out;
+  }
+  function ensureInsightModal(){
+    var modal = byId('v501InsightModal');
+    if(modal) return modal;
+    modal = document.createElement('div');
+    modal.id = 'v501InsightModal';
+    modal.className = 'modal v501-insight-modal';
+    modal.style.zIndex = '5200';
+    modal.innerHTML = '<div class="panel v501-insight-panel"><div class="v501-insight-head"><div><h3 id="v501InsightTitle">Details</h3><div id="v501InsightIntro" class="muted"></div></div><button id="v501InsightClose" type="button" class="btn-outline">Close</button></div><div id="v501InsightBody" class="v501-insight-body"></div><div id="v501InsightActions" class="v501-insight-actions"></div></div>';
+    document.body.appendChild(modal);
+    var close = byId('v501InsightClose');
+    if(close) close.onclick = function(){ modal.style.display = 'none'; };
+    modal.addEventListener('click', function(ev){ if(ev.target === modal) modal.style.display = 'none'; });
+    return modal;
+  }
+  function openInsight(title, intro, items, actions){
+    var modal = ensureInsightModal();
+    var h = byId('v501InsightTitle'); if(h) h.textContent = title || 'Details';
+    var i = byId('v501InsightIntro'); if(i) i.textContent = intro || '';
+    var body = byId('v501InsightBody');
+    if(body){
+      if(!items || !items.length){
+        body.innerHTML = '<div class="v501-empty">No items to show.</div>';
+      }else{
+        body.innerHTML = items.map(function(it){
+          return '<div class="v501-insight-item ' + esc(it.severity || it.kind || '') + '">' +
+            '<div class="v501-insight-type">' + esc(it.type || it.title || 'Item') + '</div>' +
+            '<div class="v501-insight-main">' + esc(it.staff ? (it.staff + ' - ' + (it.day || '')) : (it.details || '')) + '</div>' +
+            (it.staff ? '<div class="v501-insight-detail">' + esc(it.details || '') + '</div>' : '') +
+            (it.created ? '<div class="v501-insight-meta">Requested ' + esc((new Date(it.created)).toLocaleString()) + '</div>' : '') +
+          '</div>';
+        }).join('');
+      }
+    }
+    var act = byId('v501InsightActions');
+    if(act){
+      act.innerHTML = '';
+      (actions || []).forEach(function(a){
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.className = a.primary ? 'btn-primary' : 'btn-outline';
+        b.textContent = a.label;
+        b.onclick = function(){ try{ a.run(); }catch(e){} };
+        act.appendChild(b);
+      });
+    }
+    modal.style.display = 'flex';
+  }
+  function openRequestsFromOps(){
+    var items = collectPendingRequestItems();
+    if(isAdminLike() && typeof window.openRequestsModal === 'function'){
+      try{
+        openRequestsModal();
+        setTimeout(function(){
+          var title = document.querySelector('#requestsModal .panel h3');
+          if(title) title.textContent = 'Pending Requests';
+        }, 30);
+        return;
+      }catch(e){}
+    }
+    openInsight('Pending requests', items.length ? (items.length + ' request(s) found.') : 'No pending requests found.', items, [
+      {label:'Open My Requests', primary:true, run:function(){ var b=byId('tabMyRequests'); if(b) b.click(); var m=byId('v501InsightModal'); if(m) m.style.display='none'; }}
+    ]);
+  }
+  function openOperationsFromOps(){
+    var alerts = collectOperationAlerts();
+    var intro = alerts.length ? (alerts.length + ' roster warning(s) need attention.') : 'No active roster warnings are currently listed.';
+    var mapped = alerts.length ? alerts : [{severity:'good', title:'Operations clear', details:'No roster warning details are currently active.'}];
+    openInsight('Operations alerts', intro, mapped, [
+      {label:'Open Planner', primary:true, run:function(){ var b=byId('tabPlanner'); if(b) b.click(); var m=byId('v501InsightModal'); if(m) m.style.display='none'; setTimeout(function(){ var w=byId('plannerWarnings'); if(w) w.scrollIntoView({behavior:'smooth', block:'center'}); }, 200); }},
+      {label:'Open Requests', primary:false, run:function(){ var m=byId('v501InsightModal'); if(m) m.style.display='none'; openRequestsFromOps(); }}
+    ]);
+  }
+  function setCardAction(card, action){
+    if(!card) return;
+    card.classList.add('v501-actionable');
+    card.setAttribute('role','button');
+    card.setAttribute('tabindex','0');
+    card.onclick = action;
+    card.onkeydown = function(ev){ var k = String(ev.key || ''); if(k === 'Enter' || k === ' '){ ev.preventDefault(); action(); } };
+  }
+  function cardLabel(card){
+    var el = card ? card.querySelector('.v5-ops-label') : null;
+    return String((el && el.textContent) || '').trim().toLowerCase();
+  }
+  function setText(el, value){ if(el && String(el.textContent || '') !== String(value)) el.textContent = value; }
+  function setOpsState(card, cls){
+    if(!card) return;
+    var states = ['v5-ops-blue','v5-ops-good','v5-ops-warn','v5-ops-bad'];
+    var changed = !card.classList.contains(cls);
+    for(var i=0;i<states.length;i++){
+      if(states[i] !== cls && card.classList.contains(states[i])){ changed = true; break; }
+    }
+    if(!changed) return;
+    card.classList.remove('v5-ops-warn','v5-ops-good','v5-ops-bad','v5-ops-blue');
+    card.classList.add(cls);
+  }
+  function enhanceOpsDeck(){
+    var deck = byId('v5OpsDeck');
+    if(!deck) return;
+    if(role() === 'staff'){
+      deck.style.display = 'none';
+      if(deck.getAttribute('data-v504-empty') !== '1'){
+        deck.innerHTML = '';
+        deck.setAttribute('data-v504-empty','1');
+      }
+      return;
+    }
+    deck.style.display = '';
+    deck.removeAttribute('data-v504-empty');
+    var items = collectPendingRequestItems();
+    var alerts = collectOperationAlerts();
+    Array.prototype.slice.call(deck.querySelectorAll('.v5-ops-card')).forEach(function(card){
+      var label = cardLabel(card);
+      if(label === 'requests'){
+        setText(card.querySelector('.v5-ops-value'), String(items.length));
+        setText(card.querySelector('.v5-ops-note'), requestBreakdown(items));
+        setOpsState(card, items.length ? 'v5-ops-warn' : 'v5-ops-good');
+        setCardAction(card, openRequestsFromOps);
+      }else if(label === 'operations'){
+        if(alerts.length){
+          setText(card.querySelector('.v5-ops-value'), alerts.length === 1 ? '1 alert' : (alerts.length + ' alerts'));
+          setText(card.querySelector('.v5-ops-note'), alerts.length === 1 ? alerts[0].details : 'Roster warnings need attention');
+          setOpsState(card, 'v5-ops-warn');
+        }else{
+          setOpsState(card, 'v5-ops-good');
+        }
+        setCardAction(card, openOperationsFromOps);
+      }
+    });
+  }
+  function scheduleEnhanceOps(){
+    // V5.0.4: apply the accurate clickable-card values before the browser can paint the old base values.
+    clearTimeout(opsTimer);
+    try{ enhanceOpsDeck(); }
+    catch(e){ opsTimer = setTimeout(enhanceOpsDeck, 0); }
+  }
+  function enforceStaffSettingsLock(){
+    try{
+      var r = role();
+      var isStaff = r === 'staff';
+      document.body.classList.toggle('v5-staff-user', !!(window.App && App.currentUser && isStaff));
+      var ids = ['tabSettings','bottomSettings','v5NavSettings'];
+      ids.forEach(function(id){ var el = byId(id); if(el) el.style.display = (r === 'admin') ? '' : 'none'; });
+      ['btnPushTop','btnPushPlanner','btnPush','bottomPush','v5RailPush','v5TopPush','btnPushPlannerAndSettings'].forEach(function(id){
+        var el = byId(id);
+        if(el){
+          var allowed = (r === 'admin' || r === 'manager');
+          el.style.display = allowed ? '' : 'none';
+          el.disabled = !allowed;
+          el.setAttribute('aria-hidden', allowed ? 'false' : 'true');
+        }
+      });
+      ['btnPullTop','btnPullPlanner','bottomPull','v5RailPull','v5TopPull'].forEach(function(id){
+        var el = byId(id);
+        if(el && window.App && App.currentUser) el.style.display = '';
+      });
+      var deck = byId('v5OpsDeck');
+      if(deck && isStaff){ deck.style.display = 'none'; deck.innerHTML = ''; deck.setAttribute('data-v504-empty','1'); }
+      var sec = byId('settingsSection');
+      if(r !== 'admin' && sec && sec.classList && sec.classList.contains('show')){
+        sec.classList.remove('show');
+        var my = byId('mySection'); if(my) my.classList.add('show');
+        var tabMy = byId('tabMy'); if(tabMy) tabMy.classList.add('active');
+      }
+    }catch(e){}
+  }
+  function syncTitleEverywhere(){
+    try{
+      var title = appTitle();
+      var mark = initials(title);
+      var oldTitle = byId('appTitle'); if(oldTitle) oldTitle.textContent = title;
+      var oldInput = byId('appTitleInput'); if(oldInput && document.activeElement !== oldInput) oldInput.value = title;
+      var vTitle = document.querySelector('.v5-brand-title'); if(vTitle) vTitle.textContent = title;
+      var vMark = document.querySelector('.v5-brand-mark'); if(vMark) vMark.textContent = mark;
+      var vSub = document.querySelector('.v5-brand-sub'); if(vSub) vSub.textContent = 'Command ' + APP_VERSION;
+      var version = byId('appVersion'); if(version) version.textContent = APP_VERSION;
+      document.title = title + ' (' + APP_VERSION + ')';
+      var titleInput = byId('v501TitleInput'); if(titleInput && document.activeElement !== titleInput) titleInput.value = title;
+      var label = oldInput && oldInput.previousElementSibling;
+      if(label && String(label.tagName || '').toLowerCase() === 'label') label.textContent = 'App title / top-left title';
+    }catch(e){}
+  }
+  function saveTitleSetting(){
+    var input = byId('v501TitleInput');
+    var value = String((input && input.value) || '').trim();
+    if(!value){ alert('Please enter an app title.'); return; }
+    var settings = appSettings();
+    settings.appTitle = value;
+    var oldInput = byId('appTitleInput'); if(oldInput) oldInput.value = value;
+    syncTitleEverywhere();
+    try{ if(typeof window.saveConnLocal === 'function') saveConnLocal(); }catch(e){}
+    try{ if(typeof window.saveLocal === 'function') saveLocal(); }catch(e){}
+    var done = function(){ try{ if(typeof window.showToast === 'function') showToast('Title saved', value, 'success', 3500); }catch(e){} };
+    if(role() === 'admin' && typeof window.dbPatch === 'function'){
+      try{ dbPatch('', {settings:settings}).then(done).catch(done); return; }catch(e){}
+    }
+    done();
+  }
+  function ensureTitleCard(){
+    var sec = byId('settingsSection');
+    if(!sec) return;
+    var existing = byId('v501TitleCard');
+    if(existing){ syncTitleEverywhere(); return; }
+    var card = document.createElement('div');
+    card.id = 'v501TitleCard';
+    card.className = 'card';
+    card.setAttribute('data-settings-panel', 'connection');
+    card.innerHTML = '<h3>Top-left app title</h3><div class="grid-2"><div><label>Title shown in the command sidebar</label><input id="v501TitleInput" type="text" value="' + esc(appTitle()) + '"></div><div><label>Preview</label><div class="v501-title-preview"><span id="v501TitlePreviewMark">' + esc(initials(appTitle())) + '</span><strong id="v501TitlePreviewText">' + esc(appTitle()) + '</strong></div></div></div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;"><button id="v501SaveTitleBtn" type="button" class="btn-primary">Save title</button></div><div class="muted" style="margin-top:6px;">This controls the title in the top-left command sidebar, browser tab, exports and formal app heading.</div>';
+    var nav = byId('settingsNav');
+    var grid = sec.querySelector('.grid-2');
+    if(nav && nav.nextSibling) sec.insertBefore(card, nav.nextSibling);
+    else if(grid) sec.insertBefore(card, grid);
+    else sec.insertBefore(card, sec.firstChild);
+    var input = byId('v501TitleInput');
+    if(input){
+      input.addEventListener('input', function(){
+        var p = byId('v501TitlePreviewText'); if(p) p.textContent = input.value || DEFAULT_TITLE;
+        var m = byId('v501TitlePreviewMark'); if(m) m.textContent = initials(input.value || DEFAULT_TITLE);
+      });
+      input.addEventListener('keydown', function(ev){ if(String(ev.key || '') === 'Enter'){ ev.preventDefault(); saveTitleSetting(); } });
+    }
+    var btn = byId('v501SaveTitleBtn'); if(btn) btn.onclick = saveTitleSetting;
+    try{ if(typeof window.v413ApplySettingsTab === 'function') v413ApplySettingsTab(); }catch(e){}
+  }
+  function installCss(){
+    if(byId('v501Css')) return;
+    var style = document.createElement('style');
+    style.id = 'v501Css';
+    style.textContent = '#v5OpsDeck .v5-ops-card.v501-actionable{cursor:pointer;transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease;will-change:transform;}#v5OpsDeck .v5-ops-card.v501-actionable:hover{transform:translateY(-2px);border-color:rgba(56,189,248,.52);}#v5OpsDeck .v5-ops-card.v501-actionable:after{content:"Click for details";position:absolute;right:12px;bottom:10px;font-size:10px;font-weight:1000;letter-spacing:.08em;text-transform:uppercase;color:var(--v5-muted);opacity:.82;}.v501-insight-panel{width:min(820px,100%);}.v501-insight-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:10px;}.v501-insight-head h3{margin:0 0 4px;}.v501-insight-body{display:flex;flex-direction:column;gap:8px;max-height:58vh;overflow:auto;padding-right:2px;}.v501-insight-item{border:1px solid var(--border);border-left:5px solid var(--accent2);border-radius:14px;padding:10px 12px;background:rgba(255,255,255,.045);}.v501-insight-item.warn{border-left-color:var(--warn);}.v501-insight-item.bad{border-left-color:var(--bad);}.v501-insight-item.good{border-left-color:var(--good);}.v501-insight-type{font-size:11px;text-transform:uppercase;letter-spacing:.08em;font-weight:1000;color:var(--muted);}.v501-insight-main{margin-top:3px;font-weight:1000;}.v501-insight-detail{margin-top:3px;font-size:12px;color:var(--fg);opacity:.9;}.v501-insight-meta{margin-top:4px;font-size:11px;color:var(--muted);}.v501-insight-actions{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;margin-top:12px;}.v501-empty{padding:14px;color:var(--muted);font-weight:800;}.v501-title-preview{display:flex;align-items:center;gap:10px;min-height:42px;padding:8px 10px;border-radius:14px;border:1px solid var(--border);background:rgba(255,255,255,.045);}.v501-title-preview span{display:grid;place-items:center;width:32px;height:32px;border-radius:12px;background:linear-gradient(135deg,var(--v5-blue),var(--v5-purple));color:#fff;font-weight:1000;letter-spacing:-.06em;}.v501-title-preview strong{overflow-wrap:anywhere;}@media(max-width:640px){.v501-insight-head{flex-direction:column;}.v501-insight-head button{align-self:flex-end;}.v501-insight-actions{justify-content:stretch;}.v501-insight-actions button{flex:1 1 150px;}}';
+    document.head.appendChild(style);
+  }
+  function boot(){
+    try{ if(window.App){ App.version = APP_VERSION; App.buildId = '2026-04-30.4'; } }catch(e){}
+    installCss();
+    ensureTitleCard();
+    syncTitleEverywhere();
+    enforceStaffSettingsLock();
+    enhanceOpsDeck();
+    var deck = byId('v5OpsDeck');
+    if(deck && !opsObserver){
+      try{
+        opsObserver = new MutationObserver(function(muts){
+          for(var i=0;i<muts.length;i++){
+            if(muts[i].type === 'childList'){ scheduleEnhanceOps(); break; }
+          }
+        });
+        opsObserver.observe(deck, {childList:true, subtree:false});
+      }catch(e){}
+    }
+  }
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+  setInterval(function(){ syncTitleEverywhere(); enforceStaffSettingsLock(); enhanceOpsDeck(); }, 2500);
+})();
+</script>
 </body>
 </html>
