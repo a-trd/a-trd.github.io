@@ -2,28 +2,17 @@
 <html lang="en">
 <head>
   <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=0.2, maximum-scale=8.0, user-scalable=yes, viewport-fit=cover"/>
-  <script id="v507DesktopMobileViewport">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=0.5, maximum-scale=8.0, user-scalable=yes, viewport-fit=cover"/>
+  <script id="v508MobileComfortViewport">
     (function(){
       'use strict';
-      var DESKTOP_VIEWPORT_WIDTH = 1440;
       function phoneLike(){
         try{
           var shortSide = Math.min(screen.width || 0, screen.height || 0);
           var coarse = false;
           try { coarse = window.matchMedia && window.matchMedia('(pointer: coarse)').matches; } catch(e) {}
-          return (shortSide > 0 && shortSide <= 820) || (coarse && (screen.width || window.innerWidth || 0) <= 1024);
+          return (shortSide > 0 && shortSide <= 820) || (coarse && (window.innerWidth || screen.width || 0) <= 1024);
         }catch(e){ return false; }
-      }
-      function screenCssWidth(){
-        try{
-          var w = Number(screen.width || 0);
-          var h = Number(screen.height || 0);
-          var portrait = true;
-          try { portrait = !window.matchMedia || window.matchMedia('(orientation: portrait)').matches; } catch(e) {}
-          if(w && h) return portrait ? Math.min(w, h) : Math.max(w, h);
-          return Number(window.outerWidth || window.innerWidth || 390) || 390;
-        }catch(e){ return 390; }
       }
       function setViewport(){
         var meta = document.querySelector('meta[name="viewport"]');
@@ -32,24 +21,20 @@
           meta.name = 'viewport';
           document.head.appendChild(meta);
         }
-        if(phoneLike()){
-          var initial = Math.max(0.22, Math.min(1, screenCssWidth() / DESKTOP_VIEWPORT_WIDTH));
-          meta.setAttribute('content', 'width=' + DESKTOP_VIEWPORT_WIDTH + ', initial-scale=' + initial.toFixed(3) + ', minimum-scale=0.2, maximum-scale=8.0, user-scalable=yes, viewport-fit=cover');
-          document.documentElement.classList.add('desktop-viewport-mobile');
-          document.documentElement.style.setProperty('--desktop-mobile-width', DESKTOP_VIEWPORT_WIDTH + 'px');
-        }else{
-          meta.setAttribute('content', 'width=device-width, initial-scale=1.0, minimum-scale=0.2, maximum-scale=8.0, user-scalable=yes, viewport-fit=cover');
-          document.documentElement.classList.remove('desktop-viewport-mobile');
-        }
+        meta.setAttribute('content', 'width=device-width, initial-scale=1.0, minimum-scale=0.5, maximum-scale=8.0, user-scalable=yes, viewport-fit=cover');
+        document.documentElement.classList.remove('desktop-viewport-mobile');
+        document.documentElement.style.removeProperty('--desktop-mobile-width');
+        document.documentElement.classList.toggle('mobile-comfort-view', phoneLike());
       }
       setViewport();
       if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', setViewport);
       else setViewport();
       window.addEventListener('orientationchange', function(){ setTimeout(setViewport, 250); });
+      window.addEventListener('resize', function(){ setTimeout(setViewport, 80); });
     })();
   </script>
 
-  <title>Aspire Workforce Command (V5.0.7)</title>
+<title>Aspire Workforce Command (V5.0.8)</title>
   <meta name="theme-color" content="#22c55e"/>
 
   <style>
@@ -2473,7 +2458,7 @@
 
 
   <style id="v500Css">
-    /* ---------- V5.0.7 Aspire Workforce Command redesign ---------- */
+    /* ---------- V5.0.8 Aspire Workforce Command redesign ---------- */
     :root {
       --v5-bg: #050816;
       --v5-panel: rgba(13,18,35,.84);
@@ -2523,7 +2508,7 @@
       display: none !important;
     }
 
-    /* V5.0.7 staff/mobile safeguards */
+    /* V5.0.8 staff/mobile safeguards */
     body.v5-staff-lite #v5OpsDeck,
     body.v5-staff-lite #btnPushTop,
     body.v5-staff-lite #btnPushPlanner,
@@ -2537,47 +2522,6 @@
 
     html, body {
       touch-action: pan-x pan-y pinch-zoom;
-    }
-
-    html.desktop-viewport-mobile,
-    html.desktop-viewport-mobile body {
-      min-width: var(--desktop-mobile-width, 1440px);
-      width: var(--desktop-mobile-width, 1440px);
-      overflow-x: auto;
-      touch-action: pan-x pan-y pinch-zoom;
-    }
-
-    html.desktop-viewport-mobile body.v5-mode .bottom-nav {
-      display: none !important;
-    }
-
-    html.desktop-viewport-mobile body.v5-mode .v5-rail {
-      display: flex !important;
-    }
-
-    html.desktop-viewport-mobile body.v5-mode .v5-topbar {
-      margin-left: var(--v5-rail-w) !important;
-      grid-template-columns: minmax(0,1fr) auto !important;
-    }
-
-    html.desktop-viewport-mobile body.v5-mode .wrap {
-      margin-left: var(--v5-rail-w) !important;
-      width: calc(var(--desktop-mobile-width, 1440px) - var(--v5-rail-w)) !important;
-      padding-bottom: 42px !important;
-    }
-
-    html.desktop-viewport-mobile body.v5-mode.v5-logged-out .v5-rail,
-    html.desktop-viewport-mobile body.v5-mode.v5-logged-out .v5-topbar,
-    html.desktop-viewport-mobile body.v5-mode.v5-logged-out .v5-ops-deck,
-    html.desktop-viewport-mobile body.v5-mode.v5-logged-out .v5-command-fab {
-      display: none !important;
-    }
-
-    html.desktop-viewport-mobile body.v5-mode.v5-logged-out .wrap {
-      margin-left: 0 !important;
-      width: var(--desktop-mobile-width, 1440px) !important;
-      min-height: 100vh;
-      padding: 24px !important;
     }
 
     #plannerSection .planner {
@@ -3434,6 +3378,148 @@
       body.v5-mode .wrap { margin-left: 0 !important; width: 100% !important; padding: 0 !important; }
     }
   </style>
+
+  <style id="v508MobileComfortCss">
+    /* V5.0.8 mobile comfort: phone-sized controls with desktop-wide work boards inside scrollable panels. */
+    html.mobile-comfort-view,
+    html.mobile-comfort-view body {
+      min-width: 0 !important;
+      width: 100% !important;
+      overflow-x: hidden !important;
+      touch-action: pan-x pan-y pinch-zoom;
+    }
+
+    @media (max-width: 980px) {
+      body.v5-mode.v5-logged-out .bottom-nav {
+        display: none !important;
+      }
+
+      body.v5-mode:not(.v5-logged-out) {
+        padding-bottom: calc(92px + env(safe-area-inset-bottom, 0px)) !important;
+      }
+
+      body.v5-mode .v5-rail {
+        display: none !important;
+      }
+
+      body.v5-mode .v5-topbar {
+        margin-left: 0 !important;
+        grid-template-columns: 1fr !important;
+        gap: 9px !important;
+        min-height: auto !important;
+        padding: 10px 12px !important;
+      }
+
+      body.v5-mode .wrap {
+        margin-left: 0 !important;
+        width: 100% !important;
+        max-width: none !important;
+        padding: 12px 10px calc(108px + env(safe-area-inset-bottom, 0px)) !important;
+      }
+
+      body.v5-mode .bottom-nav {
+        display: flex !important;
+        position: fixed !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        z-index: 2600 !important;
+        justify-content: flex-start !important;
+        align-items: stretch !important;
+        gap: 6px !important;
+        padding: 8px 8px calc(env(safe-area-inset-bottom, 0px) + 8px) !important;
+        min-height: calc(72px + env(safe-area-inset-bottom, 0px)) !important;
+        overflow-x: auto !important;
+        overflow-y: hidden !important;
+        -webkit-overflow-scrolling: touch;
+        scroll-snap-type: x proximity;
+        transform: translateZ(0);
+        border-radius: 18px 18px 0 0 !important;
+        box-shadow: 0 -12px 34px rgba(0,0,0,.50) !important;
+      }
+
+      body.v5-mode .bottom-nav::-webkit-scrollbar {
+        display: none;
+      }
+
+      body.v5-mode .bottom-nav button {
+        flex: 0 0 66px !important;
+        min-width: 66px !important;
+        max-width: 80px !important;
+        min-height: 54px !important;
+        padding: 6px 5px 5px !important;
+        border-radius: 16px !important;
+        font-size: 16px !important;
+        scroll-snap-align: center;
+        white-space: nowrap !important;
+      }
+
+      body.v5-mode .bottom-nav button.nav-mini {
+        flex-basis: 58px !important;
+        min-width: 58px !important;
+        max-width: 64px !important;
+      }
+
+      body.v5-mode .bottom-nav button span.label {
+        font-size: 9px !important;
+        line-height: 1.05 !important;
+        letter-spacing: .05em !important;
+      }
+
+      body.v5-mode .v5-command-fab {
+        right: 12px !important;
+        bottom: calc(88px + env(safe-area-inset-bottom, 0px)) !important;
+      }
+
+      body.v5-mode .table-wrapper,
+      body.v5-mode .planner,
+      body.v5-mode .audit-card .audit-table-wrap {
+        max-width: 100% !important;
+        overflow: auto !important;
+        -webkit-overflow-scrolling: touch;
+        touch-action: pan-x pan-y pinch-zoom;
+      }
+
+      body.v5-mode #plannerSection #plannerGrid {
+        width: max-content !important;
+        min-width: max(1120px, 100%) !important;
+        transform-origin: top left;
+      }
+
+      body.v5-mode #plannerSection .grid .header,
+      body.v5-mode #plannerSection .grid .row {
+        width: max-content !important;
+      }
+
+      body.v5-mode #plannerSection .grid .staffcell {
+        min-width: 220px !important;
+      }
+
+      body.v5-mode .week-overview {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+        grid-template-columns: 140px repeat(7, minmax(110px, 1fr)) !important;
+      }
+
+      body.v5-mode .print-grid {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+        grid-template-columns: 160px repeat(7, minmax(110px, 1fr)) !important;
+      }
+    }
+
+    @media (max-width: 420px) {
+      body.v5-mode .bottom-nav button {
+        flex-basis: 62px !important;
+        min-width: 62px !important;
+      }
+
+      body.v5-mode .bottom-nav button.nav-mini {
+        flex-basis: 56px !important;
+        min-width: 56px !important;
+      }
+    }
+  </style>
 </head>
 <body>
 
@@ -3443,7 +3529,7 @@
       <div id="appLogoBox"></div>
       <div class="titlewrap">
         <div class="title" id="appTitle">Aspire Workforce Command</div>
-        <div class="version-pill" id="appVersion">V5.0.7</div>
+        <div class="version-pill" id="appVersion">V5.0.8</div>
         <div class="sync-pill syncing" id="syncStatusChip" title="Sync status">Starting…</div>
       </div>
     </div>
@@ -5217,8 +5303,8 @@ var DAY = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 var App = {
   // IMPORTANT: Increment App.version *and* App.buildId whenever making functional changes to this file.
   // SAFETY NET: This build performs an automatic runtime check against the file name; if mismatched, it shows a blocking warning so it can't be overlooked.
-  version: 'V5.0.7',
-    buildId: '2026-04-30.7',
+  version: 'V5.0.8',
+    buildId: '2026-04-30.8',
 settings: {
     dbUrl:'https://mnc-atrd-default-rtdb.asia-southeast1.firebasedatabase.app/', workspace:'mnc-atrd', authToken:'',
     theme:'light', themeName:'light-pastel-sky', recentColors:[], appTitle:'Aspire Workforce Command', logoUrl:'',
@@ -19218,7 +19304,7 @@ try{
 (function(){
   'use strict';
   var APP_NAME = 'Aspire Workforce Command';
-  var APP_VERSION = 'V5.0.7';
+  var APP_VERSION = 'V5.0.8';
   var OLD_TITLE = 'M&C-ATRD-scheduler --=Aspire Group=--';
 
   var NAVS = [
@@ -19456,7 +19542,7 @@ try{
   }
 
   function countPendingRequests(){
-    // V5.0.7: count only real pending requests, not nested/history request-like objects.
+    // V5.0.8: count only real pending requests, not nested/history request-like objects.
     var app = window.App || {};
     var count = 0;
     function pending(rec){
@@ -19653,7 +19739,7 @@ try{
     var hint = document.createElement('div');
     hint.id = 'v505PlannerZoomHint';
     hint.className = 'v505-mobile-planner-help';
-    hint.textContent = 'Phone view loads at desktop width. Pinch with two fingers to zoom in/out, then swipe sideways to move around the roster board.';
+    hint.textContent = 'Phone view keeps the controls full-size. The roster board stays desktop-width inside this card, so swipe sideways to move around it and pinch-zoom when you need a closer look.';
     var ref = byId('dayTabs') || card.firstChild;
     card.insertBefore(hint, ref);
   }
