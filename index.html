@@ -2,8 +2,54 @@
 <html lang="en">
 <head>
   <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=0.3, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover"/>
-  <title>Aspire Workforce Command (V5.0.5)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=0.2, maximum-scale=8.0, user-scalable=yes, viewport-fit=cover"/>
+  <script id="v507DesktopMobileViewport">
+    (function(){
+      'use strict';
+      var DESKTOP_VIEWPORT_WIDTH = 1440;
+      function phoneLike(){
+        try{
+          var shortSide = Math.min(screen.width || 0, screen.height || 0);
+          var coarse = false;
+          try { coarse = window.matchMedia && window.matchMedia('(pointer: coarse)').matches; } catch(e) {}
+          return (shortSide > 0 && shortSide <= 820) || (coarse && (screen.width || window.innerWidth || 0) <= 1024);
+        }catch(e){ return false; }
+      }
+      function screenCssWidth(){
+        try{
+          var w = Number(screen.width || 0);
+          var h = Number(screen.height || 0);
+          var portrait = true;
+          try { portrait = !window.matchMedia || window.matchMedia('(orientation: portrait)').matches; } catch(e) {}
+          if(w && h) return portrait ? Math.min(w, h) : Math.max(w, h);
+          return Number(window.outerWidth || window.innerWidth || 390) || 390;
+        }catch(e){ return 390; }
+      }
+      function setViewport(){
+        var meta = document.querySelector('meta[name="viewport"]');
+        if(!meta){
+          meta = document.createElement('meta');
+          meta.name = 'viewport';
+          document.head.appendChild(meta);
+        }
+        if(phoneLike()){
+          var initial = Math.max(0.22, Math.min(1, screenCssWidth() / DESKTOP_VIEWPORT_WIDTH));
+          meta.setAttribute('content', 'width=' + DESKTOP_VIEWPORT_WIDTH + ', initial-scale=' + initial.toFixed(3) + ', minimum-scale=0.2, maximum-scale=8.0, user-scalable=yes, viewport-fit=cover');
+          document.documentElement.classList.add('desktop-viewport-mobile');
+          document.documentElement.style.setProperty('--desktop-mobile-width', DESKTOP_VIEWPORT_WIDTH + 'px');
+        }else{
+          meta.setAttribute('content', 'width=device-width, initial-scale=1.0, minimum-scale=0.2, maximum-scale=8.0, user-scalable=yes, viewport-fit=cover');
+          document.documentElement.classList.remove('desktop-viewport-mobile');
+        }
+      }
+      setViewport();
+      if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', setViewport);
+      else setViewport();
+      window.addEventListener('orientationchange', function(){ setTimeout(setViewport, 250); });
+    })();
+  </script>
+
+  <title>Aspire Workforce Command (V5.0.7)</title>
   <meta name="theme-color" content="#22c55e"/>
 
   <style>
@@ -2427,7 +2473,7 @@
 
 
   <style id="v500Css">
-    /* ---------- V5.0.5 Aspire Workforce Command redesign ---------- */
+    /* ---------- V5.0.7 Aspire Workforce Command redesign ---------- */
     :root {
       --v5-bg: #050816;
       --v5-panel: rgba(13,18,35,.84);
@@ -2477,7 +2523,7 @@
       display: none !important;
     }
 
-    /* V5.0.5 staff/mobile safeguards */
+    /* V5.0.7 staff/mobile safeguards */
     body.v5-staff-lite #v5OpsDeck,
     body.v5-staff-lite #btnPushTop,
     body.v5-staff-lite #btnPushPlanner,
@@ -2491,6 +2537,47 @@
 
     html, body {
       touch-action: pan-x pan-y pinch-zoom;
+    }
+
+    html.desktop-viewport-mobile,
+    html.desktop-viewport-mobile body {
+      min-width: var(--desktop-mobile-width, 1440px);
+      width: var(--desktop-mobile-width, 1440px);
+      overflow-x: auto;
+      touch-action: pan-x pan-y pinch-zoom;
+    }
+
+    html.desktop-viewport-mobile body.v5-mode .bottom-nav {
+      display: none !important;
+    }
+
+    html.desktop-viewport-mobile body.v5-mode .v5-rail {
+      display: flex !important;
+    }
+
+    html.desktop-viewport-mobile body.v5-mode .v5-topbar {
+      margin-left: var(--v5-rail-w) !important;
+      grid-template-columns: minmax(0,1fr) auto !important;
+    }
+
+    html.desktop-viewport-mobile body.v5-mode .wrap {
+      margin-left: var(--v5-rail-w) !important;
+      width: calc(var(--desktop-mobile-width, 1440px) - var(--v5-rail-w)) !important;
+      padding-bottom: 42px !important;
+    }
+
+    html.desktop-viewport-mobile body.v5-mode.v5-logged-out .v5-rail,
+    html.desktop-viewport-mobile body.v5-mode.v5-logged-out .v5-topbar,
+    html.desktop-viewport-mobile body.v5-mode.v5-logged-out .v5-ops-deck,
+    html.desktop-viewport-mobile body.v5-mode.v5-logged-out .v5-command-fab {
+      display: none !important;
+    }
+
+    html.desktop-viewport-mobile body.v5-mode.v5-logged-out .wrap {
+      margin-left: 0 !important;
+      width: var(--desktop-mobile-width, 1440px) !important;
+      min-height: 100vh;
+      padding: 24px !important;
     }
 
     #plannerSection .planner {
@@ -3356,7 +3443,7 @@
       <div id="appLogoBox"></div>
       <div class="titlewrap">
         <div class="title" id="appTitle">Aspire Workforce Command</div>
-        <div class="version-pill" id="appVersion">V5.0.5</div>
+        <div class="version-pill" id="appVersion">V5.0.7</div>
         <div class="sync-pill syncing" id="syncStatusChip" title="Sync status">Starting…</div>
       </div>
     </div>
@@ -5130,8 +5217,8 @@ var DAY = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 var App = {
   // IMPORTANT: Increment App.version *and* App.buildId whenever making functional changes to this file.
   // SAFETY NET: This build performs an automatic runtime check against the file name; if mismatched, it shows a blocking warning so it can't be overlooked.
-  version: 'V5.0.5',
-    buildId: '2026-04-30.5',
+  version: 'V5.0.7',
+    buildId: '2026-04-30.7',
 settings: {
     dbUrl:'https://mnc-atrd-default-rtdb.asia-southeast1.firebasedatabase.app/', workspace:'mnc-atrd', authToken:'',
     theme:'light', themeName:'light-pastel-sky', recentColors:[], appTitle:'Aspire Workforce Command', logoUrl:'',
@@ -19131,7 +19218,7 @@ try{
 (function(){
   'use strict';
   var APP_NAME = 'Aspire Workforce Command';
-  var APP_VERSION = 'V5.0.5';
+  var APP_VERSION = 'V5.0.7';
   var OLD_TITLE = 'M&C-ATRD-scheduler --=Aspire Group=--';
 
   var NAVS = [
@@ -19369,26 +19456,25 @@ try{
   }
 
   function countPendingRequests(){
+    // V5.0.7: count only real pending requests, not nested/history request-like objects.
     var app = window.App || {};
     var count = 0;
-    var seen = {};
-    function walk(x){
-      if(!x || typeof x !== 'object') return;
-      if(Array.isArray(x)){
-        for(var i=0;i<x.length;i++) walk(x[i]);
-        return;
-      }
-      var st = x.status == null ? '' : String(x.status).toLowerCase();
-      var id = String(x.id || x.requestId || x.key || x.createdAt || Math.random());
-      var looks = x.requestType || x.reason || x.staffId || x.dayIndex != null || x.iso || x.start || x.end;
-      if(looks && (!st || st === 'pending')){
-        if(!seen[id]){ seen[id] = true; count++; }
-      }
-      Object.keys(x).forEach(function(k){ if(k !== 'staff' && k !== 'weeks') walk(x[k]); });
+    function pending(rec){
+      if(!rec) return false;
+      var st = rec.status == null ? 'pending' : String(rec.status).toLowerCase();
+      return !st || st === 'pending';
     }
-    try{ walk(app.absenceRequests || {}); walk(app.shiftChangeRequests || {}); walk(app.editRequests || {}); }catch(e){}
-    var badge = parseInt(text('requestsCountBadge') || '0', 10);
-    if(!isNaN(badge) && badge > count) count = badge;
+    try{
+      Object.keys(app.absenceRequests || {}).forEach(function(iso){
+        var bucket = app.absenceRequests[iso] || {};
+        Object.keys(bucket).forEach(function(sid){ if(pending(bucket[sid])) count++; });
+      });
+      Object.keys(app.shiftChangeRequests || {}).forEach(function(iso){
+        var bucket = app.shiftChangeRequests[iso] || {};
+        Object.keys(bucket).forEach(function(key){ if(pending(bucket[key])) count++; });
+      });
+      Object.keys(app.editRequests || {}).forEach(function(id){ if(pending(app.editRequests[id])) count++; });
+    }catch(e){}
     return count;
   }
 
@@ -19467,8 +19553,10 @@ try{
       var data = cards[j];
       var card = deck.children[j];
       if(!card) continue;
+      var isAction = card.getAttribute('data-v506-card');
       card.setAttribute('data-v5-ops-label', data.label);
-      if(card.className !== ('v5-ops-card ' + data.cls)) card.className = 'v5-ops-card ' + data.cls;
+      var nextClass = 'v5-ops-card ' + data.cls + (isAction ? ' v506-actionable' : '');
+      if(card.className !== nextClass) card.className = nextClass;
       writeText(card.querySelector('.v5-ops-label'), data.label);
       writeText(card.querySelector('.v5-ops-value'), data.value);
       writeText(card.querySelector('.v5-ops-note'), data.note);
@@ -19565,7 +19653,7 @@ try{
     var hint = document.createElement('div');
     hint.id = 'v505PlannerZoomHint';
     hint.className = 'v505-mobile-planner-help';
-    hint.textContent = 'Mobile planner: pinch with two fingers to zoom in/out. Swipe sideways to view the full roster board.';
+    hint.textContent = 'Phone view loads at desktop width. Pinch with two fingers to zoom in/out, then swipe sideways to move around the roster board.';
     var ref = byId('dayTabs') || card.firstChild;
     card.insertBefore(hint, ref);
   }
@@ -19591,5 +19679,196 @@ try{
   setInterval(tick, 1200);
 })();
 </script>
+
+<style id="v506SummaryActionsStyle">
+  #v5OpsDeck .v5-ops-card[data-v506-card] { cursor: pointer; will-change: transform; }
+  #v5OpsDeck .v5-ops-card[data-v506-card]:hover,
+  #v5OpsDeck .v5-ops-card[data-v506-card]:focus-visible {
+    transform: translateY(-2px);
+    outline: none;
+    box-shadow: 0 22px 58px rgba(2,6,23,.45);
+    border-color: rgba(56,189,248,.52);
+  }
+  #v5OpsDeck .v5-ops-card[data-v506-card] .v5-ops-note::after {
+    content: '  Tap to view';
+    color: var(--v5-blue);
+    font-weight: 1000;
+  }
+  .v506-modal { position: fixed; inset: 0; display:none; align-items:center; justify-content:center; padding:14px; background:rgba(2,6,23,.66); z-index:3600; }
+  .v506-modal.open { display:flex; }
+  .v506-panel { width:min(760px, 100%); max-height:86vh; overflow:hidden; border:1px solid var(--v5-line); border-radius:26px; background:var(--v5-panel-strong); color:var(--v5-text); box-shadow:0 40px 100px rgba(0,0,0,.55); display:flex; flex-direction:column; }
+  [data-theme="light"] .v506-panel { background:rgba(255,255,255,.98); color:#0f172a; }
+  .v506-head { padding:16px; display:flex; align-items:flex-start; justify-content:space-between; gap:12px; border-bottom:1px solid var(--v5-line-soft); }
+  .v506-head strong { display:block; font-size:18px; letter-spacing:-.02em; }
+  .v506-sub { color:var(--v5-muted); font-size:12px; font-weight:800; margin-top:4px; line-height:1.4; }
+  .v506-close { border:1px solid var(--v5-line); border-radius:999px; padding:7px 11px; cursor:pointer; background:rgba(255,255,255,.08); color:inherit; font-weight:1000; }
+  .v506-body { overflow:auto; padding:14px 16px 16px; }
+  .v506-list { display:flex; flex-direction:column; gap:10px; }
+  .v506-row { border:1px solid var(--v5-line-soft); border-left:5px solid var(--v5-blue); border-radius:18px; padding:12px; background:rgba(255,255,255,.055); }
+  [data-theme="light"] .v506-row { background:rgba(15,23,42,.035); }
+  .v506-row.warn { border-left-color:var(--warn); }
+  .v506-row.bad { border-left-color:var(--bad); }
+  .v506-kicker { font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:var(--v5-muted); font-weight:1000; margin-bottom:4px; }
+  .v506-title { font-size:13px; font-weight:950; line-height:1.35; }
+  .v506-detail { margin-top:4px; color:var(--v5-muted); font-size:12px; font-weight:750; line-height:1.4; }
+  .v506-actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
+  .v506-actions button { border:1px solid var(--v5-line); border-radius:999px; background:rgba(255,255,255,.08); color:inherit; padding:8px 11px; cursor:pointer; font-weight:900; font-size:12px; }
+  .v506-actions button.primary { border-color:rgba(56,189,248,.46); background:linear-gradient(135deg, rgba(56,189,248,.25), rgba(139,92,246,.18)); }
+  body.v5-staff-lite #v5OpsDeck { display:none!important; }
+</style>
+<script id="v506SummaryActionsPatch">
+(function(){
+  'use strict';
+  function byId(id){ return document.getElementById(id); }
+  function role(){ try{ return String((window.App && App.currentUser && App.currentUser.role) || ''); }catch(e){ return ''; } }
+  function staffOnly(){ return role() === 'staff'; }
+  function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+  function text(el){ return el ? String(el.textContent || '').trim() : ''; }
+  function fmtDate(iso){
+    try{ var d = new Date(String(iso||'') + 'T00:00:00'); if(!isNaN(d.getTime())) return d.toLocaleDateString(); }catch(e){}
+    return String(iso || '');
+  }
+  function staffName(id){
+    try{ if(typeof window.staffDisplayNameForId === 'function') return staffDisplayNameForId(id, id || ''); }catch(e){}
+    try{ var st = (window.App && App.staff && App.staff[id]) ? App.staff[id] : {}; return st.nickname || st.name || id || ''; }catch(e2){}
+    return String(id || '');
+  }
+  function displayRange(s,e){
+    try{ if(typeof window.displayTimeRange12 === 'function') return displayTimeRange12(s || '?', e || '?'); }catch(err){}
+    return String(s || '?') + '-' + String(e || '?');
+  }
+  function pending(rec){ var st = rec && rec.status != null ? String(rec.status).toLowerCase() : 'pending'; return rec && (!st || st === 'pending'); }
+  function shiftDay(req, iso){
+    try{ if(req && req.weekStartISO != null && req.dayIndex != null){ var d = window.fromISO ? fromISO(req.weekStartISO) : new Date(String(req.weekStartISO)+'T00:00:00'); d.setDate(d.getDate()+parseInt(req.dayIndex,10)); return fmtDate(d.toISOString().slice(0,10)); } }catch(e){}
+    return fmtDate(iso);
+  }
+  function shiftDetails(req){
+    var parts=[];
+    if(!req) return '';
+    if(req.newStart || req.newEnd) parts.push('New time: ' + String(req.newStart || '?') + ' - ' + String(req.newEnd || '?'));
+    if(req.start || req.end) parts.push('Current/proposed: ' + String(req.start || '?') + ' - ' + String(req.end || '?'));
+    if(req.reason) parts.push(String(req.reason));
+    if(req.notes) parts.push(String(req.notes));
+    return parts.join(' | ') || 'Shift request';
+  }
+  function collectRequests(){
+    var app = window.App || {};
+    var rows=[];
+    try{
+      Object.keys(app.absenceRequests || {}).forEach(function(iso){
+        var bucket = app.absenceRequests[iso] || {};
+        Object.keys(bucket).forEach(function(sid){
+          var r = bucket[sid]; if(!pending(r)) return;
+          var detail = '';
+          if(r.blocks && r.blocks.length){ detail = r.blocks.map(function(b){ return displayRange(b.start,b.end) + (b.reason ? ' - ' + b.reason : ''); }).join(' | '); }
+          else detail = r.reason || 'Full-day away request';
+          rows.push({type:(r.blocks&&r.blocks.length)?'Away partial':'Away full day', staff:staffName(sid), date:fmtDate(iso), detail:detail});
+        });
+      });
+    }catch(e){}
+    try{
+      Object.keys(app.shiftChangeRequests || {}).forEach(function(iso){
+        var bucket = app.shiftChangeRequests[iso] || {};
+        Object.keys(bucket).forEach(function(key){
+          var r = bucket[key]; if(!pending(r)) return;
+          rows.push({type:(String(r.type||'').toLowerCase().indexOf('proposal')>=0 || r.proposedShift || r.isNewShift)?'Shift proposal':'Shift edit', staff:staffName(r.staffId), date:shiftDay(r, iso), detail:shiftDetails(r)});
+        });
+      });
+    }catch(e2){}
+    try{
+      Object.keys(app.editRequests || {}).forEach(function(id){
+        var r = app.editRequests[id]; if(!pending(r)) return;
+        rows.push({type:'Edit request', staff:staffName(r.staffId), date:fmtDate(r.iso||''), detail:r.reason || r.notes || 'Edit request'});
+      });
+    }catch(e3){}
+    return rows;
+  }
+  function collectOperations(){
+    var rows=[];
+    try{
+      var list = byId('plannerWarningsList') || document.querySelector('.planner-warning-list');
+      if(list){ Array.prototype.slice.call(list.children || []).forEach(function(el){
+        var t = text(el); if(!t) return;
+        var cls = String(el.className || '');
+        rows.push({level:cls.indexOf('bad')>=0?'bad':(cls.indexOf('warn')>=0?'warn':'info'), title:'Planner warning', detail:t});
+      }); }
+    }catch(e){}
+    if(!rows.length){
+      var reqs = collectRequests();
+      if(reqs.length) rows.push({level:'info', title:'Pending planner request', detail:reqs.length + ' pending request(s) need review.'});
+    }
+    return rows;
+  }
+  function ensureModal(){
+    var m = byId('v506DetailModal'); if(m) return m;
+    m = document.createElement('div');
+    m.id = 'v506DetailModal';
+    m.className = 'v506-modal';
+    m.innerHTML = '<div class="v506-panel" role="dialog" aria-modal="true"><div class="v506-head"><div><strong id="v506Title"></strong><div class="v506-sub" id="v506Sub"></div></div><button type="button" class="v506-close" id="v506Close">Close</button></div><div class="v506-body" id="v506Body"></div></div>';
+    document.body.appendChild(m);
+    m.addEventListener('click', function(ev){ if(ev.target === m) closeModal(); });
+    byId('v506Close').onclick = closeModal;
+    return m;
+  }
+  function closeModal(){ var m=byId('v506DetailModal'); if(m) m.classList.remove('open'); }
+  function openModal(title, sub, body){
+    var m=ensureModal(); byId('v506Title').textContent = title; byId('v506Sub').textContent = sub; byId('v506Body').innerHTML = body; m.classList.add('open');
+  }
+  function openRequests(){
+    var rows = collectRequests();
+    var body = rows.length ? '<div class="v506-list">' + rows.map(function(r){ return '<div class="v506-row info"><div class="v506-kicker">'+esc(r.type)+'</div><div class="v506-title">'+esc(r.staff)+' - '+esc(r.date)+'</div><div class="v506-detail">'+esc(r.detail)+'</div></div>'; }).join('') + '</div>' : '<div class="v506-detail">No pending requests.</div>';
+    body += '<div class="v506-actions"><button type="button" class="primary" data-v506-go="requests">Open requests page</button></div>';
+    openModal('Pending requests', rows.length + ' item(s) need review.', body);
+  }
+  function openOperations(){
+    var rows = collectOperations();
+    var body = rows.length ? '<div class="v506-list">' + rows.map(function(r,i){ return '<div class="v506-row '+esc(r.level)+'"><div class="v506-kicker">Alert '+(i+1)+'</div><div class="v506-title">'+esc(r.title)+'</div><div class="v506-detail">'+esc(r.detail)+'</div></div>'; }).join('') + '</div>' : '<div class="v506-detail">No active operation alerts.</div>';
+    body += '<div class="v506-actions"><button type="button" class="primary" data-v506-go="planner">Open planner</button><button type="button" data-v506-go="requests">Open requests page</button></div>';
+    openModal('Operations alerts', rows.length ? (rows.length + ' alert(s) need attention.') : 'Operations are clear.', body);
+  }
+  function go(key){
+    closeModal();
+    if(key === 'requests'){
+      var b = byId('tabMyRequests') || byId('btnRequests'); if(b) b.click(); return;
+    }
+    if(key === 'planner'){
+      var p = byId('tabPlanner'); if(p) p.click();
+      setTimeout(function(){ var w=byId('plannerWarnings'); if(w && w.scrollIntoView) w.scrollIntoView({block:'center', behavior:'smooth'}); }, 120);
+    }
+  }
+  function hydrate(){
+    var deck = byId('v5OpsDeck'); if(!deck || staffOnly()) return;
+    Array.prototype.slice.call(deck.querySelectorAll('.v5-ops-card')).forEach(function(card){
+      var label = text(card.querySelector('.v5-ops-label')).toLowerCase();
+      if(label === 'requests' || label === 'operations'){
+        card.setAttribute('data-v506-card', label);
+        card.setAttribute('role','button');
+        card.setAttribute('tabindex','0');
+        card.classList.add('v506-actionable');
+      }
+    });
+  }
+  document.addEventListener('click', function(ev){
+    var goBtn = ev.target && ev.target.closest ? ev.target.closest('[data-v506-go]') : null;
+    if(goBtn){ ev.preventDefault(); go(goBtn.getAttribute('data-v506-go')); return; }
+    var card = ev.target && ev.target.closest ? ev.target.closest('#v5OpsDeck .v5-ops-card') : null;
+    if(!card || staffOnly()) return;
+    var action = String(card.getAttribute('data-v506-card') || text(card.querySelector('.v5-ops-label')).toLowerCase());
+    if(action === 'requests'){ ev.preventDefault(); openRequests(); }
+    if(action === 'operations'){ ev.preventDefault(); openOperations(); }
+  }, true);
+  document.addEventListener('keydown', function(ev){
+    if(ev.key !== 'Enter' && ev.key !== ' ') return;
+    var card = ev.target && ev.target.closest ? ev.target.closest('#v5OpsDeck .v5-ops-card') : null;
+    if(!card || staffOnly()) return;
+    var action = String(card.getAttribute('data-v506-card') || text(card.querySelector('.v5-ops-label')).toLowerCase());
+    if(action === 'requests'){ ev.preventDefault(); openRequests(); }
+    if(action === 'operations'){ ev.preventDefault(); openOperations(); }
+  }, true);
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function(){ setTimeout(hydrate, 50); }); else setTimeout(hydrate, 50);
+  setInterval(hydrate, 700);
+})();
+</script>
+
 </body>
 </html>
