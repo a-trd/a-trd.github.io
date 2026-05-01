@@ -34,7 +34,7 @@
     })();
   </script>
 
-<title>Aspire Workforce Command (V5.0.12)</title>
+<title>Aspire Workforce Command (V5.0.13)</title>
   <meta name="theme-color" content="#22c55e"/>
 
   <style>
@@ -2458,7 +2458,7 @@
 
 
   <style id="v500Css">
-    /* ---------- V5.0.12 Aspire Workforce Command redesign ---------- */
+    /* ---------- V5.0.13 Aspire Workforce Command redesign ---------- */
     :root {
       --v5-bg: #050816;
       --v5-panel: rgba(13,18,35,.84);
@@ -2508,7 +2508,7 @@
       display: none !important;
     }
 
-    /* V5.0.12 staff/mobile safeguards */
+    /* V5.0.13 staff/mobile safeguards */
     body.v5-staff-lite #v5OpsDeck,
     body.v5-staff-lite #btnPushTop,
     body.v5-staff-lite #btnPushPlanner,
@@ -3380,7 +3380,7 @@
   </style>
 
   <style id="v508MobileComfortCss">
-    /* V5.0.12 mobile comfort: phone-sized controls with desktop-wide work boards inside scrollable panels. */
+    /* V5.0.13 mobile comfort: phone-sized controls with desktop-wide work boards inside scrollable panels. */
     html.mobile-comfort-view,
     html.mobile-comfort-view body {
       min-width: 0 !important;
@@ -3523,7 +3523,7 @@
 
 
   <style id="v510PlannerFocusCss">
-    /* V5.0.12 planner-only fullscreen view for shop tablet display. */
+    /* V5.0.13 planner-only fullscreen view for shop tablet display. */
     html.planner-focus-view,
     html.planner-focus-view body {
       width: 100% !important;
@@ -3793,7 +3793,7 @@
   </style>
 
   <style id="v510WeekOverviewFocusCss">
-    /* V5.0.12 week-overview-only fullscreen view for shop tablet display. */
+    /* V5.0.13 week-overview-only fullscreen view for shop tablet display. */
     html.week-overview-focus-view,
     html.week-overview-focus-view body {
       width: 100% !important;
@@ -4037,7 +4037,7 @@
       <div id="appLogoBox"></div>
       <div class="titlewrap">
         <div class="title" id="appTitle">Aspire Workforce Command</div>
-        <div class="version-pill" id="appVersion">V5.0.12</div>
+        <div class="version-pill" id="appVersion">V5.0.13</div>
         <div class="sync-pill syncing" id="syncStatusChip" title="Sync status">Starting…</div>
       </div>
     </div>
@@ -5845,7 +5845,7 @@ var DAY = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 var App = {
   // IMPORTANT: Increment App.version *and* App.buildId whenever making functional changes to this file.
   // SAFETY NET: This build performs an automatic runtime check against the file name; if mismatched, it shows a blocking warning so it can't be overlooked.
-  version: 'V5.0.12',
+  version: 'V5.0.13',
     buildId: '2026-05-01.12',
 settings: {
     dbUrl:'https://mnc-atrd-default-rtdb.asia-southeast1.firebasedatabase.app/', workspace:'mnc-atrd', authToken:'',
@@ -20106,7 +20106,7 @@ try{
 (function(){
   'use strict';
   var APP_NAME = 'Aspire Workforce Command';
-  var APP_VERSION = 'V5.0.12';
+  var APP_VERSION = 'V5.0.13';
   var OLD_TITLE = 'M&C-ATRD-scheduler --=Aspire Group=--';
 
   var NAVS = [
@@ -20344,7 +20344,7 @@ try{
   }
 
   function countPendingRequests(){
-    // V5.0.12: count only real pending requests, not nested/history request-like objects.
+    // V5.0.13: count only real pending requests, not nested/history request-like objects.
     var app = window.App || {};
     var count = 0;
     function pending(rec){
@@ -20759,8 +20759,8 @@ try{
 </script>
 
 
-<style id="v5012FullscreenZoomCss">
-  /* V5.0.12 full-screen control colour and in-app pinch zoom support. */
+<style id="v5013FullscreenZoomCss">
+  /* V5.0.13 full-screen control colour, auto-fit scaling and in-app pinch zoom support. */
   body:not(.week-overview-focus-mode) #btnWeekOverviewFullView {
     background: linear-gradient(135deg, #22c55e, #14b8a6) !important;
     border-color: transparent !important;
@@ -20771,6 +20771,19 @@ try{
   body:not(.week-overview-focus-mode) #btnWeekOverviewFullView:hover {
     transform: translateY(-1px);
     box-shadow: 0 14px 34px rgba(34,197,94,.28) !important;
+  }
+
+  body.planner-focus-mode #plannerSection .planner,
+  body.week-overview-focus-mode #plannerSection #weekOverview {
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  body.planner-focus-mode #plannerSection .planner.focus-manual-zoom,
+  body.week-overview-focus-mode #plannerSection #weekOverview.focus-manual-zoom {
+    overflow-x: auto !important;
   }
 
   body.planner-focus-mode #plannerSection #plannerGrid,
@@ -20802,7 +20815,7 @@ try{
   body.week-overview-focus-mode #plannerSection #weekOverview::after {
     content: attr(data-focus-zoom);
     position: sticky;
-    left: calc(100% - 84px);
+    left: calc(100% - 96px);
     bottom: 10px;
     z-index: 40;
     display: none;
@@ -20819,7 +20832,9 @@ try{
   }
 
   body.planner-focus-mode #plannerSection .planner.is-pinching::after,
-  body.week-overview-focus-mode #plannerSection #weekOverview.is-pinching::after {
+  body.week-overview-focus-mode #plannerSection #weekOverview.is-pinching::after,
+  body.planner-focus-mode #plannerSection .planner.focus-manual-zoom::after,
+  body.week-overview-focus-mode #plannerSection #weekOverview.focus-manual-zoom::after {
     display: block;
   }
 
@@ -20836,20 +20851,23 @@ try{
     }
   }
 </style>
-<script id="v5012FullscreenZoomScript">
+<script id="v5013FullscreenZoomScript">
 (function(){
   'use strict';
 
-  var MIN_ZOOM = 0.55;
+  var MIN_ZOOM = 0.22;
   var MAX_ZOOM = 3.00;
   var zoom = { planner: 1, week: 1 };
+  var manual = { planner: false, week: false };
   var pinch = null;
   var supportsZoom = false;
+  var syncTimer = null;
 
   try{
     var probe = document.createElement('div');
-    supportsZoom = ('zoom' in probe.style);
-  }catch(e){ supportsZoom = false; }
+    probe.style.zoom = '1';
+    supportsZoom = (probe.style.zoom === '1' || ('zoom' in probe.style));
+  }catch(e){ supportsZoom = true; }
 
   function byId(id){ return document.getElementById(id); }
   function hasBodyClass(cls){
@@ -20904,10 +20922,39 @@ try{
     }
     return null;
   }
+  function naturalSize(target){
+    var surface = target && target.surface;
+    if(!surface) return { width:0, height:0 };
+    var oldZoom = surface.style.zoom;
+    var oldTransform = surface.style.transform;
+    var oldTransformOrigin = surface.style.transformOrigin;
+    try{ surface.style.zoom = ''; }catch(e){}
+    try{ surface.style.transform = ''; }catch(e){}
+    try{ surface.style.transformOrigin = '0 0'; }catch(e){}
+    var rect = { width:0, height:0 };
+    try{ rect = surface.getBoundingClientRect(); }catch(e){}
+    var width = Math.max(surface.scrollWidth||0, surface.offsetWidth||0, rect.width||0);
+    var height = Math.max(surface.scrollHeight||0, surface.offsetHeight||0, rect.height||0);
+    try{ surface.style.zoom = oldZoom; }catch(e){}
+    try{ surface.style.transform = oldTransform; }catch(e){}
+    try{ surface.style.transformOrigin = oldTransformOrigin; }catch(e){}
+    return { width:width, height:height };
+  }
+  function fitZoomForTarget(target){
+    if(!target || !target.container || !target.surface) return 1;
+    var size = naturalSize(target);
+    var rect = { width:0 };
+    try{ rect = target.container.getBoundingClientRect(); }catch(e){}
+    var available = Math.max(220, (target.container.clientWidth || rect.width || window.innerWidth || 0) - 2);
+    var naturalWidth = Math.max(1, size.width || available || 1);
+    var fit = Math.min(1, available / naturalWidth);
+    return clamp(fit, MIN_ZOOM, 1);
+  }
   function applySurface(surface, value){
     if(!surface) return;
     value = clamp(value, MIN_ZOOM, MAX_ZOOM);
     try{ surface.style.setProperty('--focusPinchZoom', String(value)); }catch(e){}
+    try{ surface.style.transformOrigin = '0 0'; }catch(e){}
     if(supportsZoom){
       try{ surface.style.zoom = (Math.abs(value - 1) < 0.001) ? '' : String(value); }catch(e){}
       try{ surface.style.transform = ''; }catch(e){}
@@ -20917,11 +20964,20 @@ try{
     }
   }
   function zoomLabel(value){ return Math.round((value || 1) * 100) + '%'; }
+  function setContainerScrollMode(target, type, value, fit){
+    if(!target || !target.container) return;
+    var needsPan = !!manual[type] && value > (fit + 0.015);
+    try{ target.container.classList.toggle('focus-manual-zoom', needsPan); }catch(e){}
+    try{ target.container.style.setProperty('overflow-y', 'auto', 'important'); }catch(e){}
+    try{ target.container.style.setProperty('overflow-x', needsPan ? 'auto' : 'hidden', 'important'); }catch(e){}
+    if(!needsPan){ try{ target.container.scrollLeft = 0; }catch(e){} }
+  }
   function setZoom(type, value, center, anchor){
     var target = targetFor(type);
     if(!target) return;
+    var fit = fitZoomForTarget(target);
     value = clamp(value, MIN_ZOOM, MAX_ZOOM);
-    var previous = zoom[type] || 1;
+    var previous = zoom[type] || fit || 1;
     var rect = target.container.getBoundingClientRect();
     var contentX = null;
     var contentY = null;
@@ -20934,47 +20990,76 @@ try{
     }
     zoom[type] = value;
     applySurface(target.surface, value);
-    try{ target.container.setAttribute('data-focus-zoom', zoomLabel(value)); }catch(e){}
+    setContainerScrollMode(target, type, value, fit);
+    try{ target.container.setAttribute('data-focus-zoom', (manual[type] ? 'Zoom ' : 'Fit ') + zoomLabel(value)); }catch(e){}
     if(center && isFinite(contentX) && isFinite(contentY)){
       try{ target.container.scrollLeft = Math.max(0, contentX * value - (center.x - rect.left)); }catch(e){}
       try{ target.container.scrollTop = Math.max(0, contentY * value - (center.y - rect.top)); }catch(e){}
     }
   }
+  function autoFit(type, resetScroll){
+    var target = targetFor(type);
+    if(!target) return;
+    manual[type] = false;
+    var fit = fitZoomForTarget(target);
+    zoom[type] = fit;
+    applySurface(target.surface, fit);
+    setContainerScrollMode(target, type, fit, fit);
+    try{ target.container.setAttribute('data-focus-zoom', 'Fit ' + zoomLabel(fit)); }catch(e){}
+    try{ target.container.scrollLeft = 0; }catch(e){}
+    if(resetScroll){ try{ target.container.scrollTop = 0; }catch(e){} }
+  }
   function clearZoom(type){
     var target = targetFor(type);
     zoom[type] = 1;
+    manual[type] = false;
     if(target){
       try{ target.surface.style.zoom = ''; }catch(e){}
       try{ target.surface.style.transform = ''; }catch(e){}
+      try{ target.surface.style.transformOrigin = ''; }catch(e){}
       try{ target.surface.style.removeProperty('--focusPinchZoom'); }catch(e){}
       try{ target.container.removeAttribute('data-focus-zoom'); }catch(e){}
       try{ target.container.classList.remove('is-pinching'); }catch(e){}
+      try{ target.container.classList.remove('focus-manual-zoom'); }catch(e){}
+      try{ target.container.style.removeProperty('overflow-x'); }catch(e){}
+      try{ target.container.style.removeProperty('overflow-y'); }catch(e){}
     }
   }
-  function syncActiveSurfaces(){
-    if(hasBodyClass('planner-focus-mode')) setZoom('planner', zoom.planner || 1);
-    else clearZoom('planner');
+  function syncActiveSurfaces(forceFit, resetScroll){
+    if(hasBodyClass('planner-focus-mode')){
+      if(forceFit || !manual.planner) autoFit('planner', resetScroll);
+      else setZoom('planner', zoom.planner || 1);
+    }else{
+      clearZoom('planner');
+    }
 
     if(hasBodyClass('week-overview-focus-mode')){
       ensureWeekSurface();
-      setZoom('week', zoom.week || 1);
+      if(forceFit || !manual.week) autoFit('week', resetScroll);
+      else setZoom('week', zoom.week || 1);
     }else{
       clearZoom('week');
     }
+  }
+  function scheduleSync(forceFit, resetScroll){
+    if(syncTimer) clearTimeout(syncTimer);
+    syncTimer = setTimeout(function(){ syncActiveSurfaces(forceFit, resetScroll); }, 0);
+    setTimeout(function(){ syncActiveSurfaces(forceFit, resetScroll); }, 90);
+    setTimeout(function(){ syncActiveSurfaces(forceFit, resetScroll); }, 260);
   }
   var lastPlannerFocus = false;
   var lastWeekFocus = false;
   function resetOnModeChange(){
     var plannerNow = hasBodyClass('planner-focus-mode');
     var weekNow = hasBodyClass('week-overview-focus-mode');
-    if(plannerNow && !lastPlannerFocus) zoom.planner = 1;
-    if(weekNow && !lastWeekFocus) zoom.week = 1;
+    var resetScroll = false;
+    if(plannerNow && !lastPlannerFocus){ manual.planner = false; zoom.planner = 1; resetScroll = true; }
+    if(weekNow && !lastWeekFocus){ manual.week = false; zoom.week = 1; resetScroll = true; }
     if(!plannerNow && lastPlannerFocus) clearZoom('planner');
     if(!weekNow && lastWeekFocus) clearZoom('week');
     lastPlannerFocus = plannerNow;
     lastWeekFocus = weekNow;
-    setTimeout(syncActiveSurfaces, 0);
-    setTimeout(syncActiveSurfaces, 80);
+    scheduleSync(true, resetScroll);
   }
   function startPinch(ev){
     if(!ev || !ev.touches || ev.touches.length < 2) return;
@@ -20983,8 +21068,9 @@ try{
     var target = targetFor(type);
     if(!target) return;
     var center = midpoint(ev.touches);
-    var currentZoom = zoom[type] || 1;
+    var currentZoom = zoom[type] || fitZoomForTarget(target) || 1;
     var rect = target.container.getBoundingClientRect();
+    manual[type] = true;
     pinch = {
       type: type,
       startDistance: distance(ev.touches),
@@ -20997,6 +21083,7 @@ try{
   function movePinch(ev){
     if(!pinch || !ev || !ev.touches || ev.touches.length < 2) return;
     try{ ev.preventDefault(); }catch(e){}
+    manual[pinch.type] = true;
     var next = pinch.startZoom * (distance(ev.touches) / Math.max(1, pinch.startDistance));
     setZoom(pinch.type, next, midpoint(ev.touches), pinch);
   }
@@ -21013,6 +21100,7 @@ try{
     var type = focusTypeFromTarget(ev.target);
     if(!type) return;
     try{ ev.preventDefault(); }catch(e){}
+    manual[type] = true;
     var factor = Math.exp((-ev.deltaY || 0) * 0.0015);
     setZoom(type, (zoom[type] || 1) * factor, { x: ev.clientX || 0, y: ev.clientY || 0 });
   }
@@ -21023,8 +21111,9 @@ try{
     if(!target) return;
     try{ ev.preventDefault(); }catch(e){}
     var center = { x: ev.clientX || (window.innerWidth/2), y: ev.clientY || (window.innerHeight/2) };
-    var currentZoom = zoom[type] || 1;
+    var currentZoom = zoom[type] || fitZoomForTarget(target) || 1;
     var rect = target.container.getBoundingClientRect();
+    manual[type] = true;
     pinch = {
       type: type,
       startDistance: 1,
@@ -21039,6 +21128,7 @@ try{
     if(!pinch || !pinch.safari) return;
     try{ ev.preventDefault(); }catch(e){}
     var center = { x: ev.clientX || (window.innerWidth/2), y: ev.clientY || (window.innerHeight/2) };
+    manual[pinch.type] = true;
     setZoom(pinch.type, pinch.startZoom * (ev.scale || 1), center, pinch);
   }
 
@@ -21067,15 +21157,31 @@ try{
     var week = byId('weekOverview');
     if(week){
       var weekObserver = new MutationObserver(function(){
-        if(hasBodyClass('week-overview-focus-mode')) setTimeout(syncActiveSurfaces, 0);
+        if(hasBodyClass('week-overview-focus-mode')) scheduleSync(true, false);
       });
-      weekObserver.observe(week, { childList:true });
+      weekObserver.observe(week, { childList:true, subtree:false });
     }
   }catch(e){}
 
-  window.addEventListener('resize', function(){ setTimeout(syncActiveSurfaces, 80); });
-  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', syncActiveSurfaces);
-  else setTimeout(syncActiveSurfaces, 0);
+  try{
+    var plannerGrid = byId('plannerGrid');
+    if(plannerGrid){
+      var plannerObserver = new MutationObserver(function(){
+        if(hasBodyClass('planner-focus-mode')) scheduleSync(true, false);
+      });
+      plannerObserver.observe(plannerGrid, { childList:true, subtree:false });
+    }
+  }catch(e){}
+
+  function handleResize(){
+    manual.planner = false;
+    manual.week = false;
+    scheduleSync(true, false);
+  }
+  window.addEventListener('resize', handleResize);
+  window.addEventListener('orientationchange', function(){ setTimeout(handleResize, 250); });
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function(){ scheduleSync(true, false); });
+  else setTimeout(function(){ scheduleSync(true, false); }, 0);
 })();
 </script>
 
