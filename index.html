@@ -34,7 +34,7 @@
     })();
   </script>
 
-<title>Aspire Workforce Command (V5.0.11)</title>
+<title>Aspire Workforce Command (V5.0.12)</title>
   <meta name="theme-color" content="#22c55e"/>
 
   <style>
@@ -2458,7 +2458,7 @@
 
 
   <style id="v500Css">
-    /* ---------- V5.0.11 Aspire Workforce Command redesign ---------- */
+    /* ---------- V5.0.12 Aspire Workforce Command redesign ---------- */
     :root {
       --v5-bg: #050816;
       --v5-panel: rgba(13,18,35,.84);
@@ -2508,7 +2508,7 @@
       display: none !important;
     }
 
-    /* V5.0.11 staff/mobile safeguards */
+    /* V5.0.12 staff/mobile safeguards */
     body.v5-staff-lite #v5OpsDeck,
     body.v5-staff-lite #btnPushTop,
     body.v5-staff-lite #btnPushPlanner,
@@ -3380,7 +3380,7 @@
   </style>
 
   <style id="v508MobileComfortCss">
-    /* V5.0.11 mobile comfort: phone-sized controls with desktop-wide work boards inside scrollable panels. */
+    /* V5.0.12 mobile comfort: phone-sized controls with desktop-wide work boards inside scrollable panels. */
     html.mobile-comfort-view,
     html.mobile-comfort-view body {
       min-width: 0 !important;
@@ -3523,7 +3523,7 @@
 
 
   <style id="v510PlannerFocusCss">
-    /* V5.0.11 planner-only fullscreen view for shop tablet display. */
+    /* V5.0.12 planner-only fullscreen view for shop tablet display. */
     html.planner-focus-view,
     html.planner-focus-view body {
       width: 100% !important;
@@ -3793,7 +3793,7 @@
   </style>
 
   <style id="v510WeekOverviewFocusCss">
-    /* V5.0.11 week-overview-only fullscreen view for shop tablet display. */
+    /* V5.0.12 week-overview-only fullscreen view for shop tablet display. */
     html.week-overview-focus-view,
     html.week-overview-focus-view body {
       width: 100% !important;
@@ -4037,7 +4037,7 @@
       <div id="appLogoBox"></div>
       <div class="titlewrap">
         <div class="title" id="appTitle">Aspire Workforce Command</div>
-        <div class="version-pill" id="appVersion">V5.0.11</div>
+        <div class="version-pill" id="appVersion">V5.0.12</div>
         <div class="sync-pill syncing" id="syncStatusChip" title="Sync status">Starting…</div>
       </div>
     </div>
@@ -5845,8 +5845,8 @@ var DAY = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 var App = {
   // IMPORTANT: Increment App.version *and* App.buildId whenever making functional changes to this file.
   // SAFETY NET: This build performs an automatic runtime check against the file name; if mismatched, it shows a blocking warning so it can't be overlooked.
-  version: 'V5.0.11',
-    buildId: '2026-05-01.11',
+  version: 'V5.0.12',
+    buildId: '2026-05-01.12',
 settings: {
     dbUrl:'https://mnc-atrd-default-rtdb.asia-southeast1.firebasedatabase.app/', workspace:'mnc-atrd', authToken:'',
     theme:'light', themeName:'light-pastel-sky', recentColors:[], appTitle:'Aspire Workforce Command', logoUrl:'',
@@ -20106,7 +20106,7 @@ try{
 (function(){
   'use strict';
   var APP_NAME = 'Aspire Workforce Command';
-  var APP_VERSION = 'V5.0.11';
+  var APP_VERSION = 'V5.0.12';
   var OLD_TITLE = 'M&C-ATRD-scheduler --=Aspire Group=--';
 
   var NAVS = [
@@ -20344,7 +20344,7 @@ try{
   }
 
   function countPendingRequests(){
-    // V5.0.11: count only real pending requests, not nested/history request-like objects.
+    // V5.0.12: count only real pending requests, not nested/history request-like objects.
     var app = window.App || {};
     var count = 0;
     function pending(rec){
@@ -20755,6 +20755,327 @@ try{
   }, true);
   if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function(){ setTimeout(hydrate, 50); }); else setTimeout(hydrate, 50);
   setInterval(hydrate, 700);
+})();
+</script>
+
+
+<style id="v5012FullscreenZoomCss">
+  /* V5.0.12 full-screen control colour and in-app pinch zoom support. */
+  body:not(.week-overview-focus-mode) #btnWeekOverviewFullView {
+    background: linear-gradient(135deg, #22c55e, #14b8a6) !important;
+    border-color: transparent !important;
+    color: #03130f !important;
+    box-shadow: 0 12px 30px rgba(34,197,94,.20) !important;
+  }
+
+  body:not(.week-overview-focus-mode) #btnWeekOverviewFullView:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 14px 34px rgba(34,197,94,.28) !important;
+  }
+
+  body.planner-focus-mode #plannerSection #plannerGrid,
+  body.week-overview-focus-mode #plannerSection #weekOverview > .week-overview-zoom-surface {
+    transform-origin: 0 0 !important;
+    will-change: transform, zoom;
+  }
+
+  body.week-overview-focus-mode #plannerSection #weekOverview {
+    display: block !important;
+  }
+
+  body.week-overview-focus-mode #plannerSection #weekOverview > .week-overview-zoom-surface {
+    display: grid !important;
+    align-items: stretch !important;
+    grid-template-columns: 230px repeat(7, minmax(190px, 1fr)) !important;
+    gap: 10px !important;
+    min-width: 100% !important;
+    width: max-content !important;
+  }
+
+  body.planner-focus-mode #plannerSection .planner.is-pinching,
+  body.week-overview-focus-mode #plannerSection #weekOverview.is-pinching {
+    touch-action: none !important;
+    cursor: zoom-in;
+  }
+
+  body.planner-focus-mode #plannerSection .planner::after,
+  body.week-overview-focus-mode #plannerSection #weekOverview::after {
+    content: attr(data-focus-zoom);
+    position: sticky;
+    left: calc(100% - 84px);
+    bottom: 10px;
+    z-index: 40;
+    display: none;
+    width: max-content;
+    padding: 5px 8px;
+    border-radius: 999px;
+    background: rgba(15,23,42,.78);
+    color: #f8fafc;
+    border: 1px solid rgba(148,163,184,.32);
+    font-size: 11px;
+    font-weight: 950;
+    pointer-events: none;
+    backdrop-filter: blur(10px);
+  }
+
+  body.planner-focus-mode #plannerSection .planner.is-pinching::after,
+  body.week-overview-focus-mode #plannerSection #weekOverview.is-pinching::after {
+    display: block;
+  }
+
+  @media (orientation: landscape) and (min-width: 900px) {
+    body.week-overview-focus-mode #plannerSection #weekOverview > .week-overview-zoom-surface {
+      grid-template-columns: 260px repeat(7, minmax(210px, 1fr)) !important;
+    }
+  }
+
+  @media (max-width: 620px) {
+    body.week-overview-focus-mode #plannerSection #weekOverview > .week-overview-zoom-surface {
+      grid-template-columns: 190px repeat(7, minmax(160px, 1fr)) !important;
+      gap: 8px !important;
+    }
+  }
+</style>
+<script id="v5012FullscreenZoomScript">
+(function(){
+  'use strict';
+
+  var MIN_ZOOM = 0.55;
+  var MAX_ZOOM = 3.00;
+  var zoom = { planner: 1, week: 1 };
+  var pinch = null;
+  var supportsZoom = false;
+
+  try{
+    var probe = document.createElement('div');
+    supportsZoom = ('zoom' in probe.style);
+  }catch(e){ supportsZoom = false; }
+
+  function byId(id){ return document.getElementById(id); }
+  function hasBodyClass(cls){
+    try{ return !!(document.body && document.body.classList && document.body.classList.contains(cls)); }catch(e){ return false; }
+  }
+  function clamp(n, min, max){
+    n = parseFloat(n);
+    if(!isFinite(n)) n = 1;
+    return Math.max(min, Math.min(max, n));
+  }
+  function closest(el, selector){
+    try{ return el && el.closest ? el.closest(selector) : null; }catch(e){ return null; }
+  }
+  function distance(touches){
+    var a = touches[0], b = touches[1];
+    var dx = (a.clientX||0) - (b.clientX||0);
+    var dy = (a.clientY||0) - (b.clientY||0);
+    return Math.sqrt(dx*dx + dy*dy) || 1;
+  }
+  function midpoint(touches){
+    var a = touches[0], b = touches[1];
+    return { x: ((a.clientX||0) + (b.clientX||0)) / 2, y: ((a.clientY||0) + (b.clientY||0)) / 2 };
+  }
+  function focusTypeFromTarget(target){
+    if(hasBodyClass('planner-focus-mode') && closest(target, '#plannerSection .planner')) return 'planner';
+    if(hasBodyClass('week-overview-focus-mode') && closest(target, '#plannerSection #weekOverview')) return 'week';
+    return '';
+  }
+  function ensureWeekSurface(){
+    var container = byId('weekOverview');
+    if(!container) return null;
+    var surface = null;
+    try{ surface = container.querySelector(':scope > .week-overview-zoom-surface'); }catch(e){ surface = null; }
+    if(!surface && hasBodyClass('week-overview-focus-mode')){
+      surface = document.createElement('div');
+      surface.className = 'week-overview-zoom-surface';
+      while(container.firstChild) surface.appendChild(container.firstChild);
+      container.appendChild(surface);
+    }
+    return surface || container;
+  }
+  function targetFor(type){
+    if(type === 'planner'){
+      var planner = document.querySelector('#plannerSection .planner');
+      var grid = byId('plannerGrid');
+      if(planner && grid) return { type:type, container:planner, surface:grid };
+    }
+    if(type === 'week'){
+      var week = byId('weekOverview');
+      var surface = ensureWeekSurface();
+      if(week && surface) return { type:type, container:week, surface:surface };
+    }
+    return null;
+  }
+  function applySurface(surface, value){
+    if(!surface) return;
+    value = clamp(value, MIN_ZOOM, MAX_ZOOM);
+    try{ surface.style.setProperty('--focusPinchZoom', String(value)); }catch(e){}
+    if(supportsZoom){
+      try{ surface.style.zoom = (Math.abs(value - 1) < 0.001) ? '' : String(value); }catch(e){}
+      try{ surface.style.transform = ''; }catch(e){}
+    }else{
+      try{ surface.style.zoom = ''; }catch(e){}
+      try{ surface.style.transform = (Math.abs(value - 1) < 0.001) ? '' : 'scale(' + value + ')'; }catch(e){}
+    }
+  }
+  function zoomLabel(value){ return Math.round((value || 1) * 100) + '%'; }
+  function setZoom(type, value, center, anchor){
+    var target = targetFor(type);
+    if(!target) return;
+    value = clamp(value, MIN_ZOOM, MAX_ZOOM);
+    var previous = zoom[type] || 1;
+    var rect = target.container.getBoundingClientRect();
+    var contentX = null;
+    var contentY = null;
+    if(anchor && anchor.type === type){
+      contentX = anchor.contentX;
+      contentY = anchor.contentY;
+    }else if(center){
+      contentX = (target.container.scrollLeft + center.x - rect.left) / previous;
+      contentY = (target.container.scrollTop + center.y - rect.top) / previous;
+    }
+    zoom[type] = value;
+    applySurface(target.surface, value);
+    try{ target.container.setAttribute('data-focus-zoom', zoomLabel(value)); }catch(e){}
+    if(center && isFinite(contentX) && isFinite(contentY)){
+      try{ target.container.scrollLeft = Math.max(0, contentX * value - (center.x - rect.left)); }catch(e){}
+      try{ target.container.scrollTop = Math.max(0, contentY * value - (center.y - rect.top)); }catch(e){}
+    }
+  }
+  function clearZoom(type){
+    var target = targetFor(type);
+    zoom[type] = 1;
+    if(target){
+      try{ target.surface.style.zoom = ''; }catch(e){}
+      try{ target.surface.style.transform = ''; }catch(e){}
+      try{ target.surface.style.removeProperty('--focusPinchZoom'); }catch(e){}
+      try{ target.container.removeAttribute('data-focus-zoom'); }catch(e){}
+      try{ target.container.classList.remove('is-pinching'); }catch(e){}
+    }
+  }
+  function syncActiveSurfaces(){
+    if(hasBodyClass('planner-focus-mode')) setZoom('planner', zoom.planner || 1);
+    else clearZoom('planner');
+
+    if(hasBodyClass('week-overview-focus-mode')){
+      ensureWeekSurface();
+      setZoom('week', zoom.week || 1);
+    }else{
+      clearZoom('week');
+    }
+  }
+  var lastPlannerFocus = false;
+  var lastWeekFocus = false;
+  function resetOnModeChange(){
+    var plannerNow = hasBodyClass('planner-focus-mode');
+    var weekNow = hasBodyClass('week-overview-focus-mode');
+    if(plannerNow && !lastPlannerFocus) zoom.planner = 1;
+    if(weekNow && !lastWeekFocus) zoom.week = 1;
+    if(!plannerNow && lastPlannerFocus) clearZoom('planner');
+    if(!weekNow && lastWeekFocus) clearZoom('week');
+    lastPlannerFocus = plannerNow;
+    lastWeekFocus = weekNow;
+    setTimeout(syncActiveSurfaces, 0);
+    setTimeout(syncActiveSurfaces, 80);
+  }
+  function startPinch(ev){
+    if(!ev || !ev.touches || ev.touches.length < 2) return;
+    var type = focusTypeFromTarget(ev.target);
+    if(!type) return;
+    var target = targetFor(type);
+    if(!target) return;
+    var center = midpoint(ev.touches);
+    var currentZoom = zoom[type] || 1;
+    var rect = target.container.getBoundingClientRect();
+    pinch = {
+      type: type,
+      startDistance: distance(ev.touches),
+      startZoom: currentZoom,
+      contentX: (target.container.scrollLeft + center.x - rect.left) / currentZoom,
+      contentY: (target.container.scrollTop + center.y - rect.top) / currentZoom
+    };
+    try{ target.container.classList.add('is-pinching'); }catch(e){}
+  }
+  function movePinch(ev){
+    if(!pinch || !ev || !ev.touches || ev.touches.length < 2) return;
+    try{ ev.preventDefault(); }catch(e){}
+    var next = pinch.startZoom * (distance(ev.touches) / Math.max(1, pinch.startDistance));
+    setZoom(pinch.type, next, midpoint(ev.touches), pinch);
+  }
+  function endPinch(){
+    if(!pinch) return;
+    var target = targetFor(pinch.type);
+    if(target){
+      try{ target.container.classList.remove('is-pinching'); }catch(e){}
+    }
+    pinch = null;
+  }
+  function wheelZoom(ev){
+    if(!ev || !(ev.ctrlKey || ev.metaKey)) return;
+    var type = focusTypeFromTarget(ev.target);
+    if(!type) return;
+    try{ ev.preventDefault(); }catch(e){}
+    var factor = Math.exp((-ev.deltaY || 0) * 0.0015);
+    setZoom(type, (zoom[type] || 1) * factor, { x: ev.clientX || 0, y: ev.clientY || 0 });
+  }
+  function safariGestureStart(ev){
+    var type = focusTypeFromTarget(ev.target);
+    if(!type) return;
+    var target = targetFor(type);
+    if(!target) return;
+    try{ ev.preventDefault(); }catch(e){}
+    var center = { x: ev.clientX || (window.innerWidth/2), y: ev.clientY || (window.innerHeight/2) };
+    var currentZoom = zoom[type] || 1;
+    var rect = target.container.getBoundingClientRect();
+    pinch = {
+      type: type,
+      startDistance: 1,
+      startZoom: currentZoom,
+      contentX: (target.container.scrollLeft + center.x - rect.left) / currentZoom,
+      contentY: (target.container.scrollTop + center.y - rect.top) / currentZoom,
+      safari: true
+    };
+    try{ target.container.classList.add('is-pinching'); }catch(e){}
+  }
+  function safariGestureChange(ev){
+    if(!pinch || !pinch.safari) return;
+    try{ ev.preventDefault(); }catch(e){}
+    var center = { x: ev.clientX || (window.innerWidth/2), y: ev.clientY || (window.innerHeight/2) };
+    setZoom(pinch.type, pinch.startZoom * (ev.scale || 1), center, pinch);
+  }
+
+  document.addEventListener('touchstart', startPinch, { passive: false });
+  document.addEventListener('touchmove', movePinch, { passive: false });
+  document.addEventListener('touchend', endPinch, true);
+  document.addEventListener('touchcancel', endPinch, true);
+  document.addEventListener('wheel', wheelZoom, { passive: false });
+  document.addEventListener('gesturestart', safariGestureStart, { passive: false });
+  document.addEventListener('gesturechange', safariGestureChange, { passive: false });
+  document.addEventListener('gestureend', endPinch, true);
+
+  try{
+    var bodyObserver = new MutationObserver(function(mutations){
+      for(var i=0;i<mutations.length;i++){
+        if(mutations[i].attributeName === 'class'){
+          resetOnModeChange();
+          return;
+        }
+      }
+    });
+    if(document.body) bodyObserver.observe(document.body, { attributes:true, attributeFilter:['class'] });
+  }catch(e){}
+
+  try{
+    var week = byId('weekOverview');
+    if(week){
+      var weekObserver = new MutationObserver(function(){
+        if(hasBodyClass('week-overview-focus-mode')) setTimeout(syncActiveSurfaces, 0);
+      });
+      weekObserver.observe(week, { childList:true });
+    }
+  }catch(e){}
+
+  window.addEventListener('resize', function(){ setTimeout(syncActiveSurfaces, 80); });
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', syncActiveSurfaces);
+  else setTimeout(syncActiveSurfaces, 0);
 })();
 </script>
 
