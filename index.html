@@ -34,7 +34,7 @@
     })();
   </script>
 
-<title>Aspire Workforce Command (V5.0.8)</title>
+<title>Aspire Workforce Command (V5.0.9)</title>
   <meta name="theme-color" content="#22c55e"/>
 
   <style>
@@ -2458,7 +2458,7 @@
 
 
   <style id="v500Css">
-    /* ---------- V5.0.8 Aspire Workforce Command redesign ---------- */
+    /* ---------- V5.0.9 Aspire Workforce Command redesign ---------- */
     :root {
       --v5-bg: #050816;
       --v5-panel: rgba(13,18,35,.84);
@@ -2508,7 +2508,7 @@
       display: none !important;
     }
 
-    /* V5.0.8 staff/mobile safeguards */
+    /* V5.0.9 staff/mobile safeguards */
     body.v5-staff-lite #v5OpsDeck,
     body.v5-staff-lite #btnPushTop,
     body.v5-staff-lite #btnPushPlanner,
@@ -3380,7 +3380,7 @@
   </style>
 
   <style id="v508MobileComfortCss">
-    /* V5.0.8 mobile comfort: phone-sized controls with desktop-wide work boards inside scrollable panels. */
+    /* V5.0.9 mobile comfort: phone-sized controls with desktop-wide work boards inside scrollable panels. */
     html.mobile-comfort-view,
     html.mobile-comfort-view body {
       min-width: 0 !important;
@@ -3520,6 +3520,277 @@
       }
     }
   </style>
+
+
+  <style id="v509PlannerFocusCss">
+    /* V5.0.9 planner-only fullscreen view for shop tablet display. */
+    html.planner-focus-view,
+    html.planner-focus-view body {
+      width: 100% !important;
+      min-width: 0 !important;
+      height: 100% !important;
+      overflow: hidden !important;
+      touch-action: pan-x pan-y pinch-zoom;
+    }
+
+    body.planner-focus-mode {
+      padding: 0 !important;
+      min-height: 100vh !important;
+      overflow: hidden !important;
+      background: #020617 !important;
+    }
+
+    body.planner-focus-mode .appbar,
+    body.planner-focus-mode .v5-rail,
+    body.planner-focus-mode .v5-topbar,
+    body.planner-focus-mode .v5-ops-deck,
+    body.planner-focus-mode #v5OpsDeck,
+    body.planner-focus-mode .v5-command-fab,
+    body.planner-focus-mode .v5-command-modal,
+    body.planner-focus-mode .bottom-nav,
+    body.planner-focus-mode #splashSync,
+    body.planner-focus-mode #toastHost {
+      display: none !important;
+    }
+
+    body.planner-focus-mode .wrap {
+      margin: 0 !important;
+      width: 100% !important;
+      max-width: none !important;
+      height: 100vh !important;
+      padding: 0 !important;
+      display: block !important;
+      overflow: hidden !important;
+    }
+
+    body.planner-focus-mode .section,
+    body.planner-focus-mode .login {
+      display: none !important;
+    }
+
+    body.planner-focus-mode #plannerSection {
+      display: block !important;
+      height: 100vh !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      overflow: hidden !important;
+    }
+
+    body.planner-focus-mode #plannerSection .card {
+      height: 100vh !important;
+      width: 100% !important;
+      margin: 0 !important;
+      padding: 10px 12px 12px !important;
+      border-radius: 0 !important;
+      border: none !important;
+      display: grid !important;
+      grid-template-rows: auto auto minmax(0, 1fr) !important;
+      gap: 8px !important;
+      background:
+        radial-gradient(circle at top left, rgba(56,189,248,.16), transparent 42%),
+        linear-gradient(135deg, rgba(2,6,23,.98), rgba(15,23,42,.96)) !important;
+      box-shadow: none !important;
+      overflow: hidden !important;
+    }
+
+    [data-theme="light"] body.planner-focus-mode #plannerSection .card {
+      background:
+        radial-gradient(circle at top left, rgba(14,165,233,.14), transparent 42%),
+        linear-gradient(135deg, #f8fafc, #eaf5ff) !important;
+    }
+
+    body.planner-focus-mode #plannerSection #legend,
+    body.planner-focus-mode #plannerSection #weekOverview,
+    body.planner-focus-mode #plannerSection .requests-strip,
+    body.planner-focus-mode #plannerSection #availabilityBar,
+    body.planner-focus-mode #plannerSection #coverageBar,
+    body.planner-focus-mode #plannerSection #plannerPrintHeader,
+    body.planner-focus-mode #plannerSection .v505-mobile-planner-help {
+      display: none !important;
+    }
+
+    body.planner-focus-mode #plannerSection .toolbar {
+      margin: 0 !important;
+      padding: 8px !important;
+      min-height: 50px !important;
+      border-radius: 18px !important;
+      display: flex !important;
+      align-items: center !important;
+      gap: 8px !important;
+      background: rgba(15,23,42,.84) !important;
+      border: 1px solid rgba(148,163,184,.24) !important;
+      box-shadow: 0 16px 40px rgba(0,0,0,.28) !important;
+      overflow-x: auto !important;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    [data-theme="light"] body.planner-focus-mode #plannerSection .toolbar {
+      background: rgba(255,255,255,.88) !important;
+      box-shadow: 0 14px 34px rgba(30,64,175,.12) !important;
+    }
+
+    body.planner-focus-mode #plannerSection .toolbar > * {
+      display: none !important;
+    }
+
+    body.planner-focus-mode #plannerSection .toolbar #btnPrevWeek,
+    body.planner-focus-mode #plannerSection .toolbar #weekLabel,
+    body.planner-focus-mode #plannerSection .toolbar #btnNextWeek,
+    body.planner-focus-mode #plannerSection .toolbar #btnPlannerFullView {
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      min-height: 38px !important;
+      font-size: 13px !important;
+      flex: 0 0 auto !important;
+    }
+
+    body.planner-focus-mode #plannerSection .toolbar #weekLabel {
+      padding: 9px 14px !important;
+      font-size: 14px !important;
+      font-weight: 1000 !important;
+    }
+
+    body.planner-focus-mode #plannerSection .toolbar #btnPlannerFullView {
+      margin-left: auto !important;
+      background: linear-gradient(135deg, #fb7185, #ef4444) !important;
+      color: #fff !important;
+    }
+
+    body.planner-focus-mode #plannerSection .daytabs {
+      grid-row: 2 !important;
+      margin: 0 !important;
+      padding: 0 2px 2px !important;
+      gap: 8px !important;
+      overflow-x: auto !important;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    body.planner-focus-mode #plannerSection .daytabs button {
+      min-height: 42px !important;
+      padding: 8px 14px !important;
+      border-radius: 16px !important;
+      font-size: 13px !important;
+      font-weight: 950 !important;
+      box-shadow: 0 10px 24px rgba(0,0,0,.20) !important;
+    }
+
+    body.planner-focus-mode #plannerSection .planner {
+      grid-row: 3 !important;
+      height: 100% !important;
+      max-height: none !important;
+      min-height: 0 !important;
+      margin: 0 !important;
+      border-radius: 20px !important;
+      overflow: auto !important;
+      -webkit-overflow-scrolling: touch;
+      touch-action: pan-x pan-y pinch-zoom;
+      background: rgba(2,6,23,.78) !important;
+      border: 1px solid rgba(148,163,184,.28) !important;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.05) !important;
+    }
+
+    [data-theme="light"] body.planner-focus-mode #plannerSection .planner {
+      background: rgba(255,255,255,.78) !important;
+      border-color: rgba(15,23,42,.12) !important;
+    }
+
+    body.planner-focus-mode #plannerSection #plannerGrid {
+      --staffW: 240px;
+      --rowH: 54px;
+      min-width: max-content !important;
+      width: max-content !important;
+      transform-origin: top left;
+    }
+
+    body.planner-focus-mode #plannerSection .grid .header,
+    body.planner-focus-mode #plannerSection .grid .row {
+      width: max-content !important;
+    }
+
+    body.planner-focus-mode #plannerSection .grid .header div {
+      min-height: 42px !important;
+      padding: 10px 6px !important;
+      font-size: 12px !important;
+      font-weight: 1000 !important;
+    }
+
+    body.planner-focus-mode #plannerSection .grid .row .staffcell,
+    body.planner-focus-mode #plannerSection .rowwrap {
+      height: var(--rowH) !important;
+    }
+
+    body.planner-focus-mode #plannerSection .grid .row .staffcell {
+      min-width: var(--staffW) !important;
+      padding: 8px 10px !important;
+      justify-content: center !important;
+      font-size: 14px !important;
+      border-radius: 0 !important;
+    }
+
+    body.planner-focus-mode #plannerSection .grid .row .staffcell .badge {
+      font-size: 12px !important;
+      padding: 4px 8px !important;
+    }
+
+    body.planner-focus-mode #plannerSection .mini-actions {
+      display: none !important;
+    }
+
+    body.planner-focus-mode #plannerSection .shift {
+      min-width: 72px !important;
+      height: calc(100% - 8px) !important;
+      margin-top: 4px !important;
+      padding: 0 12px !important;
+      border-radius: 18px !important;
+      font-size: 13px !important;
+    }
+
+    body.planner-focus-mode #plannerSection .shift .label {
+      font-size: 12px !important;
+      letter-spacing: .06em !important;
+    }
+
+    body.planner-focus-mode #plannerSection .shift .hours {
+      font-size: 12px !important;
+      font-weight: 1000 !important;
+    }
+
+    body.planner-focus-mode #plannerSection .shift .breakpill {
+      font-size: 11px !important;
+      padding: 4px 7px !important;
+    }
+
+    body.planner-focus-mode #plannerSection .away-chip,
+    body.planner-focus-mode #plannerSection .unavail-chip {
+      font-size: 11px !important;
+      padding: 3px 7px !important;
+    }
+
+    @media (orientation: landscape) and (min-width: 900px) {
+      body.planner-focus-mode #plannerSection #plannerGrid {
+        --staffW: 260px;
+        --rowH: 58px;
+      }
+      body.planner-focus-mode #plannerSection .shift,
+      body.planner-focus-mode #plannerSection .grid .row .staffcell {
+        font-size: 14px !important;
+      }
+    }
+
+    @media (max-width: 620px) {
+      body.planner-focus-mode #plannerSection .card {
+        padding: 8px !important;
+      }
+      body.planner-focus-mode #plannerSection .toolbar #weekLabel {
+        font-size: 12px !important;
+      }
+      body.planner-focus-mode #plannerSection #plannerGrid {
+        --staffW: 220px;
+        --rowH: 52px;
+      }
+    }
+  </style>
 </head>
 <body>
 
@@ -3529,7 +3800,7 @@
       <div id="appLogoBox"></div>
       <div class="titlewrap">
         <div class="title" id="appTitle">Aspire Workforce Command</div>
-        <div class="version-pill" id="appVersion">V5.0.8</div>
+        <div class="version-pill" id="appVersion">V5.0.9</div>
         <div class="sync-pill syncing" id="syncStatusChip" title="Sync status">Starting…</div>
       </div>
     </div>
@@ -3709,6 +3980,7 @@
           <button id="btnPublish" class="btn-outline">Toggle Publish</button>
           <button id="btnPrint" class="btn-outline">Print (current)</button>
           <button id="btnPrintView" class="btn-outline">Print View…</button>
+          <button id="btnPlannerFullView" class="btn-primary">Planner full screen</button>
         </div>
 
         <div id="legend" class="legend"></div>
@@ -5303,8 +5575,8 @@ var DAY = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 var App = {
   // IMPORTANT: Increment App.version *and* App.buildId whenever making functional changes to this file.
   // SAFETY NET: This build performs an automatic runtime check against the file name; if mismatched, it shows a blocking warning so it can't be overlooked.
-  version: 'V5.0.8',
-    buildId: '2026-04-30.8',
+  version: 'V5.0.9',
+    buildId: '2026-04-30.9',
 settings: {
     dbUrl:'https://mnc-atrd-default-rtdb.asia-southeast1.firebasedatabase.app/', workspace:'mnc-atrd', authToken:'',
     theme:'light', themeName:'light-pastel-sky', recentColors:[], appTitle:'Aspire Workforce Command', logoUrl:'',
@@ -7387,40 +7659,90 @@ function splashHide(msg){
   }, 700);
 }
 
-// ---------- Fullscreen ----------
+// ---------- Fullscreen / planner focus ----------
 function isFullscreenActive(){
   return !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement);
 }
-function requestAppFullscreen(){
-  var el = document.documentElement || document.body;
-  if(!el) return;
-  if(el.requestFullscreen) el.requestFullscreen();
-  else if(el.webkitRequestFullscreen) el.webkitRequestFullscreen();
-  else if(el.mozRequestFullScreen) el.mozRequestFullScreen();
-  else if(el.msRequestFullscreen) el.msRequestFullscreen();
+function isPlannerFocusActive(){
+  try{ return !!(document.body && document.body.classList && document.body.classList.contains('planner-focus-mode')); }catch(e){ return false; }
+}
+function requestAppFullscreen(el){
+  el = el || document.documentElement || document.body;
+  if(!el) return null;
+  try{
+    if(el.requestFullscreen) return el.requestFullscreen();
+    if(el.webkitRequestFullscreen) return el.webkitRequestFullscreen();
+    if(el.mozRequestFullScreen) return el.mozRequestFullScreen();
+    if(el.msRequestFullscreen) return el.msRequestFullscreen();
+  }catch(e){}
+  return null;
 }
 function exitAppFullscreen(){
-  if(document.exitFullscreen) document.exitFullscreen();
-  else if(document.webkitExitFullscreen) document.webkitExitFullscreen();
-  else if(document.mozCancelFullScreen) document.mozCancelFullScreen();
-  else if(document.msExitFullscreen) document.msExitFullscreen();
+  try{
+    if(document.exitFullscreen) return document.exitFullscreen();
+    if(document.webkitExitFullscreen) return document.webkitExitFullscreen();
+    if(document.mozCancelFullScreen) return document.mozCancelFullScreen();
+    if(document.msExitFullscreen) return document.msExitFullscreen();
+  }catch(e){}
+  return null;
+}
+function enterPlannerFocusMode(){
+  try{ showTab('Planner'); }catch(e){}
+  if(document.documentElement) document.documentElement.classList.add('planner-focus-view');
+  if(document.body) document.body.classList.add('planner-focus-mode');
+  try{ window.scrollTo(0,0); }catch(e){}
+  try{ renderPlanner(); }catch(e){}
+  try{ fitPlanner(); }catch(e){}
+  syncFullscreenButton();
+  var el = byId('plannerSection') || document.documentElement || document.body;
+  var p = requestAppFullscreen(el);
+  try{ if(p && p.catch) p.catch(function(){}); }catch(e){}
+}
+function exitPlannerFocusMode(opts){
+  opts = opts || {};
+  if(document.body) document.body.classList.remove('planner-focus-mode');
+  if(document.documentElement) document.documentElement.classList.remove('planner-focus-view');
+  try{ renderPlanner(); }catch(e){}
+  try{ fitPlanner(); }catch(e){}
+  syncFullscreenButton();
+  if(!opts.skipNative && isFullscreenActive()){
+    var p = exitAppFullscreen();
+    try{ if(p && p.catch) p.catch(function(){}); }catch(e){}
+  }
+}
+function togglePlannerFocusMode(){
+  if(isPlannerFocusActive()) exitPlannerFocusMode();
+  else enterPlannerFocusMode();
 }
 function toggleAppFullscreen(){
-  if(isFullscreenActive()) exitAppFullscreen();
-  else requestAppFullscreen();
+  togglePlannerFocusMode();
 }
 function syncFullscreenButton(){
+  var active = isPlannerFocusActive() || isFullscreenActive();
   var btn = byId('bottomFullscreen');
-  if(!btn) return;
-  var label = btn.querySelector('.label');
-  if(!label) return;
-  label.textContent = isFullscreenActive() ? 'Exit' : 'Full';
+  if(btn){
+    var label = btn.querySelector('.label');
+    if(label) label.textContent = active ? 'Exit' : 'Full';
+    try{ btn.setAttribute('aria-pressed', active ? 'true' : 'false'); }catch(e){}
+  }
+  var plannerBtn = byId('btnPlannerFullView');
+  if(plannerBtn){
+    plannerBtn.textContent = isPlannerFocusActive() ? 'Exit planner full screen' : 'Planner full screen';
+    plannerBtn.title = isPlannerFocusActive() ? 'Return to normal app view' : 'Show only the planner in a larger tablet-friendly view';
+  }
+}
+function handleFullscreenChange(){
+  if(!isFullscreenActive() && isPlannerFocusActive()) exitPlannerFocusMode({skipNative:true});
+  syncFullscreenButton();
 }
 if(typeof document !== 'undefined'){
-  document.addEventListener('fullscreenchange', syncFullscreenButton);
-  document.addEventListener('webkitfullscreenchange', syncFullscreenButton);
-  document.addEventListener('mozfullscreenchange', syncFullscreenButton);
-  document.addEventListener('MSFullscreenChange', syncFullscreenButton);
+  document.addEventListener('fullscreenchange', handleFullscreenChange);
+  document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+  document.addEventListener('mozfullscreenchange', handleFullscreenChange);
+  document.addEventListener('MSFullscreenChange', handleFullscreenChange);
+  document.addEventListener('keydown', function(e){
+    if(e && e.key === 'Escape' && isPlannerFocusActive()) exitPlannerFocusMode();
+  });
 }
 
 var autoPullTimer=null, autoPushTimer=null;
@@ -7719,7 +8041,9 @@ function init(){
   var bottomUndo=byId('bottomUndo'); if(bottomUndo) bottomUndo.onclick=function(){ historyUndo(); };
   var bottomRedo=byId('bottomRedo'); if(bottomRedo) bottomRedo.onclick=function(){ historyRedo(); };
   var bottomFullscreen=byId('bottomFullscreen');
-  if(bottomFullscreen) bottomFullscreen.onclick=function(){ toggleAppFullscreen(); };
+  if(bottomFullscreen) bottomFullscreen.onclick=function(){ togglePlannerFocusMode(); };
+  var plannerFullView=byId('btnPlannerFullView');
+  if(plannerFullView) plannerFullView.onclick=function(){ togglePlannerFocusMode(); };
   syncFullscreenButton();
   var bottomLogout=byId('bottomLogout');
   if(bottomLogout) bottomLogout.onclick=function(){ var lb=byId('btnLogout'); if(lb && lb.onclick) lb.onclick(); };
@@ -10005,11 +10329,19 @@ var Planner = { weekStartISO: toISO(weekStart(new Date())), activeDayIndex:0, ed
 function initPlanner(){ renderDayTabs(); renderPlanner(); fitPlanner(); }
 function fitPlanner(){
   var grid=byId('plannerGrid'); if(!grid) return;
-  var wrap=grid.getBoundingClientRect();
-  var avail=Math.max(320, wrap.width - 220);
-  var colW=Math.max(12, Math.floor(avail/Math.max(4,colCount())));
+  var rectSource = grid.parentElement || grid;
+  var wrap=rectSource.getBoundingClientRect();
+  var focus = (document.body && document.body.classList && document.body.classList.contains('planner-focus-mode'));
+  var staffW = focus ? ((window.innerWidth||0) >= 900 ? 260 : 240) : 220;
+  if(focus && (window.innerWidth||0) <= 620) staffW = 220;
+  var avail=Math.max(320, wrap.width - staffW);
+  var minCol = focus ? 36 : 12;
+  var colW=Math.max(minCol, Math.floor(avail/Math.max(4,colCount())));
   var gnodes=document.querySelectorAll('.grid');
-  for(var i=0;i<gnodes.length;i++){ gnodes[i].style.setProperty('--colW', colW+'px'); }
+  for(var i=0;i<gnodes.length;i++){
+    gnodes[i].style.setProperty('--staffW', staffW+'px');
+    gnodes[i].style.setProperty('--colW', colW+'px');
+  }
 }
 function shiftWeek(d){ var base=fromISO(Planner.weekStartISO); base.setDate(base.getDate()+d*7); Planner.weekStartISO=toISO(weekStart(base)); renderPlanner(); renderPayroll(); if(typeof updateRequestsBadge==='function') updateRequestsBadge(); }
 function renderDayTabs(){
@@ -10032,7 +10364,7 @@ function renderDayTabs(){
     c.appendChild(b);
   });
 }
-function buildGridTemplate(){ var tpl='220px '; for(var i=0;i<colCount();i++){ tpl+='var(--colW) '; } return tpl.trim(); }
+function buildGridTemplate(){ var tpl='var(--staffW, 220px) '; for(var i=0;i<colCount();i++){ tpl+='var(--colW) '; } return tpl.trim(); }
 
 function renderPlanner(){
   var s=fromISO(Planner.weekStartISO);
@@ -19304,7 +19636,7 @@ try{
 (function(){
   'use strict';
   var APP_NAME = 'Aspire Workforce Command';
-  var APP_VERSION = 'V5.0.8';
+  var APP_VERSION = 'V5.0.9';
   var OLD_TITLE = 'M&C-ATRD-scheduler --=Aspire Group=--';
 
   var NAVS = [
@@ -19542,7 +19874,7 @@ try{
   }
 
   function countPendingRequests(){
-    // V5.0.8: count only real pending requests, not nested/history request-like objects.
+    // V5.0.9: count only real pending requests, not nested/history request-like objects.
     var app = window.App || {};
     var count = 0;
     function pending(rec){
