@@ -34,7 +34,7 @@
     })();
   </script>
 
-<title>Aspire Workforce Command (V5.0.9)</title>
+<title>Aspire Workforce Command (V5.0.11)</title>
   <meta name="theme-color" content="#22c55e"/>
 
   <style>
@@ -2458,7 +2458,7 @@
 
 
   <style id="v500Css">
-    /* ---------- V5.0.9 Aspire Workforce Command redesign ---------- */
+    /* ---------- V5.0.11 Aspire Workforce Command redesign ---------- */
     :root {
       --v5-bg: #050816;
       --v5-panel: rgba(13,18,35,.84);
@@ -2508,7 +2508,7 @@
       display: none !important;
     }
 
-    /* V5.0.9 staff/mobile safeguards */
+    /* V5.0.11 staff/mobile safeguards */
     body.v5-staff-lite #v5OpsDeck,
     body.v5-staff-lite #btnPushTop,
     body.v5-staff-lite #btnPushPlanner,
@@ -3380,7 +3380,7 @@
   </style>
 
   <style id="v508MobileComfortCss">
-    /* V5.0.9 mobile comfort: phone-sized controls with desktop-wide work boards inside scrollable panels. */
+    /* V5.0.11 mobile comfort: phone-sized controls with desktop-wide work boards inside scrollable panels. */
     html.mobile-comfort-view,
     html.mobile-comfort-view body {
       min-width: 0 !important;
@@ -3522,8 +3522,8 @@
   </style>
 
 
-  <style id="v509PlannerFocusCss">
-    /* V5.0.9 planner-only fullscreen view for shop tablet display. */
+  <style id="v510PlannerFocusCss">
+    /* V5.0.11 planner-only fullscreen view for shop tablet display. */
     html.planner-focus-view,
     html.planner-focus-view body {
       width: 100% !important;
@@ -3791,6 +3791,243 @@
       }
     }
   </style>
+
+  <style id="v510WeekOverviewFocusCss">
+    /* V5.0.11 week-overview-only fullscreen view for shop tablet display. */
+    html.week-overview-focus-view,
+    html.week-overview-focus-view body {
+      width: 100% !important;
+      min-width: 0 !important;
+      height: 100% !important;
+      overflow: hidden !important;
+      touch-action: pan-x pan-y pinch-zoom;
+    }
+
+    body.week-overview-focus-mode {
+      padding: 0 !important;
+      min-height: 100vh !important;
+      overflow: hidden !important;
+      background: #020617 !important;
+    }
+
+    body.week-overview-focus-mode .appbar,
+    body.week-overview-focus-mode .v5-rail,
+    body.week-overview-focus-mode .v5-topbar,
+    body.week-overview-focus-mode .v5-ops-deck,
+    body.week-overview-focus-mode #v5OpsDeck,
+    body.week-overview-focus-mode .v5-command-fab,
+    body.week-overview-focus-mode .v5-command-modal,
+    body.week-overview-focus-mode .bottom-nav,
+    body.week-overview-focus-mode #splashSync,
+    body.week-overview-focus-mode #toastHost {
+      display: none !important;
+    }
+
+    body.week-overview-focus-mode .wrap {
+      margin: 0 !important;
+      width: 100% !important;
+      max-width: none !important;
+      height: 100vh !important;
+      padding: 0 !important;
+      display: block !important;
+      overflow: hidden !important;
+    }
+
+    body.week-overview-focus-mode .section,
+    body.week-overview-focus-mode .login {
+      display: none !important;
+    }
+
+    body.week-overview-focus-mode #plannerSection {
+      display: block !important;
+      height: 100vh !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      overflow: hidden !important;
+    }
+
+    body.week-overview-focus-mode #plannerSection .card {
+      height: 100vh !important;
+      width: 100% !important;
+      margin: 0 !important;
+      padding: 10px 12px 12px !important;
+      border-radius: 0 !important;
+      border: none !important;
+      display: grid !important;
+      grid-template-rows: auto minmax(0, 1fr) !important;
+      gap: 10px !important;
+      background:
+        radial-gradient(circle at top left, rgba(34,197,94,.14), transparent 42%),
+        linear-gradient(135deg, rgba(2,6,23,.98), rgba(15,23,42,.96)) !important;
+      box-shadow: none !important;
+      overflow: hidden !important;
+    }
+
+    body.week-overview-focus-mode[data-theme="light"] #plannerSection .card {
+      background:
+        radial-gradient(circle at top left, rgba(34,197,94,.12), transparent 42%),
+        linear-gradient(135deg, #f8fafc, #ecfdf5) !important;
+    }
+
+    body.week-overview-focus-mode #plannerSection #legend,
+    body.week-overview-focus-mode #plannerSection .requests-strip,
+    body.week-overview-focus-mode #plannerSection #availabilityBar,
+    body.week-overview-focus-mode #plannerSection #coverageBar,
+    body.week-overview-focus-mode #plannerSection .daytabs,
+    body.week-overview-focus-mode #plannerSection #plannerPrintHeader,
+    body.week-overview-focus-mode #plannerSection .planner,
+    body.week-overview-focus-mode #plannerSection .v505-mobile-planner-help {
+      display: none !important;
+    }
+
+    body.week-overview-focus-mode #plannerSection .toolbar {
+      grid-row: 1 !important;
+      margin: 0 !important;
+      padding: 8px !important;
+      min-height: 52px !important;
+      border-radius: 18px !important;
+      display: flex !important;
+      align-items: center !important;
+      gap: 8px !important;
+      background: rgba(15,23,42,.84) !important;
+      border: 1px solid rgba(148,163,184,.24) !important;
+      box-shadow: 0 16px 40px rgba(0,0,0,.28) !important;
+      overflow-x: auto !important;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    body.week-overview-focus-mode[data-theme="light"] #plannerSection .toolbar {
+      background: rgba(255,255,255,.90) !important;
+      box-shadow: 0 14px 34px rgba(22,101,52,.10) !important;
+    }
+
+    body.week-overview-focus-mode #plannerSection .toolbar > * {
+      display: none !important;
+    }
+
+    body.week-overview-focus-mode #plannerSection .toolbar #btnPrevWeek,
+    body.week-overview-focus-mode #plannerSection .toolbar #weekLabel,
+    body.week-overview-focus-mode #plannerSection .toolbar #btnNextWeek,
+    body.week-overview-focus-mode #plannerSection .toolbar #btnThisWeek,
+    body.week-overview-focus-mode #plannerSection .toolbar #btnWeekOverviewFullView {
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      min-height: 38px !important;
+      font-size: 13px !important;
+      flex: 0 0 auto !important;
+    }
+
+    body.week-overview-focus-mode #plannerSection .toolbar #weekLabel {
+      padding: 9px 14px !important;
+      font-size: 14px !important;
+      font-weight: 1000 !important;
+    }
+
+    body.week-overview-focus-mode #plannerSection .toolbar #btnWeekOverviewFullView {
+      margin-left: auto !important;
+      background: linear-gradient(135deg, #fb7185, #ef4444) !important;
+      border-color: transparent !important;
+      color: #fff !important;
+    }
+
+    body.week-overview-focus-mode #plannerSection #weekOverview {
+      grid-row: 2 !important;
+      display: grid !important;
+      align-items: stretch !important;
+      grid-template-columns: 230px repeat(7, minmax(190px, 1fr)) !important;
+      gap: 10px !important;
+      margin: 0 !important;
+      padding: 10px !important;
+      min-height: 0 !important;
+      height: 100% !important;
+      overflow: auto !important;
+      -webkit-overflow-scrolling: touch;
+      touch-action: pan-x pan-y pinch-zoom;
+      border-radius: 22px !important;
+      border: 1px solid rgba(148,163,184,.28) !important;
+      background: rgba(2,6,23,.72) !important;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.05) !important;
+    }
+
+    body.week-overview-focus-mode[data-theme="light"] #plannerSection #weekOverview {
+      background: rgba(255,255,255,.78) !important;
+      border-color: rgba(15,23,42,.12) !important;
+    }
+
+    body.week-overview-focus-mode #plannerSection .wo-head {
+      min-height: 44px !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      padding: 8px 10px !important;
+      border-radius: 16px !important;
+      background: rgba(255,255,255,.06) !important;
+      border: 1px solid rgba(148,163,184,.20) !important;
+      font-size: 13px !important;
+      font-weight: 1000 !important;
+      opacity: 1 !important;
+    }
+
+    body.week-overview-focus-mode #plannerSection .wo-title {
+      justify-content: flex-start !important;
+      text-align: left !important;
+      font-size: 15px !important;
+    }
+
+    body.week-overview-focus-mode #plannerSection .wo-name,
+    body.week-overview-focus-mode #plannerSection .wo-cell {
+      min-height: 46px !important;
+      padding: 8px 10px !important;
+      border-radius: 16px !important;
+      font-size: 13px !important;
+    }
+
+    body.week-overview-focus-mode #plannerSection .wo-name {
+      left: 0 !important;
+      z-index: 5 !important;
+      font-weight: 950 !important;
+    }
+
+    body.week-overview-focus-mode #plannerSection .wo-chip {
+      min-height: 26px !important;
+      padding: 4px 8px !important;
+      border-radius: 10px !important;
+      font-size: 12px !important;
+      font-weight: 1000 !important;
+    }
+
+    body.week-overview-focus-mode #plannerSection .wo-count-badge {
+      padding: 4px 7px !important;
+      font-size: 11px !important;
+    }
+
+    @media (orientation: landscape) and (min-width: 900px) {
+      body.week-overview-focus-mode #plannerSection #weekOverview {
+        grid-template-columns: 260px repeat(7, minmax(210px, 1fr)) !important;
+      }
+      body.week-overview-focus-mode #plannerSection .wo-name,
+      body.week-overview-focus-mode #plannerSection .wo-cell {
+        min-height: 52px !important;
+        font-size: 14px !important;
+      }
+    }
+
+    @media (max-width: 620px) {
+      body.week-overview-focus-mode #plannerSection .card {
+        padding: 8px !important;
+      }
+      body.week-overview-focus-mode #plannerSection .toolbar #weekLabel {
+        font-size: 12px !important;
+      }
+      body.week-overview-focus-mode #plannerSection #weekOverview {
+        grid-template-columns: 190px repeat(7, minmax(160px, 1fr)) !important;
+        gap: 8px !important;
+        padding: 8px !important;
+      }
+    }
+  </style>
+
 </head>
 <body>
 
@@ -3800,7 +4037,7 @@
       <div id="appLogoBox"></div>
       <div class="titlewrap">
         <div class="title" id="appTitle">Aspire Workforce Command</div>
-        <div class="version-pill" id="appVersion">V5.0.9</div>
+        <div class="version-pill" id="appVersion">V5.0.11</div>
         <div class="sync-pill syncing" id="syncStatusChip" title="Sync status">Starting…</div>
       </div>
     </div>
@@ -3980,6 +4217,7 @@
           <button id="btnPublish" class="btn-outline">Toggle Publish</button>
           <button id="btnPrint" class="btn-outline">Print (current)</button>
           <button id="btnPrintView" class="btn-outline">Print View…</button>
+          <button id="btnWeekOverviewFullView" class="btn-outline">Week overview full screen</button>
           <button id="btnPlannerFullView" class="btn-primary">Planner full screen</button>
         </div>
 
@@ -4800,6 +5038,38 @@
           </div>
         </div>
 
+        <!-- Idle full screen display -->
+        <div class="card" data-settings-panel="planner">
+          <h3>Idle full screen display</h3>
+          <label style="display:flex;align-items:center;gap:8px;">
+            <input id="idleFullscreenEnabled" type="checkbox">
+            <span>Automatically open a full screen display after idle time</span>
+          </label>
+
+          <div class="grid-2" style="margin-top:10px;">
+            <div>
+              <label>Idle time before opening (minutes)</label>
+              <input id="idleFullscreenMins" type="number" min="0.25" max="1440" step="0.25" value="10">
+            </div>
+            <div>
+              <label>Display to open</label>
+              <select id="idleFullscreenTarget">
+                <option value="planner">Planner full screen</option>
+                <option value="weekOverview">Week overview full screen</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
+            <button id="btnIdleFullscreenPreview" class="btn-outline">Preview selected view</button>
+          </div>
+
+          <div id="idleFullscreenStatus" class="muted" style="margin-top:6px;">Idle full-screen is off.</div>
+          <div class="muted" style="margin-top:6px;">
+            The timer only runs while this app is visible, focused, logged in, and receiving no keyboard, touch, mouse, wheel, or scroll input. Automatic browser-native full screen may still be limited by some browsers, but the app-only full screen display will still open.
+          </div>
+        </div>
+
         <!-- Request pop-ups -->
         <div class="card">
           <h3>Request pop-ups</h3>
@@ -5575,12 +5845,14 @@ var DAY = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 var App = {
   // IMPORTANT: Increment App.version *and* App.buildId whenever making functional changes to this file.
   // SAFETY NET: This build performs an automatic runtime check against the file name; if mismatched, it shows a blocking warning so it can't be overlooked.
-  version: 'V5.0.9',
-    buildId: '2026-04-30.9',
+  version: 'V5.0.11',
+    buildId: '2026-05-01.11',
 settings: {
     dbUrl:'https://mnc-atrd-default-rtdb.asia-southeast1.firebasedatabase.app/', workspace:'mnc-atrd', authToken:'',
     theme:'light', themeName:'light-pastel-sky', recentColors:[], appTitle:'Aspire Workforce Command', logoUrl:'',
     autoPullMins: 0, autoPushMins: 0,
+    // idle display mode
+    idleFullscreenEnabled: false, idleFullscreenMins: 10, idleFullscreenTarget: 'planner',
     // planner
     gridStartHour: 8, gridHours: 16, slotMins: 30, targetHeadcount: 0,
     // week overview shift badge windows (24h HH:MM)
@@ -5646,6 +5918,10 @@ function ensureSettingsDefaults(){
     if(App.settings.emailjsPublicKey === undefined) App.settings.emailjsPublicKey = '';
     if(App.settings.emailjsServiceId === undefined) App.settings.emailjsServiceId = '';
     if(App.settings.emailjsTemplateId === undefined) App.settings.emailjsTemplateId = '';
+
+    if(App.settings.idleFullscreenEnabled === undefined) App.settings.idleFullscreenEnabled = false;
+    if(App.settings.idleFullscreenMins == null || isNaN(parseFloat(App.settings.idleFullscreenMins))) App.settings.idleFullscreenMins = 10;
+    if(!App.settings.idleFullscreenTarget) App.settings.idleFullscreenTarget = 'planner';
   }catch(e){}
 }
 
@@ -5718,6 +5994,9 @@ function normalizeCoreState(){
     App.settings.targetHeadcount = Math.max(0, clampInt(App.settings.targetHeadcount, 0, 500, 0));
     App.settings.autoPullMins = Math.max(0, clampInt(App.settings.autoPullMins, 0, 1440, 0));
     App.settings.autoPushMins = Math.max(0, clampInt(App.settings.autoPushMins, 0, 1440, 0));
+    App.settings.idleFullscreenEnabled = (App.settings.idleFullscreenEnabled === true || App.settings.idleFullscreenEnabled === 'true');
+    App.settings.idleFullscreenMins = clampFloat(App.settings.idleFullscreenMins, 0.25, 1440, 10);
+    App.settings.idleFullscreenTarget = (String(App.settings.idleFullscreenTarget||'planner') === 'weekOverview') ? 'weekOverview' : 'planner';
     App.settings.requestsPopupCooldownSecs = clampInt(App.settings.requestsPopupCooldownSecs, 5, 86400, 60);
     App.settings.requestsNotifySoundVolume = clampFloat(App.settings.requestsNotifySoundVolume, 0, 1, 0.7);
     App.settings.dayShiftStart = to24hhmm(App.settings.dayShiftStart, '09:00');
@@ -7273,6 +7552,7 @@ function syncSettingsUIFromApp(){
     if(__ap) __ap.value = App.settings.autoPullMins||0;
     var __aq=document.getElementById('autoPushMinsInput');
     if(__aq) __aq.value = App.settings.autoPushMins||0;
+    try{ syncIdleFullscreenSettingsUI(); }catch(e){}
     var __oh=document.getElementById('optStartHour');
     if(__oh) __oh.value = App.settings.gridStartHour;
     var __hrs=document.getElementById('optHours');
@@ -7666,6 +7946,9 @@ function isFullscreenActive(){
 function isPlannerFocusActive(){
   try{ return !!(document.body && document.body.classList && document.body.classList.contains('planner-focus-mode')); }catch(e){ return false; }
 }
+function isWeekOverviewFocusActive(){
+  try{ return !!(document.body && document.body.classList && document.body.classList.contains('week-overview-focus-mode')); }catch(e){ return false; }
+}
 function requestAppFullscreen(el){
   el = el || document.documentElement || document.body;
   if(!el) return null;
@@ -7687,7 +7970,9 @@ function exitAppFullscreen(){
   return null;
 }
 function enterPlannerFocusMode(){
+  try{ clearIdleFullscreenTimer(); }catch(e){}
   try{ showTab('Planner'); }catch(e){}
+  if(isWeekOverviewFocusActive()) exitWeekOverviewFocusMode({skipNative:true});
   if(document.documentElement) document.documentElement.classList.add('planner-focus-view');
   if(document.body) document.body.classList.add('planner-focus-mode');
   try{ window.scrollTo(0,0); }catch(e){}
@@ -7705,10 +7990,40 @@ function exitPlannerFocusMode(opts){
   try{ renderPlanner(); }catch(e){}
   try{ fitPlanner(); }catch(e){}
   syncFullscreenButton();
+  try{ noteIdleFullscreenActivity(); }catch(e){}
   if(!opts.skipNative && isFullscreenActive()){
     var p = exitAppFullscreen();
     try{ if(p && p.catch) p.catch(function(){}); }catch(e){}
   }
+}
+function enterWeekOverviewFocusMode(){
+  try{ clearIdleFullscreenTimer(); }catch(e){}
+  try{ showTab('Planner'); }catch(e){}
+  if(isPlannerFocusActive()) exitPlannerFocusMode({skipNative:true});
+  if(document.documentElement) document.documentElement.classList.add('week-overview-focus-view');
+  if(document.body) document.body.classList.add('week-overview-focus-mode');
+  try{ window.scrollTo(0,0); }catch(e){}
+  try{ renderWeekOverview(); }catch(e){}
+  syncFullscreenButton();
+  var el = byId('plannerSection') || document.documentElement || document.body;
+  var p = requestAppFullscreen(el);
+  try{ if(p && p.catch) p.catch(function(){}); }catch(e){}
+}
+function exitWeekOverviewFocusMode(opts){
+  opts = opts || {};
+  if(document.body) document.body.classList.remove('week-overview-focus-mode');
+  if(document.documentElement) document.documentElement.classList.remove('week-overview-focus-view');
+  try{ renderWeekOverview(); }catch(e){}
+  syncFullscreenButton();
+  try{ noteIdleFullscreenActivity(); }catch(e){}
+  if(!opts.skipNative && isFullscreenActive()){
+    var p = exitAppFullscreen();
+    try{ if(p && p.catch) p.catch(function(){}); }catch(e){}
+  }
+}
+function toggleWeekOverviewFocusMode(){
+  if(isWeekOverviewFocusActive()) exitWeekOverviewFocusMode();
+  else enterWeekOverviewFocusMode();
 }
 function togglePlannerFocusMode(){
   if(isPlannerFocusActive()) exitPlannerFocusMode();
@@ -7718,7 +8033,7 @@ function toggleAppFullscreen(){
   togglePlannerFocusMode();
 }
 function syncFullscreenButton(){
-  var active = isPlannerFocusActive() || isFullscreenActive();
+  var active = isPlannerFocusActive() || isWeekOverviewFocusActive() || isFullscreenActive();
   var btn = byId('bottomFullscreen');
   if(btn){
     var label = btn.querySelector('.label');
@@ -7730,9 +8045,18 @@ function syncFullscreenButton(){
     plannerBtn.textContent = isPlannerFocusActive() ? 'Exit planner full screen' : 'Planner full screen';
     plannerBtn.title = isPlannerFocusActive() ? 'Return to normal app view' : 'Show only the planner in a larger tablet-friendly view';
   }
+  var weekBtn = byId('btnWeekOverviewFullView');
+  if(weekBtn){
+    weekBtn.textContent = isWeekOverviewFocusActive() ? 'Exit week overview full screen' : 'Week overview full screen';
+    weekBtn.title = isWeekOverviewFocusActive() ? 'Return to normal app view' : 'Show only the week overview in a larger tablet-friendly view';
+    try{ weekBtn.setAttribute('aria-pressed', isWeekOverviewFocusActive() ? 'true' : 'false'); }catch(e){}
+  }
 }
 function handleFullscreenChange(){
-  if(!isFullscreenActive() && isPlannerFocusActive()) exitPlannerFocusMode({skipNative:true});
+  if(!isFullscreenActive()){
+    if(isPlannerFocusActive()) exitPlannerFocusMode({skipNative:true});
+    if(isWeekOverviewFocusActive()) exitWeekOverviewFocusMode({skipNative:true});
+  }
   syncFullscreenButton();
 }
 if(typeof document !== 'undefined'){
@@ -7741,8 +8065,122 @@ if(typeof document !== 'undefined'){
   document.addEventListener('mozfullscreenchange', handleFullscreenChange);
   document.addEventListener('MSFullscreenChange', handleFullscreenChange);
   document.addEventListener('keydown', function(e){
-    if(e && e.key === 'Escape' && isPlannerFocusActive()) exitPlannerFocusMode();
+    if(e && e.key === 'Escape'){
+      if(isPlannerFocusActive()) exitPlannerFocusMode();
+      if(isWeekOverviewFocusActive()) exitWeekOverviewFocusMode();
+    }
   });
+}
+
+// ---------- Idle full screen display ----------
+var idleFullscreenTimer=null;
+var idleFullscreenBound=false;
+var idleFullscreenLastInput=Date.now();
+function getIdleFullscreenConfig(){
+  try{
+    var mins = Math.max(0.25, Math.min(1440, parseFloat((App.settings && App.settings.idleFullscreenMins) || '10') || 10));
+    var target = ((App.settings && App.settings.idleFullscreenTarget) === 'weekOverview') ? 'weekOverview' : 'planner';
+    return {enabled: !!(App.settings && App.settings.idleFullscreenEnabled), mins: mins, target: target};
+  }catch(e){ return {enabled:false, mins:10, target:'planner'}; }
+}
+function syncIdleFullscreenSettingsUI(){
+  try{
+    var cfg = getIdleFullscreenConfig();
+    var en = byId('idleFullscreenEnabled'); if(en) en.checked = !!cfg.enabled;
+    var mins = byId('idleFullscreenMins'); if(mins) mins.value = String(cfg.mins);
+    var target = byId('idleFullscreenTarget'); if(target) target.value = cfg.target;
+    var status = byId('idleFullscreenStatus');
+    if(status){
+      if(!cfg.enabled){
+        status.textContent = 'Idle full-screen is off.';
+      }else{
+        status.textContent = 'On: after ' + cfg.mins + ' minute' + (cfg.mins===1?'':'s') + ' of no input while the app is focused, it opens ' + (cfg.target==='weekOverview' ? 'Week overview full screen.' : 'Planner full screen.');
+      }
+    }
+  }catch(e){}
+}
+function clearIdleFullscreenTimer(){
+  if(idleFullscreenTimer){
+    try{ clearTimeout(idleFullscreenTimer); }catch(e){}
+    idleFullscreenTimer=null;
+  }
+}
+function idleFullscreenInputActive(){
+  try{
+    var el = document.activeElement;
+    if(!el) return false;
+    var tag = String(el.tagName || '').toLowerCase();
+    return tag === 'input' || tag === 'textarea' || tag === 'select' || !!el.isContentEditable;
+  }catch(e){ return false; }
+}
+function idleFullscreenModalOpen(){
+  try{
+    var nodes = document.querySelectorAll('.modal, #v5CommandModal, #splashSync');
+    for(var i=0;i<nodes.length;i++){
+      var el = nodes[i];
+      var cs = window.getComputedStyle ? window.getComputedStyle(el) : null;
+      if(cs && cs.display !== 'none' && cs.visibility !== 'hidden' && parseFloat(cs.opacity || '1') > 0.02) return true;
+    }
+  }catch(e){}
+  return false;
+}
+
+function appWindowIsIdleEligible(){
+  try{
+    if(!App.currentUser) return false;
+    if(document.visibilityState && document.visibilityState !== 'visible') return false;
+    if(document.hasFocus && !document.hasFocus()) return false;
+    if(idleFullscreenInputActive()) return false;
+    if(idleFullscreenModalOpen()) return false;
+    return true;
+  }catch(e){ return false; }
+}
+function triggerIdleFullscreenDisplay(source){
+  try{
+    var cfg = getIdleFullscreenConfig();
+    if(cfg.target === 'weekOverview') enterWeekOverviewFocusMode();
+    else enterPlannerFocusMode();
+    if(source === 'idle'){
+      try{ showToast('Idle display', (cfg.target==='weekOverview' ? 'Week overview' : 'Planner') + ' full-screen display opened after idle time.', 'good', 3500); }catch(e){}
+    }
+  }catch(e){}
+}
+function runIdleFullscreenCheck(){
+  idleFullscreenTimer=null;
+  var cfg = getIdleFullscreenConfig();
+  if(!cfg.enabled){ syncIdleFullscreenSettingsUI(); return; }
+  if(!appWindowIsIdleEligible()){ scheduleIdleFullscreenCheck(); return; }
+  if(isPlannerFocusActive() || isWeekOverviewFocusActive()){ syncIdleFullscreenSettingsUI(); return; }
+  var need = cfg.mins * 60000;
+  var idleFor = Date.now() - idleFullscreenLastInput;
+  if(idleFor + 250 < need){ scheduleIdleFullscreenCheck(); return; }
+  triggerIdleFullscreenDisplay('idle');
+}
+function scheduleIdleFullscreenCheck(){
+  clearIdleFullscreenTimer();
+  syncIdleFullscreenSettingsUI();
+  var cfg = getIdleFullscreenConfig();
+  if(!cfg.enabled) return;
+  if(!appWindowIsIdleEligible()) return;
+  if(isPlannerFocusActive() || isWeekOverviewFocusActive()) return;
+  var delay = Math.max(1000, cfg.mins * 60000 - (Date.now() - idleFullscreenLastInput));
+  idleFullscreenTimer = setTimeout(runIdleFullscreenCheck, delay);
+}
+function noteIdleFullscreenActivity(){
+  idleFullscreenLastInput = Date.now();
+  scheduleIdleFullscreenCheck();
+}
+function initIdleFullscreenWatcher(){
+  if(idleFullscreenBound){ scheduleIdleFullscreenCheck(); return; }
+  idleFullscreenBound=true;
+  var events = ['pointerdown','pointermove','mousedown','mousemove','keydown','wheel','touchstart','touchmove','scroll'];
+  events.forEach(function(ev){
+    try{ document.addEventListener(ev, noteIdleFullscreenActivity, {passive:true, capture:true}); }catch(e){ try{ document.addEventListener(ev, noteIdleFullscreenActivity, true); }catch(e2){} }
+  });
+  try{ window.addEventListener('focus', function(){ idleFullscreenLastInput=Date.now(); scheduleIdleFullscreenCheck(); }); }catch(e){}
+  try{ window.addEventListener('blur', clearIdleFullscreenTimer); }catch(e){}
+  try{ document.addEventListener('visibilitychange', function(){ if(document.visibilityState === 'visible'){ idleFullscreenLastInput=Date.now(); scheduleIdleFullscreenCheck(); }else{ clearIdleFullscreenTimer(); } }); }catch(e){}
+  scheduleIdleFullscreenCheck();
 }
 
 var autoPullTimer=null, autoPushTimer=null;
@@ -7753,6 +8191,7 @@ function startAutoSyncTimers(){
   var q=parseInt(App.settings.autoPushMins||0,10);
   if(p>0){ autoPullTimer=setInterval(function(){ pullData(false).catch(function(){}); }, p*60000); }
   if(q>0){ autoPushTimer=setInterval(function(){ if(canEdit()) pushPlannerData().catch(function(){}); }, q*60000); }
+  try{ scheduleIdleFullscreenCheck(); }catch(e){}
 }
 
 // ---------- Init ----------
@@ -7775,6 +8214,7 @@ function init(){
   try{ bindModalChrome(); }catch(e){}
   try{ bindUndoRedoShortcuts(); }catch(e){}
   try{ bindPayrollDocUI(); }catch(e){}
+  try{ initIdleFullscreenWatcher(); }catch(e){}
 
   // Stats UI (admin only)
   try{
@@ -7810,6 +8250,7 @@ function init(){
   if(byId('logoUrlInput')) byId('logoUrlInput').value = App.settings.logoUrl || '';
   byId('autoPullMinsInput').value=App.settings.autoPullMins||0;
   byId('autoPushMinsInput').value=App.settings.autoPushMins||0;
+  try{ syncIdleFullscreenSettingsUI(); }catch(e){}
   byId('optStartHour').value=App.settings.gridStartHour;
   byId('optHours').value=App.settings.gridHours;
   byId('optSlotMins').value=App.settings.slotMins;
@@ -7853,6 +8294,11 @@ function init(){
     App.settings.logoUrl=(byId('logoUrlInput') && byId('logoUrlInput').value||'').trim();
     App.settings.autoPullMins=parseInt(byId('autoPullMinsInput').value||'0',10)||0;
     App.settings.autoPushMins=parseInt(byId('autoPushMinsInput').value||'0',10)||0;
+    App.settings.idleFullscreenEnabled = !!(byId('idleFullscreenEnabled') && byId('idleFullscreenEnabled').checked);
+    App.settings.idleFullscreenMins = Math.max(0.25, Math.min(1440, parseFloat((byId('idleFullscreenMins') && byId('idleFullscreenMins').value) || '10') || 10));
+    App.settings.idleFullscreenTarget = ((byId('idleFullscreenTarget') && byId('idleFullscreenTarget').value) === 'weekOverview') ? 'weekOverview' : 'planner';
+    try{ syncIdleFullscreenSettingsUI(); }catch(e){}
+    try{ scheduleIdleFullscreenCheck(); }catch(e){}
     App.settings.gridStartHour=parseInt(byId('optStartHour').value||'8',10);
     App.settings.gridHours=parseInt(byId('optHours').value||'16',10);
     App.settings.slotMins=parseInt(byId('optSlotMins').value||'30',10);
@@ -8044,7 +8490,29 @@ function init(){
   if(bottomFullscreen) bottomFullscreen.onclick=function(){ togglePlannerFocusMode(); };
   var plannerFullView=byId('btnPlannerFullView');
   if(plannerFullView) plannerFullView.onclick=function(){ togglePlannerFocusMode(); };
+  var weekOverviewFullView=byId('btnWeekOverviewFullView');
+  if(weekOverviewFullView) weekOverviewFullView.onclick=function(){ toggleWeekOverviewFocusMode(); };
+  var idlePreview=byId('btnIdleFullscreenPreview');
+  if(idlePreview) idlePreview.onclick=function(){
+    try{
+      App.settings.idleFullscreenTarget = ((byId('idleFullscreenTarget') && byId('idleFullscreenTarget').value) === 'weekOverview') ? 'weekOverview' : 'planner';
+      triggerIdleFullscreenDisplay('preview');
+    }catch(e){}
+  };
+  ['idleFullscreenEnabled','idleFullscreenMins','idleFullscreenTarget'].forEach(function(id){
+    var el=byId(id);
+    if(el) el.addEventListener('change', function(){
+      try{
+        App.settings.idleFullscreenEnabled = !!(byId('idleFullscreenEnabled') && byId('idleFullscreenEnabled').checked);
+        App.settings.idleFullscreenMins = Math.max(0.25, Math.min(1440, parseFloat((byId('idleFullscreenMins') && byId('idleFullscreenMins').value) || '10') || 10));
+        App.settings.idleFullscreenTarget = ((byId('idleFullscreenTarget') && byId('idleFullscreenTarget').value) === 'weekOverview') ? 'weekOverview' : 'planner';
+        syncIdleFullscreenSettingsUI();
+        scheduleIdleFullscreenCheck();
+      }catch(e){}
+    });
+  });
   syncFullscreenButton();
+  try{ syncIdleFullscreenSettingsUI(); }catch(e){}
   var bottomLogout=byId('bottomLogout');
   if(bottomLogout) bottomLogout.onclick=function(){ var lb=byId('btnLogout'); if(lb && lb.onclick) lb.onclick(); };
 
@@ -8931,6 +9399,7 @@ function enterApp(){
   // Load per-user notification/popup preferences
   try{ pullUserPrefs(); }catch(e){}
   try{ if(typeof notifyMyRequestStatus==='function') notifyMyRequestStatus(); }catch(e){}
+  try{ noteIdleFullscreenActivity(); }catch(e){}
 
   // Auto-popup pending requests for Admin on login (only if any exist)
   try{
@@ -8946,7 +9415,7 @@ function enterApp(){
     }
   }catch(e){}
 }
-function showLogin(){ var nodes=$$('.section'); for(var i=0;i<nodes.length;i++){ nodes[i].classList.remove('show'); } byId('loginSection').classList.add('show'); var nav=byId('bottomNav'); if(nav) nav.style.display='none'; }
+function showLogin(){ var nodes=$$('.section'); for(var i=0;i<nodes.length;i++){ nodes[i].classList.remove('show'); } byId('loginSection').classList.add('show'); var nav=byId('bottomNav'); if(nav) nav.style.display='none'; try{ clearIdleFullscreenTimer(); }catch(e){} }
 function populateLoginSelects(){
   var sel=byId('loginStaffSelect'); sel.innerHTML='<option value="">-- select --</option>';
   Object.keys(App.staff).sort(function(a,b){ return (App.staff[a].name||'').localeCompare(App.staff[b].name||''); }).forEach(function(id){
@@ -18670,6 +19139,7 @@ try{
   if(__ap) __ap.value = App.settings.autoPullMins||0;
   var __aq=document.getElementById('autoPushMinsInput');
   if(__aq) __aq.value = App.settings.autoPushMins||0;
+  try{ syncIdleFullscreenSettingsUI(); }catch(e){}
   var __oh=document.getElementById('optStartHour');
   if(__oh) __oh.value = App.settings.gridStartHour;
   var __hrs=document.getElementById('optHours');
@@ -19636,7 +20106,7 @@ try{
 (function(){
   'use strict';
   var APP_NAME = 'Aspire Workforce Command';
-  var APP_VERSION = 'V5.0.9';
+  var APP_VERSION = 'V5.0.11';
   var OLD_TITLE = 'M&C-ATRD-scheduler --=Aspire Group=--';
 
   var NAVS = [
@@ -19874,7 +20344,7 @@ try{
   }
 
   function countPendingRequests(){
-    // V5.0.9: count only real pending requests, not nested/history request-like objects.
+    // V5.0.11: count only real pending requests, not nested/history request-like objects.
     var app = window.App || {};
     var count = 0;
     function pending(rec){
