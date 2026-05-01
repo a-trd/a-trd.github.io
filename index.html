@@ -34,7 +34,7 @@
     })();
   </script>
 
-<title>Aspire Workforce Command (V5.0.13)</title>
+<title>Aspire Workforce Command (V5.0.14)</title>
   <meta name="theme-color" content="#22c55e"/>
 
   <style>
@@ -2458,7 +2458,7 @@
 
 
   <style id="v500Css">
-    /* ---------- V5.0.13 Aspire Workforce Command redesign ---------- */
+    /* ---------- V5.0.14 Aspire Workforce Command redesign ---------- */
     :root {
       --v5-bg: #050816;
       --v5-panel: rgba(13,18,35,.84);
@@ -2508,7 +2508,7 @@
       display: none !important;
     }
 
-    /* V5.0.13 staff/mobile safeguards */
+    /* V5.0.14 staff/mobile safeguards */
     body.v5-staff-lite #v5OpsDeck,
     body.v5-staff-lite #btnPushTop,
     body.v5-staff-lite #btnPushPlanner,
@@ -3380,7 +3380,7 @@
   </style>
 
   <style id="v508MobileComfortCss">
-    /* V5.0.13 mobile comfort: phone-sized controls with desktop-wide work boards inside scrollable panels. */
+    /* V5.0.14 mobile comfort: phone-sized controls with desktop-wide work boards inside scrollable panels. */
     html.mobile-comfort-view,
     html.mobile-comfort-view body {
       min-width: 0 !important;
@@ -3523,7 +3523,7 @@
 
 
   <style id="v510PlannerFocusCss">
-    /* V5.0.13 planner-only fullscreen view for shop tablet display. */
+    /* V5.0.14 planner-only fullscreen view for shop tablet display. */
     html.planner-focus-view,
     html.planner-focus-view body {
       width: 100% !important;
@@ -3793,7 +3793,7 @@
   </style>
 
   <style id="v510WeekOverviewFocusCss">
-    /* V5.0.13 week-overview-only fullscreen view for shop tablet display. */
+    /* V5.0.14 week-overview-only fullscreen view for shop tablet display. */
     html.week-overview-focus-view,
     html.week-overview-focus-view body {
       width: 100% !important;
@@ -4028,6 +4028,114 @@
     }
   </style>
 
+
+
+<style id="v5014MobileShiftModalCss">
+  /* V5.0.14 mobile shift editor reachability fix. */
+  @media (max-width: 980px), (pointer: coarse) {
+    #shiftModal {
+      z-index: 6200 !important;
+      align-items: stretch !important;
+      justify-content: center !important;
+      padding: 8px 8px calc(10px + env(safe-area-inset-bottom, 0px)) !important;
+      min-height: var(--v5014-mobile-vh, 100dvh) !important;
+      overflow: hidden !important;
+    }
+
+    #shiftModal .panel {
+      width: min(560px, 100%) !important;
+      max-height: calc(var(--v5014-mobile-vh, 100dvh) - 18px - env(safe-area-inset-bottom, 0px)) !important;
+      margin: auto 0 !important;
+      padding-bottom: 0 !important;
+      overflow-y: auto !important;
+      overflow-x: hidden !important;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
+      touch-action: pan-y;
+      scroll-padding-bottom: calc(86px + env(safe-area-inset-bottom, 0px));
+    }
+
+    #shiftModal .panel > div:last-child {
+      position: sticky !important;
+      bottom: 0 !important;
+      z-index: 8 !important;
+      margin: 12px -14px 0 !important;
+      padding: 10px 14px calc(12px + env(safe-area-inset-bottom, 0px)) !important;
+      display: flex !important;
+      gap: 8px !important;
+      flex-wrap: wrap !important;
+      background:
+        linear-gradient(180deg, rgba(20,24,43,0), var(--card) 34%, var(--card) 100%) !important;
+      border-top: 1px solid var(--border) !important;
+      box-shadow: 0 -12px 28px rgba(0,0,0,.30) !important;
+    }
+
+    [data-theme="light"] #shiftModal .panel > div:last-child {
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0), var(--card) 34%, var(--card) 100%) !important;
+      box-shadow: 0 -10px 24px rgba(15,23,42,.12) !important;
+    }
+
+    #shiftModal .panel > div:last-child button {
+      min-height: 44px !important;
+      flex: 1 1 90px !important;
+      white-space: nowrap !important;
+    }
+
+    #shiftModal #btnSaveShift {
+      flex-basis: 130px !important;
+    }
+  }
+
+  @supports (height: 100svh) {
+    @media (max-width: 980px), (pointer: coarse) {
+      #shiftModal {
+        min-height: var(--v5014-mobile-vh, 100svh) !important;
+      }
+      #shiftModal .panel {
+        max-height: calc(var(--v5014-mobile-vh, 100svh) - 18px - env(safe-area-inset-bottom, 0px)) !important;
+      }
+    }
+  }
+</style>
+<script id="v5014MobileShiftModalScript">
+(function(){
+  'use strict';
+
+  function setMobileViewportHeight(){
+    var h = 0;
+    try{ h = window.visualViewport && window.visualViewport.height ? window.visualViewport.height : 0; }catch(e){}
+    if(!h){ try{ h = window.innerHeight || document.documentElement.clientHeight || 0; }catch(e){} }
+    if(h && isFinite(h)){
+      try{ document.documentElement.style.setProperty('--v5014-mobile-vh', Math.max(320, h) + 'px'); }catch(e){}
+    }
+  }
+
+  function insideShiftModal(el){
+    try{ return !!(el && el.closest && el.closest('#shiftModal')); }catch(e){ return false; }
+  }
+
+  function keepFocusedFieldVisible(ev){
+    if(!insideShiftModal(ev && ev.target)) return;
+    setTimeout(function(){
+      setMobileViewportHeight();
+      try{ ev.target.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'smooth' }); }catch(e){}
+    }, 260);
+  }
+
+  setMobileViewportHeight();
+  window.addEventListener('resize', setMobileViewportHeight, { passive: true });
+  window.addEventListener('orientationchange', function(){ setTimeout(setMobileViewportHeight, 250); }, { passive: true });
+  try{
+    if(window.visualViewport){
+      window.visualViewport.addEventListener('resize', setMobileViewportHeight, { passive: true });
+      window.visualViewport.addEventListener('scroll', setMobileViewportHeight, { passive: true });
+    }
+  }catch(e){}
+  document.addEventListener('focusin', keepFocusedFieldVisible, true);
+})();
+</script>
+
 </head>
 <body>
 
@@ -4037,7 +4145,7 @@
       <div id="appLogoBox"></div>
       <div class="titlewrap">
         <div class="title" id="appTitle">Aspire Workforce Command</div>
-        <div class="version-pill" id="appVersion">V5.0.13</div>
+        <div class="version-pill" id="appVersion">V5.0.14</div>
         <div class="sync-pill syncing" id="syncStatusChip" title="Sync status">Starting…</div>
       </div>
     </div>
@@ -5845,8 +5953,8 @@ var DAY = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 var App = {
   // IMPORTANT: Increment App.version *and* App.buildId whenever making functional changes to this file.
   // SAFETY NET: This build performs an automatic runtime check against the file name; if mismatched, it shows a blocking warning so it can't be overlooked.
-  version: 'V5.0.13',
-    buildId: '2026-05-01.12',
+  version: 'V5.0.14',
+    buildId: '2026-05-01.14',
 settings: {
     dbUrl:'https://mnc-atrd-default-rtdb.asia-southeast1.firebasedatabase.app/', workspace:'mnc-atrd', authToken:'',
     theme:'light', themeName:'light-pastel-sky', recentColors:[], appTitle:'Aspire Workforce Command', logoUrl:'',
@@ -20106,7 +20214,7 @@ try{
 (function(){
   'use strict';
   var APP_NAME = 'Aspire Workforce Command';
-  var APP_VERSION = 'V5.0.13';
+  var APP_VERSION = 'V5.0.14';
   var OLD_TITLE = 'M&C-ATRD-scheduler --=Aspire Group=--';
 
   var NAVS = [
@@ -20344,7 +20452,7 @@ try{
   }
 
   function countPendingRequests(){
-    // V5.0.13: count only real pending requests, not nested/history request-like objects.
+    // V5.0.14: count only real pending requests, not nested/history request-like objects.
     var app = window.App || {};
     var count = 0;
     function pending(rec){
@@ -20760,7 +20868,7 @@ try{
 
 
 <style id="v5013FullscreenZoomCss">
-  /* V5.0.13 full-screen control colour, auto-fit scaling and in-app pinch zoom support. */
+  /* V5.0.14 full-screen control colour, auto-fit scaling and in-app pinch zoom support. */
   body:not(.week-overview-focus-mode) #btnWeekOverviewFullView {
     background: linear-gradient(135deg, #22c55e, #14b8a6) !important;
     border-color: transparent !important;
