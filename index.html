@@ -34,7 +34,7 @@
     })();
   </script>
 
-<title>Aspire Workforce Command (V5.0.14)</title>
+<title>Aspire Workforce Command (V5.0.15)</title>
   <meta name="theme-color" content="#22c55e"/>
 
   <style>
@@ -2458,7 +2458,7 @@
 
 
   <style id="v500Css">
-    /* ---------- V5.0.14 Aspire Workforce Command redesign ---------- */
+    /* ---------- V5.0.15 Aspire Workforce Command redesign ---------- */
     :root {
       --v5-bg: #050816;
       --v5-panel: rgba(13,18,35,.84);
@@ -2508,7 +2508,7 @@
       display: none !important;
     }
 
-    /* V5.0.14 staff/mobile safeguards */
+    /* V5.0.15 staff/mobile safeguards */
     body.v5-staff-lite #v5OpsDeck,
     body.v5-staff-lite #btnPushTop,
     body.v5-staff-lite #btnPushPlanner,
@@ -3380,7 +3380,7 @@
   </style>
 
   <style id="v508MobileComfortCss">
-    /* V5.0.14 mobile comfort: phone-sized controls with desktop-wide work boards inside scrollable panels. */
+    /* V5.0.15 mobile comfort: phone-sized controls with desktop-wide work boards inside scrollable panels. */
     html.mobile-comfort-view,
     html.mobile-comfort-view body {
       min-width: 0 !important;
@@ -3523,7 +3523,7 @@
 
 
   <style id="v510PlannerFocusCss">
-    /* V5.0.14 planner-only fullscreen view for shop tablet display. */
+    /* V5.0.15 planner-only fullscreen view for shop tablet display. */
     html.planner-focus-view,
     html.planner-focus-view body {
       width: 100% !important;
@@ -3793,7 +3793,7 @@
   </style>
 
   <style id="v510WeekOverviewFocusCss">
-    /* V5.0.14 week-overview-only fullscreen view for shop tablet display. */
+    /* V5.0.15 week-overview-only fullscreen view for shop tablet display. */
     html.week-overview-focus-view,
     html.week-overview-focus-view body {
       width: 100% !important;
@@ -4031,8 +4031,8 @@
 
 
 <style id="v5014MobileShiftModalCss">
-  /* V5.0.14 mobile shift editor reachability fix. */
-  @media (max-width: 980px), (pointer: coarse) {
+  /* V5.0.15 mobile shift editor reachability fix. */
+  @media (max-width: 980px), (pointer: coarse) and (max-width: 1100px) {
     #shiftModal {
       z-index: 6200 !important;
       align-items: stretch !important;
@@ -4136,6 +4136,285 @@
 })();
 </script>
 
+
+<style id="v5015MobilePlannerCss">
+  /* V5.0.15 compact mobile boards and normal-page scroll pass-through. */
+  @media (max-width: 980px), (pointer: coarse) and (max-width: 1100px) {
+    body.v5-mode:not(.planner-focus-mode):not(.week-overview-focus-mode) #plannerSection .planner {
+      max-width: 100% !important;
+      overflow-x: auto !important;
+      overflow-y: hidden !important;
+      overscroll-behavior-x: contain !important;
+      overscroll-behavior-y: auto !important;
+      -webkit-overflow-scrolling: touch;
+      touch-action: pan-x pan-y pinch-zoom;
+    }
+
+    body.v5-mode:not(.planner-focus-mode):not(.week-overview-focus-mode) #plannerSection #plannerGrid {
+      width: max-content !important;
+      min-width: max(var(--mobileBoardW, 640px), 100%) !important;
+      max-width: none !important;
+      transform-origin: top left;
+    }
+
+    body.v5-mode:not(.planner-focus-mode):not(.week-overview-focus-mode) #plannerSection .grid .header,
+    body.v5-mode:not(.planner-focus-mode):not(.week-overview-focus-mode) #plannerSection .grid .row {
+      width: max-content !important;
+      min-width: max(var(--mobileBoardW, 640px), 100%) !important;
+    }
+
+    body.v5-mode:not(.planner-focus-mode):not(.week-overview-focus-mode) #plannerSection .grid .row .staffcell,
+    body.v5-mode:not(.planner-focus-mode):not(.week-overview-focus-mode) #plannerSection .rowwrap,
+    body.v5-mode:not(.planner-focus-mode):not(.week-overview-focus-mode) #plannerSection .grid .row .cell {
+      height: var(--rowH, 34px) !important;
+      min-height: var(--rowH, 34px) !important;
+    }
+
+    body.v5-mode:not(.planner-focus-mode):not(.week-overview-focus-mode) #plannerSection .grid .header div:first-child,
+    body.v5-mode:not(.planner-focus-mode):not(.week-overview-focus-mode) #plannerSection .grid .row .staffcell {
+      width: var(--staffW, 104px) !important;
+      min-width: var(--staffW, 104px) !important;
+      max-width: var(--staffW, 104px) !important;
+    }
+
+    body.v5-mode:not(.planner-focus-mode):not(.week-overview-focus-mode) #plannerSection .grid .row .staffcell {
+      padding: 4px 5px !important;
+      gap: 0 !important;
+      justify-content: center !important;
+      overflow: hidden !important;
+      border-radius: 0 !important;
+      font-size: 10.5px !important;
+      line-height: 1.1 !important;
+    }
+
+    body.v5-mode:not(.planner-focus-mode):not(.week-overview-focus-mode) #plannerSection .grid .row .staffcell > div:first-child {
+      min-width: 0 !important;
+      gap: 4px !important;
+      overflow: hidden !important;
+    }
+
+    body.v5-mode:not(.planner-focus-mode):not(.week-overview-focus-mode) #plannerSection .grid .row .staffcell > div:first-child > div:nth-child(2) {
+      min-width: 0 !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+      white-space: nowrap !important;
+      font-weight: 950 !important;
+    }
+
+    body.v5-mode:not(.planner-focus-mode):not(.week-overview-focus-mode) #plannerSection .grid .row .staffcell .dot {
+      width: 7px !important;
+      height: 7px !important;
+      flex: 0 0 7px !important;
+    }
+
+    body.v5-mode:not(.planner-focus-mode):not(.week-overview-focus-mode) #plannerSection .grid .row .staffcell .badge,
+    body.v5-mode:not(.planner-focus-mode):not(.week-overview-focus-mode) #plannerSection .mini-actions {
+      display: none !important;
+    }
+
+    body.v5-mode:not(.planner-focus-mode):not(.week-overview-focus-mode) #plannerSection .grid .header div {
+      min-height: 28px !important;
+      padding: 4px 1px !important;
+      font-size: 8.5px !important;
+      letter-spacing: 0 !important;
+    }
+
+    body.v5-mode:not(.planner-focus-mode):not(.week-overview-focus-mode) #plannerSection .shift {
+      min-width: 14px !important;
+      height: calc(100% - 4px) !important;
+      margin-top: 2px !important;
+      padding: 0 3px !important;
+      border-width: 1px !important;
+      border-radius: 8px !important;
+      gap: 2px !important;
+      font-size: 9px !important;
+    }
+
+    body.v5-mode:not(.planner-focus-mode):not(.week-overview-focus-mode) #plannerSection .shift .label,
+    body.v5-mode:not(.planner-focus-mode):not(.week-overview-focus-mode) #plannerSection .shift .breakpill,
+    body.v5-mode:not(.planner-focus-mode):not(.week-overview-focus-mode) #plannerSection .shift .cover-tag {
+      display: none !important;
+    }
+
+    body.v5-mode:not(.planner-focus-mode):not(.week-overview-focus-mode) #plannerSection .shift .hours {
+      min-width: 0 !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+      white-space: nowrap !important;
+      font-size: 8.5px !important;
+      line-height: 1 !important;
+      font-weight: 1000 !important;
+    }
+
+    body.v5-mode:not(.week-overview-focus-mode) #plannerSection #weekOverview.week-overview {
+      width: 100% !important;
+      max-width: 100% !important;
+      min-width: 0 !important;
+      overflow-x: hidden !important;
+      overflow-y: visible !important;
+      grid-template-columns: minmax(72px, .9fr) repeat(7, minmax(30px, 1fr)) !important;
+      gap: 3px !important;
+      align-items: stretch !important;
+    }
+
+    body.v5-mode:not(.week-overview-focus-mode) #plannerSection #weekOverview > * {
+      min-width: 0 !important;
+    }
+
+    body.v5-mode:not(.week-overview-focus-mode) #plannerSection .wo-head {
+      min-width: 0 !important;
+      padding: 3px 2px !important;
+      font-size: 8.5px !important;
+      line-height: 1.05 !important;
+      overflow: hidden !important;
+      border-radius: 7px !important;
+    }
+
+    body.v5-mode:not(.week-overview-focus-mode) #plannerSection .wo-title {
+      font-size: 9px !important;
+      letter-spacing: -.02em !important;
+    }
+
+    body.v5-mode:not(.week-overview-focus-mode) #plannerSection .wo-day-head {
+      flex-direction: column !important;
+      gap: 1px !important;
+      white-space: normal !important;
+    }
+
+    body.v5-mode:not(.week-overview-focus-mode) #plannerSection .wo-day-label {
+      max-width: 100% !important;
+      overflow: hidden !important;
+      text-overflow: clip !important;
+      font-size: 8.5px !important;
+      line-height: 1 !important;
+    }
+
+    body.v5-mode:not(.week-overview-focus-mode) #plannerSection .wo-badges {
+      gap: 1px !important;
+      justify-content: center !important;
+      max-width: 100% !important;
+    }
+
+    body.v5-mode:not(.week-overview-focus-mode) #plannerSection .wo-count-badge {
+      padding: 1px 3px !important;
+      font-size: 7.5px !important;
+      line-height: 1 !important;
+      gap: 1px !important;
+      min-width: 0 !important;
+    }
+
+    body.v5-mode:not(.week-overview-focus-mode) #plannerSection .wo-ico {
+      font-size: 8px !important;
+    }
+
+    body.v5-mode:not(.week-overview-focus-mode) #plannerSection .wo-name,
+    body.v5-mode:not(.week-overview-focus-mode) #plannerSection .wo-cell {
+      min-width: 0 !important;
+      min-height: 26px !important;
+      padding: 2px 3px !important;
+      border-radius: 7px !important;
+      font-size: 9px !important;
+      line-height: 1.05 !important;
+    }
+
+    body.v5-mode:not(.week-overview-focus-mode) #plannerSection .wo-name {
+      position: static !important;
+      gap: 3px !important;
+      align-items: center !important;
+      font-weight: 950 !important;
+      overflow: hidden !important;
+    }
+
+    body.v5-mode:not(.week-overview-focus-mode) #plannerSection .wo-name > div:first-child {
+      width: 6px !important;
+      height: 6px !important;
+      flex: 0 0 6px !important;
+    }
+
+    body.v5-mode:not(.week-overview-focus-mode) #plannerSection .wo-name > div:nth-child(2) {
+      min-width: 0 !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+      white-space: nowrap !important;
+    }
+
+    body.v5-mode:not(.week-overview-focus-mode) #plannerSection .wo-week-total {
+      display: none !important;
+    }
+
+    body.v5-mode:not(.week-overview-focus-mode) #plannerSection .wo-cell {
+      align-content: center !important;
+      justify-content: center !important;
+    }
+
+    body.v5-mode:not(.week-overview-focus-mode) #plannerSection .wo-chip {
+      max-width: 100% !important;
+      min-height: 13px !important;
+      margin: 1px !important;
+      padding: 1px 3px !important;
+      border-radius: 4px !important;
+      font-size: 7.8px !important;
+      line-height: 1 !important;
+      white-space: nowrap !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+    }
+  }
+
+  @media (max-width: 380px) {
+    body.v5-mode:not(.week-overview-focus-mode) #plannerSection #weekOverview.week-overview {
+      grid-template-columns: minmax(64px, .85fr) repeat(7, minmax(28px, 1fr)) !important;
+      gap: 2px !important;
+    }
+    body.v5-mode:not(.week-overview-focus-mode) #plannerSection .wo-ico { display: none !important; }
+    body.v5-mode:not(.week-overview-focus-mode) #plannerSection .wo-count-badge { padding: 1px 2px !important; font-size: 7px !important; }
+    body.v5-mode:not(.week-overview-focus-mode) #plannerSection .wo-name,
+    body.v5-mode:not(.week-overview-focus-mode) #plannerSection .wo-cell { font-size: 8.2px !important; padding: 2px !important; }
+    body.v5-mode:not(.week-overview-focus-mode) #plannerSection .wo-chip { font-size: 7px !important; padding: 1px 2px !important; }
+  }
+</style>
+
+
+<script id="v5015MobilePlannerScript">
+(function(){
+  'use strict';
+
+  function closest(el, selector){
+    try{ return el && el.closest ? el.closest(selector) : null; }catch(e){ return null; }
+  }
+  function focusModeActive(){
+    try{
+      return !!(document.body && document.body.classList && (document.body.classList.contains('planner-focus-mode') || document.body.classList.contains('week-overview-focus-mode')));
+    }catch(e){ return false; }
+  }
+  function refit(){
+    try{ if(typeof fitPlanner === 'function') fitPlanner(); }catch(e){}
+    try{ if(window.v5015ScheduleFocusSizing) window.v5015ScheduleFocusSizing(); }catch(e){}
+  }
+
+  document.addEventListener('wheel', function(ev){
+    if(!ev || ev.defaultPrevented || ev.ctrlKey || ev.metaKey || focusModeActive()) return;
+    var target = ev.target;
+    if(closest(target, '.modal') || closest(target, '.v5-command-modal')) return;
+    var planner = closest(target, '#plannerSection .planner');
+    if(!planner) return;
+    var dy = Math.abs(ev.deltaY || 0);
+    var dx = Math.abs(ev.deltaX || 0);
+    if(!dy || dx > dy || ev.shiftKey) return;
+    var root = document.scrollingElement || document.documentElement || document.body;
+    if(!root) return;
+    var max = Math.max(0, root.scrollHeight - root.clientHeight);
+    if(max <= 1) return;
+    ev.preventDefault();
+    try{ root.scrollTop = Math.max(0, Math.min(max, root.scrollTop + ev.deltaY)); }catch(e){ try{ window.scrollBy(0, ev.deltaY || 0); }catch(_){} }
+  }, { passive: false });
+
+  window.addEventListener('orientationchange', function(){ setTimeout(refit, 80); setTimeout(refit, 360); }, { passive: true });
+  window.addEventListener('resize', function(){ setTimeout(refit, 80); }, { passive: true });
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function(){ setTimeout(refit, 0); setTimeout(refit, 180); });
+  else { setTimeout(refit, 0); setTimeout(refit, 180); }
+})();
+</script>
 </head>
 <body>
 
@@ -4145,7 +4424,7 @@
       <div id="appLogoBox"></div>
       <div class="titlewrap">
         <div class="title" id="appTitle">Aspire Workforce Command</div>
-        <div class="version-pill" id="appVersion">V5.0.14</div>
+        <div class="version-pill" id="appVersion">V5.0.15</div>
         <div class="sync-pill syncing" id="syncStatusChip" title="Sync status">Starting…</div>
       </div>
     </div>
@@ -5953,8 +6232,8 @@ var DAY = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 var App = {
   // IMPORTANT: Increment App.version *and* App.buildId whenever making functional changes to this file.
   // SAFETY NET: This build performs an automatic runtime check against the file name; if mismatched, it shows a blocking warning so it can't be overlooked.
-  version: 'V5.0.14',
-    buildId: '2026-05-01.14',
+  version: 'V5.0.15',
+    buildId: '2026-05-01.15',
 settings: {
     dbUrl:'https://mnc-atrd-default-rtdb.asia-southeast1.firebasedatabase.app/', workspace:'mnc-atrd', authToken:'',
     theme:'light', themeName:'light-pastel-sky', recentColors:[], appTitle:'Aspire Workforce Command', logoUrl:'',
@@ -10909,15 +11188,49 @@ function fitPlanner(){
   var rectSource = grid.parentElement || grid;
   var wrap=rectSource.getBoundingClientRect();
   var focus = (document.body && document.body.classList && document.body.classList.contains('planner-focus-mode'));
-  var staffW = focus ? ((window.innerWidth||0) >= 900 ? 260 : 240) : 220;
-  if(focus && (window.innerWidth||0) <= 620) staffW = 220;
-  var avail=Math.max(320, wrap.width - staffW);
-  var minCol = focus ? 36 : 12;
-  var colW=Math.max(minCol, Math.floor(avail/Math.max(4,colCount())));
+  var w = Math.max(320, window.innerWidth || document.documentElement.clientWidth || wrap.width || 0);
+  var shortSide = 0;
+  try{ shortSide = Math.min(screen.width || w, screen.height || w); }catch(e){ shortSide = w; }
+  var coarse = false;
+  try{ coarse = !!(window.matchMedia && window.matchMedia('(pointer: coarse)').matches); }catch(e){ coarse = false; }
+  var compact = (w <= 700) || (coarse && shortSide > 0 && shortSide <= 820) || (document.documentElement && document.documentElement.classList && document.documentElement.classList.contains('mobile-comfort-view'));
+  var tablet = !compact && ((w <= 980) || (coarse && w <= 1100));
+  var staffW = 220;
+  var minCol = 12;
+  var rowH = 38;
+  if(focus){
+    if(compact){
+      staffW = Math.max(82, Math.min(126, Math.round(w * 0.25)));
+      minCol = 6;
+      rowH = 44;
+    }else if(tablet || w < 900){
+      staffW = 160;
+      minCol = 10;
+      rowH = 50;
+    }else{
+      staffW = 260;
+      minCol = 30;
+      rowH = 58;
+    }
+  }else if(compact){
+    staffW = Math.max(78, Math.min(112, Math.round(w * 0.25)));
+    minCol = 6;
+    rowH = 34;
+  }else if(tablet){
+    staffW = 150;
+    minCol = 9;
+    rowH = 38;
+  }
+  var cols = Math.max(4, colCount());
+  var avail=Math.max(120, wrap.width - staffW);
+  var colW=Math.max(minCol, Math.floor(avail/cols));
+  var boardW = Math.max(Math.ceil(wrap.width || w), Math.ceil(staffW + (colW * cols)));
   var gnodes=document.querySelectorAll('.grid');
   for(var i=0;i<gnodes.length;i++){
     gnodes[i].style.setProperty('--staffW', staffW+'px');
     gnodes[i].style.setProperty('--colW', colW+'px');
+    gnodes[i].style.setProperty('--rowH', rowH+'px');
+    gnodes[i].style.setProperty('--mobileBoardW', boardW+'px');
   }
 }
 function shiftWeek(d){ var base=fromISO(Planner.weekStartISO); base.setDate(base.getDate()+d*7); Planner.weekStartISO=toISO(weekStart(base)); renderPlanner(); renderPayroll(); if(typeof updateRequestsBadge==='function') updateRequestsBadge(); }
@@ -20214,7 +20527,7 @@ try{
 (function(){
   'use strict';
   var APP_NAME = 'Aspire Workforce Command';
-  var APP_VERSION = 'V5.0.14';
+  var APP_VERSION = 'V5.0.15';
   var OLD_TITLE = 'M&C-ATRD-scheduler --=Aspire Group=--';
 
   var NAVS = [
@@ -20452,7 +20765,7 @@ try{
   }
 
   function countPendingRequests(){
-    // V5.0.14: count only real pending requests, not nested/history request-like objects.
+    // V5.0.15: count only real pending requests, not nested/history request-like objects.
     var app = window.App || {};
     var count = 0;
     function pending(rec){
@@ -20868,7 +21181,7 @@ try{
 
 
 <style id="v5013FullscreenZoomCss">
-  /* V5.0.14 full-screen control colour, auto-fit scaling and in-app pinch zoom support. */
+  /* V5.0.15 full-screen control colour, auto-fit scaling and in-app pinch zoom support. */
   body:not(.week-overview-focus-mode) #btnWeekOverviewFullView {
     background: linear-gradient(135deg, #22c55e, #14b8a6) !important;
     border-color: transparent !important;
@@ -20952,10 +21265,12 @@ try{
     }
   }
 
-  @media (max-width: 620px) {
+  @media (max-width: 620px), (pointer: coarse) {
     body.week-overview-focus-mode #plannerSection #weekOverview > .week-overview-zoom-surface {
-      grid-template-columns: 190px repeat(7, minmax(160px, 1fr)) !important;
-      gap: 8px !important;
+      grid-template-columns: minmax(72px, .9fr) repeat(7, minmax(30px, 1fr)) !important;
+      gap: 3px !important;
+      width: 100% !important;
+      min-width: 0 !important;
     }
   }
 </style>
@@ -21290,6 +21605,49 @@ try{
   window.addEventListener('orientationchange', function(){ setTimeout(handleResize, 250); });
   if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function(){ scheduleSync(true, false); });
   else setTimeout(function(){ scheduleSync(true, false); }, 0);
+})();
+</script>
+
+
+<script id="v5015ScrollPassThroughScript">
+(function(){
+  'use strict';
+
+  function hasBodyClass(cls){
+    try{ return !!(document.body && document.body.classList && document.body.classList.contains(cls)); }catch(e){ return false; }
+  }
+  function closest(el, selector){
+    try{ return el && el.closest ? el.closest(selector) : null; }catch(e){ return null; }
+  }
+  function refit(){
+    try{ if(typeof fitPlanner === 'function') fitPlanner(); }catch(e){}
+  }
+
+  document.addEventListener('wheel', function(ev){
+    try{
+      if(!ev || ev.defaultPrevented || ev.ctrlKey || ev.metaKey) return;
+      if(hasBodyClass('planner-focus-mode') || hasBodyClass('week-overview-focus-mode')) return;
+      if(closest(ev.target, '.modal') || closest(ev.target, '.v5-command-modal')) return;
+      var board = closest(ev.target, '#plannerSection .planner, #plannerSection #weekOverview');
+      if(!board) return;
+      var dy = ev.deltaY || 0;
+      var dx = ev.deltaX || 0;
+      if(Math.abs(dy) < 1 || Math.abs(dx) > Math.abs(dy) || ev.shiftKey) return;
+      var canScrollY = (board.scrollHeight || 0) > ((board.clientHeight || 0) + 2);
+      var atTop = (board.scrollTop || 0) <= 1;
+      var atBottom = ((board.scrollTop || 0) + (board.clientHeight || 0)) >= ((board.scrollHeight || 0) - 2);
+      if(!canScrollY || (dy < 0 && atTop) || (dy > 0 && atBottom)){
+        ev.preventDefault();
+        try{ window.scrollBy({ top: dy, left: 0, behavior: 'auto' }); }
+        catch(e){ try{ window.scrollBy(0, dy); }catch(_e){} }
+      }
+    }catch(e){}
+  }, { passive: false });
+
+  window.addEventListener('resize', function(){ setTimeout(refit, 80); }, { passive: true });
+  window.addEventListener('orientationchange', function(){ setTimeout(refit, 260); }, { passive: true });
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function(){ setTimeout(refit, 60); });
+  else setTimeout(refit, 60);
 })();
 </script>
 
