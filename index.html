@@ -34,7 +34,7 @@
     })();
   </script>
 
-<title>Aspire Workforce Command (V5.0.15)</title>
+<title>Aspire Workforce Command (V5.0.16)</title>
   <meta name="theme-color" content="#22c55e"/>
 
   <style>
@@ -2458,7 +2458,7 @@
 
 
   <style id="v500Css">
-    /* ---------- V5.0.15 Aspire Workforce Command redesign ---------- */
+    /* ---------- V5.0.16 Aspire Workforce Command redesign ---------- */
     :root {
       --v5-bg: #050816;
       --v5-panel: rgba(13,18,35,.84);
@@ -2508,7 +2508,7 @@
       display: none !important;
     }
 
-    /* V5.0.15 staff/mobile safeguards */
+    /* V5.0.16 staff/mobile safeguards */
     body.v5-staff-lite #v5OpsDeck,
     body.v5-staff-lite #btnPushTop,
     body.v5-staff-lite #btnPushPlanner,
@@ -3380,7 +3380,7 @@
   </style>
 
   <style id="v508MobileComfortCss">
-    /* V5.0.15 mobile comfort: phone-sized controls with desktop-wide work boards inside scrollable panels. */
+    /* V5.0.16 mobile comfort: phone-sized controls with desktop-wide work boards inside scrollable panels. */
     html.mobile-comfort-view,
     html.mobile-comfort-view body {
       min-width: 0 !important;
@@ -3523,7 +3523,7 @@
 
 
   <style id="v510PlannerFocusCss">
-    /* V5.0.15 planner-only fullscreen view for shop tablet display. */
+    /* V5.0.16 planner-only fullscreen view for shop tablet display. */
     html.planner-focus-view,
     html.planner-focus-view body {
       width: 100% !important;
@@ -3793,7 +3793,7 @@
   </style>
 
   <style id="v510WeekOverviewFocusCss">
-    /* V5.0.15 week-overview-only fullscreen view for shop tablet display. */
+    /* V5.0.16 week-overview-only fullscreen view for shop tablet display. */
     html.week-overview-focus-view,
     html.week-overview-focus-view body {
       width: 100% !important;
@@ -4031,7 +4031,7 @@
 
 
 <style id="v5014MobileShiftModalCss">
-  /* V5.0.15 mobile shift editor reachability fix. */
+  /* V5.0.16 mobile shift editor reachability fix. */
   @media (max-width: 980px), (pointer: coarse) and (max-width: 1100px) {
     #shiftModal {
       z-index: 6200 !important;
@@ -4138,7 +4138,7 @@
 
 
 <style id="v5015MobilePlannerCss">
-  /* V5.0.15 compact mobile boards and normal-page scroll pass-through. */
+  /* V5.0.16 compact mobile boards and normal-page scroll pass-through. */
   @media (max-width: 980px), (pointer: coarse) and (max-width: 1100px) {
     body.v5-mode:not(.planner-focus-mode):not(.week-overview-focus-mode) #plannerSection .planner {
       max-width: 100% !important;
@@ -4424,7 +4424,7 @@
       <div id="appLogoBox"></div>
       <div class="titlewrap">
         <div class="title" id="appTitle">Aspire Workforce Command</div>
-        <div class="version-pill" id="appVersion">V5.0.15</div>
+        <div class="version-pill" id="appVersion">V5.0.16</div>
         <div class="sync-pill syncing" id="syncStatusChip" title="Sync status">Starting…</div>
       </div>
     </div>
@@ -6232,7 +6232,7 @@ var DAY = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 var App = {
   // IMPORTANT: Increment App.version *and* App.buildId whenever making functional changes to this file.
   // SAFETY NET: This build performs an automatic runtime check against the file name; if mismatched, it shows a blocking warning so it can't be overlooked.
-  version: 'V5.0.15',
+  version: 'V5.0.16',
     buildId: '2026-05-01.15',
 settings: {
     dbUrl:'https://mnc-atrd-default-rtdb.asia-southeast1.firebasedatabase.app/', workspace:'mnc-atrd', authToken:'',
@@ -20527,7 +20527,7 @@ try{
 (function(){
   'use strict';
   var APP_NAME = 'Aspire Workforce Command';
-  var APP_VERSION = 'V5.0.15';
+  var APP_VERSION = 'V5.0.16';
   var OLD_TITLE = 'M&C-ATRD-scheduler --=Aspire Group=--';
 
   var NAVS = [
@@ -20765,7 +20765,7 @@ try{
   }
 
   function countPendingRequests(){
-    // V5.0.15: count only real pending requests, not nested/history request-like objects.
+    // V5.0.16: count only real pending requests, not nested/history request-like objects.
     var app = window.App || {};
     var count = 0;
     function pending(rec){
@@ -21181,7 +21181,7 @@ try{
 
 
 <style id="v5013FullscreenZoomCss">
-  /* V5.0.15 full-screen control colour, auto-fit scaling and in-app pinch zoom support. */
+  /* V5.0.16 full-screen control colour, auto-fit scaling and in-app pinch zoom support. */
   body:not(.week-overview-focus-mode) #btnWeekOverviewFullView {
     background: linear-gradient(135deg, #22c55e, #14b8a6) !important;
     border-color: transparent !important;
@@ -21651,5 +21651,174 @@ try{
 })();
 </script>
 
+
+
+<style id="v5016StaffMobileActionsStyle">
+  /* V5.0.16 staff mobile action restoration */
+  #v5016StaffDayActions { display:none; }
+
+  @media (max-width: 768px) {
+    body.v5-staff-lite #v5016StaffDayActions {
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:8px;
+      width:100%;
+      margin:8px 0 10px;
+      padding:8px 10px;
+      border-radius:16px;
+      border:1px solid rgba(56,189,248,.34);
+      background:linear-gradient(135deg, rgba(56,189,248,.16), rgba(124,58,237,.13));
+      color:var(--v5-text, var(--fg));
+      box-shadow:0 10px 26px rgba(2,6,23,.24);
+    }
+    body.v5-staff-lite #v5016StaffDayActions .v5016-copy {
+      min-width:0;
+      display:flex;
+      flex-direction:column;
+      gap:2px;
+      font-size:11px;
+      font-weight:900;
+      line-height:1.25;
+    }
+    body.v5-staff-lite #v5016StaffDayActions .v5016-copy span:last-child {
+      color:var(--v5-muted, var(--muted));
+      font-size:10px;
+      font-weight:800;
+    }
+    body.v5-staff-lite #v5016StaffDayActions button {
+      flex:0 0 auto;
+      border:none;
+      border-radius:999px;
+      padding:9px 12px;
+      background:linear-gradient(135deg, #38bdf8, #8b5cf6);
+      color:#fff;
+      font-size:12px;
+      font-weight:1000;
+      letter-spacing:.02em;
+      box-shadow:0 8px 18px rgba(15,23,42,.34);
+      cursor:pointer;
+    }
+
+    body.v5-staff-lite:not(.planner-focus-mode):not(.week-overview-focus-mode) #plannerSection #plannerGrid {
+      --rowH: 58px !important;
+      --staffW: 126px !important;
+    }
+    body.v5-staff-lite:not(.planner-focus-mode):not(.week-overview-focus-mode) #plannerSection .grid .row .staffcell,
+    body.v5-staff-lite:not(.planner-focus-mode):not(.week-overview-focus-mode) #plannerSection .rowwrap,
+    body.v5-staff-lite:not(.planner-focus-mode):not(.week-overview-focus-mode) #plannerSection .grid .row .cell {
+      height: var(--rowH, 58px) !important;
+      min-height: var(--rowH, 58px) !important;
+    }
+    body.v5-staff-lite:not(.planner-focus-mode):not(.week-overview-focus-mode) #plannerSection .grid .row .staffcell {
+      align-items:stretch !important;
+      justify-content:flex-start !important;
+      gap:3px !important;
+      padding:4px 5px !important;
+      overflow:hidden !important;
+    }
+    body.v5-staff-lite:not(.planner-focus-mode):not(.week-overview-focus-mode) #plannerSection .mini-actions {
+      display:grid !important;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap:2px !important;
+      margin-top:2px !important;
+      padding-top:0 !important;
+      border-top:none !important;
+      overflow:hidden !important;
+    }
+    body.v5-staff-lite:not(.planner-focus-mode):not(.week-overview-focus-mode) #plannerSection .mini-actions .btn-mini {
+      display:flex !important;
+      align-items:center !important;
+      justify-content:center !important;
+      min-width:0 !important;
+      min-height:17px !important;
+      padding:2px 2px !important;
+      border-radius:7px !important;
+      font-size:7.5px !important;
+      line-height:1 !important;
+      font-weight:950 !important;
+      white-space:nowrap !important;
+      overflow:hidden !important;
+      text-overflow:ellipsis !important;
+    }
+    body.v5-staff-lite:not(.planner-focus-mode):not(.week-overview-focus-mode) #plannerSection .mini-actions .btn-mini:nth-child(n+5) {
+      grid-column:auto;
+    }
+
+    body.v5-staff-lite #dayToolsModal .panel {
+      width:min(440px, calc(100vw - 18px));
+      max-height:calc(100dvh - 24px);
+      padding:14px;
+      padding-bottom:calc(env(safe-area-inset-bottom, 0px) + 18px);
+    }
+    body.v5-staff-lite #dayToolsModal .daytools-actions {
+      display:grid !important;
+      grid-template-columns:1fr;
+      gap:8px !important;
+    }
+    body.v5-staff-lite #dayToolsModal .daytools-actions button {
+      width:100%;
+      min-height:42px;
+      font-size:13px;
+      font-weight:950;
+      text-align:center;
+    }
+  }
+</style>
+<script id="v5016StaffMobileActionsPatch">
+(function(){
+  'use strict';
+  function byId(id){ return document.getElementById(id); }
+  function role(){ try{ return String((window.App && App.currentUser && App.currentUser.role) || ''); }catch(e){ return ''; } }
+  function isStaff(){ return role() === 'staff'; }
+  function currentStaffId(){ try{ return App.currentUser && App.currentUser.id ? String(App.currentUser.id) : ''; }catch(e){ return ''; } }
+  function dayName(){
+    try{
+      var idx = Number((window.Planner && Planner.activeDayIndex) || 0);
+      var names = window.DAY || ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+      return names[idx] || ('Day ' + (idx + 1));
+    }catch(e){ return 'selected day'; }
+  }
+  function ensureStaffDayActions(){
+    try{
+      var section = byId('plannerSection');
+      if(!section) return;
+      var card = section.querySelector('.card');
+      if(!card) return;
+      var host = byId('v5016StaffDayActions');
+      if(!host){
+        host = document.createElement('div');
+        host.id = 'v5016StaffDayActions';
+        host.innerHTML = '<div class="v5016-copy"><span>Staff request tools</span><span id="v5016StaffDayLabel">Use for selected day</span></div><button type="button" id="v5016OpenStaffDayTools">Open actions</button>';
+        var ref = byId('plannerGrid');
+        if(ref && ref.parentNode) card.insertBefore(host, ref.parentNode);
+        else card.appendChild(host);
+      }
+      var lbl = byId('v5016StaffDayLabel');
+      if(lbl) lbl.textContent = 'Propose Away, Partial Away, Propose Edit, Propose Shift, INFO — ' + dayName();
+      var btn = byId('v5016OpenStaffDayTools');
+      if(btn && !btn.dataset.v5016Bound){
+        btn.dataset.v5016Bound = '1';
+        btn.addEventListener('click', function(ev){
+          try{ ev.preventDefault(); ev.stopPropagation(); }catch(e){}
+          var staffId = currentStaffId();
+          if(!staffId) return;
+          var dayIndex = 0;
+          try{ dayIndex = Number((window.Planner && Planner.activeDayIndex) || 0); }catch(e){}
+          if(typeof window.openDayToolsFor === 'function') window.openDayToolsFor(staffId, dayIndex);
+        }, true);
+      }
+    }catch(e){}
+  }
+  function tick(){
+    try{ document.body.classList.toggle('v5016-staff-mobile-actions', isStaff()); }catch(e){}
+    ensureStaffDayActions();
+  }
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', tick); else tick();
+  document.addEventListener('click', function(){ setTimeout(tick, 0); }, true);
+  window.addEventListener('resize', tick);
+  setInterval(tick, 1200);
+})();
+</script>
 </body>
 </html>
