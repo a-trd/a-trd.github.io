@@ -2,18 +2,12 @@
 <html lang="en">
 <head>
   <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=0.5, maximum-scale=8.0, user-scalable=yes, viewport-fit=cover"/>
+  <meta name="viewport" content="width=1366, minimum-scale=0.2, maximum-scale=8.0, user-scalable=yes, viewport-fit=cover"/>
   <script id="v508MobileComfortViewport">
     (function(){
       'use strict';
-      function phoneLike(){
-        try{
-          var shortSide = Math.min(screen.width || 0, screen.height || 0);
-          var coarse = false;
-          try { coarse = window.matchMedia && window.matchMedia('(pointer: coarse)').matches; } catch(e) {}
-          return (shortSide > 0 && shortSide <= 820) || (coarse && (window.innerWidth || screen.width || 0) <= 1024);
-        }catch(e){ return false; }
-      }
+      var DESKTOP_VIEWPORT_WIDTH = 1366;
+      var DESKTOP_VIEWPORT_CONTENT = 'width=' + DESKTOP_VIEWPORT_WIDTH + ', minimum-scale=0.2, maximum-scale=8.0, user-scalable=yes, viewport-fit=cover';
       function setViewport(){
         var meta = document.querySelector('meta[name="viewport"]');
         if(!meta){
@@ -21,10 +15,10 @@
           meta.name = 'viewport';
           document.head.appendChild(meta);
         }
-        meta.setAttribute('content', 'width=device-width, initial-scale=1.0, minimum-scale=0.5, maximum-scale=8.0, user-scalable=yes, viewport-fit=cover');
-        document.documentElement.classList.remove('desktop-viewport-mobile');
-        document.documentElement.style.removeProperty('--desktop-mobile-width');
-        document.documentElement.classList.toggle('mobile-comfort-view', phoneLike());
+        meta.setAttribute('content', DESKTOP_VIEWPORT_CONTENT);
+        document.documentElement.classList.remove('mobile-comfort-view');
+        document.documentElement.classList.add('desktop-viewport-mobile');
+        document.documentElement.style.setProperty('--desktop-mobile-width', DESKTOP_VIEWPORT_WIDTH + 'px');
       }
       setViewport();
       if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', setViewport);
@@ -4088,7 +4082,7 @@
   }
 
   @supports (height: 100svh) {
-    @media (max-width: 980px), (pointer: coarse) {
+    @media (max-width: 980px), (pointer: coarse) and (max-width: 1100px) {
       #shiftModal {
         min-height: var(--v5014-mobile-vh, 100svh) !important;
       }
@@ -11189,12 +11183,8 @@ function fitPlanner(){
   var wrap=rectSource.getBoundingClientRect();
   var focus = (document.body && document.body.classList && document.body.classList.contains('planner-focus-mode'));
   var w = Math.max(320, window.innerWidth || document.documentElement.clientWidth || wrap.width || 0);
-  var shortSide = 0;
-  try{ shortSide = Math.min(screen.width || w, screen.height || w); }catch(e){ shortSide = w; }
-  var coarse = false;
-  try{ coarse = !!(window.matchMedia && window.matchMedia('(pointer: coarse)').matches); }catch(e){ coarse = false; }
-  var compact = (w <= 700) || (coarse && shortSide > 0 && shortSide <= 820) || (document.documentElement && document.documentElement.classList && document.documentElement.classList.contains('mobile-comfort-view'));
-  var tablet = !compact && ((w <= 980) || (coarse && w <= 1100));
+  var compact = (w <= 700) || (document.documentElement && document.documentElement.classList && document.documentElement.classList.contains('mobile-comfort-view'));
+  var tablet = !compact && (w <= 980);
   var staffW = 220;
   var minCol = 12;
   var rowH = 38;
@@ -21265,7 +21255,7 @@ try{
     }
   }
 
-  @media (max-width: 620px), (pointer: coarse) {
+  @media (max-width: 620px), (pointer: coarse) and (max-width: 1100px) {
     body.week-overview-focus-mode #plannerSection #weekOverview > .week-overview-zoom-surface {
       grid-template-columns: minmax(72px, .9fr) repeat(7, minmax(30px, 1fr)) !important;
       gap: 3px !important;
