@@ -2,12 +2,29 @@
 <html lang="en">
 <head>
   <meta charset="utf-8"/>
-  <meta name="viewport" content="width=1366, minimum-scale=0.2, maximum-scale=8.0, user-scalable=yes, viewport-fit=cover"/>
+  <meta name="viewport" content="width=1138, minimum-scale=0.2, maximum-scale=8.0, user-scalable=yes, viewport-fit=cover"/>
   <script id="v508MobileComfortViewport">
     (function(){
       'use strict';
-      var DESKTOP_VIEWPORT_WIDTH = 1366;
-      var DESKTOP_VIEWPORT_CONTENT = 'width=' + DESKTOP_VIEWPORT_WIDTH + ', minimum-scale=0.2, maximum-scale=8.0, user-scalable=yes, viewport-fit=cover';
+      var DESKTOP_VIEWPORT_BASE_WIDTH = 1366;
+      var DEFAULT_DESKTOP_SCALE_PERCENT = 120;
+      function clampScale(v){
+        v = parseFloat(v);
+        if(!isFinite(v)) v = DEFAULT_DESKTOP_SCALE_PERCENT;
+        return Math.max(80, Math.min(150, v));
+      }
+      function viewportWidthForScale(scale){
+        return Math.round(DESKTOP_VIEWPORT_BASE_WIDTH * 100 / clampScale(scale));
+      }
+      function scaleFromApp(){
+        try{
+          if(window.App && App.settings && App.settings.appScalePercent != null) return App.settings.appScalePercent;
+        }catch(e){}
+        return DEFAULT_DESKTOP_SCALE_PERCENT;
+      }
+      function viewportContent(scale){
+        return 'width=' + viewportWidthForScale(scale) + ', minimum-scale=0.2, maximum-scale=8.0, user-scalable=yes, viewport-fit=cover';
+      }
       function setViewport(){
         var meta = document.querySelector('meta[name="viewport"]');
         if(!meta){
@@ -15,11 +32,14 @@
           meta.name = 'viewport';
           document.head.appendChild(meta);
         }
-        meta.setAttribute('content', DESKTOP_VIEWPORT_CONTENT);
+        var scale = clampScale(scaleFromApp());
+        meta.setAttribute('content', viewportContent(scale));
         document.documentElement.classList.remove('mobile-comfort-view');
         document.documentElement.classList.add('desktop-viewport-mobile');
-        document.documentElement.style.setProperty('--desktop-mobile-width', DESKTOP_VIEWPORT_WIDTH + 'px');
+        document.documentElement.style.setProperty('--desktop-mobile-width', viewportWidthForScale(scale) + 'px');
+        document.documentElement.style.setProperty('--app-scale-percent', String(scale));
       }
+      window.applyDesktopViewportScale = setViewport;
       setViewport();
       if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', setViewport);
       else setViewport();
@@ -28,7 +48,7 @@
     })();
   </script>
 
-<title>Aspire Workforce Command (V5.0.19)</title>
+<title>Aspire Workforce Command (V5.0.20)</title>
   <meta name="theme-color" content="#22c55e"/>
 
   <style>
@@ -2452,7 +2472,7 @@
 
 
   <style id="v500Css">
-    /* ---------- V5.0.19 Aspire Workforce Command redesign ---------- */
+    /* ---------- V5.0.20 Aspire Workforce Command redesign ---------- */
     :root {
       --v5-bg: #050816;
       --v5-panel: rgba(13,18,35,.84);
@@ -2502,7 +2522,7 @@
       display: none !important;
     }
 
-    /* V5.0.19 staff/mobile safeguards */
+    /* V5.0.20 staff/mobile safeguards */
     body.v5-staff-lite #v5OpsDeck,
     body.v5-staff-lite #btnPushTop,
     body.v5-staff-lite #btnPushPlanner,
@@ -3374,7 +3394,7 @@
   </style>
 
   <style id="v508MobileComfortCss">
-    /* V5.0.19 mobile comfort: phone-sized controls with desktop-wide work boards inside scrollable panels. */
+    /* V5.0.20 mobile comfort: phone-sized controls with desktop-wide work boards inside scrollable panels. */
     html.mobile-comfort-view,
     html.mobile-comfort-view body {
       min-width: 0 !important;
@@ -3517,7 +3537,7 @@
 
 
   <style id="v510PlannerFocusCss">
-    /* V5.0.19 planner-only fullscreen view for shop tablet display. */
+    /* V5.0.20 planner-only fullscreen view for shop tablet display. */
     html.planner-focus-view,
     html.planner-focus-view body {
       width: 100% !important;
@@ -3787,7 +3807,7 @@
   </style>
 
   <style id="v510WeekOverviewFocusCss">
-    /* V5.0.19 week-overview-only fullscreen view for shop tablet display. */
+    /* V5.0.20 week-overview-only fullscreen view for shop tablet display. */
     html.week-overview-focus-view,
     html.week-overview-focus-view body {
       width: 100% !important;
@@ -4025,7 +4045,7 @@
 
 
 <style id="v5014MobileShiftModalCss">
-  /* V5.0.19 mobile shift editor reachability fix. */
+  /* V5.0.20 mobile shift editor reachability fix. */
   @media (max-width: 980px), (pointer: coarse) and (max-width: 1100px) {
     #shiftModal {
       z-index: 6200 !important;
@@ -4132,7 +4152,7 @@
 
 
 <style id="v5015MobilePlannerCss">
-  /* V5.0.19 compact mobile boards and normal-page scroll pass-through. */
+  /* V5.0.20 compact mobile boards and normal-page scroll pass-through. */
   @media (max-width: 980px), (pointer: coarse) and (max-width: 1100px) {
     body.v5-mode:not(.planner-focus-mode):not(.week-overview-focus-mode) #plannerSection .planner {
       max-width: 100% !important;
@@ -4418,7 +4438,7 @@
       <div id="appLogoBox"></div>
       <div class="titlewrap">
         <div class="title" id="appTitle">Aspire Workforce Command</div>
-        <div class="version-pill" id="appVersion">V5.0.19</div>
+        <div class="version-pill" id="appVersion">V5.0.20</div>
         <div class="sync-pill syncing" id="syncStatusChip" title="Sync status">Starting…</div>
       </div>
     </div>
@@ -5402,6 +5422,15 @@
               <input id="autoPushMinsInput" type="number" min="0" step="1" value="0">
             </div>
           </div>
+          <div class="grid-2" style="margin-top:10px;">
+            <div>
+              <label>Main page scale (%)</label>
+              <input id="appScalePercentInput" type="number" min="80" max="150" step="5" value="120">
+            </div>
+            <div class="muted" style="display:flex;align-items:end;padding-bottom:10px;">
+              100 = original desktop size. 120 = 20% larger.
+            </div>
+          </div>
           <div style="height:8px"></div>
           <div style="display:flex;gap:8px;flex-wrap:wrap;">
             <button id="btnSaveSettings" class="btn-primary">Save</button>
@@ -6226,14 +6255,15 @@ var DAY = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 var App = {
   // IMPORTANT: Increment App.version *and* App.buildId whenever making functional changes to this file.
   // SAFETY NET: This build performs an automatic runtime check against the file name; if mismatched, it shows a blocking warning so it can't be overlooked.
-  version: 'V5.0.19',
-    buildId: '2026-05-01.15',
+  version: 'V5.0.20',
+    buildId: '2026-05-02.01',
 settings: {
     dbUrl:'https://mnc-atrd-default-rtdb.asia-southeast1.firebasedatabase.app/', workspace:'mnc-atrd', authToken:'',
     theme:'light', themeName:'light-pastel-sky', recentColors:[], appTitle:'Aspire Workforce Command', logoUrl:'',
     autoPullMins: 0, autoPushMins: 0,
     // idle display mode
     idleFullscreenEnabled: false, idleFullscreenMins: 10, idleFullscreenTarget: 'planner',
+    appScalePercent: 120,
     // planner
     gridStartHour: 8, gridHours: 16, slotMins: 30, targetHeadcount: 0,
     // week overview shift badge windows (24h HH:MM)
@@ -6303,6 +6333,7 @@ function ensureSettingsDefaults(){
     if(App.settings.idleFullscreenEnabled === undefined) App.settings.idleFullscreenEnabled = false;
     if(App.settings.idleFullscreenMins == null || isNaN(parseFloat(App.settings.idleFullscreenMins))) App.settings.idleFullscreenMins = 10;
     if(!App.settings.idleFullscreenTarget) App.settings.idleFullscreenTarget = 'planner';
+    if(App.settings.appScalePercent == null || isNaN(parseFloat(App.settings.appScalePercent))) App.settings.appScalePercent = 120;
   }catch(e){}
 }
 
@@ -6378,6 +6409,7 @@ function normalizeCoreState(){
     App.settings.idleFullscreenEnabled = (App.settings.idleFullscreenEnabled === true || App.settings.idleFullscreenEnabled === 'true');
     App.settings.idleFullscreenMins = clampFloat(App.settings.idleFullscreenMins, 0.25, 1440, 10);
     App.settings.idleFullscreenTarget = (String(App.settings.idleFullscreenTarget||'planner') === 'weekOverview') ? 'weekOverview' : 'planner';
+    App.settings.appScalePercent = clampFloat(App.settings.appScalePercent, 80, 150, 120);
     App.settings.requestsPopupCooldownSecs = clampInt(App.settings.requestsPopupCooldownSecs, 5, 86400, 60);
     App.settings.requestsNotifySoundVolume = clampFloat(App.settings.requestsNotifySoundVolume, 0, 1, 0.7);
     App.settings.dayShiftStart = to24hhmm(App.settings.dayShiftStart, '09:00');
@@ -7933,6 +7965,9 @@ function syncSettingsUIFromApp(){
     if(__ap) __ap.value = App.settings.autoPullMins||0;
     var __aq=document.getElementById('autoPushMinsInput');
     if(__aq) __aq.value = App.settings.autoPushMins||0;
+    var __scale=document.getElementById('appScalePercentInput');
+    if(__scale) __scale.value = String(App.settings.appScalePercent || 120);
+    try{ if(typeof window.applyDesktopViewportScale === 'function') window.applyDesktopViewportScale(); }catch(e){}
     try{ syncIdleFullscreenSettingsUI(); }catch(e){}
     var __oh=document.getElementById('optStartHour');
     if(__oh) __oh.value = App.settings.gridStartHour;
@@ -8675,6 +8710,8 @@ function init(){
     App.settings.logoUrl=(byId('logoUrlInput') && byId('logoUrlInput').value||'').trim();
     App.settings.autoPullMins=parseInt(byId('autoPullMinsInput').value||'0',10)||0;
     App.settings.autoPushMins=parseInt(byId('autoPushMinsInput').value||'0',10)||0;
+    App.settings.appScalePercent = Math.max(80, Math.min(150, parseFloat((byId('appScalePercentInput') && byId('appScalePercentInput').value) || '120') || 120));
+    try{ if(typeof window.applyDesktopViewportScale === 'function') window.applyDesktopViewportScale(); }catch(e){}
     App.settings.idleFullscreenEnabled = !!(byId('idleFullscreenEnabled') && byId('idleFullscreenEnabled').checked);
     App.settings.idleFullscreenMins = Math.max(0.25, Math.min(1440, parseFloat((byId('idleFullscreenMins') && byId('idleFullscreenMins').value) || '10') || 10));
     App.settings.idleFullscreenTarget = ((byId('idleFullscreenTarget') && byId('idleFullscreenTarget').value) === 'weekOverview') ? 'weekOverview' : 'planner';
@@ -20517,7 +20554,7 @@ try{
 (function(){
   'use strict';
   var APP_NAME = 'Aspire Workforce Command';
-  var APP_VERSION = 'V5.0.19';
+  var APP_VERSION = 'V5.0.20';
   var OLD_TITLE = 'M&C-ATRD-scheduler --=Aspire Group=--';
 
   var NAVS = [
@@ -20755,7 +20792,7 @@ try{
   }
 
   function countPendingRequests(){
-    // V5.0.19: count only real pending requests, not nested/history request-like objects.
+    // V5.0.20: count only real pending requests, not nested/history request-like objects.
     var app = window.App || {};
     var count = 0;
     function pending(rec){
@@ -21171,7 +21208,7 @@ try{
 
 
 <style id="v5013FullscreenZoomCss">
-  /* V5.0.19 full-screen control colour, auto-fit scaling and in-app pinch zoom support. */
+  /* V5.0.20 full-screen control colour, auto-fit scaling and in-app pinch zoom support. */
   body:not(.week-overview-focus-mode) #btnWeekOverviewFullView {
     background: linear-gradient(135deg, #22c55e, #14b8a6) !important;
     border-color: transparent !important;
@@ -21644,7 +21681,7 @@ try{
 
 
 <style id="v5016StaffMobileActionsStyle">
-  /* V5.0.19 staff mobile action restoration */
+  /* V5.0.20 staff mobile action restoration */
   #v5016StaffDayActions { display:none; }
 
   @media (max-width: 768px) {
@@ -21756,7 +21793,7 @@ try{
   }
 </style>
 <style id="v5018DesktopViewportNavPlannerFixes">
-  /* V5.0.19 desktop-viewport phone fixes: keep fixed navs joined and planner staff actions inside their rows. */
+  /* V5.0.20 desktop-viewport phone fixes: keep fixed navs joined and planner staff actions inside their rows. */
   :root {
     --v5018-bottom-nav-h: calc(76px + env(safe-area-inset-bottom, 0px));
     --v5018-planner-row-h: max(calc(var(--rowH, 38px) + 44px), 82px);
@@ -21805,7 +21842,7 @@ try{
   }
 </style>
 <style id="v5019PlannerScrollLoginScaleFixes">
-  /* V5.0.19: let vertical gestures leave the planner, and make logged-out view readable in desktop viewport. */
+  /* V5.0.20: let vertical gestures leave the planner, and make logged-out view readable in desktop viewport. */
   body.v5-mode:not(.planner-focus-mode):not(.week-overview-focus-mode) #plannerSection .planner {
     overflow-x: auto !important;
     overflow-y: visible !important;
@@ -21921,6 +21958,100 @@ try{
   document.addEventListener('touchmove', move, { passive: false });
   document.addEventListener('touchend', end, { passive: true });
   document.addEventListener('touchcancel', end, { passive: true });
+})();
+</script>
+<style id="v5020RequestUpdateModalFixes">
+  #reqUpdatesModal {
+    align-items: flex-start !important;
+    justify-content: flex-start !important;
+  }
+
+  #reqUpdatesModal .panel {
+    width: min(720px, calc(100vw - 40px)) !important;
+    max-height: min(78vh, 620px) !important;
+  }
+</style>
+<script id="v5020ScaleAndRequestUpdatePatch">
+(function(){
+  'use strict';
+
+  function byId(id){ return document.getElementById(id); }
+  function clampScale(v){
+    v = parseFloat(v);
+    if(!isFinite(v)) v = 120;
+    return Math.max(80, Math.min(150, v));
+  }
+  function applyScaleFromInput(){
+    try{
+      var input = byId('appScalePercentInput');
+      if(!input) return;
+      var scale = clampScale(input.value);
+      if(window.App && App.settings) App.settings.appScalePercent = scale;
+      input.value = String(scale);
+      if(typeof window.applyDesktopViewportScale === 'function') window.applyDesktopViewportScale();
+    }catch(e){}
+  }
+  function bindScaleInput(){
+    var input = byId('appScalePercentInput');
+    if(!input || input.dataset.v5020Bound) return;
+    input.dataset.v5020Bound = '1';
+    input.addEventListener('change', applyScaleFromInput);
+    input.addEventListener('input', function(){
+      clearTimeout(input._v5020ScaleTimer);
+      input._v5020ScaleTimer = setTimeout(applyScaleFromInput, 180);
+    });
+  }
+
+  function placeRequestUpdatesModal(){
+    try{
+      var modal = byId('reqUpdatesModal');
+      var panel = modal && modal.querySelector ? modal.querySelector('.panel') : null;
+      if(!modal || !panel || modal.style.display === 'none') return;
+      var vv = window.visualViewport;
+      var top = 0, left = 0, width = window.innerWidth || document.documentElement.clientWidth || 0, height = window.innerHeight || document.documentElement.clientHeight || 0;
+      if(vv){
+        top = vv.offsetTop || 0;
+        left = vv.offsetLeft || 0;
+        width = vv.width || width;
+        height = vv.height || height;
+      }
+      panel.style.position = 'fixed';
+      panel.style.top = Math.round(top + Math.max(18, height * 0.12)) + 'px';
+      panel.style.left = Math.round(left + width / 2) + 'px';
+      panel.style.transform = 'translateX(-50%)';
+    }catch(e){}
+  }
+
+  function wrapRequestUpdates(){
+    try{
+      if(typeof window.openReqUpdatesModal !== 'function' || window.openReqUpdatesModal._v5020Wrapped) return;
+      var original = window.openReqUpdatesModal;
+      window.openReqUpdatesModal = function(items){
+        var result = original.apply(this, arguments);
+        setTimeout(placeRequestUpdatesModal, 0);
+        setTimeout(placeRequestUpdatesModal, 120);
+        return result;
+      };
+      window.openReqUpdatesModal._v5020Wrapped = true;
+    }catch(e){}
+  }
+
+  function tick(){
+    bindScaleInput();
+    try{ if(typeof window.applyDesktopViewportScale === 'function') window.applyDesktopViewportScale(); }catch(e){}
+    wrapRequestUpdates();
+    placeRequestUpdatesModal();
+  }
+
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', tick); else tick();
+  window.addEventListener('resize', tick, { passive: true });
+  try{
+    if(window.visualViewport){
+      window.visualViewport.addEventListener('resize', placeRequestUpdatesModal, { passive: true });
+      window.visualViewport.addEventListener('scroll', placeRequestUpdatesModal, { passive: true });
+    }
+  }catch(e){}
+  setInterval(tick, 1000);
 })();
 </script>
 <script id="v5016StaffMobileActionsPatch">
