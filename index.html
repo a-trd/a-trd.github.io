@@ -48,7 +48,7 @@
     })();
   </script>
 
-<title>Aspire Workforce Command (V5.0.20)</title>
+<title>Aspire Workforce Command (V5.0.21)</title>
   <meta name="theme-color" content="#22c55e"/>
 
   <style>
@@ -2472,7 +2472,7 @@
 
 
   <style id="v500Css">
-    /* ---------- V5.0.20 Aspire Workforce Command redesign ---------- */
+    /* ---------- V5.0.21 Aspire Workforce Command redesign ---------- */
     :root {
       --v5-bg: #050816;
       --v5-panel: rgba(13,18,35,.84);
@@ -2522,7 +2522,7 @@
       display: none !important;
     }
 
-    /* V5.0.20 staff/mobile safeguards */
+    /* V5.0.21 staff/mobile safeguards */
     body.v5-staff-lite #v5OpsDeck,
     body.v5-staff-lite #btnPushTop,
     body.v5-staff-lite #btnPushPlanner,
@@ -3394,7 +3394,7 @@
   </style>
 
   <style id="v508MobileComfortCss">
-    /* V5.0.20 mobile comfort: phone-sized controls with desktop-wide work boards inside scrollable panels. */
+    /* V5.0.21 mobile comfort: phone-sized controls with desktop-wide work boards inside scrollable panels. */
     html.mobile-comfort-view,
     html.mobile-comfort-view body {
       min-width: 0 !important;
@@ -3537,7 +3537,7 @@
 
 
   <style id="v510PlannerFocusCss">
-    /* V5.0.20 planner-only fullscreen view for shop tablet display. */
+    /* V5.0.21 planner-only fullscreen view for shop tablet display. */
     html.planner-focus-view,
     html.planner-focus-view body {
       width: 100% !important;
@@ -3807,7 +3807,7 @@
   </style>
 
   <style id="v510WeekOverviewFocusCss">
-    /* V5.0.20 week-overview-only fullscreen view for shop tablet display. */
+    /* V5.0.21 week-overview-only fullscreen view for shop tablet display. */
     html.week-overview-focus-view,
     html.week-overview-focus-view body {
       width: 100% !important;
@@ -4045,7 +4045,7 @@
 
 
 <style id="v5014MobileShiftModalCss">
-  /* V5.0.20 mobile shift editor reachability fix. */
+  /* V5.0.21 mobile shift editor reachability fix. */
   @media (max-width: 980px), (pointer: coarse) and (max-width: 1100px) {
     #shiftModal {
       z-index: 6200 !important;
@@ -4152,7 +4152,7 @@
 
 
 <style id="v5015MobilePlannerCss">
-  /* V5.0.20 compact mobile boards and normal-page scroll pass-through. */
+  /* V5.0.21 compact mobile boards and normal-page scroll pass-through. */
   @media (max-width: 980px), (pointer: coarse) and (max-width: 1100px) {
     body.v5-mode:not(.planner-focus-mode):not(.week-overview-focus-mode) #plannerSection .planner {
       max-width: 100% !important;
@@ -4438,7 +4438,7 @@
       <div id="appLogoBox"></div>
       <div class="titlewrap">
         <div class="title" id="appTitle">Aspire Workforce Command</div>
-        <div class="version-pill" id="appVersion">V5.0.20</div>
+        <div class="version-pill" id="appVersion">V5.0.21</div>
         <div class="sync-pill syncing" id="syncStatusChip" title="Sync status">Starting…</div>
       </div>
     </div>
@@ -6255,8 +6255,8 @@ var DAY = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 var App = {
   // IMPORTANT: Increment App.version *and* App.buildId whenever making functional changes to this file.
   // SAFETY NET: This build performs an automatic runtime check against the file name; if mismatched, it shows a blocking warning so it can't be overlooked.
-  version: 'V5.0.20',
-    buildId: '2026-05-02.01',
+  version: 'V5.0.21',
+    buildId: '2026-05-02.02',
 settings: {
     dbUrl:'https://mnc-atrd-default-rtdb.asia-southeast1.firebasedatabase.app/', workspace:'mnc-atrd', authToken:'',
     theme:'light', themeName:'light-pastel-sky', recentColors:[], appTitle:'Aspire Workforce Command', logoUrl:'',
@@ -16551,7 +16551,7 @@ function renderPayroll(){
 
       Object.keys(ds).forEach(function(k){
         var sh=ds[k];
-        if(sh.staffId!==id) return;
+        if(!sh || String(sh.staffId)!==String(id) || shiftIsCoveredSource(sh)) return;
 
         var shiftDur=hoursBetweenAny(sh.start,sh.end);
         var leaveH=leaveOverlapHours(iso, id, sh);
@@ -16715,7 +16715,7 @@ function _computeWeekStats(weekIso){
       var dayCum=0;
       Object.keys(ds).forEach(function(k){
         var sh=ds[k];
-        if(!sh || sh.staffId!==id) return;
+        if(!sh || String(sh.staffId)!==String(id) || shiftIsCoveredSource(sh)) return;
         var shiftDur=hoursBetweenAny(sh.start,sh.end);
         var leaveH=leaveOverlapHours(iso, id, sh);
         var workAfterLeave=Math.max(0, shiftDur - leaveH);
@@ -20554,7 +20554,7 @@ try{
 (function(){
   'use strict';
   var APP_NAME = 'Aspire Workforce Command';
-  var APP_VERSION = 'V5.0.20';
+  var APP_VERSION = 'V5.0.21';
   var OLD_TITLE = 'M&C-ATRD-scheduler --=Aspire Group=--';
 
   var NAVS = [
@@ -20792,7 +20792,7 @@ try{
   }
 
   function countPendingRequests(){
-    // V5.0.20: count only real pending requests, not nested/history request-like objects.
+    // V5.0.21: count only real pending requests, not nested/history request-like objects.
     var app = window.App || {};
     var count = 0;
     function pending(rec){
@@ -21208,7 +21208,7 @@ try{
 
 
 <style id="v5013FullscreenZoomCss">
-  /* V5.0.20 full-screen control colour, auto-fit scaling and in-app pinch zoom support. */
+  /* V5.0.21 full-screen control colour, auto-fit scaling and in-app pinch zoom support. */
   body:not(.week-overview-focus-mode) #btnWeekOverviewFullView {
     background: linear-gradient(135deg, #22c55e, #14b8a6) !important;
     border-color: transparent !important;
@@ -21681,7 +21681,7 @@ try{
 
 
 <style id="v5016StaffMobileActionsStyle">
-  /* V5.0.20 staff mobile action restoration */
+  /* V5.0.21 staff mobile action restoration */
   #v5016StaffDayActions { display:none; }
 
   @media (max-width: 768px) {
@@ -21793,7 +21793,7 @@ try{
   }
 </style>
 <style id="v5018DesktopViewportNavPlannerFixes">
-  /* V5.0.20 desktop-viewport phone fixes: keep fixed navs joined and planner staff actions inside their rows. */
+  /* V5.0.21 desktop-viewport phone fixes: keep fixed navs joined and planner staff actions inside their rows. */
   :root {
     --v5018-bottom-nav-h: calc(76px + env(safe-area-inset-bottom, 0px));
     --v5018-planner-row-h: max(calc(var(--rowH, 38px) + 44px), 82px);
@@ -21842,7 +21842,7 @@ try{
   }
 </style>
 <style id="v5019PlannerScrollLoginScaleFixes">
-  /* V5.0.20: let vertical gestures leave the planner, and make logged-out view readable in desktop viewport. */
+  /* V5.0.21: let vertical gestures leave the planner, and make logged-out view readable in desktop viewport. */
   body.v5-mode:not(.planner-focus-mode):not(.week-overview-focus-mode) #plannerSection .planner {
     overflow-x: auto !important;
     overflow-y: visible !important;
