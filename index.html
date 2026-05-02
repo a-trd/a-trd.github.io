@@ -28,7 +28,7 @@
     })();
   </script>
 
-<title>Aspire Workforce Command (V5.0.18)</title>
+<title>Aspire Workforce Command (V5.0.19)</title>
   <meta name="theme-color" content="#22c55e"/>
 
   <style>
@@ -2452,7 +2452,7 @@
 
 
   <style id="v500Css">
-    /* ---------- V5.0.18 Aspire Workforce Command redesign ---------- */
+    /* ---------- V5.0.19 Aspire Workforce Command redesign ---------- */
     :root {
       --v5-bg: #050816;
       --v5-panel: rgba(13,18,35,.84);
@@ -2502,7 +2502,7 @@
       display: none !important;
     }
 
-    /* V5.0.18 staff/mobile safeguards */
+    /* V5.0.19 staff/mobile safeguards */
     body.v5-staff-lite #v5OpsDeck,
     body.v5-staff-lite #btnPushTop,
     body.v5-staff-lite #btnPushPlanner,
@@ -3374,7 +3374,7 @@
   </style>
 
   <style id="v508MobileComfortCss">
-    /* V5.0.18 mobile comfort: phone-sized controls with desktop-wide work boards inside scrollable panels. */
+    /* V5.0.19 mobile comfort: phone-sized controls with desktop-wide work boards inside scrollable panels. */
     html.mobile-comfort-view,
     html.mobile-comfort-view body {
       min-width: 0 !important;
@@ -3517,7 +3517,7 @@
 
 
   <style id="v510PlannerFocusCss">
-    /* V5.0.18 planner-only fullscreen view for shop tablet display. */
+    /* V5.0.19 planner-only fullscreen view for shop tablet display. */
     html.planner-focus-view,
     html.planner-focus-view body {
       width: 100% !important;
@@ -3787,7 +3787,7 @@
   </style>
 
   <style id="v510WeekOverviewFocusCss">
-    /* V5.0.18 week-overview-only fullscreen view for shop tablet display. */
+    /* V5.0.19 week-overview-only fullscreen view for shop tablet display. */
     html.week-overview-focus-view,
     html.week-overview-focus-view body {
       width: 100% !important;
@@ -4025,7 +4025,7 @@
 
 
 <style id="v5014MobileShiftModalCss">
-  /* V5.0.18 mobile shift editor reachability fix. */
+  /* V5.0.19 mobile shift editor reachability fix. */
   @media (max-width: 980px), (pointer: coarse) and (max-width: 1100px) {
     #shiftModal {
       z-index: 6200 !important;
@@ -4132,7 +4132,7 @@
 
 
 <style id="v5015MobilePlannerCss">
-  /* V5.0.18 compact mobile boards and normal-page scroll pass-through. */
+  /* V5.0.19 compact mobile boards and normal-page scroll pass-through. */
   @media (max-width: 980px), (pointer: coarse) and (max-width: 1100px) {
     body.v5-mode:not(.planner-focus-mode):not(.week-overview-focus-mode) #plannerSection .planner {
       max-width: 100% !important;
@@ -4418,7 +4418,7 @@
       <div id="appLogoBox"></div>
       <div class="titlewrap">
         <div class="title" id="appTitle">Aspire Workforce Command</div>
-        <div class="version-pill" id="appVersion">V5.0.18</div>
+        <div class="version-pill" id="appVersion">V5.0.19</div>
         <div class="sync-pill syncing" id="syncStatusChip" title="Sync status">Starting…</div>
       </div>
     </div>
@@ -6226,7 +6226,7 @@ var DAY = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 var App = {
   // IMPORTANT: Increment App.version *and* App.buildId whenever making functional changes to this file.
   // SAFETY NET: This build performs an automatic runtime check against the file name; if mismatched, it shows a blocking warning so it can't be overlooked.
-  version: 'V5.0.18',
+  version: 'V5.0.19',
     buildId: '2026-05-01.15',
 settings: {
     dbUrl:'https://mnc-atrd-default-rtdb.asia-southeast1.firebasedatabase.app/', workspace:'mnc-atrd', authToken:'',
@@ -20517,7 +20517,7 @@ try{
 (function(){
   'use strict';
   var APP_NAME = 'Aspire Workforce Command';
-  var APP_VERSION = 'V5.0.18';
+  var APP_VERSION = 'V5.0.19';
   var OLD_TITLE = 'M&C-ATRD-scheduler --=Aspire Group=--';
 
   var NAVS = [
@@ -20755,7 +20755,7 @@ try{
   }
 
   function countPendingRequests(){
-    // V5.0.18: count only real pending requests, not nested/history request-like objects.
+    // V5.0.19: count only real pending requests, not nested/history request-like objects.
     var app = window.App || {};
     var count = 0;
     function pending(rec){
@@ -21171,7 +21171,7 @@ try{
 
 
 <style id="v5013FullscreenZoomCss">
-  /* V5.0.18 full-screen control colour, auto-fit scaling and in-app pinch zoom support. */
+  /* V5.0.19 full-screen control colour, auto-fit scaling and in-app pinch zoom support. */
   body:not(.week-overview-focus-mode) #btnWeekOverviewFullView {
     background: linear-gradient(135deg, #22c55e, #14b8a6) !important;
     border-color: transparent !important;
@@ -21644,7 +21644,7 @@ try{
 
 
 <style id="v5016StaffMobileActionsStyle">
-  /* V5.0.18 staff mobile action restoration */
+  /* V5.0.19 staff mobile action restoration */
   #v5016StaffDayActions { display:none; }
 
   @media (max-width: 768px) {
@@ -21756,7 +21756,7 @@ try{
   }
 </style>
 <style id="v5018DesktopViewportNavPlannerFixes">
-  /* V5.0.18 desktop-viewport phone fixes: keep fixed navs joined and planner staff actions inside their rows. */
+  /* V5.0.19 desktop-viewport phone fixes: keep fixed navs joined and planner staff actions inside their rows. */
   :root {
     --v5018-bottom-nav-h: calc(76px + env(safe-area-inset-bottom, 0px));
     --v5018-planner-row-h: max(calc(var(--rowH, 38px) + 44px), 82px);
@@ -21804,6 +21804,125 @@ try{
     text-overflow: ellipsis !important;
   }
 </style>
+<style id="v5019PlannerScrollLoginScaleFixes">
+  /* V5.0.19: let vertical gestures leave the planner, and make logged-out view readable in desktop viewport. */
+  body.v5-mode:not(.planner-focus-mode):not(.week-overview-focus-mode) #plannerSection .planner {
+    overflow-x: auto !important;
+    overflow-y: visible !important;
+    overscroll-behavior-x: contain !important;
+    overscroll-behavior-y: auto !important;
+    touch-action: pan-x pan-y pinch-zoom !important;
+  }
+
+  body.v5-mode.v5-logged-out .wrap {
+    padding: 36px 56px !important;
+  }
+
+  body.v5-mode.v5-logged-out #loginSection {
+    width: min(1180px, calc(100% - 64px)) !important;
+  }
+
+  body.v5-mode.v5-logged-out #loginSection .card {
+    padding: 42px 48px !important;
+    border-radius: 32px !important;
+  }
+
+  body.v5-mode.v5-logged-out #loginSection .card:before {
+    margin-bottom: 26px !important;
+    font-size: 44px !important;
+    line-height: 1 !important;
+  }
+
+  body.v5-mode.v5-logged-out #loginSection h3 {
+    margin-bottom: 22px !important;
+    font-size: 24px !important;
+  }
+
+  body.v5-mode.v5-logged-out #loginSection .grid-2 {
+    gap: 18px !important;
+  }
+
+  body.v5-mode.v5-logged-out #loginSection label {
+    margin-bottom: 8px !important;
+    font-size: 17px !important;
+  }
+
+  body.v5-mode.v5-logged-out #loginSection input,
+  body.v5-mode.v5-logged-out #loginSection select {
+    min-height: 62px !important;
+    padding: 14px 16px !important;
+    font-size: 20px !important;
+  }
+
+  body.v5-mode.v5-logged-out #loginSection button {
+    min-height: 58px !important;
+    padding: 14px 18px !important;
+    font-size: 18px !important;
+  }
+
+  body.v5-mode.v5-logged-out #loginMsg {
+    margin-top: 14px !important;
+    font-size: 16px !important;
+  }
+</style>
+<script id="v5019PlannerVerticalTouchScroll">
+(function(){
+  'use strict';
+  var tracking = false;
+  var startX = 0;
+  var startY = 0;
+  var lastY = 0;
+
+  function closest(el, selector){
+    try{ return el && el.closest ? el.closest(selector) : null; }catch(e){ return null; }
+  }
+  function focusModeActive(){
+    try{
+      return !!(document.body && document.body.classList && (document.body.classList.contains('planner-focus-mode') || document.body.classList.contains('week-overview-focus-mode')));
+    }catch(e){ return false; }
+  }
+  function rootScroller(){
+    return document.scrollingElement || document.documentElement || document.body;
+  }
+  function begin(ev){
+    if(!ev || !ev.touches || ev.touches.length !== 1 || focusModeActive()){
+      tracking = false;
+      return;
+    }
+    if(!closest(ev.target, '#plannerSection .planner')){
+      tracking = false;
+      return;
+    }
+    var t = ev.touches[0];
+    tracking = true;
+    startX = t.clientX;
+    startY = t.clientY;
+    lastY = t.clientY;
+  }
+  function move(ev){
+    if(!tracking || !ev || !ev.touches || ev.touches.length !== 1) return;
+    var t = ev.touches[0];
+    var dx = Math.abs(t.clientX - startX);
+    var dy = Math.abs(t.clientY - startY);
+    if(dy <= dx + 6) return;
+    var root = rootScroller();
+    if(!root) return;
+    var max = Math.max(0, root.scrollHeight - root.clientHeight);
+    if(max <= 1) return;
+    var delta = lastY - t.clientY;
+    if(Math.abs(delta) < 1) return;
+    try{ ev.preventDefault(); }catch(e){}
+    root.scrollTop = Math.max(0, Math.min(max, root.scrollTop + delta));
+    lastY = t.clientY;
+  }
+  function end(){ tracking = false; }
+
+  document.addEventListener('touchstart', begin, { passive: true });
+  document.addEventListener('touchmove', move, { passive: false });
+  document.addEventListener('touchend', end, { passive: true });
+  document.addEventListener('touchcancel', end, { passive: true });
+})();
+</script>
 <script id="v5016StaffMobileActionsPatch">
 (function(){
   'use strict';
