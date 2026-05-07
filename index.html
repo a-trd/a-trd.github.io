@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8"/>
-  <meta name="viewport" content="width=1138, minimum-scale=0.2, maximum-scale=8.0, user-scalable=yes, viewport-fit=cover"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
   <script id="v508MobileComfortViewport">
     (function(){
       'use strict';
@@ -23,7 +23,7 @@
         return DEFAULT_DESKTOP_SCALE_PERCENT;
       }
       function viewportContent(scale){
-        return 'width=' + viewportWidthForScale(scale) + ', minimum-scale=0.2, maximum-scale=8.0, user-scalable=yes, viewport-fit=cover';
+        return 'width=device-width, initial-scale=1, viewport-fit=cover';
       }
       function setViewport(){
         var meta = document.querySelector('meta[name="viewport"]');
@@ -35,7 +35,8 @@
         var scale = clampScale(scaleFromApp());
         meta.setAttribute('content', viewportContent(scale));
         document.documentElement.classList.remove('mobile-comfort-view');
-        document.documentElement.classList.add('desktop-viewport-mobile');
+        document.documentElement.classList.remove('desktop-viewport-mobile');
+        document.documentElement.classList.add('fluid-responsive-view');
         document.documentElement.style.setProperty('--desktop-mobile-width', viewportWidthForScale(scale) + 'px');
         document.documentElement.style.setProperty('--app-scale-percent', String(scale));
       }
@@ -1152,6 +1153,32 @@
       cursor: pointer;
       user-select: none;
       color: var(--muted);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      min-height: 22px;
+      transition: transform .14s ease, box-shadow .14s ease, border-color .14s ease, background .14s ease, color .14s ease;
+    }
+
+    .mini-actions .btn-mini:hover {
+      transform: translateY(-1px) scale(1.03);
+      box-shadow: 0 7px 16px rgba(0,0,0,.18);
+      border-color: rgba(255,255,255,.30);
+      color: var(--fg);
+    }
+
+    .mini-actions .btn-mini:active {
+      transform: translateY(0) scale(.98);
+    }
+
+    .mini-actions .btn-mini.action-sent {
+      animation: actionSentPulse .45s ease;
+    }
+
+    @keyframes actionSentPulse {
+      0% { box-shadow: 0 0 0 0 rgba(34,197,94,.42); }
+      100% { box-shadow: 0 0 0 9px rgba(34,197,94,0); }
     }
 
     .mini-actions .btn-mini.danger {
@@ -2467,6 +2494,39 @@
     .staff-requests-shortcut-card { border-style:dashed; }
     #staffRequestsQuickHost > #adminRequestsLogCard, #staffRequestsStatsHost > #adminRequestsLogCard { margin-top:12px; }
     @media (max-width:700px){ .payrun-panel,.request-filter-bar,.import-preview-grid{ grid-template-columns:1fr; } .top-tools-dropdown{ right:auto; left:0; } }
+  </style>
+
+  <style id="dailyOpsCss">
+    .dailyops-toolbar { display:flex; gap:8px; flex-wrap:wrap; align-items:flex-end; justify-content:space-between; margin:10px 0 14px; }
+    .dailyops-toolbar .dailyops-field { min-width:180px; flex:1 1 180px; }
+    .dailyops-tabs { display:flex; gap:8px; flex-wrap:wrap; margin:8px 0 12px; }
+    .dailyops-tabs button { border:1px solid var(--border); background:transparent; color:var(--fg); border-radius:999px; padding:7px 11px; font-size:12px; font-weight:900; cursor:pointer; }
+    .dailyops-tabs button.active { background:linear-gradient(90deg,var(--accent3),var(--accent)); color:#fff; border-color:transparent; }
+    .dailyops-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; align-items:start; }
+    .dailyops-list { display:flex; flex-direction:column; gap:8px; }
+    .dailyops-row { border:1px solid var(--border); border-radius:16px; background:rgba(255,255,255,.045); padding:10px; }
+    [data-theme="light"] .dailyops-row { background:rgba(15,23,42,.035); }
+    .dailyops-check-row { display:grid; grid-template-columns:auto 1fr; gap:9px; align-items:start; }
+    .dailyops-check-row input[type="checkbox"] { width:18px; height:18px; margin-top:2px; accent-color:var(--good); }
+    .dailyops-task-title { font-weight:900; line-height:1.3; }
+    .dailyops-task-meta { display:grid; grid-template-columns:minmax(96px,150px) 1fr; gap:8px; margin-top:8px; }
+    .dailyops-stock-row { display:grid; grid-template-columns:minmax(140px,210px) 140px 1fr; gap:8px; align-items:start; }
+    .dailyops-stock-name { font-weight:900; padding-top:8px; line-height:1.3; }
+    .dailyops-review-row { display:grid; grid-template-columns:1fr minmax(180px,240px); gap:10px; align-items:start; margin-bottom:8px; }
+    .dailyops-review-row h4 { margin:0 0 6px; }
+    .dailyops-review-row p { margin:0 0 6px; color:var(--muted); line-height:1.35; }
+    .dailyops-owner-box { display:flex; flex-direction:column; gap:8px; }
+    .dailyops-owner-box label { display:flex; align-items:center; gap:8px; margin:0; font-weight:900; color:var(--fg); }
+    .dailyops-owner-box input[type="checkbox"] { width:18px; height:18px; accent-color:var(--good); }
+    .dailyops-manage-row { display:grid; grid-template-columns:1fr auto; gap:8px; align-items:center; margin-bottom:8px; }
+    .dailyops-add-row { display:grid; grid-template-columns:1fr auto; gap:8px; margin-top:8px; }
+    .dailyops-pill-low { background:rgba(245,158,11,.16); border-color:rgba(245,158,11,.38); color:var(--warn); }
+    .dailyops-pill-out { background:rgba(239,68,68,.16); border-color:rgba(239,68,68,.38); color:var(--bad); }
+    .dailyops-pill-ok { background:rgba(34,197,94,.16); border-color:rgba(34,197,94,.38); color:var(--good); }
+    .dailyops-empty { border:1px dashed var(--border); border-radius:16px; padding:14px; color:var(--muted); background:rgba(255,255,255,.035); }
+    @media (max-width:820px){
+      .dailyops-grid, .dailyops-stock-row, .dailyops-review-row, .dailyops-task-meta, .dailyops-manage-row, .dailyops-add-row { grid-template-columns:1fr; }
+    }
   </style>
 
 
@@ -4386,6 +4446,223 @@
     body.v5-mode:not(.week-overview-focus-mode) #plannerSection .wo-cell { font-size: 8.2px !important; padding: 2px !important; }
     body.v5-mode:not(.week-overview-focus-mode) #plannerSection .wo-chip { font-size: 7px !important; padding: 1px 2px !important; }
   }
+
+  /* V5.0.21 polish pass: responsive viewport, icon buttons, readable light tables. */
+  :root {
+    --font-ui: Inter, Roboto, system-ui, -apple-system, Segoe UI, Arial, sans-serif;
+    --font-data: "Roboto Mono", "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  }
+
+  html.fluid-responsive-view,
+  html.fluid-responsive-view body {
+    width: 100%;
+    min-width: 0;
+    overflow-x: hidden;
+  }
+
+  body,
+  button,
+  input,
+  select,
+  textarea {
+    font-family: var(--font-ui);
+  }
+
+  h1, h2, h3, .title, .v5-nav-name, .summary-card .label, .payroll-box h3 {
+    letter-spacing: 0;
+    text-wrap: balance;
+  }
+
+  .table td,
+  .table th,
+  .report-table td,
+  .report-table th,
+  .payroll-total-cell,
+  .payroll-paid-badge {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .iconized-btn {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+  }
+
+  .v5-svg-icon {
+    width: 15px;
+    height: 15px;
+    flex: 0 0 auto;
+    stroke: currentColor;
+    stroke-width: 2.25;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    fill: none;
+    pointer-events: none;
+  }
+
+  .sr-only {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0,0,0,0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+  }
+
+  button.icon-only {
+    width: 36px;
+    min-width: 36px;
+    padding-inline: 0 !important;
+  }
+
+  [data-theme="light"] .muted,
+  [data-theme="light"] .muted-small,
+  [data-theme="light"] .small,
+  [data-theme="light"] .section-sub,
+  [data-theme="light"] .summary-card .sub,
+  [data-theme="light"] .report-table td,
+  [data-theme="light"] #requestsList.muted,
+  [data-theme="light"] #myShiftsList.muted {
+    color: #334155 !important;
+  }
+
+  [data-theme="light"] .table th,
+  [data-theme="light"] .report-table th {
+    color: #0f172a !important;
+    background: #eaf1fb !important;
+  }
+
+  [data-theme="light"] .table td,
+  [data-theme="light"] .report-table td {
+    color: #172033;
+  }
+
+  .request-filter-bar {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(150px, 1fr));
+    gap: 10px;
+    align-items: end;
+    margin: 10px 0 12px;
+  }
+
+  .request-filter-bar label {
+    display: block;
+    margin-bottom: 4px;
+    font-size: 11px;
+    font-weight: 900;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: .04em;
+  }
+
+  .request-filter-bar select[multiple] {
+    min-height: 64px;
+  }
+
+  .request-bulk-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 8px 10px;
+    margin: 0 0 10px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: rgba(255,255,255,.05);
+  }
+
+  .request-bulk-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: flex-end;
+  }
+
+  .manager-request-card {
+    position: relative;
+  }
+
+  .manager-request-select {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 12px;
+    font-weight: 850;
+    color: var(--muted);
+    margin-right: 2px;
+  }
+
+  .manager-request-select input {
+    width: auto !important;
+    margin: 0;
+    accent-color: var(--good);
+  }
+
+  .table-wrapper,
+  .payroll-doc-preview-host,
+  #plannerGrid,
+  #weekOverview {
+    max-width: 100%;
+  }
+
+  .table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  @media (max-width: 900px) {
+    .appbar,
+    .toolbar,
+    .topbar,
+    .request-bulk-bar {
+      align-items: stretch !important;
+    }
+
+    .grid-2,
+    .payroll-doc-grid,
+    .summary-grid,
+    .mini-grid,
+    .chart-grid {
+      grid-template-columns: 1fr !important;
+    }
+
+    .request-filter-bar {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .panel {
+      width: min(96vw, 760px) !important;
+      max-height: 88vh;
+      overflow: auto;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .appbar,
+    .toolbar,
+    .request-bulk-bar,
+    .request-bulk-actions {
+      flex-direction: column !important;
+    }
+
+    .request-filter-bar {
+      grid-template-columns: 1fr;
+    }
+
+    .toolbar button,
+    .appbar button,
+    .request-bulk-actions button {
+      width: 100%;
+    }
+
+    .table {
+      min-width: 640px;
+    }
+  }
 </style>
 
 
@@ -4446,6 +4723,7 @@
       <div id="userChip" class="pill" style="background:#ffffff22;color:#fff;font-weight:700;"></div>
       <button id="tabMy" class="active">My Shifts</button>
       <button id="tabMyRequests">My Requests</button>
+      <button id="tabDailyOps">Daily Tasks</button>
       <button id="tabPlanner">Planner</button>
       <button id="tabPayroll">Payroll</button>
       <button id="tabStats">Business Analytics</button>
@@ -4587,6 +4865,111 @@
           <div class="myreq-panel">
             <label>History</label>
             <div id="myReqHistoryList" class="muted"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Daily Tasks / Stock mediator -->
+    <section id="dailyOpsSection" class="section">
+      <div class="card">
+        <div style="display:flex;align-items:flex-start;gap:10px;flex-wrap:wrap;justify-content:space-between;">
+          <div>
+            <h3 style="margin:0;">Daily Tasks</h3>
+            <div class="muted" style="margin-top:6px;">Opening, closing, stock findings and owner action tracking using the existing staff list.</div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <span class="pill" id="dailyOpsCompletionPill">0% complete</span>
+            <span class="pill" id="dailyOpsNeedsPill">0 need action</span>
+          </div>
+        </div>
+
+        <div class="dailyops-toolbar">
+          <div class="dailyops-field">
+            <label>Date</label>
+            <input id="dailyOpsDate" type="date">
+          </div>
+          <div class="dailyops-field">
+            <label>Staff</label>
+            <select id="dailyOpsStaffSelect"></select>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button id="dailyOpsToday" class="btn-outline">Today</button>
+            <button id="dailyOpsResetDay" class="btn-outline">Reset selected day</button>
+          </div>
+        </div>
+
+        <div class="dailyops-tabs" aria-label="Daily task views">
+          <button id="dailyOpsTabChecklists" class="active" type="button">Checklists</button>
+          <button id="dailyOpsTabStock" type="button">Stock Check</button>
+          <button id="dailyOpsTabReview" type="button">Owner Review</button>
+          <button id="dailyOpsTabManage" type="button">Manage Lists</button>
+        </div>
+
+        <div id="dailyOpsChecklistsView">
+          <div class="dailyops-grid">
+            <div>
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;">
+                <label style="margin:0;">Opening To Do List</label>
+                <span class="pill" id="dailyOpsOpeningPill">0/0</span>
+              </div>
+              <div id="dailyOpsOpeningList" class="dailyops-list"></div>
+            </div>
+            <div>
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;">
+                <label style="margin:0;">Closing To Do List</label>
+                <span class="pill" id="dailyOpsClosingPill">0/0</span>
+              </div>
+              <div id="dailyOpsClosingList" class="dailyops-list"></div>
+            </div>
+          </div>
+
+          <div id="dailyOpsCustomGroupsList" style="margin-top:14px;"></div>
+
+          <div style="margin-top:14px;">
+            <label>Staff notes for owner</label>
+            <div class="dailyops-add-row">
+              <textarea id="dailyOpsNewNote" placeholder="Add handover notes, maintenance issues, delivery notes or anything the owner should know." style="min-height:70px;"></textarea>
+              <button id="dailyOpsAddNote" class="btn-primary" type="button">Add note</button>
+            </div>
+            <div id="dailyOpsNotesList" class="dailyops-list" style="margin-top:10px;"></div>
+          </div>
+        </div>
+
+        <div id="dailyOpsStockView" style="display:none;">
+          <label>Stock and consumables check</label>
+          <div id="dailyOpsStockList" class="dailyops-list" style="margin-top:8px;"></div>
+        </div>
+
+        <div id="dailyOpsReviewView" style="display:none;">
+          <div id="dailyOpsReviewList"></div>
+        </div>
+
+        <div id="dailyOpsManageView" style="display:none;">
+          <div class="dailyops-grid">
+            <div>
+              <label>Opening tasks</label>
+              <div id="dailyOpsManageOpening"></div>
+              <div class="dailyops-add-row"><input id="dailyOpsNewOpeningTask" type="text" placeholder="Add opening task"><button id="dailyOpsAddOpeningTask" class="btn-outline" type="button">Add</button></div>
+            </div>
+            <div>
+              <label>Closing tasks</label>
+              <div id="dailyOpsManageClosing"></div>
+              <div class="dailyops-add-row"><input id="dailyOpsNewClosingTask" type="text" placeholder="Add closing task"><button id="dailyOpsAddClosingTask" class="btn-outline" type="button">Add</button></div>
+            </div>
+            <div>
+              <label>Stock items</label>
+              <div id="dailyOpsManageStock"></div>
+              <div class="dailyops-add-row"><input id="dailyOpsNewStockItem" type="text" placeholder="Add stock or consumable item"><button id="dailyOpsAddStockItem" class="btn-outline" type="button">Add</button></div>
+            </div>
+            <div>
+              <label>Custom task groups</label>
+              <div id="dailyOpsManageGroups"></div>
+              <div class="dailyops-add-row"><input id="dailyOpsNewGroupName" type="text" placeholder="Add group, e.g. Kitchen Prep"><button id="dailyOpsAddGroup" class="btn-outline" type="button">Add group</button></div>
+            </div>
+            <div class="dailyops-empty">
+              Managers and admins can maintain the checklist templates here. Staff entries are saved against their logged-in staff account.
+            </div>
           </div>
         </div>
       </div>
@@ -6190,6 +6573,10 @@
       <span>📨</span>
       <span class="label">Req</span>
     </button>
+    <button id="bottomDailyOps">
+      <span>✓</span>
+      <span class="label">Tasks</span>
+    </button>
     <button id="bottomPlanner">
       <span>📅</span>
       <span class="label">Plan</span>
@@ -6301,6 +6688,7 @@ publishedWeeks: {}
   payrollWeekData:{},
   payslipRecords:[],
   businessAnalytics:{daily:{}, recurringCosts:{}},
+  dailyOps:{},
   recurringUnavailability:{},
   editRequests:{},
   rosterTemplates:{},
@@ -6439,6 +6827,13 @@ function normalizeCoreState(){
     if(!App.businessAnalytics || typeof App.businessAnalytics !== 'object') App.businessAnalytics = {daily:{}, recurringCosts:{}};
     if(!App.businessAnalytics.daily || typeof App.businessAnalytics.daily !== 'object') App.businessAnalytics.daily = {};
     if(!App.businessAnalytics.recurringCosts || typeof App.businessAnalytics.recurringCosts !== 'object') App.businessAnalytics.recurringCosts = {};
+    if(!App.dailyOps || typeof App.dailyOps !== 'object') App.dailyOps = {};
+    if(!App.dailyOps.settings || typeof App.dailyOps.settings !== 'object') App.dailyOps.settings = {};
+    if(!Array.isArray(App.dailyOps.settings.openingTasks)) App.dailyOps.settings.openingTasks = [];
+    if(!Array.isArray(App.dailyOps.settings.closingTasks)) App.dailyOps.settings.closingTasks = [];
+    if(!Array.isArray(App.dailyOps.settings.stockItems)) App.dailyOps.settings.stockItems = [];
+    if(!Array.isArray(App.dailyOps.settings.customGroups)) App.dailyOps.settings.customGroups = [];
+    if(!App.dailyOps.records || typeof App.dailyOps.records !== 'object') App.dailyOps.records = {};
   }catch(e){}
 }
 function buildAppExportData(){
@@ -6461,6 +6856,7 @@ function buildAppExportData(){
     payrollWeekData:App.payrollWeekData||{},
     payslipRecords:App.payslipRecords||[],
     businessAnalytics:App.businessAnalytics||{daily:{}, recurringCosts:{}},
+    dailyOps:App.dailyOps||{},
     recurringUnavailability:App.recurringUnavailability||{},
     editRequests:App.editRequests||{},
     rosterTemplates:App.rosterTemplates||{},
@@ -6489,6 +6885,7 @@ function applyExportDataToApp(d){
   App.payrollWeekData = d.payrollWeekData || App.payrollWeekData || {};
   App.payslipRecords = d.payslipRecords || App.payslipRecords || [];
   App.businessAnalytics = d.businessAnalytics || App.businessAnalytics || {daily:{}, recurringCosts:{}};
+  App.dailyOps = d.dailyOps || App.dailyOps || {};
   normalizeCoreState();
   try{
     if(App.currentUser && (!App.staff || !App.staff[String(App.currentUser.id)])) App.currentUser = null;
@@ -7584,7 +7981,12 @@ function buildManagerRequestCard(opts){
   meta.style.display = 'flex';
   meta.style.flexWrap = 'wrap';
   meta.style.gap = '10px';
-  meta.innerHTML = '<span>' + escapeHtml(opts.dayLabel || '') + '</span><span>Requested: ' + escapeHtml(_fmtTS(opts.requestedAt || '')) + '</span>';
+  var dayMeta = document.createElement('span');
+  dayMeta.textContent = opts.dayLabel || '';
+  var requestedMeta = document.createElement('span');
+  requestedMeta.textContent = 'Requested: ' + _fmtTS(opts.requestedAt || '');
+  meta.appendChild(dayMeta);
+  meta.appendChild(requestedMeta);
   left.appendChild(meta);
 
   if(opts.details){
@@ -9025,7 +9427,7 @@ function v413UserLabel(){
 function v413FindExportPayload(data){
   try{
     function looks(o){
-      return !!(o && typeof o==='object' && !Array.isArray(o) && (o.staff!==undefined || o.settings!==undefined || o.weeks!==undefined || o.availability!==undefined || o.businessAnalytics!==undefined || o.auditLog!==undefined || o.payRunStatus!==undefined));
+      return !!(o && typeof o==='object' && !Array.isArray(o) && (o.staff!==undefined || o.settings!==undefined || o.weeks!==undefined || o.availability!==undefined || o.businessAnalytics!==undefined || o.dailyOps!==undefined || o.auditLog!==undefined || o.payRunStatus!==undefined));
     }
     if(looks(data)) return data;
     if(data && typeof data==='object'){
@@ -9409,7 +9811,7 @@ function v413ExportAuditCsv(){
 // Import validation and preview.
 function v413ValidateImportPayload(d){
   var payload = v413FindExportPayload(d);
-  var known = ['settings','staff','availability','weeks','absenceRequests','absenceHistory','shiftChangeRequests','shiftChangeHistory','payrollAdjustments','payrollPaid','payWithheld','payWithheldByWeek','payWithheldLog','payrollProfiles','payrollWeekData','payslipRecords','businessAnalytics','recurringUnavailability','editRequests','rosterTemplates','auditLog','payRunStatus','syncMeta','version','buildId'];
+  var known = ['settings','staff','availability','weeks','absenceRequests','absenceHistory','shiftChangeRequests','shiftChangeHistory','payrollAdjustments','payrollPaid','payWithheld','payWithheldByWeek','payWithheldLog','payrollProfiles','payrollWeekData','payslipRecords','businessAnalytics','dailyOps','recurringUnavailability','editRequests','rosterTemplates','auditLog','payRunStatus','syncMeta','version','buildId'];
   var stats = [];
   var warnings = [];
   function cntObj(k){ return payload && payload[k] && typeof payload[k]==='object' ? Object.keys(payload[k]).length : 0; }
@@ -9418,6 +9820,7 @@ function v413ValidateImportPayload(d){
   stats.push(['Staff', cntObj('staff')]);
   stats.push(['Weeks', cntObj('weeks')]);
   stats.push(['Business days', payload && payload.businessAnalytics && payload.businessAnalytics.daily ? Object.keys(payload.businessAnalytics.daily).length : 0]);
+  stats.push(['Daily task dates', payload && payload.dailyOps && payload.dailyOps.records ? Object.keys(payload.dailyOps.records).length : 0]);
   stats.push(['Payslip records', cntArr('payslipRecords')]);
   stats.push(['Audit entries', cntArr('auditLog')]);
   stats.push(['Pay runs', cntObj('payRunStatus')]);
@@ -9594,6 +9997,21 @@ function v413SetupWeekShortcuts(){
       box.classList.add('manager-request-card');
       box.setAttribute('data-kind', String(opts.kindKey||'neutral'));
       box.setAttribute('data-staff-name', String(opts.staffName||'').toLowerCase());
+      box.setAttribute('data-search', String(box.textContent||'').toLowerCase());
+      var role = '';
+      try{
+        var staffName = String(opts.staffName||'').toLowerCase();
+        Object.keys(App.staff||{}).some(function(id){
+          var st = App.staff[id] || {};
+          var nm = String(staffDisplayNameForId(id, st.name||id)||'').toLowerCase();
+          if(nm === staffName){
+            role = String(st.role || 'staff').toLowerCase();
+            return true;
+          }
+          return false;
+        });
+      }catch(e){}
+      box.setAttribute('data-role', role);
     }catch(e){}
     return box;
   };
@@ -9608,28 +10026,50 @@ function v413EnsureRequestFilters(){
   var modal=byId('requestsModal'); if(!modal || byId('requestFilterBar')) return;
   var h=modal.querySelector('h3');
   var bar=document.createElement('div'); bar.id='requestFilterBar'; bar.className='request-filter-bar';
-  bar.innerHTML = '<div><label>Type</label><select id="requestFilterType"><option value="">All types</option><option value="awayFull">Away full day</option><option value="awayPartial">Away partial</option><option value="shiftEdit">Shift edits</option><option value="shiftProposal">Shift proposals</option><option value="edit">Other edits</option></select></div><div><label>Staff</label><select id="requestFilterStaff"><option value="">All staff</option></select></div><div><label>Search</label><input id="requestFilterSearch" type="text" placeholder="Name, date or detail"></div>';
+  bar.innerHTML = '<div><label>Type</label><select id="requestFilterType"><option value="">All types</option><option value="awayFull">Away full day</option><option value="awayPartial">Away partial</option><option value="shiftEdit">Shift edits</option><option value="shiftProposal">Shift proposals</option><option value="edit">Other edits</option></select></div><div><label>Staff</label><select id="requestFilterStaff" multiple></select></div><div><label>Role</label><select id="requestFilterRole" multiple><option value="admin">Admin</option><option value="manager">Manager</option><option value="staff">Staff</option></select></div><div><label>Fuzzy search</label><input id="requestFilterSearch" type="text" placeholder="Name, date or detail"></div>';
   h.parentNode.insertBefore(bar, h.nextSibling);
-  ['requestFilterType','requestFilterStaff','requestFilterSearch'].forEach(function(id){ var el=byId(id); if(el) el.oninput=el.onchange=v413ApplyRequestFilters; });
+  ['requestFilterType','requestFilterStaff','requestFilterRole','requestFilterSearch'].forEach(function(id){ var el=byId(id); if(el) el.oninput=el.onchange=v413ApplyRequestFilters; });
 }
 function v413PopulateRequestFilterStaff(){
   var sel=byId('requestFilterStaff'); if(!sel) return;
-  var cur=sel.value||'';
-  sel.innerHTML='<option value="">All staff</option>';
+  var cur=Array.prototype.map.call(sel.selectedOptions||[], function(o){ return o.value; });
+  sel.innerHTML='';
   Object.keys(App.staff||{}).sort(function(a,b){ return staffSortNameForId(a).localeCompare(staffSortNameForId(b)); }).forEach(function(id){ var o=document.createElement('option'); o.value=String(staffDisplayNameForId(id,id)).toLowerCase(); o.textContent=staffDisplayNameForId(id,id); sel.appendChild(o); });
-  if(cur) sel.value=cur;
+  if(cur && cur.length){
+    Array.prototype.forEach.call(sel.options, function(o){ o.selected = cur.indexOf(o.value) >= 0; });
+  }
+}
+function v5021SelectedValues(id){
+  var el=byId(id);
+  if(!el) return [];
+  return Array.prototype.map.call(el.selectedOptions||[], function(o){ return String(o.value||'').toLowerCase(); }).filter(Boolean);
+}
+function v5021FuzzyMatch(text, query){
+  text=String(text||'').toLowerCase();
+  query=String(query||'').toLowerCase().trim();
+  if(!query) return true;
+  if(text.indexOf(query)>=0) return true;
+  var ti=0;
+  for(var qi=0; qi<query.length; qi++){
+    ti = text.indexOf(query.charAt(qi), ti);
+    if(ti < 0) return false;
+    ti++;
+  }
+  return true;
 }
 function v413ApplyRequestFilters(){
   var type=(byId('requestFilterType')&&byId('requestFilterType').value)||'';
-  var staff=(byId('requestFilterStaff')&&byId('requestFilterStaff').value)||'';
+  var staff=v5021SelectedValues('requestFilterStaff');
+  var roles=v5021SelectedValues('requestFilterRole');
   var q=((byId('requestFilterSearch')&&byId('requestFilterSearch').value)||'').trim().toLowerCase();
   var cards=document.querySelectorAll('#requestsList .manager-request-card');
   for(var i=0;i<cards.length;i++){
     var c=cards[i];
     var ok=true;
     if(type && c.getAttribute('data-kind')!==type) ok=false;
-    if(staff && (c.getAttribute('data-staff-name')||'').indexOf(staff)<0) ok=false;
-    if(q && String(c.textContent||'').toLowerCase().indexOf(q)<0) ok=false;
+    if(staff.length && staff.indexOf((c.getAttribute('data-staff-name')||'').toLowerCase())<0) ok=false;
+    if(roles.length && roles.indexOf((c.getAttribute('data-role')||'').toLowerCase())<0) ok=false;
+    if(q && !v5021FuzzyMatch(c.getAttribute('data-search') || c.textContent || '', q)) ok=false;
     c.style.display=ok?'':'none';
   }
 }
@@ -10423,6 +10863,512 @@ function renderAdminRequestsLog(){
 
 }
 
+// ---------- Daily Tasks / Stock mediator ----------
+var DailyOps = { view:'checklists', date:'' };
+function dailyOpsTodayISO(){
+  try{ var d=new Date(); d.setMinutes(d.getMinutes()-d.getTimezoneOffset()); return d.toISOString().slice(0,10); }catch(e){ return ''; }
+}
+function dailyOpsCanManage(){
+  try{ return !!(App.currentUser && (App.currentUser.role==='admin' || App.currentUser.role==='manager')); }catch(e){ return false; }
+}
+function dailyOpsEnsureStore(){
+  normalizeCoreState();
+  App.dailyOps.settings.customGroups = (App.dailyOps.settings.customGroups || []).map(function(group, idx){
+    group = group || {};
+    return {
+      id: group.id || ('group-' + idx + '-' + dailyOpsTaskKey(group.name || 'custom-group')),
+      name: group.name || ('Group ' + (idx + 1)),
+      tasks: Array.isArray(group.tasks) ? group.tasks : []
+    };
+  });
+  if(!App.dailyOps.settings.seeded){
+    if(!App.dailyOps.settings.openingTasks.length) App.dailyOps.settings.openingTasks = ['Unlock entry and staff areas','Turn on lights, equipment and point of sale','Check float and payment terminal','Inspect front area for cleanliness and safety','Confirm toilets and customer areas are stocked'];
+    if(!App.dailyOps.settings.closingTasks.length) App.dailyOps.settings.closingTasks = ['Clean and reset service areas','Turn off non-essential equipment','Secure cash, receipts and payment terminal','Empty bins and remove rubbish','Lock all doors and check alarms'];
+    if(!App.dailyOps.settings.stockItems.length) App.dailyOps.settings.stockItems = ['Milk and dairy','Core product stock','Takeaway cups, lids, bags and packaging','Cleaning chemicals','Toilet paper, soap and hand towels'];
+    App.dailyOps.settings.seeded = true;
+  }
+}
+function dailyOpsTaskKey(text){
+  return String(text||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,80) || ('item-' + Math.random().toString(36).slice(2,8));
+}
+function dailyOpsStaffIds(){
+  return Object.keys(App.staff||{}).filter(function(id){ return !(App.staff[id]||{}).hidden; }).sort(function(a,b){
+    return staffDisplayNameForId(a,a).localeCompare(staffDisplayNameForId(b,b));
+  });
+}
+function dailyOpsSelectedStaffId(){
+  var sel = byId('dailyOpsStaffSelect');
+  var val = sel ? String(sel.value||'') : '';
+  if(val) return val;
+  if(App.currentUser && App.currentUser.id && !dailyOpsCanManage()) return String(App.currentUser.id);
+  return '';
+}
+function dailyOpsRecordFor(date, staffId, create){
+  dailyOpsEnsureStore();
+  date = String(date || DailyOps.date || dailyOpsTodayISO());
+  staffId = String(staffId || '');
+  if(!staffId) return null;
+  if(!App.dailyOps.records[date]){
+    if(!create) return null;
+    App.dailyOps.records[date] = {};
+  }
+  if(!App.dailyOps.records[date][staffId]){
+    if(!create) return null;
+    App.dailyOps.records[date][staffId] = { opening:{}, closing:{}, groups:{}, stock:{}, notes:[] };
+  }
+  var rec = App.dailyOps.records[date][staffId];
+  if(!rec.opening) rec.opening = {};
+  if(!rec.closing) rec.closing = {};
+  if(!rec.groups) rec.groups = {};
+  if(!rec.stock) rec.stock = {};
+  if(!Array.isArray(rec.notes)) rec.notes = [];
+  return rec;
+}
+function dailyOpsSave(syncNow){
+  dailyOpsEnsureStore();
+  saveLocal();
+  if(syncNow !== false){
+    try{ dbPatch('/dailyOps', App.dailyOps).catch(function(){}); }catch(e){}
+  }
+}
+function dailyOpsUserLabel(){
+  try{ return App.currentUser ? staffDisplayNameForId(App.currentUser.id, App.currentUser.name || App.currentUser.id) : 'Staff'; }catch(e){ return 'Staff'; }
+}
+function dailyOpsSetView(view){
+  DailyOps.view = view || 'checklists';
+  [
+    ['checklists','dailyOpsTabChecklists','dailyOpsChecklistsView'],
+    ['stock','dailyOpsTabStock','dailyOpsStockView'],
+    ['review','dailyOpsTabReview','dailyOpsReviewView'],
+    ['manage','dailyOpsTabManage','dailyOpsManageView']
+  ].forEach(function(item){
+    var btn = byId(item[1]);
+    var panel = byId(item[2]);
+    if(btn) btn.classList.toggle('active', item[0] === DailyOps.view);
+    if(panel) panel.style.display = (item[0] === DailyOps.view) ? '' : 'none';
+  });
+  renderDailyOps();
+}
+function dailyOpsPopulateStaffSelect(){
+  var sel = byId('dailyOpsStaffSelect');
+  if(!sel) return;
+  var prev = sel.value || '';
+  sel.innerHTML = '';
+  if(dailyOpsCanManage()){
+    var all = document.createElement('option');
+    all.value = '';
+    all.textContent = 'All staff';
+    sel.appendChild(all);
+  }
+  dailyOpsStaffIds().forEach(function(id){
+    var o = document.createElement('option');
+    o.value = String(id);
+    o.textContent = staffDisplayNameForId(id, id);
+    sel.appendChild(o);
+  });
+  if(!dailyOpsCanManage() && App.currentUser && App.currentUser.id) prev = String(App.currentUser.id);
+  try{ if(prev && sel.querySelector('option[value="'+prev.replace(/"/g,'\\"')+'"]')) sel.value = prev; }catch(e){}
+  if(!sel.value && !dailyOpsCanManage() && App.currentUser && App.currentUser.id) sel.value = String(App.currentUser.id);
+}
+function dailyOpsCompletion(type, tasks, record){
+  var done = 0;
+  tasks.forEach(function(t){ var r = record && record[type] ? record[type][dailyOpsTaskKey(t)] : null; if(r && r.done) done++; });
+  return {done:done,total:tasks.length};
+}
+function dailyOpsGroupCompletion(group, record){
+  var done = 0;
+  var tasks = (group && group.tasks) || [];
+  tasks.forEach(function(t){
+    var r = record && record.groups && group ? ((record.groups[group.id]||{})[dailyOpsTaskKey(t)]) : null;
+    if(r && r.done) done++;
+  });
+  return {done:done,total:tasks.length};
+}
+function dailyOpsGroupsCompletion(record){
+  var out = {done:0,total:0};
+  (App.dailyOps.settings.customGroups||[]).forEach(function(group){
+    var c = dailyOpsGroupCompletion(group, record);
+    out.done += c.done;
+    out.total += c.total;
+  });
+  return out;
+}
+function dailyOpsStockStats(record){
+  var total = App.dailyOps.settings.stockItems.length;
+  var checked = 0, needs = 0, actioned = 0;
+  App.dailyOps.settings.stockItems.forEach(function(item){
+    var r = record && record.stock ? record.stock[dailyOpsTaskKey(item)] : null;
+    if(r && r.status) checked++;
+    if(r && (r.status==='low' || r.status==='out')){ needs++; if(r.ownerActioned) actioned++; }
+  });
+  return {checked:checked,total:total,needs:needs,actioned:actioned};
+}
+function renderDailyOps(){
+  var sec = byId('dailyOpsSection');
+  if(!sec) return;
+  dailyOpsEnsureStore();
+  if(!DailyOps.date) DailyOps.date = dailyOpsTodayISO();
+  var dateEl = byId('dailyOpsDate');
+  if(dateEl && dateEl.value !== DailyOps.date) dateEl.value = DailyOps.date;
+  dailyOpsPopulateStaffSelect();
+  var staffId = dailyOpsSelectedStaffId();
+  var record = staffId ? dailyOpsRecordFor(DailyOps.date, staffId, true) : null;
+  var opening = dailyOpsCompletion('opening', App.dailyOps.settings.openingTasks, record);
+  var closing = dailyOpsCompletion('closing', App.dailyOps.settings.closingTasks, record);
+  var groups = dailyOpsGroupsCompletion(record);
+  var stock = dailyOpsStockStats(record);
+  if(!staffId && dailyOpsCanManage()){
+    opening = {done:0,total:0};
+    closing = {done:0,total:0};
+    groups = {done:0,total:0};
+    stock = {checked:0,total:0,needs:0,actioned:0};
+    dailyOpsStaffIds().forEach(function(sid){
+      var r = dailyOpsRecordFor(DailyOps.date, sid, false);
+      if(!r) return;
+      var op = dailyOpsCompletion('opening', App.dailyOps.settings.openingTasks, r);
+      var cl = dailyOpsCompletion('closing', App.dailyOps.settings.closingTasks, r);
+      var gp = dailyOpsGroupsCompletion(r);
+      var st = dailyOpsStockStats(r);
+      opening.done += op.done; opening.total += op.total;
+      closing.done += cl.done; closing.total += cl.total;
+      groups.done += gp.done; groups.total += gp.total;
+      stock.checked += st.checked; stock.total += st.total; stock.needs += st.needs; stock.actioned += st.actioned;
+    });
+  }
+  var taskTotal = opening.total + closing.total + groups.total;
+  var taskDone = opening.done + closing.done + groups.done;
+  var pct = taskTotal ? Math.round(taskDone * 100 / taskTotal) : 0;
+  var p = byId('dailyOpsCompletionPill'); if(p) p.textContent = pct + '% complete';
+  p = byId('dailyOpsNeedsPill'); if(p) p.textContent = stock.needs + ' need action';
+  p = byId('dailyOpsOpeningPill'); if(p) p.textContent = opening.done + '/' + opening.total;
+  p = byId('dailyOpsClosingPill'); if(p) p.textContent = closing.done + '/' + closing.total;
+  renderDailyOpsTaskList('opening', App.dailyOps.settings.openingTasks, byId('dailyOpsOpeningList'), record, staffId);
+  renderDailyOpsTaskList('closing', App.dailyOps.settings.closingTasks, byId('dailyOpsClosingList'), record, staffId);
+  renderDailyOpsCustomGroups(record, staffId);
+  renderDailyOpsNotes(record, staffId);
+  renderDailyOpsStock(record, staffId);
+  renderDailyOpsReview();
+  renderDailyOpsManage();
+}
+function renderDailyOpsTaskList(type, tasks, host, record, staffId){
+  if(!host) return;
+  host.innerHTML = '';
+  if(!staffId){ host.innerHTML = '<div class="dailyops-empty">Choose a staff member to update this checklist.</div>'; return; }
+  if(!tasks.length){ host.innerHTML = '<div class="dailyops-empty">No tasks yet. Add tasks in Manage Lists.</div>'; return; }
+  tasks.forEach(function(task){
+    var key = dailyOpsTaskKey(task);
+    var item = (record[type] && record[type][key]) || {};
+    var row = document.createElement('div');
+    row.className = 'dailyops-row dailyops-check-row';
+    row.innerHTML = '<input type="checkbox" '+(item.done?'checked':'')+'><div><div class="dailyops-task-title">'+escapeHtml(task)+'</div><div class="dailyops-task-meta"><input type="text" placeholder="Confirmed by" value="'+escapeHtml(item.by||'')+'"><input type="text" placeholder="Optional note" value="'+escapeHtml(item.note||'')+'"></div><div class="muted" style="margin-top:6px;font-size:12px;">'+(item.time ? 'Updated '+escapeHtml(item.time) : 'Not confirmed yet')+'</div></div>';
+    var box = row.querySelector('input[type="checkbox"]');
+    var inputs = row.querySelectorAll('input[type="text"]');
+    function saveTask(){
+      record[type][key] = { done:box.checked, by:String(inputs[0].value||'').trim() || dailyOpsUserLabel(), note:String(inputs[1].value||'').trim(), time:new Date().toLocaleString() };
+      dailyOpsSave();
+      renderDailyOps();
+    }
+    box.onchange = saveTask;
+    inputs[0].onchange = saveTask;
+    inputs[1].onchange = saveTask;
+    host.appendChild(row);
+  });
+}
+function renderDailyOpsCustomGroups(record, staffId){
+  var host = byId('dailyOpsCustomGroupsList');
+  if(!host) return;
+  var groups = App.dailyOps.settings.customGroups || [];
+  host.innerHTML = '';
+  if(!groups.length) return;
+  var grid = document.createElement('div');
+  grid.className = 'dailyops-grid';
+  groups.forEach(function(group){
+    var card = document.createElement('div');
+    card.className = 'dailyops-row';
+    var status = dailyOpsGroupCompletion(group, record);
+    card.innerHTML =
+      '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;">' +
+      '<label style="margin:0;">'+escapeHtml(group.name)+'</label>' +
+      '<span class="pill '+(status.total && status.done===status.total ? 'dailyops-pill-ok' : 'dailyops-pill-low')+'">'+status.done+'/'+status.total+'</span>' +
+      '</div><div class="dailyops-list"></div>';
+    renderDailyOpsGroupTaskList(group, card.querySelector('.dailyops-list'), record, staffId);
+    grid.appendChild(card);
+  });
+  host.appendChild(grid);
+}
+function renderDailyOpsGroupTaskList(group, host, record, staffId){
+  if(!host) return;
+  host.innerHTML = '';
+  if(!staffId){ host.innerHTML = '<div class="dailyops-empty">Choose a staff member to update this group.</div>'; return; }
+  var tasks = group.tasks || [];
+  if(!tasks.length){ host.innerHTML = '<div class="dailyops-empty">No tasks in this group yet. Add tasks in Manage Lists.</div>'; return; }
+  if(!record.groups[group.id]) record.groups[group.id] = {};
+  tasks.forEach(function(task){
+    var key = dailyOpsTaskKey(task);
+    var item = (record.groups[group.id] && record.groups[group.id][key]) || {};
+    var row = document.createElement('div');
+    row.className = 'dailyops-row dailyops-check-row';
+    row.innerHTML = '<input type="checkbox" '+(item.done?'checked':'')+'><div><div class="dailyops-task-title">'+escapeHtml(task)+'</div><div class="dailyops-task-meta"><input type="text" placeholder="Confirmed by" value="'+escapeHtml(item.by||'')+'"><input type="text" placeholder="Optional note" value="'+escapeHtml(item.note||'')+'"></div><div class="muted" style="margin-top:6px;font-size:12px;">'+(item.time ? 'Updated '+escapeHtml(item.time) : 'Not confirmed yet')+'</div></div>';
+    var box = row.querySelector('input[type="checkbox"]');
+    var inputs = row.querySelectorAll('input[type="text"]');
+    function saveTask(){
+      record.groups[group.id][key] = { done:box.checked, by:String(inputs[0].value||'').trim() || dailyOpsUserLabel(), note:String(inputs[1].value||'').trim(), time:new Date().toLocaleString() };
+      dailyOpsSave();
+      renderDailyOps();
+    }
+    box.onchange = saveTask;
+    inputs[0].onchange = saveTask;
+    inputs[1].onchange = saveTask;
+    host.appendChild(row);
+  });
+}
+function renderDailyOpsNotes(record, staffId){
+  var host = byId('dailyOpsNotesList');
+  if(!host) return;
+  host.innerHTML = '';
+  if(!staffId){ host.innerHTML = '<div class="dailyops-empty">Choose a staff member to view or add notes.</div>'; return; }
+  var notes = (record && record.notes) || [];
+  if(!notes.length){ host.innerHTML = '<div class="dailyops-empty">No staff notes for this day.</div>'; return; }
+  notes.forEach(function(note, idx){
+    var row = document.createElement('div');
+    row.className = 'dailyops-row';
+    row.innerHTML = '<b>'+escapeHtml(note.by||'Staff')+' - '+escapeHtml(note.time||'')+'</b><div class="muted" style="margin-top:4px;">'+escapeHtml(note.text||'')+'</div>';
+    if(dailyOpsCanManage() || (App.currentUser && String(note.staffId||'')===String(App.currentUser.id))){
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'btn-outline';
+      btn.style.marginTop = '8px';
+      btn.textContent = 'Remove';
+      btn.onclick = function(){ notes.splice(idx,1); dailyOpsSave(); renderDailyOps(); };
+      row.appendChild(btn);
+    }
+    host.appendChild(row);
+  });
+}
+function renderDailyOpsStock(record, staffId){
+  var host = byId('dailyOpsStockList');
+  if(!host) return;
+  host.innerHTML = '';
+  if(!staffId){ host.innerHTML = '<div class="dailyops-empty">Choose a staff member to update stock findings.</div>'; return; }
+  if(!App.dailyOps.settings.stockItems.length){ host.innerHTML = '<div class="dailyops-empty">No stock items yet. Add them in Manage Lists.</div>'; return; }
+  App.dailyOps.settings.stockItems.forEach(function(item){
+    var key = dailyOpsTaskKey(item);
+    var rec = (record.stock && record.stock[key]) || {};
+    var row = document.createElement('div');
+    row.className = 'dailyops-row dailyops-stock-row';
+    row.innerHTML = '<div class="dailyops-stock-name">'+escapeHtml(item)+'</div><div><label>Status</label><select><option value="">Not checked</option><option value="ok">Sufficient</option><option value="low">Low</option><option value="out">Out</option></select></div><div><label>Findings</label><textarea placeholder="Quantity left, urgency, supplier note or order request..." style="min-height:70px;">'+escapeHtml(rec.findings||'')+'</textarea></div>';
+    var sel = row.querySelector('select');
+    var txt = row.querySelector('textarea');
+    sel.value = rec.status || '';
+    function saveStock(){
+      record.stock[key] = { name:item, status:sel.value, findings:String(txt.value||'').trim(), by:dailyOpsUserLabel(), staffId:staffId, time:new Date().toLocaleString(), ownerActioned:(record.stock[key] && record.stock[key].ownerActioned && sel.value !== 'ok') ? true : false, ownerNote:(record.stock[key] && sel.value !== 'ok') ? (record.stock[key].ownerNote||'') : '' };
+      dailyOpsSave();
+      renderDailyOps();
+    }
+    sel.onchange = saveStock;
+    txt.onchange = saveStock;
+    host.appendChild(row);
+  });
+}
+function renderDailyOpsReview(){
+  var host = byId('dailyOpsReviewList');
+  if(!host) return;
+  var date = DailyOps.date || dailyOpsTodayISO();
+  var selected = dailyOpsSelectedStaffId();
+  var staffIds = selected ? [selected] : dailyOpsStaffIds();
+  var rows = [];
+  staffIds.forEach(function(sid){
+    var rec = dailyOpsRecordFor(date, sid, false);
+    if(!rec) return;
+    App.dailyOps.settings.stockItems.forEach(function(item){
+      var st = rec.stock[dailyOpsTaskKey(item)];
+      if(st && (st.status==='low' || st.status==='out')) rows.push({staffId:sid,item:item,stock:st,key:dailyOpsTaskKey(item)});
+    });
+    (rec.notes||[]).forEach(function(note){ rows.push({staffId:sid,note:note}); });
+  });
+  if(!rows.length){ host.innerHTML = '<div class="dailyops-empty">No stock issues or notes recorded for this date.</div>'; return; }
+  host.innerHTML = '';
+  rows.forEach(function(row){
+    var card = document.createElement('div');
+    card.className = 'dailyops-row dailyops-review-row';
+    if(row.stock){
+      var cls = row.stock.status === 'out' ? 'dailyops-pill-out' : 'dailyops-pill-low';
+      card.innerHTML = '<div><h4>'+escapeHtml(row.item)+' <span class="pill '+cls+'">'+escapeHtml(row.stock.status==='out'?'Out':'Low')+'</span> <span class="pill '+(row.stock.ownerActioned?'dailyops-pill-ok':'dailyops-pill-low')+'">'+(row.stock.ownerActioned?'Actioned':'Needs action')+'</span></h4><p>'+escapeHtml(row.stock.findings || 'No findings typed.')+'</p><p>Reported by '+escapeHtml(staffDisplayNameForId(row.staffId,row.staffId))+' - '+escapeHtml(row.stock.time||'')+'</p></div><div class="dailyops-owner-box"><label><input type="checkbox" '+(row.stock.ownerActioned?'checked':'')+'> Actioned</label><input type="text" placeholder="Owner note" value="'+escapeHtml(row.stock.ownerNote||'')+'"></div>';
+      var cb = card.querySelector('input[type="checkbox"]');
+      var noteInput = card.querySelector('input[type="text"]');
+      cb.disabled = !dailyOpsCanManage();
+      noteInput.disabled = !dailyOpsCanManage();
+      function saveOwner(){
+        var rec = dailyOpsRecordFor(date, row.staffId, true);
+        if(!rec.stock[row.key]) return;
+        rec.stock[row.key].ownerActioned = cb.checked;
+        rec.stock[row.key].ownerNote = String(noteInput.value||'').trim();
+        rec.stock[row.key].ownerActionedBy = dailyOpsUserLabel();
+        rec.stock[row.key].ownerActionedTime = new Date().toLocaleString();
+        dailyOpsSave();
+        renderDailyOps();
+      }
+      cb.onchange = saveOwner;
+      noteInput.onchange = saveOwner;
+    }else{
+      card.innerHTML = '<div><h4>Staff note - '+escapeHtml(staffDisplayNameForId(row.staffId,row.staffId))+'</h4><p>'+escapeHtml(row.note.text||'')+'</p><p>'+escapeHtml(row.note.by||'Staff')+' - '+escapeHtml(row.note.time||'')+'</p></div><div></div>';
+    }
+    host.appendChild(card);
+  });
+}
+function renderDailyOpsManage(){
+  renderDailyOpsManageList('openingTasks', byId('dailyOpsManageOpening'));
+  renderDailyOpsManageList('closingTasks', byId('dailyOpsManageClosing'));
+  renderDailyOpsManageList('stockItems', byId('dailyOpsManageStock'));
+  renderDailyOpsManageGroups();
+  ['dailyOpsNewOpeningTask','dailyOpsNewClosingTask','dailyOpsNewStockItem','dailyOpsAddOpeningTask','dailyOpsAddClosingTask','dailyOpsAddStockItem','dailyOpsNewGroupName','dailyOpsAddGroup'].forEach(function(id){ var x=byId(id); if(x) x.disabled = !dailyOpsCanManage(); });
+  var m = byId('dailyOpsTabManage'); if(m) m.style.display = dailyOpsCanManage() ? '' : 'none';
+}
+function renderDailyOpsManageList(field, host){
+  if(!host) return;
+  var list = App.dailyOps.settings[field] || [];
+  host.innerHTML = '';
+  if(!list.length){ host.innerHTML = '<div class="dailyops-empty">No items yet.</div>'; return; }
+  list.forEach(function(item, idx){
+    var row = document.createElement('div');
+    row.className = 'dailyops-manage-row';
+    row.innerHTML = '<input type="text" value="'+escapeHtml(item)+'"><button type="button" class="btn-outline">Remove</button>';
+    var input = row.querySelector('input');
+    var btn = row.querySelector('button');
+    input.disabled = !dailyOpsCanManage();
+    btn.disabled = !dailyOpsCanManage();
+    input.onchange = function(){ if(!dailyOpsCanManage()) return; list[idx] = String(input.value||'').trim() || item; dailyOpsSave(); renderDailyOps(); };
+    btn.onclick = function(){ if(!dailyOpsCanManage()) return; if(!confirm('Remove this item from future daily tasks? Existing records stay saved.')) return; list.splice(idx,1); dailyOpsSave(); renderDailyOps(); };
+    host.appendChild(row);
+  });
+}
+function renderDailyOpsManageGroups(){
+  var host = byId('dailyOpsManageGroups');
+  if(!host) return;
+  var groups = App.dailyOps.settings.customGroups || [];
+  host.innerHTML = '';
+  if(!groups.length){ host.innerHTML = '<div class="dailyops-empty">No custom groups yet. Add groups such as Kitchen Prep, Cleaning, Maintenance or Weekly Jobs.</div>'; return; }
+  groups.forEach(function(group, groupIndex){
+    var row = document.createElement('div');
+    row.className = 'dailyops-row';
+    row.style.marginBottom = '8px';
+    row.innerHTML =
+      '<div class="dailyops-manage-row"><input type="text" value="'+escapeHtml(group.name)+'"><button type="button" class="btn-outline">Remove group</button></div>' +
+      '<div class="dailyops-list" style="margin-top:8px;"></div>' +
+      '<div class="dailyops-add-row"><input type="text" placeholder="Add task to '+escapeHtml(group.name)+'"><button type="button" class="btn-outline">Add task</button></div>';
+    var inputs = row.querySelectorAll('input');
+    var buttons = row.querySelectorAll('button');
+    var taskHost = row.querySelector('.dailyops-list');
+    inputs[0].disabled = !dailyOpsCanManage();
+    inputs[1].disabled = !dailyOpsCanManage();
+    buttons[0].disabled = !dailyOpsCanManage();
+    buttons[1].disabled = !dailyOpsCanManage();
+    inputs[0].onchange = function(){ if(!dailyOpsCanManage()) return; group.name = String(inputs[0].value||'').trim() || group.name; dailyOpsSave(); renderDailyOps(); };
+    buttons[0].onclick = function(){ if(!dailyOpsCanManage()) return; if(!confirm('Remove the "'+group.name+'" group from future daily tasks? Existing records stay saved.')) return; groups.splice(groupIndex,1); dailyOpsSave(); renderDailyOps(); };
+    function addTask(){
+      if(!dailyOpsCanManage()) return;
+      var value = String(inputs[1].value||'').trim();
+      if(!value) return;
+      group.tasks = Array.isArray(group.tasks) ? group.tasks : [];
+      group.tasks.push(value);
+      inputs[1].value = '';
+      dailyOpsSave();
+      renderDailyOps();
+    }
+    buttons[1].onclick = addTask;
+    inputs[1].onkeydown = function(ev){ if(ev.key === 'Enter') addTask(); };
+    renderDailyOpsManageGroupTasks(group, taskHost);
+    host.appendChild(row);
+  });
+}
+function renderDailyOpsManageGroupTasks(group, host){
+  var tasks = group.tasks || [];
+  host.innerHTML = '';
+  if(!tasks.length){ host.innerHTML = '<div class="dailyops-empty">No tasks in this group yet.</div>'; return; }
+  tasks.forEach(function(task, idx){
+    var row = document.createElement('div');
+    row.className = 'dailyops-manage-row';
+    row.innerHTML = '<input type="text" value="'+escapeHtml(task)+'"><button type="button" class="btn-outline">Remove</button>';
+    var input = row.querySelector('input');
+    var button = row.querySelector('button');
+    input.disabled = !dailyOpsCanManage();
+    button.disabled = !dailyOpsCanManage();
+    input.onchange = function(){ if(!dailyOpsCanManage()) return; group.tasks[idx] = String(input.value||'').trim() || task; dailyOpsSave(); renderDailyOps(); };
+    button.onclick = function(){ if(!dailyOpsCanManage()) return; group.tasks.splice(idx,1); dailyOpsSave(); renderDailyOps(); };
+    host.appendChild(row);
+  });
+}
+function dailyOpsAddTemplateItem(field, inputId){
+  if(!dailyOpsCanManage()) return alert('Manager/Admin only.');
+  var input = byId(inputId);
+  var value = input ? String(input.value||'').trim() : '';
+  if(!value) return;
+  App.dailyOps.settings[field].push(value);
+  input.value = '';
+  dailyOpsSave();
+  renderDailyOps();
+}
+function dailyOpsAddGroup(){
+  if(!dailyOpsCanManage()) return alert('Manager/Admin only.');
+  var input = byId('dailyOpsNewGroupName');
+  var value = input ? String(input.value||'').trim() : '';
+  if(!value) return;
+  App.dailyOps.settings.customGroups.push({
+    id:'group-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2,7),
+    name:value,
+    tasks:[]
+  });
+  input.value = '';
+  dailyOpsSave();
+  renderDailyOps();
+}
+function initDailyOps(){
+  DailyOps.date = dailyOpsTodayISO();
+  var d = byId('dailyOpsDate'); if(d) d.onchange = function(){ DailyOps.date = d.value || dailyOpsTodayISO(); renderDailyOps(); };
+  var s = byId('dailyOpsStaffSelect'); if(s) s.onchange = renderDailyOps;
+  var b = byId('dailyOpsToday'); if(b) b.onclick = function(){ DailyOps.date = dailyOpsTodayISO(); renderDailyOps(); };
+  b = byId('dailyOpsResetDay'); if(b) b.onclick = function(){
+    var sid = dailyOpsSelectedStaffId();
+    if(!sid && !dailyOpsCanManage()) return;
+    var msg = sid ? ('Reset daily tasks for '+staffDisplayNameForId(sid,sid)+' on '+DailyOps.date+'?') : ('Reset daily tasks for all staff on '+DailyOps.date+'?');
+    if(!confirm(msg)) return;
+    if(sid){ if(App.dailyOps.records[DailyOps.date]) delete App.dailyOps.records[DailyOps.date][sid]; }
+    else delete App.dailyOps.records[DailyOps.date];
+    dailyOpsSave();
+    renderDailyOps();
+  };
+  b = byId('dailyOpsTabChecklists'); if(b) b.onclick = function(){ dailyOpsSetView('checklists'); };
+  b = byId('dailyOpsTabStock'); if(b) b.onclick = function(){ dailyOpsSetView('stock'); };
+  b = byId('dailyOpsTabReview'); if(b) b.onclick = function(){ dailyOpsSetView('review'); };
+  b = byId('dailyOpsTabManage'); if(b) b.onclick = function(){ dailyOpsSetView('manage'); };
+  b = byId('dailyOpsAddNote'); if(b) b.onclick = function(){
+    var sid = dailyOpsSelectedStaffId();
+    if(!sid) return alert('Choose a staff member first.');
+    var txt = byId('dailyOpsNewNote');
+    var val = txt ? String(txt.value||'').trim() : '';
+    if(!val) return;
+    var rec = dailyOpsRecordFor(DailyOps.date, sid, true);
+    rec.notes.unshift({text:val, by:dailyOpsUserLabel(), staffId:(App.currentUser&&App.currentUser.id)||sid, time:new Date().toLocaleString()});
+    txt.value = '';
+    dailyOpsSave();
+    renderDailyOps();
+  };
+  b = byId('dailyOpsAddOpeningTask'); if(b) b.onclick = function(){ dailyOpsAddTemplateItem('openingTasks','dailyOpsNewOpeningTask'); };
+  b = byId('dailyOpsAddClosingTask'); if(b) b.onclick = function(){ dailyOpsAddTemplateItem('closingTasks','dailyOpsNewClosingTask'); };
+  b = byId('dailyOpsAddStockItem'); if(b) b.onclick = function(){ dailyOpsAddTemplateItem('stockItems','dailyOpsNewStockItem'); };
+  b = byId('dailyOpsAddGroup'); if(b) b.onclick = dailyOpsAddGroup;
+  ['dailyOpsNewOpeningTask','dailyOpsNewClosingTask','dailyOpsNewStockItem','dailyOpsNewGroupName'].forEach(function(id){
+    var input = byId(id);
+    if(input) input.onkeydown = function(ev){
+      if(ev.key !== 'Enter') return;
+      if(id==='dailyOpsNewOpeningTask') dailyOpsAddTemplateItem('openingTasks',id);
+      if(id==='dailyOpsNewClosingTask') dailyOpsAddTemplateItem('closingTasks',id);
+      if(id==='dailyOpsNewStockItem') dailyOpsAddTemplateItem('stockItems',id);
+      if(id==='dailyOpsNewGroupName') dailyOpsAddGroup();
+    };
+  });
+}
+
 // ---------- Tabs & render ----------
 function placeStaffRequestsPanel(target){
   try{
@@ -10437,6 +11383,7 @@ function placeStaffRequestsPanel(target){
 function initTabs(){
   byId('tabMy').onclick=function(){ showTab('My'); };
   var tMyReq = byId('tabMyRequests'); if(tMyReq) tMyReq.onclick=function(){ showTab('MyRequests'); };
+  var tDailyOps = byId('tabDailyOps'); if(tDailyOps) tDailyOps.onclick=function(){ showTab('DailyOps'); };
   byId('tabPlanner').onclick=function(){ showTab('Planner'); };
   byId('tabPayroll').onclick=function(){ showTab('Payroll'); };
   var tStats = byId('tabStats'); if(tStats) tStats.onclick=function(){ showTab('Stats'); };
@@ -10448,6 +11395,8 @@ function initTabs(){
   if(bMy) bMy.onclick=function(){ showTab('My'); };
   var bReq = byId('bottomRequests');
   if(bReq) bReq.onclick=function(){ showTab('MyRequests'); };
+  var bDailyOps = byId('bottomDailyOps');
+  if(bDailyOps) bDailyOps.onclick=function(){ showTab('DailyOps'); };
   var bPlanner = byId('bottomPlanner');
   if(bPlanner) bPlanner.onclick=function(){ showTab('Planner'); };
   var bPayroll = byId('bottomPayroll');
@@ -10459,6 +11408,7 @@ function initTabs(){
   if(bSettings) bSettings.onclick=function(){ showTab('Settings'); };
   var myReqRefresh = byId('btnMyRequestsRefresh');
   if(myReqRefresh) myReqRefresh.onclick=function(){ try{ renderMyRequests(); }catch(e){} };
+  try{ initDailyOps(); }catch(e){}
 }
 function showTab(name){
   try{ App.ui = App.ui || {}; App.ui.activeTab = name; }catch(e){}
@@ -10479,6 +11429,7 @@ function showTab(name){
   var bottomMap={
     My:'bottomMy',
     MyRequests:'bottomRequests',
+    DailyOps:'bottomDailyOps',
     Planner:'bottomPlanner',
     Payroll:'bottomPayroll',
     Absences:'bottomAbsences',
@@ -10495,6 +11446,7 @@ function showTab(name){
   var sects=$$('.section, .login');
   for(var k=0;k<sects.length;k++){ sects[k].classList.remove('show'); }
   if(name==='My'){ byId('mySection').classList.add('show'); try{ renderMyShifts(); }catch(e){} }
+  if(name==='DailyOps'){ byId('dailyOpsSection').classList.add('show'); try{ renderDailyOps(); }catch(e){} }
   if(name==='MyRequests'){
     if(role==='admin'){
       try{ placeStaffRequestsPanel('quick'); }catch(e){}
@@ -10584,6 +11536,7 @@ function renderAfterLogin(){
 
   var bMy = byId('bottomMy'),
       bRequests = byId('bottomRequests'),
+      bDailyOps = byId('bottomDailyOps'),
       bPlanner = byId('bottomPlanner'),
       bPayroll = byId('bottomPayroll'),
       bStats = byId('bottomStats'),
@@ -10592,6 +11545,7 @@ function renderAfterLogin(){
 
   if(bMy) bMy.style.display='';
   if(bRequests) bRequests.style.display='none';
+  if(bDailyOps) bDailyOps.style.display='';
   if(bPlanner) bPlanner.style.display='none';
   if(bPayroll) bPayroll.style.display='none';
   if(bStats) bStats.style.display='none';
@@ -10626,7 +11580,9 @@ function renderAfterLogin(){
   }
 
   try{ byId('tabMyRequests').style.display='inline-block'; }catch(e){}
+  try{ byId('tabDailyOps').style.display='inline-block'; }catch(e){}
   try{ applySettingsRoleVisibility(); }catch(e){}
+  try{ renderDailyOps(); }catch(e){}
   renderMyShifts();
   renderPlanner();
   renderPayroll();
@@ -11756,6 +12712,19 @@ function saveShiftFromModal(){
   byId('shiftStart').value=to12hStr(startNorm); byId('shiftEnd').value=to12hStr(endNorm);
   var start12=to12hStr(startNorm); var end12=to12hStr(endNorm);
   var breakMins=parseInt(byId('shiftBreak').value,10); if(isNaN(breakMins)) breakMins = autoBreakMinsForHours(hoursBetweenAny(start12,end12));
+  var durationHours = hoursBetweenAny(start12,end12);
+  if(!isFinite(durationHours) || durationHours <= 0 || durationHours > 16){
+    alert('Shift length must be greater than 0 and no more than 16 hours. Split longer overnight shifts into separate entries.');
+    return;
+  }
+  if(breakMins < 0){
+    alert('Break minutes cannot be negative.');
+    return;
+  }
+  if((breakMins / 60) >= durationHours){
+    alert('Break time must be shorter than the shift length.');
+    return;
+  }
   var notes=byId('shiftNotes').value||'';
   var penalty=!!byId('shiftPenalty').checked;
   var repeat=Math.max(0, parseInt(byId('shiftRepeat').value||'0',10));
@@ -15669,6 +16638,24 @@ function readPayrollWeekInputs(){
     note:(byId('payrollWeekNote') && byId('payrollWeekNote').value || '').trim()
   };
 }
+function validatePayrollWeekInputs(rec){
+  rec = rec || {};
+  var checks = [
+    ['PAYG withheld', rec.paygWithheld],
+    ['Super amount', rec.superAmount === '' ? 0 : rec.superAmount],
+    ['Other deductions', rec.otherDeductions]
+  ];
+  for(var i=0;i<checks.length;i++){
+    var n = Number(checks[i][1]);
+    if(!isFinite(n) || n < 0) return checks[i][0] + ' must be a positive number or zero.';
+  }
+  var notes = [rec.otherDeductionDetails || '', rec.leaveAnnual || '', rec.leaveSick || '', rec.leaveLong || '', rec.note || ''];
+  for(var j=0;j<notes.length;j++){
+    if(String(notes[j]).length > 280) return 'Payroll notes and leave fields must be 280 characters or fewer.';
+    if(/[<>]/.test(String(notes[j]))) return 'Payroll notes cannot contain < or > characters.';
+  }
+  return '';
+}
 function savePayrollBusinessProfile(quiet){
   if(!isAdmin()) return alert('Admin only.');
   ensurePayrollDocStores();
@@ -15709,6 +16696,8 @@ function savePayrollWeekData(quiet){
   if(!staffId) return alert('Choose a staff member.');
   var weekIso = payrollSelectedWeekIso();
   var rec = readPayrollWeekInputs();
+  var validationError = validatePayrollWeekInputs(rec);
+  if(validationError) return alert(validationError);
   if(!App.payrollWeekData[weekIso]) App.payrollWeekData[weekIso] = {};
   App.payrollWeekData[weekIso][staffId] = rec;
   saveLocal();
@@ -19460,7 +20449,7 @@ async function pullData(silent){
   try{
     var looksEmpty = (!data) || (typeof data==='object' && !Array.isArray(data) &&
       data.staff===undefined && data.settings===undefined && data.weeks===undefined &&
-      data.availability===undefined && data.recurringUnavailability===undefined);
+      data.availability===undefined && data.recurringUnavailability===undefined && data.dailyOps===undefined);
     if(looksEmpty && App.settings && App.settings.dbUrl){
       var rootUrl = App.settings.dbUrl.replace(/\/$/,'') + '/.json';
       var rr = await fetch(withAuth(rootUrl));
@@ -19473,17 +20462,17 @@ async function pullData(silent){
             data = rootData[ws];
           }
           // If root itself is an exported payload, use it and (best-effort) migrate into workspace.
-          else if(rootData.staff || rootData.settings || rootData.weeks){
+          else if(rootData.staff || rootData.settings || rootData.weeks || rootData.dailyOps){
             data = rootData;
 
 // If root isn't directly the export (common when imported under a single node), scan one level deep.
-if(!(rootData.staff||rootData.settings||rootData.weeks||rootData.availability||rootData.recurringUnavailability)){
+if(!(rootData.staff||rootData.settings||rootData.weeks||rootData.availability||rootData.recurringUnavailability||rootData.dailyOps)){
   try{
     var rk = Object.keys(rootData||{});
     for(var i=0;i<rk.length;i++){
       var kk = rk[i];
       var vv = rootData[kk];
-      if(vv && typeof vv==='object' && (vv.staff||vv.settings||vv.weeks||vv.availability||vv.recurringUnavailability)){
+      if(vv && typeof vv==='object' && (vv.staff||vv.settings||vv.weeks||vv.availability||vv.recurringUnavailability||vv.dailyOps)){
         data = vv;
         break;
       }
@@ -19510,7 +20499,7 @@ try{
     return (o.staff!==undefined) || (o.settings!==undefined) || (o.weeks!==undefined) ||
            (o.availability!==undefined) || (o.recurringUnavailability!==undefined) ||
            (o.absenceRequests!==undefined) || (o.shiftChangeRequests!==undefined) ||
-           (o.businessAnalytics!==undefined);
+           (o.businessAnalytics!==undefined) || (o.dailyOps!==undefined);
   }
   if(data && typeof data==='object' && !Array.isArray(data) && !__looksLikeExport(data)){
     // common wrapper keys
@@ -19543,7 +20532,7 @@ try{
     App.payrollPaid=data.payrollPaid||App.payrollPaid||{};
     App.payWithheld=data.payWithheld||App.payWithheld||{};
     App.payWithheldByWeek=data.payWithheldByWeek||App.payWithheldByWeek||{};
-    App.payWithheldLog=data.payWithheldLog||App.payWithheldLog||[]; App.payrollProfiles=data.payrollProfiles||App.payrollProfiles||{business:{},staff:{}}; App.payrollWeekData=data.payrollWeekData||App.payrollWeekData||{}; App.payslipRecords=data.payslipRecords||App.payslipRecords||[]; App.businessAnalytics=data.businessAnalytics||App.businessAnalytics||{daily:{}, recurringCosts:{}};
+    App.payWithheldLog=data.payWithheldLog||App.payWithheldLog||[]; App.payrollProfiles=data.payrollProfiles||App.payrollProfiles||{business:{},staff:{}}; App.payrollWeekData=data.payrollWeekData||App.payrollWeekData||{}; App.payslipRecords=data.payslipRecords||App.payslipRecords||[]; App.businessAnalytics=data.businessAnalytics||App.businessAnalytics||{daily:{}, recurringCosts:{}}; App.dailyOps=data.dailyOps||App.dailyOps||{};
     if(data.settings){
       for(var k in data.settings){
         App.settings[k]=data.settings[k];
@@ -19617,6 +20606,10 @@ try{
       renderPayroll();
       try{ byId('tabMyRequests').style.display='inline-block'; }catch(e){}
       renderMyShifts();
+      try{
+        var doSec = byId('dailyOpsSection');
+        if(doSec && doSec.classList && doSec.classList.contains('show')) renderDailyOps();
+      }catch(e){}
       try{
         var absSec = byId('absencesSection');
         if(absSec && absSec.classList && absSec.classList.contains('show')) renderAbsenceCalendar();
@@ -19878,7 +20871,8 @@ async function pushPlannerData(){
     payWithheldLog:App.payWithheldLog||[],
     payrollProfiles:App.payrollProfiles||{business:{},staff:{}},
     payrollWeekData:App.payrollWeekData||{},
-    payslipRecords:App.payslipRecords||[]
+    payslipRecords:App.payslipRecords||[],
+    dailyOps:App.dailyOps||{}
   };
   if(typeof isAdmin==='function' && isAdmin()){
     payload.businessAnalytics = App.businessAnalytics||{daily:{}, recurringCosts:{}};
@@ -19909,7 +20903,8 @@ async function pushPlannerAndSettingsAdmin(){
     payrollProfiles:App.payrollProfiles||{business:{},staff:{}},
     payrollWeekData:App.payrollWeekData||{},
     payslipRecords:App.payslipRecords||[],
-    businessAnalytics:App.businessAnalytics||{daily:{}, recurringCosts:{}}
+    businessAnalytics:App.businessAnalytics||{daily:{}, recurringCosts:{}},
+    dailyOps:App.dailyOps||{}
   });
   return true;
 }
@@ -20560,6 +21555,7 @@ try{
   var NAVS = [
     {key:'My', tab:'tabMy', section:'mySection', label:'My Shifts', adminLabel:'My Shifts', sub:'Personal roster and wage view', code:'MY'},
     {key:'MyRequests', tab:'tabMyRequests', section:'myRequestsSection', altSection:'staffRequestsSection', label:'My Requests', adminLabel:'Staff Requests', sub:'Leave, edits and approvals', code:'RQ'},
+    {key:'DailyOps', tab:'tabDailyOps', section:'dailyOpsSection', label:'Daily Tasks', adminLabel:'Daily Tasks', sub:'Opening, closing, stock and owner actions', code:'DT'},
     {key:'Planner', tab:'tabPlanner', section:'plannerSection', label:'Planner', adminLabel:'Planner', sub:'Roster board and coverage', code:'PL'},
     {key:'Payroll', tab:'tabPayroll', section:'payrollSection', label:'Payroll', adminLabel:'Payroll', sub:'Pay runs, payslips and paid status', code:'PY'},
     {key:'Stats', tab:'tabStats', section:'statsSection', label:'Business Analytics', adminLabel:'Business Analytics', sub:'Revenue, cost and staff insight', code:'BI'},
@@ -20652,6 +21648,7 @@ try{
         '<div class="v5-page-sub" id="v5PageSub">Personal roster and wage view</div>' +
       '</div>' +
       '<div class="v5-top-actions">' +
+        '<button type="button" class="v5-pill-btn v5-primary-action" id="v5DailyOpsTop">Daily Tasks</button>' +
         '<button type="button" class="v5-pill-btn v5-primary-action" id="v5CommandOpenTop">Command</button>' +
         '<button type="button" class="v5-pill-btn v5-hide-small" id="v5TopPull">Pull</button>' +
         '<button type="button" class="v5-pill-btn v5-hide-small" id="v5TopPush">Push</button>' +
@@ -20698,8 +21695,10 @@ try{
     };
     Object.keys(map).forEach(function(src){ var el=byId(src); if(el) el.onclick=function(){ trigger(map[src]); setTimeout(syncShell, 80); }; });
     var openTop = byId('v5CommandOpenTop');
+    var dailyTop = byId('v5DailyOpsTop');
     var fab = byId('v5CommandFab');
     if(openTop) openTop.onclick = openCommand;
+    if(dailyTop) dailyTop.onclick = function(){ trigger('tabDailyOps'); setTimeout(syncShell, 80); };
     if(fab) fab.onclick = openCommand;
     var modal = byId('v5CommandModal');
     if(modal){ modal.addEventListener('click', function(ev){ if(ev.target === modal) closeCommand(); }); }
@@ -22107,6 +23106,202 @@ try{
   document.addEventListener('click', function(){ setTimeout(tick, 0); }, true);
   window.addEventListener('resize', tick);
   setInterval(tick, 1200);
+})();
+</script>
+<script id="v5021UxPolishPatch">
+(function(){
+  'use strict';
+  function byId(id){ return document.getElementById(id); }
+  function escAttr(v){ return String(v==null?'':v).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  var paths = {
+    left:'<path d="m15 18-6-6 6-6"></path>',
+    right:'<path d="m9 18 6-6-6-6"></path>',
+    copy:'<rect width="14" height="14" x="8" y="8" rx="2"></rect><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"></path>',
+    calendar:'<path d="M8 2v4"></path><path d="M16 2v4"></path><rect width="18" height="18" x="3" y="4" rx="2"></rect><path d="M3 10h18"></path>',
+    download:'<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><path d="M7 10l5 5 5-5"></path><path d="M12 15V3"></path>',
+    json:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path><path d="M10 13h4"></path><path d="M9 17h6"></path>',
+    print:'<path d="M6 9V2h12v7"></path><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><path d="M6 14h12v8H6z"></path>',
+    check:'<path d="M20 6 9 17l-5-5"></path>',
+    x:'<path d="M18 6 6 18"></path><path d="m6 6 12 12"></path>',
+    spark:'<path d="M13 2 3 14h9l-1 8 10-12h-9z"></path>'
+  };
+  function icon(name){
+    return '<svg class="v5-svg-icon" aria-hidden="true" viewBox="0 0 24 24">' + (paths[name] || paths.spark) + '</svg>';
+  }
+  function setButtonIcon(btn, name, label, iconOnly){
+    if(!btn || btn.dataset.v5021Iconized) return;
+    btn.dataset.v5021Iconized = '1';
+    btn.classList.add('iconized-btn');
+    if(iconOnly) btn.classList.add('icon-only');
+    btn.innerHTML = icon(name) + (iconOnly ? '<span class="sr-only">' + escAttr(label) + '</span>' : '<span>' + escAttr(label) + '</span>');
+    btn.setAttribute('aria-label', label);
+    btn.title = label;
+  }
+  function iconizeButtons(){
+    var map = [
+      ['btnMyPrevWeek','left','Prev week'], ['btnMyNextWeek','right','Next week'],
+      ['btnPrevWeek','left','Prev week'], ['btnNextWeek','right','Next week'],
+      ['btnPayrollPrevWeek','left','Prev week'], ['btnPayrollNextWeek','right','Next week'],
+      ['absPrev','left','Previous'], ['absNext','right','Next'],
+      ['btnCopyDay','copy','Copy Day'], ['btnCopyWeek','copy','Copy Week'],
+      ['btnExportJSON','json','Export JSON'], ['btnExportCSV','download','Export Payroll CSV'],
+      ['btnPrint','print','Print current'], ['btnPrintView','print','Print View']
+    ];
+    map.forEach(function(m){ setButtonIcon(byId(m[0]), m[1], m[2], m[3]); });
+    Array.prototype.forEach.call(document.querySelectorAll('.manager-request-card button.btn-good'), function(btn){
+      if(!btn.dataset.v5021Iconized) setButtonIcon(btn, 'check', btn.textContent || 'Approve');
+    });
+    Array.prototype.forEach.call(document.querySelectorAll('.manager-request-card button.btn-outline'), function(btn){
+      if(!btn.dataset.v5021Iconized) setButtonIcon(btn, 'x', btn.textContent || 'Reject');
+    });
+  }
+  function quoteCsv(v){ return '"' + String(v==null?'':v).replace(/"/g,'""') + '"'; }
+  function exportShiftScheduleCSV(){
+    try{
+      var weekIso = (window.Planner && Planner.weekStartISO) || '';
+      var week = (window.App && App.weeks && App.weeks[weekIso]) || {};
+      var rows = [['Week','Day','Staff','Start','End','Break minutes','Notes','Cover shift']];
+      for(var di=0; di<7; di++){
+        var bucket = week[String(di)] || {};
+        Object.keys(bucket).forEach(function(id){
+          var sh = bucket[id] || {};
+          var staffName = (typeof staffDisplayNameForId === 'function') ? staffDisplayNameForId(sh.staffId || sh.baseStaffId || '', sh.staffId || '') : (sh.staffId || '');
+          rows.push([
+            weekIso,
+            ((window.DAY && DAY[di]) || String(di + 1)),
+            staffName,
+            sh.start || '',
+            sh.end || '',
+            sh.breakMins == null ? '' : sh.breakMins,
+            sh.notes || '',
+            sh.isCover ? 'Yes' : 'No'
+          ]);
+        });
+      }
+      var csv = rows.map(function(r){ return r.map(quoteCsv).join(','); }).join('\n');
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'}));
+      a.download = 'shift_schedule_' + (weekIso || 'current_week') + '.csv';
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(function(){ try{ URL.revokeObjectURL(a.href); a.remove(); }catch(e){} }, 500);
+      try{ if(typeof showToast === 'function') showToast('Export started', 'Shift schedule CSV is downloading.', 'success', 2500); }catch(e){}
+    }catch(e){
+      alert('Could not export shift schedule CSV: ' + (e && e.message ? e.message : e));
+    }
+  }
+  function ensureScheduleExportButton(){
+    var ref = byId('btnPrint');
+    if(!ref || byId('btnExportScheduleCSV')) return;
+    var btn = document.createElement('button');
+    btn.id = 'btnExportScheduleCSV';
+    btn.className = 'btn-outline';
+    btn.type = 'button';
+    btn.onclick = function(){
+      if(typeof isAdmin === 'function' && !isAdmin()) return alert('Admin only.');
+      exportShiftScheduleCSV();
+    };
+    ref.parentNode.insertBefore(btn, ref);
+    setButtonIcon(btn, 'download', 'Export Schedule CSV');
+  }
+  function selectedCards(){
+    return Array.prototype.filter.call(document.querySelectorAll('#requestsList .manager-request-card'), function(card){
+      var cb = card.querySelector('.manager-request-select input');
+      return cb && cb.checked && card.style.display !== 'none';
+    });
+  }
+  function updateBulkCount(){
+    var count = selectedCards().length;
+    var el = byId('requestBulkCount');
+    if(el) el.textContent = count + ' selected';
+  }
+  function bulkClick(kind){
+    var cards = selectedCards();
+    if(!cards.length) return alert('Select at least one visible request.');
+    var label = kind === 'approve' ? 'approve/apply' : 'reject/discard';
+    if(!confirm('Bulk ' + label + ' ' + cards.length + ' selected request(s)?')) return;
+    cards.forEach(function(card){
+      var btn = kind === 'approve' ? card.querySelector('button.btn-good, button.btn-primary') : card.querySelector('button.btn-outline');
+      if(btn) setTimeout(function(){ btn.click(); }, 0);
+    });
+  }
+  function ensureBulkRequestTools(){
+    var list = byId('requestsList');
+    var modal = byId('requestsModal');
+    if(!list || !modal) return;
+    var bar = byId('requestBulkBar');
+    if(!bar){
+      bar = document.createElement('div');
+      bar.id = 'requestBulkBar';
+      bar.className = 'request-bulk-bar';
+      bar.innerHTML = '<label class="manager-request-select"><input type="checkbox" id="requestSelectVisible"> Select visible</label><span id="requestBulkCount">0 selected</span><div class="request-bulk-actions"><button type="button" class="btn-good" id="requestBulkApprove">Bulk approve/apply</button><button type="button" class="btn-outline" id="requestBulkReject">Bulk reject/discard</button></div>';
+      var filter = byId('requestFilterBar');
+      if(filter && filter.parentNode) filter.parentNode.insertBefore(bar, filter.nextSibling);
+      else modal.querySelector('.panel').insertBefore(bar, list);
+      byId('requestSelectVisible').onchange = function(){
+        var checked = !!this.checked;
+        Array.prototype.forEach.call(document.querySelectorAll('#requestsList .manager-request-card'), function(card){
+          if(card.style.display === 'none') return;
+          var cb = card.querySelector('.manager-request-select input');
+          if(cb) cb.checked = checked;
+        });
+        updateBulkCount();
+      };
+      byId('requestBulkApprove').onclick = function(){ bulkClick('approve'); };
+      byId('requestBulkReject').onclick = function(){ bulkClick('reject'); };
+    }
+    Array.prototype.forEach.call(document.querySelectorAll('#requestsList .manager-request-card'), function(card){
+      if(card.querySelector('.manager-request-select')) return;
+      var label = document.createElement('label');
+      label.className = 'manager-request-select';
+      label.innerHTML = '<input type="checkbox"> Select';
+      var first = card.firstElementChild;
+      if(first) first.insertBefore(label, first.firstChild);
+      var cb = label.querySelector('input');
+      if(cb) cb.addEventListener('change', updateBulkCount);
+    });
+    updateBulkCount();
+    iconizeButtons();
+  }
+  function wrapRequestsModal(){
+    if(typeof window.openRequestsModal !== 'function' || window.openRequestsModal._v5021Wrapped) return;
+    var orig = window.openRequestsModal;
+    window.openRequestsModal = function(){
+      var r = orig.apply(this, arguments);
+      setTimeout(function(){ try{ ensureBulkRequestTools(); iconizeButtons(); }catch(e){} }, 0);
+      return r;
+    };
+    window.openRequestsModal._v5021Wrapped = true;
+  }
+  function wrapFilters(){
+    if(typeof window.v413ApplyRequestFilters !== 'function' || window.v413ApplyRequestFilters._v5021Wrapped) return;
+    var orig = window.v413ApplyRequestFilters;
+    window.v413ApplyRequestFilters = function(){
+      var r = orig.apply(this, arguments);
+      setTimeout(updateBulkCount, 0);
+      return r;
+    };
+    window.v413ApplyRequestFilters._v5021Wrapped = true;
+  }
+  document.addEventListener('click', function(ev){
+    var btn = ev.target && ev.target.closest ? ev.target.closest('.mini-actions .btn-mini') : null;
+    if(!btn) return;
+    btn.classList.remove('action-sent');
+    void btn.offsetWidth;
+    btn.classList.add('action-sent');
+    setTimeout(function(){ try{ btn.classList.remove('action-sent'); }catch(e){} }, 650);
+  }, true);
+  function tick(){
+    wrapRequestsModal();
+    wrapFilters();
+    iconizeButtons();
+    ensureScheduleExportButton();
+    if(byId('requestsModal') && byId('requestsModal').style.display === 'flex') ensureBulkRequestTools();
+  }
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', tick); else tick();
+  document.addEventListener('click', function(){ setTimeout(tick, 0); }, true);
+  window.addEventListener('resize', tick, {passive:true});
+  setInterval(tick, 1500);
 })();
 </script>
 </body>
