@@ -69,7 +69,7 @@
     }
   </style>
 
-<title>Aspire Workforce Command (V5.0.22 Phone Desktop Native)</title>
+<title>Aspire Workforce Command (V5.0.23 Phone Desktop Native)</title>
   <meta name="theme-color" content="#22c55e"/>
 
   <style>
@@ -2580,6 +2580,35 @@
     }
   </style>
 
+  <style id="easyViewCss">
+    .easy-shell { display:flex; flex-direction:column; gap:12px; }
+    .easy-hero { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; flex-wrap:wrap; padding:16px; border:1px solid var(--border); border-radius:18px; background:linear-gradient(135deg, rgba(34,197,94,.15), rgba(56,189,248,.13)); }
+    .easy-hero h2 { margin:0; font-size:24px; line-height:1.12; }
+    .easy-hero p { margin:6px 0 0; color:var(--muted); line-height:1.35; }
+    .easy-shift-alert { display:block; margin-top:7px; color:#22c55e; font-size:18px; font-weight:1000; line-height:1.25; }
+    .easy-actions { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+    .easy-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+    .easy-tile { min-height:96px; border:1px solid var(--border); border-radius:16px; background:rgba(255,255,255,.055); color:var(--fg); padding:14px; text-align:left; display:flex; flex-direction:column; gap:7px; justify-content:space-between; cursor:pointer; }
+    [data-theme="light"] .easy-tile { background:rgba(15,23,42,.035); }
+    .easy-tile strong { font-size:17px; line-height:1.18; }
+    .easy-tile span { color:var(--muted); font-size:13px; line-height:1.3; }
+    .easy-tile.primary { background:linear-gradient(135deg, rgba(90,49,244,.85), rgba(0,212,255,.65)); color:#fff; border-color:transparent; }
+    .easy-tile.primary span { color:rgba(255,255,255,.85); }
+    .easy-kpis { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; }
+    .easy-kpi { border:1px solid var(--border); border-radius:14px; padding:10px; background:rgba(255,255,255,.045); }
+    .easy-kpi .label { color:var(--muted); font-size:11px; font-weight:900; text-transform:uppercase; letter-spacing:.06em; }
+    .easy-kpi .value { margin-top:4px; font-size:18px; font-weight:1000; }
+    .easy-list { display:flex; flex-direction:column; gap:8px; }
+    .easy-row { border:1px solid var(--border); border-radius:14px; padding:10px; background:rgba(255,255,255,.04); }
+    .easy-row strong { display:block; margin-bottom:3px; }
+    .easy-row .muted { line-height:1.35; }
+    @media (max-width:760px){
+      .easy-grid, .easy-kpis { grid-template-columns:1fr; }
+      .easy-hero h2 { font-size:22px; }
+      .easy-tile { min-height:88px; }
+    }
+  </style>
+
 
 
   <style id="v500Css">
@@ -4768,12 +4797,13 @@
       <div id="appLogoBox"></div>
       <div class="titlewrap">
         <div class="title" id="appTitle">Aspire Workforce Command</div>
-        <div class="version-pill" id="appVersion">V5.0.22</div>
+        <div class="version-pill" id="appVersion">V5.0.23</div>
         <div class="sync-pill syncing" id="syncStatusChip" title="Sync status">Starting…</div>
       </div>
     </div>
     <div class="tabs">
       <div id="userChip" class="pill" style="background:#ffffff22;color:#fff;font-weight:700;"></div>
+      <button id="tabEasy">Easy View</button>
       <button id="tabMy" class="active">My Shifts</button>
       <button id="tabMyRequests">My Requests</button>
       <button id="tabDailyOps">Daily Tasks</button>
@@ -4828,6 +4858,60 @@
           </div>
         </div>
         <div class="muted" id="loginMsg" style="margin-top:6px;"></div>
+      </div>
+    </section>
+
+    <!-- Easy View -->
+    <section id="easyViewSection" class="section">
+      <div class="card easy-shell">
+        <div class="easy-hero">
+          <div>
+            <h2>Easy View</h2>
+            <p id="easyViewSub">A simpler phone-friendly hub for today.</p>
+          </div>
+          <div class="easy-actions">
+            <button id="easyRefresh" class="btn-outline" type="button">Refresh</button>
+            <button id="easyCommandView" class="btn-primary" type="button">Command View</button>
+          </div>
+        </div>
+
+        <div class="easy-kpis">
+          <div class="easy-kpi"><div class="label">Today</div><div class="value" id="easyTodayLabel">-</div></div>
+          <div class="easy-kpi"><div class="label">Tasks</div><div class="value" id="easyTasksKpi">0%</div></div>
+          <div class="easy-kpi"><div class="label">Flags</div><div class="value" id="easyFlagsKpi">0</div></div>
+        </div>
+
+        <div class="easy-grid">
+          <button class="easy-tile primary" type="button" data-easy-action="daily">
+            <strong>Daily Tasks</strong>
+            <span>Open today&apos;s checklist with fewer taps.</span>
+          </button>
+          <button class="easy-tile" type="button" data-easy-action="stock">
+            <strong>Stock / Supplies</strong>
+            <span>Check sufficient, low, or out of stock.</span>
+          </button>
+          <button class="easy-tile" type="button" data-easy-action="shift">
+            <strong>My Shifts &amp; Wages</strong>
+            <span id="easyShiftTileText">View today&apos;s roster and pay info.</span>
+          </button>
+          <button class="easy-tile" type="button" data-easy-action="requests">
+            <strong>Requests</strong>
+            <span>Leave, shift edits, and pending approvals.</span>
+          </button>
+          <button class="easy-tile" type="button" data-easy-action="review">
+            <strong>Manager Review</strong>
+            <span>Flagged items, staff notes, and stock issues.</span>
+          </button>
+          <button class="easy-tile" type="button" data-easy-action="planner">
+            <strong>Planner</strong>
+            <span>Jump back to the roster board.</span>
+          </button>
+        </div>
+
+        <div>
+          <label>Today at a glance</label>
+          <div id="easyTodayList" class="easy-list"></div>
+        </div>
       </div>
     </section>
 
@@ -6630,6 +6714,10 @@
   </div>
 
     <nav id="bottomNav" class="bottom-nav" aria-label="Primary navigation">
+    <button id="bottomEasy">
+      <span class="emoji-icon">&#128241;</span>
+      <span class="label">Easy</span>
+    </button>
     <button id="bottomMy">
       <span class="emoji-icon">&#127968;</span>
       <span class="label">My</span>
@@ -6707,8 +6795,8 @@ var DAY = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 var App = {
   // IMPORTANT: Increment App.version *and* App.buildId whenever making functional changes to this file.
   // SAFETY NET: This build performs an automatic runtime check against the file name; if mismatched, it shows a blocking warning so it can't be overlooked.
-  version: 'V5.0.22',
-    buildId: '2026-05-10.02',
+  version: 'V5.0.23',
+    buildId: '2026-05-10.03',
 settings: {
     dbUrl:'https://mnc-atrd-default-rtdb.asia-southeast1.firebasedatabase.app/', workspace:'mnc-atrd', authToken:'',
     theme:'light', themeName:'light-pastel-sky', recentColors:[], appTitle:'Aspire Workforce Command', logoUrl:'',
@@ -10328,7 +10416,7 @@ async function login(opts){
 }
 function enterApp(){
   byId('loginSection').classList.remove('show');
-  showTab('My');
+  try{ showTab(App.currentUser && App.currentUser.role === 'staff' ? 'Easy' : 'My'); }catch(e){ showTab('My'); }
   renderAfterLogin();
   // Load per-user notification/popup preferences
   try{ pullUserPrefs(); }catch(e){}
@@ -11819,6 +11907,119 @@ function initDailyOps(){
   });
 }
 
+// ---------- Easy View ----------
+function easyTodayIso(){
+  try{ return dailyOpsTodayISO(); }catch(e){ try{ return toISO(new Date()); }catch(e2){ return ''; } }
+}
+function easyCurrentStaffId(){
+  try{ return App.currentUser && App.currentUser.id ? String(App.currentUser.id) : ''; }catch(e){ return ''; }
+}
+function easyTodayShiftLines(){
+  var out = [];
+  try{
+    var sid = easyCurrentStaffId();
+    var iso = easyTodayIso();
+    if(!sid || !iso) return out;
+    var d = fromISO(iso);
+    var wk = toISO(weekStart(d));
+    var di = (d.getDay() + 6) % 7;
+    var bucket = (App.weeks && App.weeks[wk] && App.weeks[wk][String(di)]) || {};
+    Object.keys(bucket).sort().forEach(function(k){
+      var sh = bucket[k] || {};
+      if(String(sh.staffId||'') !== sid || (typeof shiftIsCoveredSource === 'function' && shiftIsCoveredSource(sh))) return;
+      var range = (typeof shiftDisplayRange === 'function') ? shiftDisplayRange(sh) : ((sh.start||'') + ' - ' + (sh.end||''));
+      out.push(range + (sh.notes ? (' - ' + sh.notes) : ''));
+    });
+  }catch(e){}
+  return out;
+}
+function easyDailyStats(){
+  var date = easyTodayIso();
+  var staffId = dailyOpsCanManage() ? '' : easyCurrentStaffId();
+  var opening, closing, groups, stock, flags = 0;
+  try{
+    dailyOpsEnsureStore();
+    if(staffId){
+      var rec = dailyOpsRecordFor(date, staffId, false);
+      opening = dailyOpsCompletion('opening', App.dailyOps.settings.openingTasks, rec);
+      closing = dailyOpsCompletion('closing', App.dailyOps.settings.closingTasks, rec);
+      groups = dailyOpsGroupsCompletion(rec);
+      stock = dailyOpsStockStats(rec);
+      if(rec){
+        ['opening','closing'].forEach(function(type){
+          Object.keys(rec[type]||{}).forEach(function(k){ if(dailyOpsItemHasAttention((rec[type]||{})[k])) flags++; });
+        });
+        Object.keys(rec.groups||{}).forEach(function(gid){ Object.keys(rec.groups[gid]||{}).forEach(function(k){ if(dailyOpsItemHasAttention(rec.groups[gid][k])) flags++; }); });
+        Object.keys(rec.stock||{}).forEach(function(k){ var s=rec.stock[k]||{}; if(s.status==='low' || s.status==='out') flags++; });
+      }
+    }else{
+      opening = dailyOpsAggregateCompletion('opening', App.dailyOps.settings.openingTasks);
+      closing = dailyOpsAggregateCompletion('closing', App.dailyOps.settings.closingTasks);
+      groups = dailyOpsAggregateGroupsCompletion();
+      stock = {checked:0,total:0,needs:0,actioned:0};
+      dailyOpsStaffIds().forEach(function(sid){
+        var r = dailyOpsRecordFor(date, sid, false);
+        var st = dailyOpsStockStats(r);
+        stock.checked += st.checked; stock.total += st.total; stock.needs += st.needs; stock.actioned += st.actioned;
+      });
+      flags = dailyOpsCollectFlaggedRows().length;
+    }
+  }catch(e){
+    opening = {done:0,total:0}; closing = {done:0,total:0}; groups = {done:0,total:0}; stock = {checked:0,total:0,needs:0};
+  }
+  var total = (opening.total||0) + (closing.total||0) + (groups.total||0);
+  var done = (opening.done||0) + (closing.done||0) + (groups.done||0);
+  return {done:done,total:total,pct:total ? Math.round(done * 100 / total) : 0, stock:stock, flags:flags};
+}
+function easyGo(action){
+  if(action === 'daily'){ showTab('DailyOps'); try{ dailyOpsSetView('checklists'); }catch(e){} return; }
+  if(action === 'stock'){ showTab('DailyOps'); try{ dailyOpsSetView('stock'); }catch(e){} return; }
+  if(action === 'review'){ showTab('DailyOps'); try{ dailyOpsSetView('review'); }catch(e){} return; }
+  if(action === 'shift'){ showTab('My'); return; }
+  if(action === 'requests'){ showTab('MyRequests'); return; }
+  if(action === 'planner'){ showTab('Planner'); return; }
+}
+function renderEasyView(){
+  var sec = byId('easyViewSection');
+  if(!sec) return;
+  var iso = easyTodayIso();
+  var stats = easyDailyStats();
+  var shifts = easyTodayShiftLines();
+  var roleLabel = (App.currentUser && App.currentUser.role) ? String(App.currentUser.role) : 'staff';
+  var who = App.currentUser ? staffDisplayNameForId(App.currentUser.id, App.currentUser.name || App.currentUser.id) : 'Staff';
+  var sub = byId('easyViewSub');
+  if(sub){
+    var shiftMsg = shifts.length ? ('You have a shift today! ' + shifts.join(' | ')) : 'No shift recorded for today.';
+    sub.innerHTML = escapeHtml(who + ' - ' + roleLabel + ' workspace') + '<span class="easy-shift-alert">' + escapeHtml(shiftMsg) + '</span>';
+  }
+  var today = byId('easyTodayLabel');
+  if(today) today.textContent = iso || '-';
+  var kpi = byId('easyTasksKpi');
+  if(kpi) kpi.textContent = stats.pct + '%';
+  var flag = byId('easyFlagsKpi');
+  if(flag) flag.textContent = String(stats.flags);
+  var shiftText = byId('easyShiftTileText');
+  if(shiftText) shiftText.textContent = shifts.length ? shifts.join(' | ') : 'No rostered shift found for today.';
+  var list = byId('easyTodayList');
+  if(list){
+    var rows = [];
+    rows.push('<div class="easy-row"><strong>Daily checklist</strong><div class="muted">'+stats.done+' of '+stats.total+' checklist items complete.</div></div>');
+    rows.push('<div class="easy-row"><strong>Stock / supplies</strong><div class="muted">'+((stats.stock&&stats.stock.needs)||0)+' item(s) need action today.</div></div>');
+    rows.push('<div class="easy-row"><strong>Today&apos;s shift</strong><div class="muted">'+escapeHtml(shifts.length ? shifts.join(' | ') : 'No shift recorded for today.')+'</div></div>');
+    if(dailyOpsCanManage()) rows.push('<div class="easy-row"><strong>Manager review</strong><div class="muted">'+stats.flags+' checklist/stock flag(s) visible in Owner Review.</div></div>');
+    list.innerHTML = rows.join('');
+  }
+}
+function initEasyView(){
+  var refresh = byId('easyRefresh');
+  if(refresh) refresh.onclick = renderEasyView;
+  var command = byId('easyCommandView');
+  if(command) command.onclick = function(){ showTab('My'); };
+  Array.prototype.forEach.call(document.querySelectorAll('[data-easy-action]'), function(btn){
+    btn.onclick = function(){ easyGo(btn.getAttribute('data-easy-action') || 'daily'); };
+  });
+}
+
 // ---------- Tabs & render ----------
 function placeStaffRequestsPanel(target){
   try{
@@ -11831,6 +12032,7 @@ function placeStaffRequestsPanel(target){
   }catch(e){}
 }
 function initTabs(){
+  var tEasy = byId('tabEasy'); if(tEasy) tEasy.onclick=function(){ showTab('Easy'); };
   byId('tabMy').onclick=function(){ showTab('My'); };
   var tMyReq = byId('tabMyRequests'); if(tMyReq) tMyReq.onclick=function(){ showTab('MyRequests'); };
   var tDailyOps = byId('tabDailyOps'); if(tDailyOps) tDailyOps.onclick=function(){ showTab('DailyOps'); };
@@ -11842,6 +12044,9 @@ function initTabs(){
   byId('tabAbsences').onclick=function(){ showTab('Absences'); };
 
   var bMy = byId('bottomMy');
+  var bEasy = byId('bottomEasy');
+  if(bEasy) bEasy.onclick=function(){ showTab('Easy'); };
+  bMy = byId('bottomMy');
   if(bMy) bMy.onclick=function(){ showTab('My'); };
   var bReq = byId('bottomRequests');
   if(bReq) bReq.onclick=function(){ showTab('MyRequests'); };
@@ -11859,6 +12064,7 @@ function initTabs(){
   var myReqRefresh = byId('btnMyRequestsRefresh');
   if(myReqRefresh) myReqRefresh.onclick=function(){ try{ renderMyRequests(); }catch(e){} };
   try{ initDailyOps(); }catch(e){}
+  try{ initEasyView(); }catch(e){}
 }
 function showTab(name){
   try{ App.ui = App.ui || {}; App.ui.activeTab = name; }catch(e){}
@@ -11877,6 +12083,7 @@ function showTab(name){
   var bottomButtons=$$('.bottom-nav button');
   for(var j=0;j<bottomButtons.length;j++){ bottomButtons[j].classList.remove('active'); }
   var bottomMap={
+    Easy:'bottomEasy',
     My:'bottomMy',
     MyRequests:'bottomRequests',
     DailyOps:'bottomDailyOps',
@@ -11895,6 +12102,7 @@ function showTab(name){
   // sections
   var sects=$$('.section, .login');
   for(var k=0;k<sects.length;k++){ sects[k].classList.remove('show'); }
+  if(name==='Easy'){ byId('easyViewSection').classList.add('show'); try{ renderEasyView(); }catch(e){} }
   if(name==='My'){ byId('mySection').classList.add('show'); try{ renderMyShifts(); }catch(e){} }
   if(name==='DailyOps'){ byId('dailyOpsSection').classList.add('show'); try{ renderDailyOps(); }catch(e){} }
   if(name==='MyRequests'){
@@ -21999,10 +22207,11 @@ try{
 (function(){
   'use strict';
   var APP_NAME = 'Aspire Workforce Command';
-  var APP_VERSION = 'V5.0.22';
+  var APP_VERSION = 'V5.0.23';
   var OLD_TITLE = 'M&C-ATRD-scheduler --=Aspire Group=--';
 
   var NAVS = [
+    {key:'Easy', tab:'tabEasy', section:'easyViewSection', label:'Easy View', adminLabel:'Easy View', sub:'Phone-friendly today hub', code:'EZ'},
     {key:'My', tab:'tabMy', section:'mySection', label:'My Shifts', adminLabel:'My Shifts', sub:'Personal roster and wage view', code:'MY'},
     {key:'MyRequests', tab:'tabMyRequests', section:'myRequestsSection', altSection:'staffRequestsSection', label:'My Requests', adminLabel:'Staff Requests', sub:'Leave, edits and approvals', code:'RQ'},
     {key:'DailyOps', tab:'tabDailyOps', section:'dailyOpsSection', label:'Daily Tasks', adminLabel:'Daily Tasks', sub:'Opening, closing, stock and owner actions', code:'DT'},
@@ -22098,6 +22307,7 @@ try{
         '<div class="v5-page-sub" id="v5PageSub">Personal roster and wage view</div>' +
       '</div>' +
       '<div class="v5-top-actions">' +
+        '<button type="button" class="v5-pill-btn v5-primary-action" id="v5EasyTop">Easy View</button>' +
         '<button type="button" class="v5-pill-btn v5-primary-action" id="v5DailyOpsTop">Daily Tasks</button>' +
         '<button type="button" class="v5-pill-btn v5-primary-action" id="v5CommandOpenTop">Command</button>' +
         '<button type="button" class="v5-pill-btn v5-hide-small" id="v5TopPull">Pull</button>' +
@@ -22138,8 +22348,10 @@ try{
     };
     Object.keys(map).forEach(function(src){ var el=byId(src); if(el) el.onclick=function(){ trigger(map[src]); setTimeout(syncShell, 80); }; });
     var openTop = byId('v5CommandOpenTop');
+    var easyTop = byId('v5EasyTop');
     var dailyTop = byId('v5DailyOpsTop');
     if(openTop) openTop.onclick = openCommand;
+    if(easyTop) easyTop.onclick = function(){ trigger('tabEasy'); setTimeout(syncShell, 80); };
     if(dailyTop) dailyTop.onclick = function(){ trigger('tabDailyOps'); setTimeout(syncShell, 80); };
     var oldFab = byId('v5CommandFab');
     if(oldFab && oldFab.parentNode) oldFab.parentNode.removeChild(oldFab);
