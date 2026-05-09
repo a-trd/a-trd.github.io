@@ -23304,5 +23304,151 @@ try{
   setInterval(tick, 1500);
 })();
 </script>
+<style id="v5022PlannerScrollRepair">
+  body.v5-mode:not(.planner-focus-mode):not(.week-overview-focus-mode) {
+    overflow-y: auto !important;
+    touch-action: pan-y pinch-zoom;
+  }
+
+  body.v5-mode:not(.planner-focus-mode):not(.week-overview-focus-mode) .wrap,
+  body.v5-mode:not(.planner-focus-mode):not(.week-overview-focus-mode) #plannerSection,
+  body.v5-mode:not(.planner-focus-mode):not(.week-overview-focus-mode) #plannerSection .card {
+    overflow: visible !important;
+  }
+
+  body.v5-mode:not(.planner-focus-mode):not(.week-overview-focus-mode) #plannerSection .planner {
+    overflow-x: auto !important;
+    overflow-y: visible !important;
+    overscroll-behavior-x: contain !important;
+    overscroll-behavior-y: auto !important;
+    touch-action: pan-x pan-y pinch-zoom !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  body.v5-mode:not(.planner-focus-mode):not(.week-overview-focus-mode) #plannerSection #weekOverview {
+    overflow-x: auto !important;
+    overflow-y: visible !important;
+    overscroll-behavior-x: contain !important;
+    overscroll-behavior-y: auto !important;
+    touch-action: pan-x pan-y pinch-zoom !important;
+    -webkit-overflow-scrolling: touch;
+  }
+</style>
+
+<script id="v5022PlannerScrollRepairScript">
+(function(){
+  'use strict';
+  var trackingTouch = false;
+  var startX = 0;
+  var startY = 0;
+  var lastY = 0;
+
+  function closest(el, selector){
+    try {
+      return el && el.closest ? el.closest(selector) : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function focusModeActive(){
+    return !!(document.body && document.body.classList && (
+      document.body.classList.contains('planner-focus-mode') ||
+      document.body.classList.contains('week-overview-focus-mode')
+    ));
+  }
+
+  function plannerScrollAreaFromEvent(ev){
+    if (focusModeActive() || !ev || !ev.target) return null;
+    if (closest(ev.target, '.modal') || closest(ev.target, '.v5-command-modal')) return null;
+    return closest(ev.target, '#plannerSection .planner, #plannerSection #weekOverview');
+  }
+
+  function maxScroll(el){
+    if (!el) return 0;
+    return Math.max(0, (el.scrollHeight || 0) - (el.clientHeight || 0));
+  }
+
+  function pageScroller(){
+    var candidates = [
+      document.scrollingElement,
+      document.documentElement,
+      document.body,
+      document.querySelector('.wrap')
+    ];
+
+    for (var i = 0; i < candidates.length; i++) {
+      var el = candidates[i];
+      if (el && maxScroll(el) > 1) return el;
+    }
+    return null;
+  }
+
+  function scrollPage(delta){
+    var el = pageScroller();
+    if (el) {
+      var next = (el.scrollTop || 0) + delta;
+      el.scrollTop = Math.max(0, Math.min(maxScroll(el), next));
+      return;
+    }
+
+    try {
+      window.scrollBy(0, delta);
+    } catch (e) {}
+  }
+
+  document.addEventListener('wheel', function(ev){
+    var scrollArea = plannerScrollAreaFromEvent(ev);
+    if (!scrollArea || ev.defaultPrevented || ev.ctrlKey || ev.metaKey) return;
+
+    var dy = ev.deltaY || 0;
+    var dx = ev.deltaX || 0;
+    if (Math.abs(dy) < 1 || Math.abs(dx) > Math.abs(dy) || ev.shiftKey) return;
+
+    ev.preventDefault();
+    ev.stopImmediatePropagation();
+    scrollPage(dy);
+  }, { capture: true, passive: false });
+
+  document.addEventListener('touchstart', function(ev){
+    var scrollArea = plannerScrollAreaFromEvent(ev);
+    if (!scrollArea || !ev.touches || ev.touches.length !== 1) {
+      trackingTouch = false;
+      return;
+    }
+
+    var touch = ev.touches[0];
+    trackingTouch = true;
+    startX = touch.clientX;
+    startY = touch.clientY;
+    lastY = touch.clientY;
+  }, { capture: true, passive: true });
+
+  document.addEventListener('touchmove', function(ev){
+    if (!trackingTouch || !ev.touches || ev.touches.length !== 1 || focusModeActive()) return;
+
+    var touch = ev.touches[0];
+    var dx = Math.abs(touch.clientX - startX);
+    var dy = Math.abs(touch.clientY - startY);
+    if (dy <= dx + 6) return;
+
+    var delta = lastY - touch.clientY;
+    if (Math.abs(delta) < 1) return;
+
+    ev.preventDefault();
+    ev.stopImmediatePropagation();
+    scrollPage(delta);
+    lastY = touch.clientY;
+  }, { capture: true, passive: false });
+
+  document.addEventListener('touchend', function(){
+    trackingTouch = false;
+  }, { capture: true, passive: true });
+
+  document.addEventListener('touchcancel', function(){
+    trackingTouch = false;
+  }, { capture: true, passive: true });
+})();
+</script>
 </body>
 </html>
