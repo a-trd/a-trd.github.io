@@ -23789,7 +23789,6 @@ try{
 <script id="v5022BottomNavVisualViewportPin">
 (function(){
   'use strict';
-  var raf = 0;
   function updateBottomNavPin(){
     var nav = document.getElementById('bottomNav');
     if(!nav) return;
@@ -23807,12 +23806,13 @@ try{
       nav.style.removeProperty('bottom');
       nav.style.removeProperty('transform');
       nav.style.removeProperty('position');
+      nav.classList.remove('nav-compact-zoom');
       return;
     }
-    var viewportWidth = Math.max(1, Math.floor((vv && vv.width) || window.innerWidth || document.documentElement.clientWidth || 320));
-    var viewportLeft = Math.round((vv && vv.offsetLeft) || 0);
+    var viewportWidth = Math.max(1, Math.ceil((vv && vv.width) || window.innerWidth || document.documentElement.clientWidth || 320));
     var bottomGap = vv ? Math.max(0, window.innerHeight - vv.offsetTop - vv.height) : 0;
     nav.classList.add('visual-viewport-pinned');
+    nav.classList.toggle('nav-compact-zoom', viewportWidth < 620);
     nav.style.setProperty('position', 'fixed', 'important');
     nav.style.setProperty('left', '0px', 'important');
     nav.style.setProperty('width', viewportWidth + 'px', 'important');
@@ -23820,25 +23820,12 @@ try{
     nav.style.setProperty('max-width', 'none', 'important');
     nav.style.setProperty('right', 'auto', 'important');
     nav.style.setProperty('bottom', bottomGap + 'px', 'important');
-    nav.style.setProperty('transform', 'translate3d(' + viewportLeft + 'px,0,0)', 'important');
-    if(raf) cancelAnimationFrame(raf);
-    raf = requestAnimationFrame(function(){
-      raf = 0;
-      try{
-        var rect = nav.getBoundingClientRect();
-        var targetLeft = vv ? 0 : viewportLeft;
-        var dx = viewportLeft + targetLeft - rect.left;
-        if(Math.abs(dx - viewportLeft) < 0.5) dx = viewportLeft;
-        nav.style.setProperty('transform', 'translate3d(' + dx + 'px,0,0)', 'important');
-      }catch(e){}
-    });
+    nav.style.setProperty('transform', 'none', 'important');
   }
   window.v5022UpdateBottomNavPin = updateBottomNavPin;
   if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', updateBottomNavPin); else updateBottomNavPin();
   window.addEventListener('resize', updateBottomNavPin, {passive:true});
   window.addEventListener('scroll', updateBottomNavPin, {passive:true});
-  document.addEventListener('click', function(){ setTimeout(updateBottomNavPin, 0); }, true);
-  document.addEventListener('touchend', function(){ setTimeout(updateBottomNavPin, 0); }, {passive:true, capture:true});
   if(window.visualViewport){
     window.visualViewport.addEventListener('resize', updateBottomNavPin, {passive:true});
     window.visualViewport.addEventListener('scroll', updateBottomNavPin, {passive:true});
@@ -24106,6 +24093,32 @@ try{
     max-width: none !important;
     box-sizing: border-box !important;
     will-change: transform, left, width, bottom;
+  }
+
+  html.desktop-mode-lock body.v5-mode .bottom-nav.visual-viewport-pinned.nav-compact-zoom {
+    justify-content: stretch !important;
+    gap: 2px !important;
+    padding-left: 3px !important;
+    padding-right: 3px !important;
+    overflow-x: hidden !important;
+  }
+
+  html.desktop-mode-lock body.v5-mode .bottom-nav.visual-viewport-pinned.nav-compact-zoom button {
+    flex: 1 1 0 !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    width: auto !important;
+    padding-left: 1px !important;
+    padding-right: 1px !important;
+  }
+
+  html.desktop-mode-lock body.v5-mode .bottom-nav.visual-viewport-pinned.nav-compact-zoom button span.label {
+    display: none !important;
+  }
+
+  html.desktop-mode-lock body.v5-mode .bottom-nav.visual-viewport-pinned.nav-compact-zoom .emoji-icon {
+    font-size: 16px !important;
+    line-height: 1 !important;
   }
 
   html.desktop-mode-lock body.v5-mode:not(.v5-logged-out):not(.planner-focus-mode):not(.week-overview-focus-mode) #plannerSection.show {
