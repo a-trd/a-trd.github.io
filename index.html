@@ -12132,6 +12132,7 @@ function showTab(name){
     byId('printSection').classList.add('show');
     try{ buildPrintView(); }catch(e){}
   }
+  try{ if(window.v5022UpdateBottomNavPin) setTimeout(window.v5022UpdateBottomNavPin, 0); }catch(e){}
 }
 
 function applySettingsRoleVisibility(){
@@ -12245,6 +12246,7 @@ function renderAfterLogin(){
   renderPlanner();
   renderPayroll();
   if(typeof updateRequestsBadge==='function') updateRequestsBadge();
+  try{ if(window.v5022UpdateBottomNavPin) setTimeout(window.v5022UpdateBottomNavPin, 0); }catch(e){}
 
     if(bRequests) bRequests.style.display='';
 }
@@ -23787,32 +23789,50 @@ try{
 <script id="v5022BottomNavVisualViewportPin">
 (function(){
   'use strict';
+  var raf = 0;
   function updateBottomNavPin(){
     var nav = document.getElementById('bottomNav');
     if(!nav) return;
     var body = document.body;
     var html = document.documentElement;
-    var active = !!(body && body.classList && body.classList.contains('v5-mode') && !body.classList.contains('v5-logged-out') && html && html.classList && html.classList.contains('desktop-mode-lock'));
+    var active = !!(body && body.classList && body.classList.contains('v5-mode') && !body.classList.contains('v5-logged-out'));
     var vv = window.visualViewport;
-    if(!active || !vv){
+    if(!active){
       nav.classList.remove('visual-viewport-pinned');
-      nav.style.left = '';
-      nav.style.right = '';
-      nav.style.width = '';
-      nav.style.bottom = '';
+      nav.style.removeProperty('left');
+      nav.style.removeProperty('right');
+      nav.style.removeProperty('width');
+      nav.style.removeProperty('bottom');
+      nav.style.removeProperty('transform');
+      nav.style.removeProperty('position');
       return;
     }
-    var bottomGap = Math.max(0, window.innerHeight - vv.offsetTop - vv.height);
+    var viewportWidth = Math.max(280, Math.floor((vv && vv.width) || window.innerWidth || document.documentElement.clientWidth || 320));
+    var bottomGap = vv ? Math.max(0, window.innerHeight - vv.offsetTop - vv.height) : 0;
     nav.classList.add('visual-viewport-pinned');
-    nav.style.left = Math.max(0, vv.offsetLeft) + 'px';
-    nav.style.width = Math.max(280, vv.width) + 'px';
-    nav.style.right = 'auto';
-    nav.style.bottom = bottomGap + 'px';
+    nav.style.setProperty('position', 'fixed', 'important');
+    nav.style.setProperty('left', '0px', 'important');
+    nav.style.setProperty('width', viewportWidth + 'px', 'important');
+    nav.style.setProperty('right', 'auto', 'important');
+    nav.style.setProperty('bottom', bottomGap + 'px', 'important');
+    nav.style.setProperty('transform', 'translate3d(0,0,0)', 'important');
+    if(raf) cancelAnimationFrame(raf);
+    raf = requestAnimationFrame(function(){
+      raf = 0;
+      try{
+        var rect = nav.getBoundingClientRect();
+        var dx = -rect.left;
+        if(Math.abs(dx) < 0.5) dx = 0;
+        nav.style.setProperty('transform', 'translate3d(' + dx + 'px,0,0)', 'important');
+      }catch(e){}
+    });
   }
   window.v5022UpdateBottomNavPin = updateBottomNavPin;
   if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', updateBottomNavPin); else updateBottomNavPin();
   window.addEventListener('resize', updateBottomNavPin, {passive:true});
   window.addEventListener('scroll', updateBottomNavPin, {passive:true});
+  document.addEventListener('click', function(){ setTimeout(updateBottomNavPin, 0); }, true);
+  document.addEventListener('touchend', function(){ setTimeout(updateBottomNavPin, 0); }, {passive:true, capture:true});
   if(window.visualViewport){
     window.visualViewport.addEventListener('resize', updateBottomNavPin, {passive:true});
     window.visualViewport.addEventListener('scroll', updateBottomNavPin, {passive:true});
@@ -24078,6 +24098,7 @@ try{
     right: auto !important;
     max-width: none !important;
     box-sizing: border-box !important;
+    will-change: transform, left, width, bottom;
   }
 
   html.desktop-mode-lock body.v5-mode:not(.v5-logged-out):not(.planner-focus-mode):not(.week-overview-focus-mode) #plannerSection.show {
