@@ -54,7 +54,7 @@
     })();
   </script>
   <style id="v5021PhoneDesktopViewportCss">
-    /* V5.0.22 phone desktop native: keep the desktop layout viewport on phones and allow browser pinch zoom. */
+    /* V5.0.21 phone desktop native: keep the desktop layout viewport on phones and allow browser pinch zoom. */
     html.desktop-viewport-mobile,
     html.desktop-viewport-mobile body {
       width: max(100%, var(--desktop-mobile-width, 1366px)) !important;
@@ -1791,6 +1791,12 @@
       text-transform: uppercase;
     }
 
+    .bottom-nav .emoji-icon {
+      font-size: 18px;
+      line-height: 1;
+      filter: drop-shadow(0 1px 1px rgba(0,0,0,.22));
+    }
+
     .bottom-nav button.active {
       background: #f9fafb;
       color: #020617;
@@ -1945,7 +1951,7 @@
 </style>
 
   <style>
-    /* OrbitShift v2 â€” card-first, mobile-focused layout */
+    /* OrbitShift v2 — card-first, mobile-focused layout */
     body {
       background:
         radial-gradient(circle at 0% -20%, rgba(59,130,246,0.22), transparent 55%),
@@ -2505,8 +2511,8 @@
     .myreq-month-group summary { cursor:pointer; user-select:none; list-style:none; display:flex; align-items:center; justify-content:space-between; gap:10px; padding:9px 11px; font-weight:900; }
     .myreq-month-group summary::-webkit-details-marker { display:none; }
     .myreq-month-left { display:flex; align-items:center; gap:8px; min-width:0; }
-    .myreq-caret::before { content:'â–¶'; display:inline-block; width:16px; }
-    .myreq-month-group[open] .myreq-caret::before { content:'â–¼'; }
+    .myreq-caret::before { content:'▶'; display:inline-block; width:16px; }
+    .myreq-month-group[open] .myreq-caret::before { content:'▼'; }
     .myreq-month-title { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
     .myreq-month-count { color:var(--muted); font-size:11px; font-weight:800; white-space:nowrap; }
     .myreq-current-badge { display:inline-flex; align-items:center; padding:2px 7px; border-radius:999px; border:1px solid rgba(34,197,94,.45); background:rgba(34,197,94,.14); color:var(--good); font-size:10px; font-weight:900; letter-spacing:.04em; text-transform:uppercase; }
@@ -2577,7 +2583,7 @@
 
 
   <style id="v500Css">
-    /* ---------- V5.0.22 Aspire Workforce Command redesign ---------- */
+    /* ---------- V5.0.21 Aspire Workforce Command redesign ---------- */
     :root {
       --v5-bg: #050816;
       --v5-panel: rgba(13,18,35,.84);
@@ -2627,7 +2633,7 @@
       display: none !important;
     }
 
-    /* V5.0.22 staff/mobile safeguards */
+    /* V5.0.21 staff/mobile safeguards */
     body.v5-staff-lite #v5OpsDeck,
     body.v5-staff-lite #btnPushTop,
     body.v5-staff-lite #btnPushPlanner,
@@ -3499,7 +3505,7 @@
   </style>
 
   <style id="v508MobileComfortCss">
-    /* V5.0.22 mobile comfort: phone-sized controls with desktop-wide work boards inside scrollable panels. */
+    /* V5.0.21 mobile comfort: phone-sized controls with desktop-wide work boards inside scrollable panels. */
     html.mobile-comfort-view,
     html.mobile-comfort-view body {
       min-width: 0 !important;
@@ -3642,7 +3648,7 @@
 
 
   <style id="v510PlannerFocusCss">
-    /* V5.0.22 planner-only fullscreen view for shop tablet display. */
+    /* V5.0.21 planner-only fullscreen view for shop tablet display. */
     html.planner-focus-view,
     html.planner-focus-view body {
       width: 100% !important;
@@ -3912,7 +3918,7 @@
   </style>
 
   <style id="v510WeekOverviewFocusCss">
-    /* V5.0.22 week-overview-only fullscreen view for shop tablet display. */
+    /* V5.0.21 week-overview-only fullscreen view for shop tablet display. */
     html.week-overview-focus-view,
     html.week-overview-focus-view body {
       width: 100% !important;
@@ -4150,7 +4156,7 @@
 
 
 <style id="v5014MobileShiftModalCss">
-  /* V5.0.22 mobile shift editor reachability fix. */
+  /* V5.0.21 mobile shift editor reachability fix. */
   @media (max-width: 980px), (pointer: coarse) and (max-width: 1100px) {
     #shiftModal {
       z-index: 6200 !important;
@@ -4257,7 +4263,7 @@
 
 
 <style id="v5015MobilePlannerCss">
-  /* V5.0.22 compact mobile boards and normal-page scroll pass-through. */
+  /* V5.0.21 compact mobile boards and normal-page scroll pass-through. */
   @media (max-width: 980px), (pointer: coarse) and (max-width: 1100px) {
     body.v5-mode:not(.planner-focus-mode):not(.week-overview-focus-mode) #plannerSection .planner {
       max-width: 100% !important;
@@ -4492,7 +4498,7 @@
     body.v5-mode:not(.week-overview-focus-mode) #plannerSection .wo-chip { font-size: 7px !important; padding: 1px 2px !important; }
   }
 
-  /* V5.0.22 polish pass: responsive viewport, icon buttons, readable light tables. */
+  /* V5.0.21 polish pass: responsive viewport, icon buttons, readable light tables. */
   :root {
     --font-ui: Inter, Roboto, system-ui, -apple-system, Segoe UI, Arial, sans-serif;
     --font-data: "Roboto Mono", "SFMono-Regular", Consolas, "Liberation Mono", monospace;
@@ -4763,7 +4769,7 @@
       <div class="titlewrap">
         <div class="title" id="appTitle">Aspire Workforce Command</div>
         <div class="version-pill" id="appVersion">V5.0.22</div>
-        <div class="sync-pill syncing" id="syncStatusChip" title="Sync status">Startingâ€¦</div>
+        <div class="sync-pill syncing" id="syncStatusChip" title="Sync status">Starting…</div>
       </div>
     </div>
     <div class="tabs">
@@ -4777,10 +4783,10 @@
       <button id="tabPrint">Print View</button>
       <button id="tabAbsences">Absences</button>
       <button id="tabSettings">Settings</button>
-      <button id="btnUndoTop" class="btn-outline">â†¶ Undo</button>
-      <button id="btnRedoTop" class="btn-outline">â†· Redo</button>
-      <button id="btnPullTop" class="btn-good">â¬‡ Pull</button>
-      <button id="btnPushTop" class="btn-primary">â¬† Push</button>
+      <button id="btnUndoTop" class="btn-outline">↶ Undo</button>
+      <button id="btnRedoTop" class="btn-outline">↷ Redo</button>
+      <button id="btnPullTop" class="btn-good">⬇ Pull</button>
+      <button id="btnPushTop" class="btn-primary">⬆ Push</button>
       <button id="btnLogout" class="btn-outline">Logout</button>
       <button id="btnTheme" class="btn-outline">Theme</button>
     </div>
@@ -4788,7 +4794,7 @@
 
   <!-- Sync splash -->
   <div id="splashSync">
-    <div id="splashBox">Syncingâ€¦</div>
+    <div id="splashBox">Syncing…</div>
   </div>
 
   <div id="toastHost" class="toast-host" aria-live="polite" aria-atomic="true"></div>
@@ -4831,9 +4837,9 @@
         <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:space-between;">
           <h3 style="margin:0;">My Shifts &amp; Wages</h3>
           <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
-            <button id="btnMyPrevWeek" class="btn-outline">â† Prev week</button>
+            <button id="btnMyPrevWeek" class="btn-outline">← Prev week</button>
             <div class="pill" id="myWeekLabel"></div>
-            <button id="btnMyNextWeek" class="btn-outline">Next week â†’</button>
+            <button id="btnMyNextWeek" class="btn-outline">Next week →</button>
           </div>
         </div>
         <div style="display:flex;gap:8px;align-items:center;margin:10px 0 8px;flex-wrap:wrap;">
@@ -4868,7 +4874,7 @@
             </table>
             <div class="muted" style="margin-top:4px;">
               Break time is not counted towards pay. Overnight shifts count toward the day they start.
-              Auto-break: 0m &lt;5h, 30m 5â€“9:59h, 60m â‰¥10h (unless overridden).
+              Auto-break: 0m &lt;5h, 30m 5–9:59h, 60m ≥10h (unless overridden).
             </div>
 
             <div id="myWithheldInfoWrap" style="margin-top:10px;">
@@ -4883,7 +4889,7 @@
                   </tbody>
                 </table>
               </div>
-              <div class="muted small" style="margin-top:4px;">Withheld amounts are set by admin on Payroll. Net pay = gross pay âˆ’ withheld (shown week).</div>
+              <div class="muted small" style="margin-top:4px;">Withheld amounts are set by admin on Payroll. Net pay = gross pay − withheld (shown week).</div>
             </div>
           </div>
         </div>
@@ -5049,17 +5055,17 @@
     <section id="plannerSection" class="section">
       <div class="card">
         <div class="toolbar" style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:8px;">
-          <button id="btnPrevWeek" class="btn-outline">â† Prev week</button>
+          <button id="btnPrevWeek" class="btn-outline">← Prev week</button>
           <div class="pill" id="weekLabel"></div>
-          <button id="btnNextWeek" class="btn-outline">Next week â†’</button>
+          <button id="btnNextWeek" class="btn-outline">Next week →</button>
           <div style="flex:1;"></div>
-          <button id="btnCopyDay" class="btn-outline">Copy Day â†’</button>
-          <button id="btnCopyWeek" class="btn-outline">Copy Week â†’</button>
-          <button id="btnTemplates" class="btn-outline">Templatesâ€¦</button>
+          <button id="btnCopyDay" class="btn-outline">Copy Day →</button>
+          <button id="btnCopyWeek" class="btn-outline">Copy Week →</button>
+          <button id="btnTemplates" class="btn-outline">Templates…</button>
           <button id="btnRecurring" class="btn-outline">Add Recurring</button>
           <button id="btnPublish" class="btn-outline">Toggle Publish</button>
           <button id="btnPrint" class="btn-outline">Print (current)</button>
-          <button id="btnPrintView" class="btn-outline">Print Viewâ€¦</button>
+          <button id="btnPrintView" class="btn-outline">Print View…</button>
           <button id="btnWeekOverviewFullView" class="btn-outline">Week overview full screen</button>
           <button id="btnPlannerFullView" class="btn-primary">Planner full screen</button>
         </div>
@@ -5069,13 +5075,13 @@
         <div id="weekOverview" class="week-overview" style="margin-bottom:8px;"></div>
 
         <div class="requests-strip">
-          <button id="btnPullPlanner" class="btn-good">â¬‡ Pull</button>
-          <button id="btnPushPlanner" class="btn-primary">â¬† Push</button>
+          <button id="btnPullPlanner" class="btn-good">⬇ Pull</button>
+          <button id="btnPushPlanner" class="btn-primary">⬆ Push</button>
           <button id="btnRequests" class="btn-requests">
             View requests
             <span id="requestsCountBadge" class="req-badge">0</span>
           </button>
-          <span id="requestsHint" class="requests-hint">Manager tools â€“ pending leave, shift edits &amp; proposed shifts.</span>
+          <span id="requestsHint" class="requests-hint">Manager tools – pending leave, shift edits &amp; proposed shifts.</span>
         </div>
 
         <div id="availabilityBar" class="availability" style="margin:6px 0;"></div>
@@ -5093,7 +5099,7 @@
     <!-- Print View (multi-week) -->
     <section id="printSection" class="section">
       <div class="card">
-        <h3>Print View (multiâ€‘week)</h3>
+        <h3>Print View (multi‑week)</h3>
         <div class="print-controls">
           <div>
             <label>Start Week Offset (0=this week)</label>
@@ -5116,9 +5122,9 @@
       <div class="card">
         <h3>Absences</h3>
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px;">
-          <button id="absPrev" class="btn-outline">â†</button>
+          <button id="absPrev" class="btn-outline">←</button>
           <div id="absMonthLabel" class="pill"></div>
-          <button id="absNext" class="btn-outline">â†’</button>
+          <button id="absNext" class="btn-outline">→</button>
           <div style="flex:1;"></div>
           <label>Staff</label>
           <select id="absStaffFilter"></select>
@@ -5132,15 +5138,15 @@
       <div class="card">
         <div class="toolbar" style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:8px;">
           <div class="pill" id="payrollWeekLabel"></div>
-          <button id="btnPayrollPrevWeek" class="btn-outline">â† Prev week</button>
-          <button id="btnPayrollNextWeek" class="btn-outline">Next week â†’</button>
+          <button id="btnPayrollPrevWeek" class="btn-outline">← Prev week</button>
+          <button id="btnPayrollNextWeek" class="btn-outline">Next week →</button>
           <button id="btnExportJSON" class="btn-outline">Export JSON</button>
           <button id="btnExportCSV" class="btn-outline">Export CSV</button>
           <input id="importJSONInput" type="file" accept="application/json" style="display:none">
           <button id="btnImportJSON" class="btn-outline">Import JSON</button>
           <div style="flex:1;"></div>
-          <button id="btnPull" class="btn-good">â¬‡ Pull</button>
-          <button id="btnPush" class="btn-primary">â¬† Push</button>
+          <button id="btnPull" class="btn-good">⬇ Pull</button>
+          <button id="btnPush" class="btn-primary">⬆ Push</button>
         </div>
         <div class="table-wrapper">
           <table class="table" id="payrollTable">
@@ -5701,7 +5707,7 @@
         <div class="biz-history-toolbar">
           <label class="muted" style="font-weight:700;">View</label>
           <select id="bizHistoryView" style="min-width:190px;">
-            <option value="tree" selected>Tree: month â†’ week â†’ day</option>
+            <option value="tree" selected>Tree: month → week → day</option>
             <option value="month">Monthly summary</option>
             <option value="week">Weekly summary</option>
             <option value="day">Daily list</option>
@@ -5740,8 +5746,8 @@
     <div class="stats-toolbar">
       <h3 style="margin:0;">Staff / Requests Analytics</h3>
       <div class="pill" id="statsWeekLabel"></div>
-      <button id="btnStatsPrevWeek" class="btn-outline">â† Prev week</button>
-      <button id="btnStatsNextWeek" class="btn-outline">Next week â†’</button>
+      <button id="btnStatsPrevWeek" class="btn-outline">← Prev week</button>
+      <button id="btnStatsNextWeek" class="btn-outline">Next week →</button>
       <div style="flex:1;"></div>
       <label class="muted" style="font-weight:700;">Range</label>
       <select id="statsRange" style="min-width:160px;">
@@ -5884,8 +5890,8 @@
             <button id="btnRestoreSafetyBackup" class="btn-outline">Restore Safety Backup</button>
           </div>
           <div class="muted" style="margin-top:6px;">
-            Syncs automatically on startup. Use global Push/Pull to force. Use â€œPush Planner + Settingsâ€ only when you intend to update settings on the server (admin only).
-            Auto Pull/Push run when set &amp; youâ€™re logged in (Push requires manager/admin).
+            Syncs automatically on startup. Use global Push/Pull to force. Use “Push Planner + Settings” only when you intend to update settings on the server (admin only).
+            Auto Pull/Push run when set &amp; you’re logged in (Push requires manager/admin).
             Imports and cache reset now create a local safety backup that can be restored from this panel.
           </div>
         </div>
@@ -5953,7 +5959,7 @@
 
             <label style="display:flex;align-items:center;gap:8px;">
               <input id="optRequestsPopupSuppressWhenRequestsTab" type="checkbox">
-              <span>Donâ€™t auto pop-up while Iâ€™m on the Requests tab</span>
+              <span>Don’t auto pop-up while I’m on the Requests tab</span>
             </label>
 
             <div class="muted" style="margin-top:2px;">
@@ -5970,7 +5976,7 @@
 
             <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
               <button id="btnReqNotifyBrowserTest" class="btn-outline" type="button">Test</button>
-              <span class="muted">Uses your browserâ€™s notification permission.</span>
+              <span class="muted">Uses your browser’s notification permission.</span>
             </div>
 
             <div style="margin-top:10px;display:flex;flex-direction:column;gap:8px;">
@@ -6145,11 +6151,11 @@
         <h3>Planner Options</h3>
         <div class="grid-2">
           <div>
-            <label>Start hour (0â€“23)</label>
+            <label>Start hour (0–23)</label>
             <input id="optStartHour" type="number" min="0" max="23" step="1" value="8">
           </div>
           <div>
-            <label>Hours shown (1â€“24)</label>
+            <label>Hours shown (1–24)</label>
             <input id="optHours" type="number" min="1" max="24" step="1" value="16">
           </div>
         </div>
@@ -6395,7 +6401,7 @@
       <div style="margin-top:14px;">
         <label>Withheld log (shown week)</label>
         <div id="withholdManageList" style="margin-top:8px;"></div>
-        <div class="muted small" style="margin-top:6px;">Tip: Use â€œSet withheld (shown week)â€ to correct a typo quickly. â€œPay part of withheldâ€ releases the oldest withheld weeks first and records each paid part in the log.</div>
+        <div class="muted small" style="margin-top:6px;">Tip: Use “Set withheld (shown week)” to correct a typo quickly. “Pay part of withheld” releases the oldest withheld weeks first and records each paid part in the log.</div>
       </div>
 
       <div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;margin-top:14px;">
@@ -6502,7 +6508,7 @@
         <label>Unavailable hours (optional)</label>
         <div style="display:flex;flex-wrap:wrap;gap:12px;margin-top:6px;font-size:12px;align-items:center;">
           <label><input id="recUnavailAllDay" type="checkbox" checked> All day</label>
-          <span class="muted">Uncheck to block only a time window (e.g., 9:00 AMâ€“5:00 PM).</span>
+          <span class="muted">Uncheck to block only a time window (e.g., 9:00 AM–5:00 PM).</span>
         </div>
         <div id="recUnavailTimeWrap" class="grid-2" style="margin-top:10px;display:none;">
           <div>
@@ -6540,7 +6546,7 @@
       <h3>Weekly roster templates</h3>
 
       <div class="muted" style="margin-top:4px;">
-        Create a template from the current weekâ€™s roster, then apply it to any week.
+        Create a template from the current week’s roster, then apply it to any week.
       </div>
 
       <div style="margin-top:12px;">
@@ -6572,7 +6578,7 @@
           </div>
         </div>
         <div class="muted" style="margin-top:6px;">
-          Replace overwrites that weekâ€™s shifts. Merge only adds shifts where that staff has no shift on that day.
+          Replace overwrites that week’s shifts. Merge only adds shifts where that staff has no shift on that day.
         </div>
       </div>
 
@@ -6625,61 +6631,61 @@
 
     <nav id="bottomNav" class="bottom-nav" aria-label="Primary navigation">
     <button id="bottomMy">
-      <span>ðŸ </span>
+      <span class="emoji-icon">&#127968;</span>
       <span class="label">My</span>
     </button>
     <button id="bottomRequests">
-      <span>ðŸ“¨</span>
+      <span class="emoji-icon">&#128232;</span>
       <span class="label">Req</span>
     </button>
     <button id="bottomDailyOps">
-      <span>âœ“</span>
+      <span class="emoji-icon">&#9989;</span>
       <span class="label">Tasks</span>
     </button>
     <button id="bottomPlanner">
-      <span>ðŸ“…</span>
+      <span class="emoji-icon">&#128197;</span>
       <span class="label">Plan</span>
     </button>
     <button id="bottomPayroll">
-      <span>ðŸ’°</span>
+      <span class="emoji-icon">&#128176;</span>
       <span class="label">Pay</span>
     </button>
     <button id="bottomStats">
-      <span>ðŸ“Š</span>
+      <span class="emoji-icon">&#128202;</span>
       <span class="label">Biz</span>
     </button>
     <button id="bottomAbsences">
-      <span>ðŸŒ´</span>
+      <span class="emoji-icon">&#127796;</span>
       <span class="label">Away</span>
     </button>
     <button id="bottomSettings">
-      <span>âš™ï¸</span>
+      <span class="emoji-icon">&#9881;&#65039;</span>
       <span class="label">Settings</span>
     </button>
 
     <button id="bottomUndo" class="nav-mini">
-      <span>â†¶</span>
+      <span class="emoji-icon">&#8617;&#65039;</span>
       <span class="label">Undo</span>
     </button>
     <button id="bottomRedo" class="nav-mini">
-      <span>â†·</span>
+      <span class="emoji-icon">&#8618;&#65039;</span>
       <span class="label">Redo</span>
     </button>
   
     <button id="bottomPull">
-      <span>â¬‡</span>
+      <span class="emoji-icon">&#11015;&#65039;</span>
       <span class="label">Pull</span>
     </button>
     <button id="bottomPush">
-      <span>â¬†</span>
+      <span class="emoji-icon">&#11014;&#65039;</span>
       <span class="label">Push</span>
     </button>
     <button id="bottomFullscreen">
-      <span>â¤¢</span>
+      <span class="emoji-icon">&#10530;&#65039;</span>
       <span class="label">Full</span>
     </button>
     <button id="bottomLogout">
-      <span>ðŸšª</span>
+      <span class="emoji-icon">&#128682;</span>
       <span class="label">Logout</span>
     </button></nav>
 
@@ -6702,7 +6708,7 @@ var App = {
   // IMPORTANT: Increment App.version *and* App.buildId whenever making functional changes to this file.
   // SAFETY NET: This build performs an automatic runtime check against the file name; if mismatched, it shows a blocking warning so it can't be overlooked.
   version: 'V5.0.22',
-    buildId: '2026-05-10.01',
+    buildId: '2026-05-10.02',
 settings: {
     dbUrl:'https://mnc-atrd-default-rtdb.asia-southeast1.firebasedatabase.app/', workspace:'mnc-atrd', authToken:'',
     theme:'light', themeName:'light-pastel-sky', recentColors:[], appTitle:'Aspire Workforce Command', logoUrl:'',
@@ -6991,7 +6997,7 @@ function setSyncStatus(state, label){
     if(!el) return;
     el.className = 'sync-pill ' + SyncState.state;
     el.textContent = SyncState.label;
-    el.title = 'Sync status â€” ' + SyncState.label;
+    el.title = 'Sync status — ' + SyncState.label;
   }catch(e){}
 }
 function bindSyncStatusEvents(){
@@ -7148,7 +7154,7 @@ function displayTime12(value, fallback){
   return (fallback!=null ? String(fallback) : String(value||''));
 }
 function displayTimeRange12(start, end){
-  return displayTime12(start, start||'') + 'â€“' + displayTime12(end, end||'');
+  return displayTime12(start, start||'') + '–' + displayTime12(end, end||'');
 }
 function shiftDisplayRange(sh){
   return displayTimeRange12(sh && sh.start, sh && sh.end);
@@ -7705,7 +7711,7 @@ function appendCoveredSourcePlannerChip(wrap, sh, shiftId, st, dayIndex){
   ghost.style.left=left+'%'; ghost.style.width=width+'%'; ghost.dataset.id=shiftId;
   applyStaffChipAppearance(ghost, st.color||'#5A31F4', false);
   var ghostStaffName = staffDisplayNameFromRecord(st, 'Staff');
-  ghost.title = ghostStaffName+' â€” '+shiftDisplayRange(sh)+' ('+coveredSourceReasonText(sh)+')';
+  ghost.title = ghostStaffName+' — '+shiftDisplayRange(sh)+' ('+coveredSourceReasonText(sh)+')';
   var label=document.createElement('span'); label.className='label'; label.textContent=ghostStaffName; label.style.position='relative'; label.style.zIndex='3';
   var hrs=document.createElement('span'); hrs.className='hours'; hrs.textContent=shiftDisplayRange(sh)+' ('+work.toFixed(2)+'h)'; hrs.style.position='relative'; hrs.style.zIndex='3';
   ghost.appendChild(label); ghost.appendChild(hrs);
@@ -7775,7 +7781,7 @@ function showToast(title, message, kind, ms, meta){
     var close = document.createElement('button');
     close.className = 't-close';
     close.type = 'button';
-    close.textContent = 'Ã—';
+    close.textContent = '×';
     close.onclick = function(){ try{ t.remove(); }catch(e){} };
 
     head.appendChild(tt);
@@ -7888,7 +7894,7 @@ function buildAbsDecisionMessage(iso, rec){
     reason = rec.reason || '';
     if(!reason && rec.blocks && rec.blocks[0] && rec.blocks[0].reason) reason = rec.blocks[0].reason;
   }
-  return date + ' â€” ' + kind + (reason?(' â€” ' + reason):'');
+  return date + ' — ' + kind + (reason?(' — ' + reason):'');
 }
 
 function isShiftProposalRequest(req){
@@ -7909,11 +7915,11 @@ function shiftRequestRangeLabel(req){
   try{
     var s = (req && req.newStart) ? to12hStr(req.newStart) : '';
     var e = (req && req.newEnd) ? to12hStr(req.newEnd) : '';
-    if(s && e) return s + 'â€“' + e;
-    if(isShiftProposalRequest(req)) return (s || '?') + 'â€“' + (e || '?');
+    if(s && e) return s + '–' + e;
+    if(isShiftProposalRequest(req)) return (s || '?') + '–' + (e || '?');
     var parts = [];
-    if(s) parts.push('start â†’ ' + s);
-    if(e) parts.push('end â†’ ' + e);
+    if(s) parts.push('start → ' + s);
+    if(e) parts.push('end → ' + e);
     return parts.length ? parts.join(', ') : 'Time change';
   }catch(e){
     return isShiftProposalRequest(req) ? 'Proposed shift' : 'Time change';
@@ -8091,9 +8097,9 @@ function buildShiftDecisionMessage(rec, isoFallback){
     date = (isoFallback ? String(isoFallback) : '');
   }
   var label = shiftRequestTypeLabel(rec);
-  var msg = (date ? (date + ' â€” ') : '') + label;
+  var msg = (date ? (date + ' — ') : '') + label;
   var details = shiftRequestDetails(rec);
-  if(details) msg += ' â€” ' + details;
+  if(details) msg += ' — ' + details;
   return msg;
 }
 
@@ -8642,8 +8648,8 @@ function startupSanitizeLocalCache(){
 // ---------- Firebase REST ----------
 function wsRoot(){ return App.settings.dbUrl.replace(/\/$/,'')+'/'+App.settings.workspace; }
 function withAuth(url){ return App.settings.authToken ? url+(url.indexOf('?')>=0?'&':'?')+'auth='+encodeURIComponent(App.settings.authToken) : url; }
-async function dbGet(p){ setSyncStatus('syncing', 'Syncingâ€¦'); try{ var r=await fetch(withAuth(wsRoot()+p+'.json')); if(!r.ok) throw new Error('GET '+r.status); var data = await r.json(); setSyncStatus('synced', 'Synced'); return data; }catch(e){ setSyncStatus('offline', navigator.onLine===false ? 'Offline' : 'Sync failed'); throw e; } }
-async function dbPatch(p,data){ setSyncStatus('syncing', 'Syncingâ€¦'); try{ var r=await fetch(withAuth(wsRoot()+p+'.json'),{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}); if(!r.ok) throw new Error('PATCH '+r.status); var res = await r.json(); setSyncStatus('synced', 'Synced'); return res; }catch(e){ setSyncStatus('offline', navigator.onLine===false ? 'Offline' : 'Sync failed'); throw e; } }
+async function dbGet(p){ setSyncStatus('syncing', 'Syncing…'); try{ var r=await fetch(withAuth(wsRoot()+p+'.json')); if(!r.ok) throw new Error('GET '+r.status); var data = await r.json(); setSyncStatus('synced', 'Synced'); return data; }catch(e){ setSyncStatus('offline', navigator.onLine===false ? 'Offline' : 'Sync failed'); throw e; } }
+async function dbPatch(p,data){ setSyncStatus('syncing', 'Syncing…'); try{ var r=await fetch(withAuth(wsRoot()+p+'.json'),{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}); if(!r.ok) throw new Error('PATCH '+r.status); var res = await r.json(); setSyncStatus('synced', 'Synced'); return res; }catch(e){ setSyncStatus('offline', navigator.onLine===false ? 'Offline' : 'Sync failed'); throw e; } }
 
 
 // ---------- User preferences (per-user; stored in Firebase) ----------
@@ -8796,7 +8802,7 @@ function splashShow(msg){
   if(!el) return;
   el.style.display='flex';
   var box=byId('splashBox');
-  if(box) box.textContent = msg || 'Syncingâ€¦';
+  if(box) box.textContent = msg || 'Syncing…';
   requestAnimationFrame(function(){
     el.style.opacity='1';
   });
@@ -9151,12 +9157,12 @@ function init(){
   if(byId('optNightShiftEnd')) byId('optNightShiftEnd').value = to12hStr(to24hhmm(App.settings.nightShiftEnd, '23:00'));
 
   // Initial pull with splash
-  splashShow('Syncingâ€¦'); byId('splashSync').style.display='flex';
+  splashShow('Syncing…'); byId('splashSync').style.display='flex';
   pullData(true).then(function(){
     populateLoginSelects(); populateExistingStaff();
     splashHide('Sync successful');
   }).catch(function(e){
-    var m=byId('loginMsg'); if(m) m.textContent='Startup sync failed: '+(e&&e.message?e.message:''); splashHide('Sync failed â€” offline mode available');
+    var m=byId('loginMsg'); if(m) m.textContent='Startup sync failed: '+(e&&e.message?e.message:''); splashHide('Sync failed — offline mode available');
   }).finally(function(){
     if(!App.staff || Object.keys(App.staff).length===0){
       var a=uid(), b=uid(), c=uid();
@@ -9242,7 +9248,7 @@ function init(){
       alert('Saved locally. Sync failed: '+(e&&e.message?e.message:e));
     });
   };
-  // Request notifications â€” Settings helpers
+  // Request notifications — Settings helpers
   try{
     var _bn = byId('optReqNotifyBrowser');
     if(_bn){
@@ -9300,11 +9306,11 @@ function init(){
         alert('Admin only.');
         return;
       }
-      splashShow('Pushing planner + settingsâ€¦');
+      splashShow('Pushing planner + settings…');
       pushPlannerAndSettingsAdmin().then(function(){
         return pushUserPrefsRequestPopups();
       }).then(function(){
-        splashHide('Pushed planner + settings âœ“');
+        splashHide('Pushed planner + settings ✓');
       }).catch(function(e){
         splashHide('Push failed');
         alert('Push failed: '+(e && e.message ? e.message : e));
@@ -9328,12 +9334,12 @@ function init(){
   }
 
   byId('btnPull').onclick = function(){
-  splashShow('Pulling latestâ€¦');
+  splashShow('Pulling latest…');
   pullData(false).then(function(){
     // Also pull per-user prefs (does not overwrite planner data)
     return pullUserPrefs();
   }).then(function(){
-    splashHide('Pulled latest âœ“');
+    splashHide('Pulled latest ✓');
   }).catch(function(e){
     splashHide('Pull failed');
     alert('Pull failed: '+e.message);
@@ -9343,20 +9349,20 @@ function init(){
   // Managers/Admins: push full dataset. Staff: push only personal prefs (e.g. Request pop-ups).
   if(!canEdit()){
     if(!App.currentUser) return alert('Please log in first.');
-    splashShow('Syncing your preferencesâ€¦');
+    splashShow('Syncing your preferences…');
     pushUserPrefsRequestPopups().then(function(){
-      splashHide('Preferences synced âœ“');
+      splashHide('Preferences synced ✓');
     }).catch(function(e){
       splashHide('Sync failed');
       alert('Sync failed: '+(e&&e.message?e.message:e));
     });
     return;
   }
-  splashShow('Pushing changesâ€¦');
+  splashShow('Pushing changes…');
   pushPlannerData().then(function(){
     return pushUserPrefsRequestPopups();
   }).then(function(){
-    splashHide('Pushed successfully âœ“');
+    splashHide('Pushed successfully ✓');
   }).catch(function(e){
     splashHide('Push failed');
     alert('Push failed: '+e.message);
@@ -10413,12 +10419,12 @@ function renderAdminHistory(){
           rec.blocks.forEach(function(b){
             if(!b) return;
             var seg = displayTimeRange12(b.start, b.end);
-            if(b.reason) seg += ' â€” ' + b.reason;
+            if(b.reason) seg += ' — ' + b.reason;
             parts.push(seg);
           });
         }else if(rec.unavailable){
           var seg = 'Full-day';
-          if(rec.reason) seg += ' â€” ' + rec.reason;
+          if(rec.reason) seg += ' — ' + rec.reason;
           parts.push(seg);
         }else if(rec.reason){
           parts.push(rec.reason);
@@ -10526,7 +10532,7 @@ function _normReqStatus(v){
   return v;
 }
 function _fmtTS(ts){
-  if(!ts) return 'â€”';
+  if(!ts) return '—';
   try{
     var d = new Date(ts);
     if(!isNaN(d.getTime())) return d.toLocaleString();
@@ -10607,12 +10613,12 @@ function renderAdminRequestsLog(){
           req.blocks.forEach(function(b){
             if(!b) return;
             var seg = displayTimeRange12(b.start, b.end);
-            if(b.reason) seg += ' â€” ' + b.reason;
+            if(b.reason) seg += ' — ' + b.reason;
             detailsParts.push(seg);
           });
         }else if(req.unavailable){
           var seg2 = 'Full-day';
-          if(req.reason) seg2 += ' â€” ' + req.reason;
+          if(req.reason) seg2 += ' — ' + req.reason;
           detailsParts.push(seg2);
         }else if(req.reason){
           detailsParts.push(req.reason);
@@ -10655,12 +10661,12 @@ function renderAdminRequestsLog(){
           rec.blocks.forEach(function(b){
             if(!b) return;
             var seg = displayTimeRange12(b.start, b.end);
-            if(b.reason) seg += ' â€” ' + b.reason;
+            if(b.reason) seg += ' — ' + b.reason;
             detailsParts.push(seg);
           });
         }else if(rec.unavailable){
           var seg2 = 'Full-day';
-          if(rec.reason) seg2 += ' â€” ' + rec.reason;
+          if(rec.reason) seg2 += ' — ' + rec.reason;
           detailsParts.push(seg2);
         }else if(rec.reason){
           detailsParts.push(rec.reason);
@@ -10818,7 +10824,7 @@ function renderAdminRequestsLog(){
     tr.setAttribute('data-kind', kind);
     tr.setAttribute('data-key', key);
     if(monthKey) tr.setAttribute('data-month', monthKey);
-    tr.innerHTML = '<td colspan="7"><span class="reqlog-caret">'+(open?'â–¼':'â–¶')+'</span> '
+    tr.innerHTML = '<td colspan="7"><span class="reqlog-caret">'+(open?'▼':'▶')+'</span> '
       + escapeHtml(label) + ' <span class="muted-small">(' + n + ')</span></td>';
     return tr;
   }
@@ -10886,7 +10892,7 @@ function renderAdminRequestsLog(){
     var nextOpen = !isOpen;
     t.classList.toggle('open', nextOpen);
     var caret = t.querySelector('.reqlog-caret');
-    if(caret) caret.textContent = nextOpen ? 'â–¼' : 'â–¶';
+    if(caret) caret.textContent = nextOpen ? '▼' : '▶';
 
     if(t.classList.contains('reqlog-month-head')){
       var mk = t.getAttribute('data-key') || '';
@@ -12097,7 +12103,7 @@ function renderMyShifts(){
   if(MyView) MyView.weekStartISO = weekISO;
   var endLbl = new Date(start); endLbl.setDate(endLbl.getDate()+6);
   var wl = byId('myWeekLabel');
-  if(wl) wl.textContent = 'Week of '+fmtDMY(start)+' â€“ '+fmtDMY(endLbl);
+  if(wl) wl.textContent = 'Week of '+fmtDMY(start)+' – '+fmtDMY(endLbl);
   var days = DAY.map(function(_,i){ var d=new Date(start); d.setDate(d.getDate()+i); return d; });
   var list=byId('myShiftsList'); list.innerHTML='';
   var tw=0,tb=0,tp=0,py=0,totOT=0;
@@ -12143,7 +12149,7 @@ function renderMyShifts(){
         var coverNote = '';
         if(shiftIsCover(sh)){
           var coverBase = shiftBaseStaffName(sh) || 'set roster';
-          coverNote = ' â€” Covering for '+coverBase;
+          coverNote = ' — Covering for '+coverBase;
         }
         var div=document.createElement('div');
         div.textContent = fmtDMY(days[i])+': '+shiftDisplayRange(sh)+(overnight?' (next day)':'')+coverNote+' ('+workAfterLeave.toFixed(2)+'h worked'+leaveText+', break '+br.toFixed(2)+'h, pay '+fmtMoney(pay)+ (split.ot>0?(' incl OT '+split.ot.toFixed(2)+'h'):'') +')';
@@ -12163,7 +12169,7 @@ function renderMyShifts(){
   byId('myTotalPayable').textContent=tp.toFixed(2);
   byId('myTotalOT').textContent=totOT.toFixed(2);
   byId('myTotalPay').textContent=fmtMoney(py);
-  byId('myHours').textContent='Week of '+fmtDMY(start)+' â€“ '+fmtDMY(endLbl)+': '+tp.toFixed(2)+' payable hours â€” '+fmtMoney(py);
+  byId('myHours').textContent='Week of '+fmtDMY(start)+' – '+fmtDMY(endLbl)+': '+tp.toFixed(2)+' payable hours — '+fmtMoney(py);
 
   // Withheld pay (staff view)
   try{
@@ -12469,7 +12475,7 @@ function renderMyRequests(){
       if(rec.blocks && rec.blocks.length){
         rec.blocks.forEach(function(b, idx){
           var seg = displayTimeRange12(b.start||'?', b.end||'?');
-          var sub = seg + (b.reason ? (' â€” ' + String(b.reason)) : (reason ? (' â€” ' + reason) : ''));
+          var sub = seg + (b.reason ? (' — ' + String(b.reason)) : (reason ? (' — ' + reason) : ''));
           pendingItems.push({
             dateISO: iso,
             sortISO: iso,
@@ -12520,11 +12526,11 @@ function renderMyRequests(){
       if(rec.blocks && rec.blocks.length){
         sub = rec.blocks.map(function(b){
           var seg = displayTimeRange12(b.start||'?', b.end||'?');
-          if(b.reason) seg += ' â€” ' + String(b.reason);
+          if(b.reason) seg += ' — ' + String(b.reason);
           return seg;
         }).join(' | ');
       }else if(rec.unavailable){
-        sub = rec.reason ? ('Full-day â€” ' + String(rec.reason)) : 'Full-day away';
+        sub = rec.reason ? ('Full-day — ' + String(rec.reason)) : 'Full-day away';
       }else if(rec.reason){
         sub = String(rec.reason);
       }
@@ -12532,7 +12538,7 @@ function renderMyRequests(){
         dateISO: iso,
         sortISO: iso,
         requestedAt: rec.resolvedAt || rec.createdAt || rec.requestedAt || rec.ts || '',
-        title: (rec.status==='approved'?'Approved':'Rejected') + ' â€” ' + formatIsoForHuman(iso),
+        title: (rec.status==='approved'?'Approved':'Rejected') + ' — ' + formatIsoForHuman(iso),
         sub: sub,
         actionsHtml: '',
         kindKey: kindKey,
@@ -12554,7 +12560,7 @@ function renderMyRequests(){
           dateISO: dateISO,
           sortISO: dateISO || iso,
           requestedAt: rec.resolvedAt || rec.createdAt || rec.requestedAt || rec.ts || '',
-          title: (rec.status==='approved'?'Approved':'Rejected') + ' â€” ' + (when || iso),
+          title: (rec.status==='approved'?'Approved':'Rejected') + ' — ' + (when || iso),
           sub: shiftRequestDetails(rec),
           actionsHtml: '',
           kindKey: shiftRequestKindKey(rec),
@@ -12566,7 +12572,7 @@ function renderMyRequests(){
 
   _renderMyReqMonthGroups(pendingEl, pendingItems, 'No pending requests.');
   _renderMyReqMonthGroups(histEl, historyItems, 'No history yet.');
-  countEl.textContent = 'Pending: ' + pendingItems.length + ' Â· History: ' + historyItems.length;
+  countEl.textContent = 'Pending: ' + pendingItems.length + ' · History: ' + historyItems.length;
 }
 
 // Delegation for cancel buttons inside My Requests
@@ -12685,10 +12691,10 @@ function buildGridTemplate(){ var tpl='var(--staffW, 220px) '; for(var i=0;i<col
 
 function renderPlanner(){
   var s=fromISO(Planner.weekStartISO);
-  byId('weekLabel').textContent=fmtDMY(s)+'  â€“  '+fmtDMY(new Date(s.getFullYear(),s.getMonth(),s.getDate()+6));
+  byId('weekLabel').textContent=fmtDMY(s)+'  –  '+fmtDMY(new Date(s.getFullYear(),s.getMonth(),s.getDate()+6));
   byId('payrollWeekLabel').textContent='Week of '+fmtDMY(s);
   var end=new Date(s); end.setDate(end.getDate()+6);
-  var ph=byId('plannerPrintHeader'); if(ph) ph.textContent='Week of '+fmtDMY(s)+' â€“ '+fmtDMY(end);
+  var ph=byId('plannerPrintHeader'); if(ph) ph.textContent='Week of '+fmtDMY(s)+' – '+fmtDMY(end);
   byId('plannerGrid').innerHTML='';
   renderLegend();
   renderWeekOverview();
@@ -12702,7 +12708,7 @@ function renderPlanner(){
   for(var i=0;i<colCount();i++){
     var t = gridStartMins() + i*slotMinutes();
     var hh = Math.floor((t/60)%24), mm = t%60;
-    var label = (mm===0) ? (((hh%12)||12)+(hh<12?'a':'p')) : 'Â·';
+    var label = (mm===0) ? (((hh%12)||12)+(hh<12?'a':'p')) : '·';
     var cell=document.createElement('div'); cell.textContent=label.toUpperCase(); header.appendChild(cell);
   }
   byId('plannerGrid').appendChild(header);
@@ -12794,8 +12800,8 @@ sc.appendChild(mini);
       var chipStaffName = staffDisplayNameForId(id, st.name||id);
       if(isCoverShift) chip.classList.add('cover-shift');
       chip.title = isCoverShift
-        ? (chipStaffName+' covering for '+baseStaffName+' â€” '+displayRange+' ('+work.toFixed(2)+'h, break '+breakMin+'m)')
-        : (chipStaffName+' â€” '+displayRange+' ('+work.toFixed(2)+'h, break '+breakMin+'m)');
+        ? (chipStaffName+' covering for '+baseStaffName+' — '+displayRange+' ('+work.toFixed(2)+'h, break '+breakMin+'m)')
+        : (chipStaffName+' — '+displayRange+' ('+work.toFixed(2)+'h, break '+breakMin+'m)');
 
       if(isCoverShift){
         var coverTag=document.createElement('span'); coverTag.className='cover-tag'; coverTag.textContent='Cover';
@@ -12805,7 +12811,7 @@ sc.appendChild(mini);
       var hrs=document.createElement('span'); hrs.className='hours'; hrs.textContent=displayRange+' ('+work.toFixed(2)+'h)';
       chip.appendChild(label); chip.appendChild(hrs);
 
-      var bpill=document.createElement('span'); bpill.className='breakpill'; bpill.textContent='â± '+breakMin+'m';
+      var bpill=document.createElement('span'); bpill.className='breakpill'; bpill.textContent='⏱ '+breakMin+'m';
       bpill.title = 'Click to toggle break: 0m vs auto ('+breakMin+'m)';
       if(canEdit() && !isPublished){
         bpill.onclick=function(e){
@@ -12878,7 +12884,7 @@ function renderCoverageBar(){
   });
   for(var i=0;i<colCount();i++){
     var t=gridStartMins()+i*slotMinutes();
-    var slot=document.createElement('div'); slot.className='slot'; slot.title=((Math.floor(t/60)%24)+':'+pad(t%60))+' â€” '+counts[i]+' assigned';
+    var slot=document.createElement('div'); slot.className='slot'; slot.title=((Math.floor(t/60)%24)+':'+pad(t%60))+' — '+counts[i]+' assigned';
     slot.style.width='calc(var(--colW) - 2px)';
     slot.style.background = counts[i] >= target ? 'linear-gradient(180deg, rgba(34,197,94,.8), rgba(34,197,94,.4))' : 'linear-gradient(180deg, rgba(239,68,68,.8), rgba(239,68,68,.4))';
     el.appendChild(slot);
@@ -13529,8 +13535,8 @@ function renderWeekOverview(){
       if(nSegs.length && !hasAwayDuringSegments(sh.staffId, nSegs)) nightSet[String(sh.staffId)] = true;
     });
 
-    var _dsLabel = 'Day shift: ' + times12(((dayStart%1440)+1440)%1440) + 'â€“' + times12(((dayEnd0%1440)+1440)%1440);
-    var _nsLabel = 'Night shift: ' + times12(((nightStart%1440)+1440)%1440) + 'â€“' + times12(((nightEnd0%1440)+1440)%1440);
+    var _dsLabel = 'Day shift: ' + times12(((dayStart%1440)+1440)%1440) + '–' + times12(((dayEnd0%1440)+1440)%1440);
+    var _nsLabel = 'Night shift: ' + times12(((nightStart%1440)+1440)%1440) + '–' + times12(((nightEnd0%1440)+1440)%1440);
     return {day:Object.keys(daySet).length, night:Object.keys(nightSet).length, dayLabel:_dsLabel, nightLabel:_nsLabel};
   }
 
@@ -13551,8 +13557,8 @@ function renderWeekOverview(){
       return b;
     }
 
-    badges.appendChild(mkBadge('day','â˜€',cts.day,cts.dayLabel||''));
-    badges.appendChild(mkBadge('night','ðŸŒ™',cts.night,cts.nightLabel||''));
+    badges.appendChild(mkBadge('day','☀',cts.day,cts.dayLabel||''));
+    badges.appendChild(mkBadge('night','🌙',cts.night,cts.nightLabel||''));
 
     h.appendChild(label);
     h.appendChild(badges);
@@ -13597,7 +13603,7 @@ function renderWeekOverview(){
         var isCover = shiftIsCover(sh);
         if(isCover) chip.classList.add('cover-shift');
         applyStaffChipAppearance(chip, s.color||'#5A31F4', isCover);
-        chip.textContent=shiftDisplayRange(sh)+(isCover?' â†º':'');
+        chip.textContent=shiftDisplayRange(sh)+(isCover?' ↺':'');
         if(shiftIsCover(sh)){
           var baseNm = shiftBaseStaffName(sh) || 'set roster';
           chip.title = 'Covering for '+baseNm;
@@ -13719,7 +13725,7 @@ function openDayToolsFor(staffId, dayIndex){
   if(titleEl) titleEl.textContent = 'Day tools';
   if(subEl){
     try{
-      subEl.textContent = name + ' â€” ' + DAY[dayIndex] + ' ' + fmtDMY(d0);
+      subEl.textContent = name + ' — ' + DAY[dayIndex] + ' ' + fmtDMY(d0);
     }catch(e){
       subEl.textContent = name;
     }
@@ -13967,7 +13973,7 @@ function openAwayMultiModal(mode){
   try{
     var start = fromISO(Planner.weekStartISO);
     var end = new Date(start); end.setDate(end.getDate()+6);
-    if(sub) sub.textContent = staffDisplayNameForId(staffId, staffId) + ' â€” Week of ' + fmtDMY(start) + ' â€“ ' + fmtDMY(end);
+    if(sub) sub.textContent = staffDisplayNameForId(staffId, staffId) + ' — Week of ' + fmtDMY(start) + ' – ' + fmtDMY(end);
   }catch(e){
     if(sub) sub.textContent = staffDisplayNameForId(staffId, staffId);
   }
@@ -14054,7 +14060,7 @@ function openRecurringUnavailModal(staffId, ruleId, baseISO, dayIndex){
     if(sub){
       var baseISO2 = (baseISO!=null ? String(baseISO) : ((DayToolsCtx && DayToolsCtx.iso) ? String(DayToolsCtx.iso) : ''));
       var dayName = (DayToolsCtx && DayToolsCtx.dayIndex!=null) ? (DAY[parseInt(DayToolsCtx.dayIndex,10)]||'') : '';
-      sub.textContent = nm + (dayName ? (' â€” ' + dayName) : '') + (baseISO2 ? (' â€” ' + fmtDMY(fromISO(baseISO2))) : '');
+      sub.textContent = nm + (dayName ? (' — ' + dayName) : '') + (baseISO2 ? (' — ' + fmtDMY(fromISO(baseISO2))) : '');
     }
 
     // reset inputs
@@ -14195,10 +14201,10 @@ function renderRecurringUnavailExisting(staffId){
         if(!allDay){
           var ts = (r && r.timeStart) ? String(r.timeStart) : '';
           var te = (r && r.timeEnd) ? String(r.timeEnd) : '';
-          if(ts && te) timePart = ' Â· ' + to12hStr(ts) + 'â€“' + to12hStr(te);
+          if(ts && te) timePart = ' · ' + to12hStr(ts) + '–' + to12hStr(te);
         }
       }catch(e){}
-      top.textContent = (dayStr||'Day(s)') + ' â€” ' + s + ' â†’ ' + e + timePart;
+      top.textContent = (dayStr||'Day(s)') + ' — ' + s + ' → ' + e + timePart;
 
       var sub = document.createElement('div');
       sub.style.fontSize='12px';
@@ -14534,7 +14540,7 @@ function renderAvailabilityBar(){
 
     var item=document.createElement('div');
     item.className='day'+(published?' off':'');
-    item.textContent = DAY[d]+' â€” '+label;
+    item.textContent = DAY[d]+' — '+label;
     item.title = published ? 'Click to view away reason' : (pendingRec ? 'Click to view/cancel request' : 'Click to request one or more days away');
 
     (function(iso,published,pendingRec,dayIndex){
@@ -14639,7 +14645,7 @@ function recurringUnavailabilityLinesFor(iso, staffId){
       if(!allDay){
         var ts = (r && r.timeStart) ? String(r.timeStart) : '';
         var te = (r && r.timeEnd) ? String(r.timeEnd) : '';
-        if(ts && te) timePart = ' ('+to12hStr(ts)+'â€“'+to12hStr(te)+')';
+        if(ts && te) timePart = ' ('+to12hStr(ts)+'–'+to12hStr(te)+')';
       }
     }catch(e){}
     out.push('Recurring unavailable: ' + reason + timePart + range);
@@ -14733,7 +14739,7 @@ function drawAwayOverlays(wrapEl, iso, staffId){
           else{
             var ts = (b.rule && b.rule.timeStart) ? String(b.rule.timeStart) : '';
             var te = (b.rule && b.rule.timeEnd) ? String(b.rule.timeEnd) : '';
-            uc.textContent = 'UNAVAIL ' + (ts&&te ? (to12hStr(ts)+'â€“'+to12hStr(te)) : '');
+            uc.textContent = 'UNAVAIL ' + (ts&&te ? (to12hStr(ts)+'–'+to12hStr(te)) : '');
           }
           try{
             uc.style.cursor = 'pointer';
@@ -14814,7 +14820,7 @@ function drawAwayOverlays(wrapEl, iso, staffId){
         var de = (b.end!=null?String(b.end):'');
         var ds12 = ds ? to12hStr(to24hhmm(ds, '09:00')) : '';
         var de12 = de ? to12hStr(to24hhmm(de, '17:00')) : '';
-        chip2.textContent='AWAY '+(ds12||ds)+'â€“'+(de12||de);
+        chip2.textContent='AWAY '+(ds12||ds)+'–'+(de12||de);
         var canClickPartialAway = canManageAwayForStaff(staffId);
         try{ chip2.style.cursor=canClickPartialAway ? 'pointer' : 'help'; chip2.title=canClickPartialAway ? 'Click to edit' : 'Click to view info'; }catch(e){}
         (function(blockIndex){
@@ -15131,12 +15137,12 @@ function renderAbsenceCalendar(){
         reason = (reason!=null ? String(reason).trim() : '');
         if(!reason) reason = '(no reason recorded)';
 
-        var title = 'Away reason â€” ' + staffName + ' â€” ' + dateLabel;
+        var title = 'Away reason — ' + staffName + ' — ' + dateLabel;
         var body = '';
         if(type === 'block'){
           var s = chip.getAttribute('data-start') || '';
           var e2 = chip.getAttribute('data-end') || '';
-          body = 'Partial away ' + s + 'â€“' + e2 + ': ' + reason;
+          body = 'Partial away ' + s + '–' + e2 + ': ' + reason;
         }else{
           body = 'Away (full-day): ' + reason;
         }
@@ -15190,8 +15196,8 @@ function renderAbsenceCalendar(){
     for(var k=0;k<keys.length;k++){
       var sid=keys[k]; if(filterId && sid!==filterId) continue;
       var val=rec[sid]; var st=App.staff[sid]; if(!st) continue;
-      if(val.unavailable){ var ch=document.createElement('div'); ch.className='abs-chip full'; ch.setAttribute('data-iso', iso); ch.setAttribute('data-staff', sid); ch.setAttribute('data-type','full'); ch.setAttribute('data-reason', (val.reason!=null?String(val.reason):'')); ch.title='Click to view reason'; ch.textContent=staffDisplayNameForId(sid, '')+' â€” AWAY'; cell.appendChild(ch); }
-      if(val.blocks && val.blocks.length){ for(var b=0;b<val.blocks.length;b++){ var bl=val.blocks[b]; if(!bl) continue; var ch2=document.createElement('div'); ch2.className='abs-chip block'; ch2.setAttribute('data-iso', iso); ch2.setAttribute('data-staff', sid); ch2.setAttribute('data-type','block'); ch2.setAttribute('data-start', (bl.start!=null?String(bl.start):'')); ch2.setAttribute('data-end', (bl.end!=null?String(bl.end):'')); ch2.setAttribute('data-reason', (bl.reason!=null?String(bl.reason):'')); ch2.title='Click to view reason'; ch2.textContent=staffDisplayNameForId(sid, '')+' â€” '+displayTimeRange12(bl.start, bl.end); cell.appendChild(ch2); } }
+      if(val.unavailable){ var ch=document.createElement('div'); ch.className='abs-chip full'; ch.setAttribute('data-iso', iso); ch.setAttribute('data-staff', sid); ch.setAttribute('data-type','full'); ch.setAttribute('data-reason', (val.reason!=null?String(val.reason):'')); ch.title='Click to view reason'; ch.textContent=staffDisplayNameForId(sid, '')+' — AWAY'; cell.appendChild(ch); }
+      if(val.blocks && val.blocks.length){ for(var b=0;b<val.blocks.length;b++){ var bl=val.blocks[b]; if(!bl) continue; var ch2=document.createElement('div'); ch2.className='abs-chip block'; ch2.setAttribute('data-iso', iso); ch2.setAttribute('data-staff', sid); ch2.setAttribute('data-type','block'); ch2.setAttribute('data-start', (bl.start!=null?String(bl.start):'')); ch2.setAttribute('data-end', (bl.end!=null?String(bl.end):'')); ch2.setAttribute('data-reason', (bl.reason!=null?String(bl.reason):'')); ch2.title='Click to view reason'; ch2.textContent=staffDisplayNameForId(sid, '')+' — '+displayTimeRange12(bl.start, bl.end); cell.appendChild(ch2); } }
     }
     grid.appendChild(cell);
   }
@@ -15366,7 +15372,7 @@ function openRequestsModal(){
       if(req.blocks && req.blocks.length){
         details = req.blocks.map(function(b){
           var seg = displayTimeRange12(b.start||'?', b.end||'?');
-          if(b.reason) seg += ' â€” ' + String(b.reason);
+          if(b.reason) seg += ' — ' + String(b.reason);
           return seg;
         }).join(' | ');
       }else if(req.unavailable){
@@ -15486,9 +15492,9 @@ function openRequestsModal(){
         var summary = '';
         if(er.type==='away'){
           if(er.mode==='full'){
-            summary = 'Reason â†’ ' + String((er.proposed&&er.proposed.reason)||'');
+            summary = 'Reason → ' + String((er.proposed&&er.proposed.reason)||'');
           }else if(er.mode==='partial'){
-            summary = (er.proposed&&er.proposed.start?String(er.proposed.start):'') + 'â€“' + (er.proposed&&er.proposed.end?String(er.proposed.end):'') + ' Â· ' + String((er.proposed&&er.proposed.reason)||'');
+            summary = (er.proposed&&er.proposed.start?String(er.proposed.start):'') + '–' + (er.proposed&&er.proposed.end?String(er.proposed.end):'') + ' · ' + String((er.proposed&&er.proposed.reason)||'');
           }
         }
         var appB = document.createElement('button'); appB.className='btn-good'; appB.textContent='Approve';
@@ -15824,7 +15830,7 @@ function pendingRequestBreakdownText(info){
   if(info.shiftEdit) parts.push('Shift edits ' + info.shiftEdit);
   if(info.shiftProposal) parts.push('Shift proposals ' + info.shiftProposal);
   if(info.edit) parts.push('Edits ' + info.edit);
-  return parts.join(' Â· ');
+  return parts.join(' · ');
 }
 function diffPendingRequestBreakdown(prev, cur){
   var out = {awayFull:0, awayPartial:0, shiftEdit:0, shiftProposal:0, edit:0, total:0};
@@ -15853,7 +15859,7 @@ function updateRequestsBadge(){
   try{ __maybeAutoPopupRequests('badge'); }catch(e){}
 }
 
-// Auto-popup pending requests modal (manager/admin) â€” can continue after login
+// Auto-popup pending requests modal (manager/admin) — can continue after login
 var __requestsPopupLastCount = null;
 var __requestsPopupLastAt = 0;
 
@@ -16046,7 +16052,7 @@ function __fireRequestNotifications(prevInfo, curInfo){
     }
 
     var body = pendingRequestBreakdownText(curInfo);
-    if(body) body = body + ' Â· Pending total ' + curTotal;
+    if(body) body = body + ' · Pending total ' + curTotal;
     else body = 'Pending requests: ' + curTotal;
 
     __notifyBrowser(title, body);
@@ -16161,7 +16167,7 @@ function armRequestsAutoPopupAfterLogin(){
   try{ startLiveRequestListener(); }catch(e){}
 }
 function maybeAutoOpenRequestsModal(disarmIfNone){
-  // Legacy hook used elsewhere â€” now routes to the new logic.
+  // Legacy hook used elsewhere — now routes to the new logic.
   __maybeAutoPopupRequests('legacy');
 }
 
@@ -16762,7 +16768,7 @@ function openWithholdManageModal(staffId){
   var s = fromISO(weekIso);
   var e = new Date(s); e.setDate(e.getDate()+6);
 
-  byId('withholdManageSubtitle').textContent = staffDisplayNameForId(staffId, 'staff '+staffId)+' â€¢ Week of '+fmtDMY(s)+' â€“ '+fmtDMY(e);
+  byId('withholdManageSubtitle').textContent = staffDisplayNameForId(staffId, 'staff '+staffId)+' • Week of '+fmtDMY(s)+' – '+fmtDMY(e);
 
   var wWeek = getWithheldForWeek(weekIso, staffId);
   var wBal = getWithheldBalance(staffId);
@@ -16952,7 +16958,7 @@ function payrollWeekRangeLabel(weekIso){
     var s = fromISO(weekIso);
     var e = new Date(s);
     e.setDate(e.getDate() + 6);
-    return 'Week of ' + fmtDMY(s) + ' â€“ ' + fmtDMY(e);
+    return 'Week of ' + fmtDMY(s) + ' – ' + fmtDMY(e);
   }catch(err){
     return String(weekIso||'');
   }
@@ -17752,7 +17758,7 @@ function renderPayrollDocumentHtml(doc){
   }
   if(((doc.summary && doc.summary.otherDeductions) || 0) > 0){
     var otherLabel = 'Other deductions';
-    if(doc.notes && doc.notes.otherDeductionDetails) otherLabel += ' â€” ' + escapeHtml(doc.notes.otherDeductionDetails);
+    if(doc.notes && doc.notes.otherDeductionDetails) otherLabel += ' — ' + escapeHtml(doc.notes.otherDeductionDetails);
     if(doc.notes && doc.notes.adjustmentComment && ((doc.summary && doc.summary.negativeAdjustment) || 0) > 0) otherLabel += ' / ' + escapeHtml(doc.notes.adjustmentComment);
     deductionsRows += '<tr><td>' + otherLabel + '</td><td>-' + escapeHtml(fmtMoney(doc.summary.otherDeductions || 0)) + '</td></tr>';
   }
@@ -17855,7 +17861,7 @@ function openPayrollDocModal(doc, fromBuilder){
   var modal = byId('payrollDocModal');
   if(host) host.innerHTML = renderPayrollDocumentHtml(doc);
   setTextIfExists('payrollDocModalTitle', doc.type === 'paymentSummary' ? 'Payment summary preview' : 'Payslip preview');
-  setTextIfExists('payrollDocModalMeta', (doc.periodLabel || '') + ' â€¢ ' + (doc.staffName || '') + ' â€¢ ' + (doc.documentNo || ''));
+  setTextIfExists('payrollDocModalMeta', (doc.periodLabel || '') + ' • ' + (doc.staffName || '') + ' • ' + (doc.documentNo || ''));
   if(modal) modal.style.display = 'flex';
 }
 function printPayrollDocument(doc, recordToHistory){
@@ -17940,7 +17946,7 @@ function renderPayslipHistory(){
     var tr = document.createElement('tr');
     tr.innerHTML = ''
       + '<td>' + escapeHtml(String((r.updatedAt||r.createdAt||r.generatedAt||'').replace('T',' ').slice(0,16))) + '</td>'
-      + '<td>' + escapeHtml((r.type === 'paymentSummary' ? 'Payment summary' : 'Payslip') + ' â€¢ ' + (r.documentNo || '')) + '</td>'
+      + '<td>' + escapeHtml((r.type === 'paymentSummary' ? 'Payment summary' : 'Payslip') + ' • ' + (r.documentNo || '')) + '</td>'
       + '<td>' + escapeHtml(r.staffName || payrollStaffName(r.staffId)) + '</td>'
       + '<td>' + escapeHtml(r.periodLabel || (r.financialYear ? ('Financial year ' + r.financialYear) : '')) + '</td>'
       + '<td>' + escapeHtml(r.payDate || r.statementDate || '') + '</td>'
@@ -17961,7 +17967,7 @@ function renderPayroll(){
   var s=fromISO(Planner.weekStartISO);
   byId('payrollWeekLabel').textContent='Week of '+fmtDMY(s);
   var end=new Date(s); end.setDate(end.getDate()+6);
-  var ph=byId('plannerPrintHeader'); if(ph) ph.textContent='Week of '+fmtDMY(s)+' â€“ '+fmtDMY(end);
+  var ph=byId('plannerPrintHeader'); if(ph) ph.textContent='Week of '+fmtDMY(s)+' – '+fmtDMY(end);
 
   var aW=0,aB=0,aP=0,aM=0,aOT=0,aAdj=0,aPaid=0,aPaidEligible=0;
 
@@ -18047,7 +18053,7 @@ function renderPayroll(){
       var adjHtml = '';
       if(Math.abs(adjAmt) > 0.0001){
         var sign = adjAmt>0?'+':'';
-        adjHtml = '<div class="muted small">Adj: '+sign+fmtMoney(adjAmt)+(adjComment?(' â€” '+escapeHtml(adjComment)):'')+'</div>';
+        adjHtml = '<div class="muted small">Adj: '+sign+fmtMoney(adjAmt)+(adjComment?(' — '+escapeHtml(adjComment)):'')+'</div>';
       }
 
       var withheldHtml = '';
@@ -18236,7 +18242,7 @@ function _renderLegend(el, series, fmt){
     left.appendChild(sw); left.appendChild(nm);
     var right=document.createElement('div'); right.className='legend-val';
     var pct = total>0 ? ((s.value/total)*100) : 0;
-    right.textContent = (fmt?fmt(s.value):String(s.value)) + ' Â· ' + pct.toFixed(0) + '%';
+    right.textContent = (fmt?fmt(s.value):String(s.value)) + ' · ' + pct.toFixed(0) + '%';
     row.appendChild(left); row.appendChild(right);
     el.appendChild(row);
   });
@@ -18435,7 +18441,7 @@ function renderStats(){
     var s=fromISO(Planner.weekStartISO);
     var end=new Date(s); end.setDate(end.getDate()+6);
     var wl=byId('statsWeekLabel');
-    if(wl) wl.textContent = 'Week of '+fmtDMY(s)+' â€“ '+fmtDMY(end);
+    if(wl) wl.textContent = 'Week of '+fmtDMY(s)+' – '+fmtDMY(end);
   }catch(e){}
 
   // Aggregate stats across weeks
@@ -18514,9 +18520,9 @@ function renderStats(){
       addKpi('Total requests', String(totalReq), (weeks.length>1?('Across '+weeks.length+' weeks'):'This week'));
       if(topId && topTotal>0){
         var c=rc[topId]||{};
-        addKpi('Top requester', topName+' ('+String(topTotal)+')', 'Away '+(c.away||0)+' Â· Shift requests '+(c.shift||0));
+        addKpi('Top requester', topName+' ('+String(topTotal)+')', 'Away '+(c.away||0)+' · Shift requests '+(c.shift||0));
       }else{
-        addKpi('Top requester', 'â€”', 'No requests in range');
+        addKpi('Top requester', '—', 'No requests in range');
       }
     }catch(e){}
   }
@@ -18610,8 +18616,8 @@ function renderStats(){
   var rqEl=byId('statsRequests');
   if(rqEl){
     var parts=[];
-    parts.push('<div><b>Pending</b>: Away '+rq.pendingAbs+' Â· Shift requests '+rq.pendingShift+'</div>');
-    parts.push('<div class="muted-small"><b>In range</b>: Away approved '+rq.absApproved+' Â· rejected '+rq.absRejected+' Â· Shift requests approved '+rq.shApproved+' Â· rejected '+rq.shRejected+'</div>');
+    parts.push('<div><b>Pending</b>: Away '+rq.pendingAbs+' · Shift requests '+rq.pendingShift+'</div>');
+    parts.push('<div class="muted-small"><b>In range</b>: Away approved '+rq.absApproved+' · rejected '+rq.absRejected+' · Shift requests approved '+rq.shApproved+' · rejected '+rq.shRejected+'</div>');
     rqEl.innerHTML = parts.join('');
   }
   try{ renderAdminRequestsLog(); }catch(e){}
@@ -19685,7 +19691,7 @@ function bizHistorySummaryRangeText(summary){
   try{
     if(!summary || !summary.firstISO) return '';
     if(summary.firstISO === summary.lastISO) return fmtDMY(fromISO(summary.firstISO));
-    return fmtDMY(fromISO(summary.firstISO)) + ' â€“ ' + fmtDMY(fromISO(summary.lastISO));
+    return fmtDMY(fromISO(summary.firstISO)) + ' – ' + fmtDMY(fromISO(summary.lastISO));
   }catch(e){ return ''; }
 }
 function bizSummarizeRows(rows, key, label, type){
@@ -19813,7 +19819,7 @@ function bizHistorySummarySubtext(summary, mode, extra){
   parts.push(String(summary && summary.activeDays || 0) + ' active day(s)');
   if(extra) parts.push(extra);
   if(summary && summary.noteCount) parts.push(String(summary.noteCount) + ' note(s)');
-  return parts.join(' â€¢ ');
+  return parts.join(' • ');
 }
 function bizHistorySummaryRowHtml(summary, level, opts){
   opts = opts || {};
@@ -19822,7 +19828,7 @@ function bizHistorySummaryRowHtml(summary, level, opts){
   var content = '';
   if(opts.toggleLevel){
     content = '<button type="button" class="biz-history-toggle" data-level="' + escapeHtml(opts.toggleLevel) + '" data-key="' + escapeHtml(opts.toggleKey || summary.key) + '" aria-expanded="' + (opts.expanded ? 'true' : 'false') + '">' +
-      '<span class="biz-history-caret">' + (opts.expanded ? 'â–¾' : 'â–¸') + '</span>' +
+      '<span class="biz-history-caret">' + (opts.expanded ? '▾' : '▸') + '</span>' +
       '<span class="biz-history-row-text"><span class="biz-history-row-title">' + escapeHtml(summary.label || '') + '</span>' +
       (secondary ? ('<span class="biz-history-subtext">' + escapeHtml(secondary) + '</span>') : '') +
       '</span></button>';
@@ -19855,7 +19861,7 @@ function bizHistoryDayRowHtml(row, level){
   if(row.notes) details.push(bizShorten(row.notes, 100));
   var spendSummary = bizSpendItemsSummary(row.spendItems || [], 3);
   if(spendSummary) details.push(bizShorten(spendSummary, 100));
-  var secondary = details.join(' â€¢ ');
+  var secondary = details.join(' • ');
   return '<tr class="biz-history-level-day">' +
     '<td><div class="biz-history-row-static">' +
       '<span class="biz-history-indent ' + escapeHtml(indentClass) + '"></span>' +
@@ -20537,7 +20543,7 @@ function bizBuildPdfReportHtml(dataset){
       '<td class="num">' + escapeHtml(fmtMoney(row.ongoingCosts||0)) + '</td>' +
       '<td class="num">' + escapeHtml(fmtMoney(row.totalCosts||0)) + '</td>' +
       '<td class="num ' + (numOr0(row.profit) < -0.009 ? 'bad' : (numOr0(row.profit) > 0.009 ? 'good' : '')) + '">' + escapeHtml(fmtMoney(row.profit||0)) + '</td>' +
-      '<td>' + escapeHtml(noteBits.join(' â€¢ ')) + '</td>' +
+      '<td>' + escapeHtml(noteBits.join(' • ')) + '</td>' +
     '</tr>';
   }).join('');
   var spendingRowsHtml = (dataset.allSpendItems||[]).map(function(item){
@@ -20562,7 +20568,7 @@ function bizBuildPdfReportHtml(dataset){
     return '<tr><td>' + escapeHtml(item.name) + '</td><td class="num">' + escapeHtml(fmtMoney(item.value||0)) + '</td></tr>';
   }).join('');
   var trendImage = dataset.charts && dataset.charts.trend ? '<div class="chart-card"><h3>Current range trend</h3><img alt="Trend chart" src="' + escapeHtml(dataset.charts.trend) + '"></div>' : '';
-  var customImage = dataset.charts && dataset.charts.custom ? '<div class="chart-card"><h3>Current custom chart</h3><div class="mini-sub">' + escapeHtml(dataset.customGraph.metricALabel + ' vs ' + dataset.customGraph.metricBLabel + ' â€¢ ' + String(dataset.customGraph.group||'').toUpperCase() + ' â€¢ ' + String(dataset.customGraph.type||'').toUpperCase()) + '</div><img alt="Custom chart" src="' + escapeHtml(dataset.charts.custom) + '"></div>' : '';
+  var customImage = dataset.charts && dataset.charts.custom ? '<div class="chart-card"><h3>Current custom chart</h3><div class="mini-sub">' + escapeHtml(dataset.customGraph.metricALabel + ' vs ' + dataset.customGraph.metricBLabel + ' • ' + String(dataset.customGraph.group||'').toUpperCase() + ' • ' + String(dataset.customGraph.type||'').toUpperCase()) + '</div><img alt="Custom chart" src="' + escapeHtml(dataset.charts.custom) + '"></div>' : '';
   var chartsHtml = (trendImage || customImage) ? '<section class="report-section" id="charts"><div class="section-head"><h2>Current range charts</h2><div class="section-sub">Charts reflect the currently selected Business Analytics range.</div></div><div class="chart-grid">' + trendImage + customImage + '</div></section>' : '';
   var mixHtml = '<section class="report-section" id="mix"><div class="section-head"><h2>Current range mix</h2><div class="section-sub">Revenue and cost composition for the selected range.</div></div><div class="mini-grid">' +
     bizReportMixHtml('Revenue mix', dataset.selectedMix.revenue, dataset.selectedMix.revenueTotal) +
@@ -20572,7 +20578,7 @@ function bizBuildPdfReportHtml(dataset){
   return '<!doctype html><html><head><meta charset="utf-8"><title>' + escapeHtml((dataset.appTitle || 'Business Analytics') + ' - ' + bizExportFileStamp()) + '</title>' +
     '<style>' +
       '@page{size:auto;margin:14mm;}body{font-family:Arial,Helvetica,sans-serif;color:#0f172a;background:#f4f7fb;margin:0;padding:0;}a{color:#1d4ed8;text-decoration:none;}a:hover{text-decoration:underline;} .screen-bar{position:sticky;top:0;z-index:10;display:flex;gap:8px;align-items:center;justify-content:space-between;padding:12px 16px;background:#0f172a;color:#fff;} .screen-actions{display:flex;gap:8px;flex-wrap:wrap;} .screen-actions button{border:none;border-radius:999px;padding:8px 14px;font-weight:700;cursor:pointer;} .screen-actions .primary{background:#2563eb;color:#fff;} .screen-actions .secondary{background:#e2e8f0;color:#0f172a;} .report{max-width:1120px;margin:0 auto;padding:18px;} .hero{background:#fff;border-radius:18px;padding:18px 20px;box-shadow:0 12px 28px rgba(15,23,42,.10);} .hero h1{margin:0;font-size:28px;} .hero-meta{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:14px;} .hero-meta .meta{background:#eef4ff;border-radius:14px;padding:10px 12px;} .hero-meta .meta .label{font-size:11px;color:#475569;text-transform:uppercase;letter-spacing:.06em;font-weight:700;} .hero-meta .meta .value{margin-top:4px;font-size:14px;font-weight:700;} .toc{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 4px;} .toc a{display:inline-flex;align-items:center;padding:7px 11px;border-radius:999px;background:#fff;border:1px solid #d7e1ee;font-size:12px;font-weight:700;} .report-section{background:#fff;border-radius:18px;padding:16px 18px;margin-top:16px;box-shadow:0 10px 22px rgba(15,23,42,.08);} .section-head{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:12px;} .section-head h2{margin:0;font-size:20px;} .section-sub{color:#475569;font-size:12px;} .summary-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;} .summary-card{border:1px solid #dbe5f0;border-radius:14px;padding:12px;background:#f8fbff;} .summary-card .label{font-size:11px;color:#475569;text-transform:uppercase;letter-spacing:.06em;font-weight:700;} .summary-card .value{margin-top:8px;font-size:20px;font-weight:800;line-height:1.25;} .summary-card .value.small{font-size:15px;} .summary-card .value.good{color:#047857;} .summary-card .value.bad{color:#b91c1c;} .summary-card .sub{margin-top:6px;color:#475569;font-size:12px;} .mini-grid,.chart-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;} .mini-card,.chart-card{border:1px solid #dbe5f0;border-radius:14px;padding:12px;background:#f8fbff;} .mini-card h3,.chart-card h3{margin:0 0 8px;font-size:16px;} .mini-sub{color:#475569;font-size:12px;margin-bottom:8px;} .dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:8px;vertical-align:middle;} .report-table{width:100%;border-collapse:collapse;font-size:12px;} .report-table th,.report-table td{border-bottom:1px solid #dbe5f0;padding:8px 10px;vertical-align:top;} .report-table th{background:#eef4ff;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.05em;} .report-table .num{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums;} .report-table .good{color:#047857;font-weight:800;} .report-table .bad{color:#b91c1c;font-weight:800;} .report-table.tight th,.report-table.tight td{padding:7px 8px;} .chart-card img{width:100%;height:auto;border-radius:12px;border:1px solid #dbe5f0;background:#fff;} @media (max-width:900px){.hero-meta,.summary-grid,.mini-grid,.chart-grid{grid-template-columns:1fr 1fr;}} @media (max-width:640px){.hero-meta,.summary-grid,.mini-grid,.chart-grid{grid-template-columns:1fr;} .screen-bar{position:static;}} @media print{body{background:#fff;} .screen-bar{display:none !important;} .report{max-width:none;padding:0;} .hero,.report-section{box-shadow:none;border:1px solid #dbe5f0;break-inside:avoid-page;} .toc a{color:#0f172a;border-color:#dbe5f0;} a{text-decoration:none;color:#0f172a;} }' +
-    '</style></head><body><div class="screen-bar"><div><strong>Business Analytics PDF export</strong></div><div class="screen-actions"><button class="primary" onclick="window.print()">Print / Save PDF</button><button class="secondary" onclick="window.close()">Close</button></div></div><div class="report"><section class="hero"><h1>' + escapeHtml(dataset.appTitle) + ' â€” Business Analytics</h1><div class="section-sub">Generated ' + escapeHtml(new Date(dataset.generatedAt).toLocaleString()) + '</div><div class="hero-meta"><div class="meta"><div class="label">Workspace</div><div class="value">' + escapeHtml(dataset.workspace || '-') + '</div></div><div class="meta"><div class="label">Version</div><div class="value">' + escapeHtml(dataset.version || '-') + '</div></div><div class="meta"><div class="label">Selected range</div><div class="value">' + escapeHtml(bizReportRangeLabel(dataset.selectedRange)) + '</div></div><div class="meta"><div class="label">Full export coverage</div><div class="value">' + escapeHtml(bizReportRangeLabel(dataset.allRange)) + '</div></div></div></section>' + tocHtml + summarySelected + summaryAll + chartsHtml + mixHtml + bizReportTableHtml('Current range detail', 'current-range-detail', ['Date','Cash','EFTPOS','Revenue','Staff cost','Spendings','Total costs','Net'], currentRangeRowsHtml, 'Tracked business rows in the selected range.') + bizReportTableHtml('Monthly summary', 'monthly-summary', ['Month','Active days','Revenue','Staff cost','Spendings','Utilities','Ongoing','Total costs','Net'], monthlyRowsHtml, 'All exported business data rolled up by month.') + bizReportTableHtml('Weekly summary', 'weekly-summary', ['Week','Active days','Revenue','Staff cost','Spendings','Utilities','Ongoing','Total costs','Net'], weeklyRowsHtml, 'All exported business data rolled up by week.') + bizReportTableHtml('Recurring costs', 'recurring-costs', ['Name','Category','Frequency','Amount / occurrence','Start','End','Selected allocation','Full allocation','Notes'], recurringRowsHtml, 'Recurring costs are prorated across their active cycle.') + bizReportTableHtml('Daily ledger', 'daily-ledger', ['Date','Cash','EFTPOS','Revenue','Staff cost','Spendings','Utilities','Ongoing','Total costs','Net','Notes / spending summary'], dailyRowsHtml, 'Full day-by-day ledger across the export coverage.') + bizReportTableHtml('Spending items', 'spending-items', ['Date','Description','Amount','Day notes'], spendingRowsHtml, 'Each recorded spending line item.') + bizReportTableHtml('Cost centres', 'cost-centres', ['Cost centre','Amount'], costCentreRowsHtml, 'All exported cost centres by total value.') + '</div><script>window.addEventListener("load",function(){setTimeout(function(){try{window.focus();window.print();}catch(e){}},350);});<\/script></body></html>';
+    '</style></head><body><div class="screen-bar"><div><strong>Business Analytics PDF export</strong></div><div class="screen-actions"><button class="primary" onclick="window.print()">Print / Save PDF</button><button class="secondary" onclick="window.close()">Close</button></div></div><div class="report"><section class="hero"><h1>' + escapeHtml(dataset.appTitle) + ' — Business Analytics</h1><div class="section-sub">Generated ' + escapeHtml(new Date(dataset.generatedAt).toLocaleString()) + '</div><div class="hero-meta"><div class="meta"><div class="label">Workspace</div><div class="value">' + escapeHtml(dataset.workspace || '-') + '</div></div><div class="meta"><div class="label">Version</div><div class="value">' + escapeHtml(dataset.version || '-') + '</div></div><div class="meta"><div class="label">Selected range</div><div class="value">' + escapeHtml(bizReportRangeLabel(dataset.selectedRange)) + '</div></div><div class="meta"><div class="label">Full export coverage</div><div class="value">' + escapeHtml(bizReportRangeLabel(dataset.allRange)) + '</div></div></div></section>' + tocHtml + summarySelected + summaryAll + chartsHtml + mixHtml + bizReportTableHtml('Current range detail', 'current-range-detail', ['Date','Cash','EFTPOS','Revenue','Staff cost','Spendings','Total costs','Net'], currentRangeRowsHtml, 'Tracked business rows in the selected range.') + bizReportTableHtml('Monthly summary', 'monthly-summary', ['Month','Active days','Revenue','Staff cost','Spendings','Utilities','Ongoing','Total costs','Net'], monthlyRowsHtml, 'All exported business data rolled up by month.') + bizReportTableHtml('Weekly summary', 'weekly-summary', ['Week','Active days','Revenue','Staff cost','Spendings','Utilities','Ongoing','Total costs','Net'], weeklyRowsHtml, 'All exported business data rolled up by week.') + bizReportTableHtml('Recurring costs', 'recurring-costs', ['Name','Category','Frequency','Amount / occurrence','Start','End','Selected allocation','Full allocation','Notes'], recurringRowsHtml, 'Recurring costs are prorated across their active cycle.') + bizReportTableHtml('Daily ledger', 'daily-ledger', ['Date','Cash','EFTPOS','Revenue','Staff cost','Spendings','Utilities','Ongoing','Total costs','Net','Notes / spending summary'], dailyRowsHtml, 'Full day-by-day ledger across the export coverage.') + bizReportTableHtml('Spending items', 'spending-items', ['Date','Description','Amount','Day notes'], spendingRowsHtml, 'Each recorded spending line item.') + bizReportTableHtml('Cost centres', 'cost-centres', ['Cost centre','Amount'], costCentreRowsHtml, 'All exported cost centres by total value.') + '</div><script>window.addEventListener("load",function(){setTimeout(function(){try{window.focus();window.print();}catch(e){}},350);});<\/script></body></html>';
 }
 function bizOpenReportWindow(html){
   var win = window.open('', '_blank');
@@ -20819,7 +20825,7 @@ function buildPrintView(){
   for(var w=0; w<weeks; w++){
     var ws=toISO(weekStart(new Date(base.getFullYear(), base.getMonth(), base.getDate()+w*7)));
     var paper=document.createElement('div'); paper.className='print-week';
-    var h=document.createElement('div'); h.style.fontWeight='800'; h.style.margin='4px 0 8px'; var start=fromISO(ws); var end=new Date(start); end.setDate(end.getDate()+6); h.textContent='Week of '+fmtDMY(start)+' â€“ '+fmtDMY(end); paper.appendChild(h);
+    var h=document.createElement('div'); h.style.fontWeight='800'; h.style.margin='4px 0 8px'; var start=fromISO(ws); var end=new Date(start); end.setDate(end.getDate()+6); h.textContent='Week of '+fmtDMY(start)+' – '+fmtDMY(end); paper.appendChild(h);
     var grid=document.createElement('div'); grid.className='print-grid'; var headBlank=document.createElement('div'); headBlank.className='print-head'; headBlank.textContent=''; grid.appendChild(headBlank);
     for(var d=0; d<7; d++){ var hd=document.createElement('div'); hd.className='print-head'; hd.textContent=DAY[d]; grid.appendChild(hd); }
     var entries=Object.keys(App.staff).map(function(id){ return [id,App.staff[id]]; }).filter(function(p){
@@ -20843,7 +20849,7 @@ function buildPrintView(){
             var isCoverPrint=shiftIsCover(sh); applyStaffChipAppearance(chip, st.color||'#5A31F4', isCoverPrint); chip.textContent=shiftDisplayRange(sh);
             if(isCoverPrint){
               chip.classList.add('cover-shift');
-              chip.textContent += ' â†º';
+              chip.textContent += ' ↺';
               chip.title = 'Covering for ' + (shiftBaseStaffName(sh) || 'set roster');
             }
           }
@@ -20856,7 +20862,7 @@ function buildPrintView(){
       var m24=s.match(/^(\d{1,2}):(\d{2})$/); if(m24){ return (parseInt(m24[1],10)||0)*60+(parseInt(m24[2],10)||0); }
       var n=parseInt(s,10); return isFinite(n)? n:null; }
     var st = toMin(sh && (sh.start!=null?sh.start:(sh.startMin!=null?sh.startMin:null)));
-    var badge = (!isFinite(st) ? '' : (st>=8*60 && st<=16*60+59 ? 'â˜€ï¸' : (st>=17*60 || st===0 ? 'ðŸŒ™' : '')));
+    var badge = (!isFinite(st) ? '' : (st>=8*60 && st<=16*60+59 ? '☀️' : (st>=17*60 || st===0 ? '🌙' : '')));
     if(badge){ var sp=document.createElement('span'); sp.textContent=badge+' '; sp.style.marginRight='4px'; chip.insertBefore(sp, chip.firstChild); }
   }catch(e){}
 })(sh);
@@ -21213,7 +21219,7 @@ function renderTemplatesModal(){
     left.style.minWidth='220px';
     left.innerHTML =
       '<div style="font-weight:800">'+escapeHtml(t.name||'')+'</div>'+
-      '<div class="muted" style="font-size:12px;">Created '+escapeHtml(__tplFmtDate(t.createdAt||0))+(t.sourceWeekISO?(' Â· from '+escapeHtml(t.sourceWeekISO)):'')+'</div>';
+      '<div class="muted" style="font-size:12px;">Created '+escapeHtml(__tplFmtDate(t.createdAt||0))+(t.sourceWeekISO?(' · from '+escapeHtml(t.sourceWeekISO)):'')+'</div>';
 
     var applyBtn = document.createElement('button');
     applyBtn.className='btn-good';
@@ -21515,7 +21521,7 @@ window.proposeShiftEdit = async function(iso, staffId){
       var msg = 'Select shift to edit:\n';
       for(var i=0;i<options.length;i++){
         var shOpt = options[i].shift;
-        msg += i + ': ' + (shOpt.start || '?') + 'â€“' + (shOpt.end || '?') + '\n';
+        msg += i + ': ' + (shOpt.start || '?') + '–' + (shOpt.end || '?') + '\n';
       }
       var inp = prompt(msg, '0');
       if(inp == null) return;
@@ -21632,7 +21638,7 @@ try{
   var byId = window.byId || function(id){ return document.getElementById(id); };
   var fromISO = window.fromISO || function(iso){ return new Date(String(iso || '') + 'T00:00:00'); };
   var fmtDMY = window.fmtDMY || function(d){ try{ return new Date(d).toLocaleDateString(); }catch(e){ return String(d||''); } };
-  var displayTimeRange12 = window.displayTimeRange12 || function(start, end){ return String(start||'') + 'â€“' + String(end||''); };
+  var displayTimeRange12 = window.displayTimeRange12 || function(start, end){ return String(start||'') + '–' + String(end||''); };
   var staffNameForId = window.staffNameForId || function(sid, fallback){
     sid = (sid==null ? '' : String(sid));
     try{
@@ -21687,7 +21693,7 @@ try{
     var staffName = staffNameForId(staffId, 'Staff ' + staffId);
     var dateLabel = iso;
     try{ dateLabel = fmtDMY(fromISO(iso)); }catch(e){}
-    var title = 'Info for this day â€” ' + staffName + ' â€” ' + dateLabel;
+    var title = 'Info for this day — ' + staffName + ' — ' + dateLabel;
 
     function openInfoModalSafe(t, body){
       try{
@@ -21784,9 +21790,9 @@ try{
 
     try{
       var localApproved = getDayRec(App.availability, iso, staffId);
-      addLinesFromRec(localApproved, 'Approved', 'â€” on roster');
+      addLinesFromRec(localApproved, 'Approved', '— on roster');
       var localPending = getDayRec(App.absenceRequests, iso, staffId);
-      addLinesFromRec(localPending, 'Pending', 'â€” requested');
+      addLinesFromRec(localPending, 'Pending', '— requested');
       try{
         var recs = getRecurringUnavailabilityForDate(iso, staffId) || [];
         if(recs.length){
@@ -21837,12 +21843,12 @@ try{
 
         var dayAvail = await fetchJson('/availability/' + encodeURIComponent(iso));
         if(dayAvail){
-          addLinesFromRec(dayAvail[staffId] || dayAvail[String(staffId)] || dayAvail[Number(staffId)], 'Approved', 'â€” on roster');
+          addLinesFromRec(dayAvail[staffId] || dayAvail[String(staffId)] || dayAvail[Number(staffId)], 'Approved', '— on roster');
         }
 
         var dayReqs = await fetchJson('/absenceRequests/' + encodeURIComponent(iso));
         if(dayReqs){
-          addLinesFromRec(dayReqs[staffId] || dayReqs[String(staffId)] || dayReqs[Number(staffId)], 'Pending', 'â€” requested');
+          addLinesFromRec(dayReqs[staffId] || dayReqs[String(staffId)] || dayReqs[Number(staffId)], 'Pending', '— requested');
         }
 
         try{
@@ -22228,7 +22234,7 @@ try{
   }
 
   function countPendingRequests(){
-    // V5.0.22: count only real pending requests, not nested/history request-like objects.
+    // V5.0.21: count only real pending requests, not nested/history request-like objects.
     var app = window.App || {};
     var count = 0;
     function pending(rec){
@@ -22644,7 +22650,7 @@ try{
 
 
 <style id="v5013FullscreenZoomCss">
-  /* V5.0.22 full-screen control colour, auto-fit scaling and in-app pinch zoom support. */
+  /* V5.0.21 full-screen control colour, auto-fit scaling and in-app pinch zoom support. */
   body:not(.week-overview-focus-mode) #btnWeekOverviewFullView {
     background: linear-gradient(135deg, #22c55e, #14b8a6) !important;
     border-color: transparent !important;
@@ -23119,7 +23125,7 @@ try{
 
 
 <style id="v5016StaffMobileActionsStyle">
-  /* V5.0.22 staff mobile action restoration */
+  /* V5.0.21 staff mobile action restoration */
   #v5016StaffDayActions { display:none; }
 
   @media (max-width: 768px) {
@@ -23231,7 +23237,7 @@ try{
   }
 </style>
 <style id="v5018DesktopViewportNavPlannerFixes">
-  /* V5.0.22 desktop-viewport phone fixes: keep fixed navs joined and planner staff actions inside their rows. */
+  /* V5.0.21 desktop-viewport phone fixes: keep fixed navs joined and planner staff actions inside their rows. */
   :root {
     --v5018-bottom-nav-h: calc(76px + env(safe-area-inset-bottom, 0px));
     --v5018-planner-row-h: max(calc(var(--rowH, 38px) + 44px), 82px);
@@ -23280,7 +23286,7 @@ try{
   }
 </style>
 <style id="v5019PlannerScrollLoginScaleFixes">
-  /* V5.0.22: let vertical gestures leave the planner, and make logged-out view readable in desktop viewport. */
+  /* V5.0.21: let vertical gestures leave the planner, and make logged-out view readable in desktop viewport. */
   body.v5-mode:not(.planner-focus-mode):not(.week-overview-focus-mode) #plannerSection .planner {
     overflow-x: auto !important;
     overflow-y: visible !important;
@@ -23541,7 +23547,7 @@ try{
         else card.appendChild(host);
       }
       var lbl = byId('v5016StaffDayLabel');
-      if(lbl) lbl.textContent = 'Propose Away, Partial Away, Propose Edit, Propose Shift, INFO â€” ' + dayName();
+      if(lbl) lbl.textContent = 'Propose Away, Partial Away, Propose Edit, Propose Shift, INFO — ' + dayName();
       var btn = byId('v5016OpenStaffDayTools');
       if(btn && !btn.dataset.v5016Bound){
         btn.dataset.v5016Bound = '1';
@@ -23564,6 +23570,42 @@ try{
   document.addEventListener('click', function(){ setTimeout(tick, 0); }, true);
   window.addEventListener('resize', tick);
   setInterval(tick, 1200);
+})();
+</script>
+<script id="v5022BottomNavVisualViewportPin">
+(function(){
+  'use strict';
+  function updateBottomNavPin(){
+    var nav = document.getElementById('bottomNav');
+    if(!nav) return;
+    var body = document.body;
+    var html = document.documentElement;
+    var active = !!(body && body.classList && body.classList.contains('v5-mode') && !body.classList.contains('v5-logged-out') && html && html.classList && html.classList.contains('desktop-mode-lock'));
+    var vv = window.visualViewport;
+    if(!active || !vv){
+      nav.classList.remove('visual-viewport-pinned');
+      nav.style.left = '';
+      nav.style.right = '';
+      nav.style.width = '';
+      nav.style.bottom = '';
+      return;
+    }
+    var bottomGap = Math.max(0, window.innerHeight - vv.offsetTop - vv.height);
+    nav.classList.add('visual-viewport-pinned');
+    nav.style.left = Math.max(0, vv.offsetLeft) + 'px';
+    nav.style.width = Math.max(280, vv.width) + 'px';
+    nav.style.right = 'auto';
+    nav.style.bottom = bottomGap + 'px';
+  }
+  window.v5022UpdateBottomNavPin = updateBottomNavPin;
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', updateBottomNavPin); else updateBottomNavPin();
+  window.addEventListener('resize', updateBottomNavPin, {passive:true});
+  window.addEventListener('scroll', updateBottomNavPin, {passive:true});
+  if(window.visualViewport){
+    window.visualViewport.addEventListener('resize', updateBottomNavPin, {passive:true});
+    window.visualViewport.addEventListener('scroll', updateBottomNavPin, {passive:true});
+  }
+  setInterval(updateBottomNavPin, 900);
 })();
 </script>
 <script id="v5021UxPolishPatch">
@@ -23818,6 +23860,12 @@ try{
     overflow-x: auto !important;
     overflow-y: hidden !important;
     -webkit-overflow-scrolling: touch;
+  }
+
+  html.desktop-mode-lock body.v5-mode .bottom-nav.visual-viewport-pinned {
+    right: auto !important;
+    max-width: none !important;
+    box-sizing: border-box !important;
   }
 
   html.desktop-mode-lock body.v5-mode:not(.v5-logged-out):not(.planner-focus-mode):not(.week-overview-focus-mode) #plannerSection.show {
@@ -24198,4 +24246,3 @@ try{
 </script>
 </body>
 </html>
-
