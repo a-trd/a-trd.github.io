@@ -57,7 +57,7 @@
     /* V5.0.21 phone desktop native: keep the desktop layout viewport on phones and allow browser pinch zoom. */
     html.desktop-viewport-mobile,
     html.desktop-viewport-mobile body {
-      width: var(--desktop-mobile-width, 1366px) !important;
+      width: max(100%, var(--desktop-mobile-width, 1366px)) !important;
       min-width: var(--desktop-mobile-width, 1366px) !important;
       max-width: none !important;
       overflow-x: auto !important;
@@ -6663,7 +6663,7 @@ var App = {
   // IMPORTANT: Increment App.version *and* App.buildId whenever making functional changes to this file.
   // SAFETY NET: This build performs an automatic runtime check against the file name; if mismatched, it shows a blocking warning so it can't be overlooked.
   version: 'V5.0.21',
-    buildId: '2026-05-09.04',
+    buildId: '2026-05-09.06',
 settings: {
     dbUrl:'https://mnc-atrd-default-rtdb.asia-southeast1.firebasedatabase.app/', workspace:'mnc-atrd', authToken:'',
     theme:'light', themeName:'light-pastel-sky', recentColors:[], appTitle:'Aspire Workforce Command', logoUrl:'',
@@ -21699,13 +21699,6 @@ try{
       wrap.insertBefore(deck, wrap.firstChild);
     }
 
-    var fab = document.createElement('button');
-    fab.type = 'button';
-    fab.id = 'v5CommandFab';
-    fab.className = 'v5-command-fab';
-    fab.innerHTML = '<span>Command</span><span>Ctrl+K</span>';
-    document.body.appendChild(fab);
-
     var modal = document.createElement('div');
     modal.id = 'v5CommandModal';
     modal.className = 'v5-command-modal';
@@ -21727,10 +21720,10 @@ try{
     Object.keys(map).forEach(function(src){ var el=byId(src); if(el) el.onclick=function(){ trigger(map[src]); setTimeout(syncShell, 80); }; });
     var openTop = byId('v5CommandOpenTop');
     var dailyTop = byId('v5DailyOpsTop');
-    var fab = byId('v5CommandFab');
     if(openTop) openTop.onclick = openCommand;
     if(dailyTop) dailyTop.onclick = function(){ trigger('tabDailyOps'); setTimeout(syncShell, 80); };
-    if(fab) fab.onclick = openCommand;
+    var oldFab = byId('v5CommandFab');
+    if(oldFab && oldFab.parentNode) oldFab.parentNode.removeChild(oldFab);
     var modal = byId('v5CommandModal');
     if(modal){ modal.addEventListener('click', function(ev){ if(ev.target === modal) closeCommand(); }); }
     var search = byId('v5CommandSearch');
@@ -22951,6 +22944,8 @@ try{
   var pointerMode = '';
   var pointerBoard = null;
   var usePointerEvents = !!window.PointerEvent;
+  var activeTouchPointers = {};
+  var activeTouchPointerCount = 0;
 
   function closest(el, selector){
     try{ return el && el.closest ? el.closest(selector) : null; }catch(e){ return null; }
@@ -23350,7 +23345,7 @@ try{
 <style id="v5022DesktopScrollFullscreenFixes">
   html.desktop-mode-lock,
   html.desktop-mode-lock body {
-    width: var(--desktop-mobile-width, 1366px) !important;
+    width: max(100%, var(--desktop-mobile-width, 1366px)) !important;
     min-width: var(--desktop-mobile-width, 1366px) !important;
     max-width: none !important;
     overflow-x: auto !important;
@@ -23361,6 +23356,11 @@ try{
     overflow-x: auto !important;
   }
 
+  #v5CommandFab,
+  .v5-command-fab {
+    display: none !important;
+  }
+
   body.v5-mode:not(.planner-focus-mode):not(.week-overview-focus-mode) #plannerSection .planner,
   body.v5-mode:not(.planner-focus-mode):not(.week-overview-focus-mode) #plannerSection #weekOverview {
     overflow-x: auto !important;
@@ -23369,15 +23369,6 @@ try{
     overscroll-behavior-y: auto !important;
     -webkit-overflow-scrolling: touch;
     touch-action: pinch-zoom !important;
-  }
-
-  body.v5-mode:not(.planner-focus-mode):not(.week-overview-focus-mode) #plannerSection.show {
-    max-height: calc(100vh - var(--v5-top-h, 86px) - var(--v5018-bottom-nav-h, 76px) - 18px) !important;
-    overflow-y: auto !important;
-    overflow-x: visible !important;
-    overscroll-behavior-y: contain !important;
-    -webkit-overflow-scrolling: touch;
-    scroll-padding-bottom: calc(var(--v5018-bottom-nav-h, 76px) + 24px);
   }
 
   body.v5-mode:not(.planner-focus-mode):not(.week-overview-focus-mode) #plannerSection #plannerGrid,
@@ -23554,11 +23545,6 @@ try{
     return document.scrollingElement || document.documentElement || document.body;
   }
   function verticalScrollerFor(board){
-    var section = board ? closest(board, '#plannerSection') : null;
-    if(section && section.classList && section.classList.contains('show')){
-      var maxSection = Math.max(0, (section.scrollHeight || 0) - (section.clientHeight || 0));
-      if(maxSection > 1) return section;
-    }
     return rootScroller();
   }
   function scrollPageBy(delta, board){
@@ -23596,6 +23582,20 @@ try{
   function scrollBoardBy(board, delta){
     if(!board) return;
     try{ board.scrollLeft = Math.max(0, (board.scrollLeft || 0) + delta); }catch(e){}
+  }
+  function rememberTouchPointer(ev){
+    if(!ev || ev.pointerType !== 'touch' || ev.pointerId == null) return;
+    if(!activeTouchPointers[ev.pointerId]){
+      activeTouchPointers[ev.pointerId] = true;
+      activeTouchPointerCount++;
+    }
+  }
+  function forgetTouchPointer(ev){
+    if(!ev || ev.pointerType !== 'touch' || ev.pointerId == null) return;
+    if(activeTouchPointers[ev.pointerId]){
+      delete activeTouchPointers[ev.pointerId];
+      activeTouchPointerCount = Math.max(0, activeTouchPointerCount - 1);
+    }
   }
   function finishPointer(){
     if(pointerBoard && pointerId != null){
@@ -23650,6 +23650,30 @@ try{
     btn.onclick = toggleNativeFullscreen;
     syncBottomFullscreen();
   }
+  function removeCommandFab(){
+    var fab = document.getElementById('v5CommandFab');
+    if(fab && fab.parentNode){
+      try{ fab.parentNode.removeChild(fab); }catch(e){}
+    }
+  }
+  function watchCommandFabRemoval(){
+    removeCommandFab();
+    try{
+      var mo = new MutationObserver(function(){ removeCommandFab(); });
+      mo.observe(document.body || document.documentElement, { childList:true, subtree:true });
+    }catch(e){}
+    setTimeout(removeCommandFab, 50);
+    setTimeout(removeCommandFab, 300);
+    setTimeout(removeCommandFab, 1200);
+    try{
+      var tries = 0;
+      var timer = setInterval(function(){
+        tries++;
+        removeCommandFab();
+        if(tries >= 20) clearInterval(timer);
+      }, 500);
+    }catch(e){}
+  }
 
   document.addEventListener('wheel', function(ev){
     if(!ev || ev.defaultPrevented || ev.ctrlKey || ev.metaKey) return;
@@ -23664,6 +23688,11 @@ try{
 
   document.addEventListener('pointerdown', function(ev){
     if(!usePointerEvents || !ev || (ev.pointerType !== 'touch' && ev.pointerType !== 'pen')) return;
+    rememberTouchPointer(ev);
+    if(ev.pointerType === 'touch' && activeTouchPointerCount > 1){
+      finishPointer();
+      return;
+    }
     var board = graphFromTarget(ev.target);
     if(!board || (ev.isPrimary === false)) return;
     pointerTracking = true;
@@ -23677,6 +23706,7 @@ try{
 
   document.addEventListener('pointermove', function(ev){
     if(!usePointerEvents || !pointerTracking || !ev || ev.pointerId !== pointerId) return;
+    if(ev.pointerType === 'touch' && activeTouchPointerCount > 1) return;
     var x = ev.clientX || 0;
     var y = ev.clientY || 0;
     var dx = Math.abs(x - pointerStartX);
@@ -23690,8 +23720,8 @@ try{
     pointerLastY = y;
   }, { passive: false, capture: true });
 
-  document.addEventListener('pointerup', finishPointer, { passive: true, capture: true });
-  document.addEventListener('pointercancel', finishPointer, { passive: true, capture: true });
+  document.addEventListener('pointerup', function(ev){ forgetTouchPointer(ev); finishPointer(); }, { passive: true, capture: true });
+  document.addEventListener('pointercancel', function(ev){ forgetTouchPointer(ev); finishPointer(); }, { passive: true, capture: true });
 
   document.addEventListener('touchstart', function(ev){
     if(usePointerEvents) return;
@@ -23733,6 +23763,7 @@ try{
   document.addEventListener('mozfullscreenchange', syncBottomFullscreen);
   document.addEventListener('MSFullscreenChange', syncBottomFullscreen);
 
+  watchCommandFabRemoval();
   if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bindBottomFullscreen);
   else bindBottomFullscreen();
 })();
