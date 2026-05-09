@@ -23802,27 +23802,33 @@ try{
       nav.style.removeProperty('left');
       nav.style.removeProperty('right');
       nav.style.removeProperty('width');
+      nav.style.removeProperty('min-width');
+      nav.style.removeProperty('max-width');
       nav.style.removeProperty('bottom');
       nav.style.removeProperty('transform');
       nav.style.removeProperty('position');
       return;
     }
-    var viewportWidth = Math.max(280, Math.floor((vv && vv.width) || window.innerWidth || document.documentElement.clientWidth || 320));
+    var viewportWidth = Math.max(1, Math.floor((vv && vv.width) || window.innerWidth || document.documentElement.clientWidth || 320));
+    var viewportLeft = Math.round((vv && vv.offsetLeft) || 0);
     var bottomGap = vv ? Math.max(0, window.innerHeight - vv.offsetTop - vv.height) : 0;
     nav.classList.add('visual-viewport-pinned');
     nav.style.setProperty('position', 'fixed', 'important');
     nav.style.setProperty('left', '0px', 'important');
     nav.style.setProperty('width', viewportWidth + 'px', 'important');
+    nav.style.setProperty('min-width', '0px', 'important');
+    nav.style.setProperty('max-width', 'none', 'important');
     nav.style.setProperty('right', 'auto', 'important');
     nav.style.setProperty('bottom', bottomGap + 'px', 'important');
-    nav.style.setProperty('transform', 'translate3d(0,0,0)', 'important');
+    nav.style.setProperty('transform', 'translate3d(' + viewportLeft + 'px,0,0)', 'important');
     if(raf) cancelAnimationFrame(raf);
     raf = requestAnimationFrame(function(){
       raf = 0;
       try{
         var rect = nav.getBoundingClientRect();
-        var dx = -rect.left;
-        if(Math.abs(dx) < 0.5) dx = 0;
+        var targetLeft = vv ? 0 : viewportLeft;
+        var dx = viewportLeft + targetLeft - rect.left;
+        if(Math.abs(dx - viewportLeft) < 0.5) dx = viewportLeft;
         nav.style.setProperty('transform', 'translate3d(' + dx + 'px,0,0)', 'important');
       }catch(e){}
     });
@@ -24096,6 +24102,7 @@ try{
 
   html.desktop-mode-lock body.v5-mode .bottom-nav.visual-viewport-pinned {
     right: auto !important;
+    min-width: 0 !important;
     max-width: none !important;
     box-sizing: border-box !important;
     will-change: transform, left, width, bottom;
