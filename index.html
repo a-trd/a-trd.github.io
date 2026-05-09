@@ -2,28 +2,32 @@
 <html lang="en">
 <head>
   <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+  <meta name="viewport" content="width=1366, initial-scale=1, minimum-scale=0.20, maximum-scale=5, user-scalable=yes, viewport-fit=cover"/>
   <script id="v508MobileComfortViewport">
     (function(){
       'use strict';
       var DESKTOP_VIEWPORT_BASE_WIDTH = 1366;
-      var DEFAULT_DESKTOP_SCALE_PERCENT = 120;
-      function clampScale(v){
+      var MIN_INITIAL_SCALE = 0.20;
+      var MAX_PINCH_SCALE = 5;
+      var DEFAULT_DESKTOP_SCALE_PERCENT = 100;
+      function clamp(v, min, max){
         v = parseFloat(v);
-        if(!isFinite(v)) v = DEFAULT_DESKTOP_SCALE_PERCENT;
-        return Math.max(80, Math.min(150, v));
+        if(!isFinite(v)) v = min;
+        return Math.max(min, Math.min(max, v));
       }
-      function viewportWidthForScale(scale){
-        return Math.round(DESKTOP_VIEWPORT_BASE_WIDTH * 100 / clampScale(scale));
-      }
-      function scaleFromApp(){
+      function appScalePercent(){
+        var value = DEFAULT_DESKTOP_SCALE_PERCENT;
         try{
-          if(window.App && App.settings && App.settings.appScalePercent != null) return App.settings.appScalePercent;
+          if(window.App && App.settings && App.settings.appScalePercent != null) value = App.settings.appScalePercent;
         }catch(e){}
-        return DEFAULT_DESKTOP_SCALE_PERCENT;
+        return clamp(value, 80, 150);
       }
-      function viewportContent(scale){
-        return 'width=device-width, initial-scale=1, viewport-fit=cover';
+      function viewportContent(){
+        return 'width=' + DESKTOP_VIEWPORT_BASE_WIDTH +
+          ', initial-scale=1' +
+          ', minimum-scale=' + MIN_INITIAL_SCALE.toFixed(2) +
+          ', maximum-scale=' + MAX_PINCH_SCALE +
+          ', user-scalable=yes, viewport-fit=cover';
       }
       function setViewport(){
         var meta = document.querySelector('meta[name="viewport"]');
@@ -32,13 +36,14 @@
           meta.name = 'viewport';
           document.head.appendChild(meta);
         }
-        var scale = clampScale(scaleFromApp());
-        meta.setAttribute('content', viewportContent(scale));
+        meta.setAttribute('content', viewportContent());
         document.documentElement.classList.remove('mobile-comfort-view');
-        document.documentElement.classList.remove('desktop-viewport-mobile');
-        document.documentElement.classList.add('fluid-responsive-view');
-        document.documentElement.style.setProperty('--desktop-mobile-width', viewportWidthForScale(scale) + 'px');
-        document.documentElement.style.setProperty('--app-scale-percent', String(scale));
+        document.documentElement.classList.remove('fluid-responsive-view');
+        document.documentElement.classList.add('desktop-viewport-mobile');
+        document.documentElement.classList.add('desktop-mode-lock');
+        document.documentElement.style.setProperty('--desktop-mobile-width', DESKTOP_VIEWPORT_BASE_WIDTH + 'px');
+        document.documentElement.style.setProperty('--desktop-phone-fit-scale', '1.000');
+        document.documentElement.style.setProperty('--app-scale-percent', String(appScalePercent()));
       }
       window.applyDesktopViewportScale = setViewport;
       setViewport();
@@ -48,8 +53,23 @@
       window.addEventListener('resize', function(){ setTimeout(setViewport, 80); });
     })();
   </script>
+  <style id="v5021PhoneDesktopViewportCss">
+    /* V5.0.21 phone desktop native: keep the desktop layout viewport on phones and allow browser pinch zoom. */
+    html.desktop-viewport-mobile,
+    html.desktop-viewport-mobile body {
+      width: var(--desktop-mobile-width, 1366px) !important;
+      min-width: var(--desktop-mobile-width, 1366px) !important;
+      max-width: none !important;
+      overflow-x: auto !important;
+      touch-action: pan-x pan-y pinch-zoom;
+    }
 
-<title>Aspire Workforce Command (V5.0.21)</title>
+    html.desktop-viewport-mobile body {
+      min-height: 100vh;
+    }
+  </style>
+
+<title>Aspire Workforce Command (V5.0.21 Phone Desktop Native)</title>
   <meta name="theme-color" content="#22c55e"/>
 
   <style>
@@ -6643,14 +6663,14 @@ var App = {
   // IMPORTANT: Increment App.version *and* App.buildId whenever making functional changes to this file.
   // SAFETY NET: This build performs an automatic runtime check against the file name; if mismatched, it shows a blocking warning so it can't be overlooked.
   version: 'V5.0.21',
-    buildId: '2026-05-02.02',
+    buildId: '2026-05-09.03',
 settings: {
     dbUrl:'https://mnc-atrd-default-rtdb.asia-southeast1.firebasedatabase.app/', workspace:'mnc-atrd', authToken:'',
     theme:'light', themeName:'light-pastel-sky', recentColors:[], appTitle:'Aspire Workforce Command', logoUrl:'',
     autoPullMins: 0, autoPushMins: 0,
     // idle display mode
     idleFullscreenEnabled: false, idleFullscreenMins: 10, idleFullscreenTarget: 'planner',
-    appScalePercent: 120,
+    appScalePercent: 100,
     // planner
     gridStartHour: 8, gridHours: 16, slotMins: 30, targetHeadcount: 0,
     // week overview shift badge windows (24h HH:MM)
@@ -6721,7 +6741,7 @@ function ensureSettingsDefaults(){
     if(App.settings.idleFullscreenEnabled === undefined) App.settings.idleFullscreenEnabled = false;
     if(App.settings.idleFullscreenMins == null || isNaN(parseFloat(App.settings.idleFullscreenMins))) App.settings.idleFullscreenMins = 10;
     if(!App.settings.idleFullscreenTarget) App.settings.idleFullscreenTarget = 'planner';
-    if(App.settings.appScalePercent == null || isNaN(parseFloat(App.settings.appScalePercent))) App.settings.appScalePercent = 120;
+    if(App.settings.appScalePercent == null || isNaN(parseFloat(App.settings.appScalePercent))) App.settings.appScalePercent = 100;
   }catch(e){}
 }
 
@@ -6797,7 +6817,7 @@ function normalizeCoreState(){
     App.settings.idleFullscreenEnabled = (App.settings.idleFullscreenEnabled === true || App.settings.idleFullscreenEnabled === 'true');
     App.settings.idleFullscreenMins = clampFloat(App.settings.idleFullscreenMins, 0.25, 1440, 10);
     App.settings.idleFullscreenTarget = (String(App.settings.idleFullscreenTarget||'planner') === 'weekOverview') ? 'weekOverview' : 'planner';
-    App.settings.appScalePercent = clampFloat(App.settings.appScalePercent, 80, 150, 120);
+    App.settings.appScalePercent = clampFloat(App.settings.appScalePercent, 80, 150, 100);
     App.settings.requestsPopupCooldownSecs = clampInt(App.settings.requestsPopupCooldownSecs, 5, 86400, 60);
     App.settings.requestsNotifySoundVolume = clampFloat(App.settings.requestsNotifySoundVolume, 0, 1, 0.7);
     App.settings.dayShiftStart = to24hhmm(App.settings.dayShiftStart, '09:00');
@@ -8368,7 +8388,7 @@ function syncSettingsUIFromApp(){
     var __aq=document.getElementById('autoPushMinsInput');
     if(__aq) __aq.value = App.settings.autoPushMins||0;
     var __scale=document.getElementById('appScalePercentInput');
-    if(__scale) __scale.value = String(App.settings.appScalePercent || 120);
+    if(__scale) __scale.value = String(App.settings.appScalePercent || 100);
     try{ if(typeof window.applyDesktopViewportScale === 'function') window.applyDesktopViewportScale(); }catch(e){}
     try{ syncIdleFullscreenSettingsUI(); }catch(e){}
     var __oh=document.getElementById('optStartHour');
@@ -8848,14 +8868,25 @@ function togglePlannerFocusMode(){
   else enterPlannerFocusMode();
 }
 function toggleAppFullscreen(){
-  togglePlannerFocusMode();
+  if(isPlannerFocusActive()) exitPlannerFocusMode({skipNative:true});
+  if(isWeekOverviewFocusActive()) exitWeekOverviewFocusMode({skipNative:true});
+  if(isFullscreenActive()){
+    var p = exitAppFullscreen();
+    try{ if(p && p.catch) p.catch(function(){}); }catch(e){}
+  }else{
+    var el = document.documentElement || document.body;
+    var q = requestAppFullscreen(el);
+    try{ if(q && q.catch) q.catch(function(){}); }catch(e){}
+  }
+  syncFullscreenButton();
 }
 function syncFullscreenButton(){
-  var active = isPlannerFocusActive() || isWeekOverviewFocusActive() || isFullscreenActive();
+  var active = isFullscreenActive();
   var btn = byId('bottomFullscreen');
   if(btn){
     var label = btn.querySelector('.label');
     if(label) label.textContent = active ? 'Exit' : 'Full';
+    btn.title = active ? 'Exit browser full screen' : 'Open the whole app in browser full screen';
     try{ btn.setAttribute('aria-pressed', active ? 'true' : 'false'); }catch(e){}
   }
   var plannerBtn = byId('btnPlannerFullView');
@@ -9112,7 +9143,7 @@ function init(){
     App.settings.logoUrl=(byId('logoUrlInput') && byId('logoUrlInput').value||'').trim();
     App.settings.autoPullMins=parseInt(byId('autoPullMinsInput').value||'0',10)||0;
     App.settings.autoPushMins=parseInt(byId('autoPushMinsInput').value||'0',10)||0;
-    App.settings.appScalePercent = Math.max(80, Math.min(150, parseFloat((byId('appScalePercentInput') && byId('appScalePercentInput').value) || '120') || 120));
+    App.settings.appScalePercent = Math.max(80, Math.min(150, parseFloat((byId('appScalePercentInput') && byId('appScalePercentInput').value) || '100') || 100));
     try{ if(typeof window.applyDesktopViewportScale === 'function') window.applyDesktopViewportScale(); }catch(e){}
     App.settings.idleFullscreenEnabled = !!(byId('idleFullscreenEnabled') && byId('idleFullscreenEnabled').checked);
     App.settings.idleFullscreenMins = Math.max(0.25, Math.min(1440, parseFloat((byId('idleFullscreenMins') && byId('idleFullscreenMins').value) || '10') || 10));
@@ -9307,7 +9338,7 @@ function init(){
   var bottomUndo=byId('bottomUndo'); if(bottomUndo) bottomUndo.onclick=function(){ historyUndo(); };
   var bottomRedo=byId('bottomRedo'); if(bottomRedo) bottomRedo.onclick=function(){ historyRedo(); };
   var bottomFullscreen=byId('bottomFullscreen');
-  if(bottomFullscreen) bottomFullscreen.onclick=function(){ togglePlannerFocusMode(); };
+  if(bottomFullscreen) bottomFullscreen.onclick=function(){ toggleAppFullscreen(); };
   var plannerFullView=byId('btnPlannerFullView');
   if(plannerFullView) plannerFullView.onclick=function(){ togglePlannerFocusMode(); };
   var weekOverviewFullView=byId('btnWeekOverviewFullView');
@@ -22223,7 +22254,7 @@ try{
   body.planner-focus-mode #plannerSection .planner,
   body.week-overview-focus-mode #plannerSection #weekOverview {
     overflow-y: auto !important;
-    overflow-x: hidden !important;
+    overflow-x: auto !important;
     overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
   }
@@ -22418,7 +22449,7 @@ try{
     var needsPan = !!manual[type] && value > (fit + 0.015);
     try{ target.container.classList.toggle('focus-manual-zoom', needsPan); }catch(e){}
     try{ target.container.style.setProperty('overflow-y', 'auto', 'important'); }catch(e){}
-    try{ target.container.style.setProperty('overflow-x', needsPan ? 'auto' : 'hidden', 'important'); }catch(e){}
+    try{ target.container.style.setProperty('overflow-x', 'auto', 'important'); }catch(e){}
     if(!needsPan){ try{ target.container.scrollLeft = 0; }catch(e){} }
   }
   function setZoom(type, value, center, anchor){
@@ -22907,7 +22938,19 @@ try{
   var tracking = false;
   var startX = 0;
   var startY = 0;
+  var lastX = 0;
   var lastY = 0;
+  var gestureMode = '';
+  var gestureBoard = null;
+  var pointerTracking = false;
+  var pointerId = null;
+  var pointerStartX = 0;
+  var pointerStartY = 0;
+  var pointerLastX = 0;
+  var pointerLastY = 0;
+  var pointerMode = '';
+  var pointerBoard = null;
+  var usePointerEvents = !!window.PointerEvent;
 
   function closest(el, selector){
     try{ return el && el.closest ? el.closest(selector) : null; }catch(e){ return null; }
@@ -23304,150 +23347,367 @@ try{
   setInterval(tick, 1500);
 })();
 </script>
-<style id="v5022PlannerScrollRepair">
-  body.v5-mode:not(.planner-focus-mode):not(.week-overview-focus-mode) {
-    overflow-y: auto !important;
-    touch-action: pan-y pinch-zoom;
-  }
-
-  body.v5-mode:not(.planner-focus-mode):not(.week-overview-focus-mode) .wrap,
-  body.v5-mode:not(.planner-focus-mode):not(.week-overview-focus-mode) #plannerSection,
-  body.v5-mode:not(.planner-focus-mode):not(.week-overview-focus-mode) #plannerSection .card {
-    overflow: visible !important;
-  }
-
-  body.v5-mode:not(.planner-focus-mode):not(.week-overview-focus-mode) #plannerSection .planner {
+<style id="v5022DesktopScrollFullscreenFixes">
+  html.desktop-mode-lock,
+  html.desktop-mode-lock body {
+    width: var(--desktop-mobile-width, 1366px) !important;
+    min-width: var(--desktop-mobile-width, 1366px) !important;
+    max-width: none !important;
     overflow-x: auto !important;
-    overflow-y: visible !important;
-    overscroll-behavior-x: contain !important;
-    overscroll-behavior-y: auto !important;
-    touch-action: pan-x pan-y pinch-zoom !important;
-    -webkit-overflow-scrolling: touch;
+    touch-action: pan-x pan-y pinch-zoom;
   }
 
+  html.desktop-mode-lock body.v5-mode {
+    overflow-x: auto !important;
+  }
+
+  body.v5-mode:not(.planner-focus-mode):not(.week-overview-focus-mode) #plannerSection .planner,
   body.v5-mode:not(.planner-focus-mode):not(.week-overview-focus-mode) #plannerSection #weekOverview {
     overflow-x: auto !important;
-    overflow-y: visible !important;
+    overflow-y: hidden !important;
     overscroll-behavior-x: contain !important;
     overscroll-behavior-y: auto !important;
-    touch-action: pan-x pan-y pinch-zoom !important;
     -webkit-overflow-scrolling: touch;
+    touch-action: none !important;
+  }
+
+  body.v5-mode:not(.planner-focus-mode):not(.week-overview-focus-mode) #plannerSection.show {
+    max-height: calc(100vh - var(--v5-top-h, 86px) - var(--v5018-bottom-nav-h, 76px) - 18px) !important;
+    overflow-y: auto !important;
+    overflow-x: visible !important;
+    overscroll-behavior-y: contain !important;
+    -webkit-overflow-scrolling: touch;
+    scroll-padding-bottom: calc(var(--v5018-bottom-nav-h, 76px) + 24px);
+  }
+
+  body.v5-mode:not(.planner-focus-mode):not(.week-overview-focus-mode) #plannerSection #plannerGrid,
+  body.v5-mode:not(.planner-focus-mode):not(.week-overview-focus-mode) #plannerSection #plannerGrid *,
+  body.v5-mode:not(.planner-focus-mode):not(.week-overview-focus-mode) #plannerSection #weekOverview * {
+    touch-action: none !important;
+  }
+
+  body.planner-focus-mode #plannerSection .planner,
+  body.week-overview-focus-mode #plannerSection #weekOverview {
+    overflow: auto !important;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-x pan-y pinch-zoom;
+  }
+
+  @media (max-width: 980px) {
+    html.desktop-mode-lock body.v5-mode .v5-rail {
+      display: flex !important;
+      bottom: var(--v5018-bottom-nav-h, 76px) !important;
+    }
+
+    html.desktop-mode-lock body.v5-mode .v5-topbar {
+      margin-left: var(--v5-rail-w) !important;
+      grid-template-columns: minmax(0,1fr) auto !important;
+      gap: 14px !important;
+      min-height: var(--v5-top-h) !important;
+      padding: 13px 18px !important;
+    }
+
+    html.desktop-mode-lock body.v5-mode .v5-top-actions {
+      justify-content: flex-end !important;
+      overflow-x: visible !important;
+      flex-wrap: wrap !important;
+      padding-bottom: 0 !important;
+    }
+
+    html.desktop-mode-lock body.v5-mode .wrap {
+      margin-left: var(--v5-rail-w) !important;
+      width: calc(100% - var(--v5-rail-w)) !important;
+      max-width: none !important;
+      padding: 14px 18px 42px !important;
+    }
+
+    html.desktop-mode-lock body.v5-mode .v5-ops-deck {
+      grid-template-columns: repeat(4, minmax(0,1fr)) !important;
+    }
+
+    html.desktop-mode-lock body.v5-mode .bottom-nav {
+      display: flex !important;
+      min-height: var(--v5018-bottom-nav-h, 76px) !important;
+      overflow-x: auto !important;
+      overflow-y: hidden !important;
+    }
+
+    html.desktop-mode-lock body.v5-mode .v5-command-fab {
+      right: 22px !important;
+      bottom: calc(var(--v5018-bottom-nav-h, 76px) + 18px) !important;
+    }
+
+    html.desktop-mode-lock body.v5-mode.v5-logged-out .wrap {
+      margin-left: 0 !important;
+      width: 100% !important;
+      padding: 36px 56px !important;
+    }
+
+    html.desktop-mode-lock body.v5-mode.v5-logged-out .v5-rail,
+    html.desktop-mode-lock body.v5-mode.v5-logged-out .v5-topbar,
+    html.desktop-mode-lock body.v5-mode.v5-logged-out .v5-ops-deck,
+    html.desktop-mode-lock body.v5-mode.v5-logged-out .v5-command-fab {
+      display: none !important;
+    }
+
+    html.desktop-mode-lock body.v5-mode.v5-logged-out .bottom-nav {
+      display: none !important;
+    }
+
+    html.desktop-mode-lock .appbar,
+    html.desktop-mode-lock .toolbar,
+    html.desktop-mode-lock .topbar,
+    html.desktop-mode-lock .request-bulk-bar {
+      align-items: center !important;
+    }
+  }
+
+  @media (max-width: 640px) {
+    html.desktop-mode-lock .appbar,
+    html.desktop-mode-lock .toolbar,
+    html.desktop-mode-lock .request-bulk-bar,
+    html.desktop-mode-lock .request-bulk-actions {
+      flex-direction: row !important;
+      flex-wrap: wrap !important;
+    }
+
+    html.desktop-mode-lock .toolbar button,
+    html.desktop-mode-lock .appbar button,
+    html.desktop-mode-lock .request-bulk-actions button {
+      width: auto !important;
+    }
+  }
+
+  @media (max-width: 768px) {
+    html.desktop-mode-lock .v505-mobile-planner-help {
+      display: none !important;
+    }
+
+    html.desktop-mode-lock #plannerSection .planner {
+      margin-left: 0 !important;
+      margin-right: 0 !important;
+    }
   }
 </style>
-
-<script id="v5022PlannerScrollRepairScript">
+<script id="v5022GraphScrollFullscreenPatch">
 (function(){
   'use strict';
-  var trackingTouch = false;
+
+  var tracking = false;
   var startX = 0;
   var startY = 0;
+  var lastX = 0;
   var lastY = 0;
+  var gestureMode = '';
+  var gestureBoard = null;
+  var pointerTracking = false;
+  var pointerId = null;
+  var pointerStartX = 0;
+  var pointerStartY = 0;
+  var pointerLastX = 0;
+  var pointerLastY = 0;
+  var pointerMode = '';
+  var pointerBoard = null;
+  var usePointerEvents = !!window.PointerEvent;
 
   function closest(el, selector){
-    try {
-      return el && el.closest ? el.closest(selector) : null;
-    } catch (e) {
-      return null;
-    }
+    try{ return el && el.closest ? el.closest(selector) : null; }catch(e){ return null; }
   }
-
   function focusModeActive(){
-    return !!(document.body && document.body.classList && (
-      document.body.classList.contains('planner-focus-mode') ||
-      document.body.classList.contains('week-overview-focus-mode')
-    ));
+    try{
+      return !!(document.body && document.body.classList && (document.body.classList.contains('planner-focus-mode') || document.body.classList.contains('week-overview-focus-mode')));
+    }catch(e){ return false; }
   }
-
-  function plannerScrollAreaFromEvent(ev){
-    if (focusModeActive() || !ev || !ev.target) return null;
-    if (closest(ev.target, '.modal') || closest(ev.target, '.v5-command-modal')) return null;
-    return closest(ev.target, '#plannerSection .planner, #plannerSection #weekOverview');
+  function graphFromTarget(target){
+    if(focusModeActive()) return null;
+    if(closest(target, '.modal') || closest(target, '.v5-command-modal')) return null;
+    return closest(target, '#plannerSection .planner, #plannerSection #weekOverview');
   }
-
-  function maxScroll(el){
-    if (!el) return 0;
-    return Math.max(0, (el.scrollHeight || 0) - (el.clientHeight || 0));
+  function rootScroller(){
+    return document.scrollingElement || document.documentElement || document.body;
   }
-
-  function pageScroller(){
-    var candidates = [
-      document.scrollingElement,
-      document.documentElement,
-      document.body,
-      document.querySelector('.wrap')
-    ];
-
-    for (var i = 0; i < candidates.length; i++) {
-      var el = candidates[i];
-      if (el && maxScroll(el) > 1) return el;
+  function verticalScrollerFor(board){
+    var section = board ? closest(board, '#plannerSection') : null;
+    if(section && section.classList && section.classList.contains('show')){
+      var maxSection = Math.max(0, (section.scrollHeight || 0) - (section.clientHeight || 0));
+      if(maxSection > 1) return section;
     }
+    return rootScroller();
+  }
+  function scrollPageBy(delta, board){
+    var root = verticalScrollerFor(board);
+    if(!root) return;
+    var max = Math.max(0, (root.scrollHeight || 0) - (root.clientHeight || 0));
+    if(max > 1){
+      var next = Math.max(0, Math.min(max, (root.scrollTop || 0) + delta));
+      var before = root.scrollTop || 0;
+      root.scrollTop = next;
+      if(root === document.scrollingElement || root === document.documentElement || root === document.body){
+        if(Math.abs((root.scrollTop || 0) - before) < 0.5){
+          try{ document.documentElement.scrollTop = next; }catch(e){}
+          try{ document.body.scrollTop = next; }catch(e){}
+        }
+      }else if(Math.abs((root.scrollTop || 0) - before) < 0.5){
+        try{ document.documentElement.scrollTop = next; }catch(e){}
+        try{ document.body.scrollTop = next; }catch(e){}
+      }
+    }else{
+      try{ window.scrollBy(0, delta); }catch(e){}
+    }
+  }
+  function stopGestureDefault(ev){
+    try{ ev.preventDefault(); }catch(e){}
+    try{ ev.stopImmediatePropagation(); }catch(e){}
+    try{ ev.stopPropagation(); }catch(e){}
+  }
+  function chooseMode(dx, dy){
+    if(Math.max(dx, dy) < 7) return '';
+    if(dy > dx + 4) return 'page';
+    if(dx > dy + 4) return 'board';
+    return '';
+  }
+  function scrollBoardBy(board, delta){
+    if(!board) return;
+    try{ board.scrollLeft = Math.max(0, (board.scrollLeft || 0) + delta); }catch(e){}
+  }
+  function finishPointer(){
+    if(pointerBoard && pointerId != null){
+      try{ pointerBoard.releasePointerCapture(pointerId); }catch(e){}
+    }
+    pointerTracking = false;
+    pointerId = null;
+    pointerMode = '';
+    pointerBoard = null;
+  }
+  function nativeFullscreenActive(){
+    return !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement);
+  }
+  function requestWholeAppFullscreen(){
+    var el = document.documentElement || document.body;
+    if(!el) return null;
+    try{
+      if(el.requestFullscreen) return el.requestFullscreen();
+      if(el.webkitRequestFullscreen) return el.webkitRequestFullscreen();
+      if(el.mozRequestFullScreen) return el.mozRequestFullScreen();
+      if(el.msRequestFullscreen) return el.msRequestFullscreen();
+    }catch(e){}
     return null;
   }
-
-  function scrollPage(delta){
-    var el = pageScroller();
-    if (el) {
-      var next = (el.scrollTop || 0) + delta;
-      el.scrollTop = Math.max(0, Math.min(maxScroll(el), next));
-      return;
-    }
-
-    try {
-      window.scrollBy(0, delta);
-    } catch (e) {}
+  function exitWholeAppFullscreen(){
+    try{
+      if(document.exitFullscreen) return document.exitFullscreen();
+      if(document.webkitExitFullscreen) return document.webkitExitFullscreen();
+      if(document.mozCancelFullScreen) return document.mozCancelFullScreen();
+      if(document.msExitFullscreen) return document.msExitFullscreen();
+    }catch(e){}
+    return null;
+  }
+  function syncBottomFullscreen(){
+    var btn = document.getElementById('bottomFullscreen');
+    if(!btn) return;
+    var active = nativeFullscreenActive();
+    var label = btn.querySelector('.label');
+    if(label) label.textContent = active ? 'Exit' : 'Full';
+    btn.title = active ? 'Exit browser full screen' : 'Open the whole app in browser full screen';
+    try{ btn.setAttribute('aria-pressed', active ? 'true' : 'false'); }catch(e){}
+  }
+  function toggleNativeFullscreen(){
+    var p = nativeFullscreenActive() ? exitWholeAppFullscreen() : requestWholeAppFullscreen();
+    try{ if(p && p.catch) p.catch(function(){}); }catch(e){}
+    setTimeout(syncBottomFullscreen, 0);
+  }
+  function bindBottomFullscreen(){
+    var btn = document.getElementById('bottomFullscreen');
+    if(!btn || btn.dataset.v5022FullscreenBound) return;
+    btn.dataset.v5022FullscreenBound = '1';
+    btn.onclick = toggleNativeFullscreen;
+    syncBottomFullscreen();
   }
 
   document.addEventListener('wheel', function(ev){
-    var scrollArea = plannerScrollAreaFromEvent(ev);
-    if (!scrollArea || ev.defaultPrevented || ev.ctrlKey || ev.metaKey) return;
-
+    if(!ev || ev.defaultPrevented || ev.ctrlKey || ev.metaKey) return;
+    var board = graphFromTarget(ev.target);
+    if(!board) return;
     var dy = ev.deltaY || 0;
     var dx = ev.deltaX || 0;
-    if (Math.abs(dy) < 1 || Math.abs(dx) > Math.abs(dy) || ev.shiftKey) return;
+    if(Math.abs(dy) < 1 || Math.abs(dx) > Math.abs(dy) || ev.shiftKey) return;
+    stopGestureDefault(ev);
+    scrollPageBy(dy, board);
+  }, { passive: false, capture: true });
 
-    ev.preventDefault();
-    ev.stopImmediatePropagation();
-    scrollPage(dy);
-  }, { capture: true, passive: false });
+  document.addEventListener('pointerdown', function(ev){
+    if(!usePointerEvents || !ev || (ev.pointerType !== 'touch' && ev.pointerType !== 'pen')) return;
+    var board = graphFromTarget(ev.target);
+    if(!board || (ev.isPrimary === false)) return;
+    pointerTracking = true;
+    pointerId = ev.pointerId;
+    pointerBoard = board;
+    pointerMode = '';
+    pointerStartX = pointerLastX = ev.clientX || 0;
+    pointerStartY = pointerLastY = ev.clientY || 0;
+    try{ board.setPointerCapture(pointerId); }catch(e){}
+  }, { passive: true, capture: true });
+
+  document.addEventListener('pointermove', function(ev){
+    if(!usePointerEvents || !pointerTracking || !ev || ev.pointerId !== pointerId) return;
+    var x = ev.clientX || 0;
+    var y = ev.clientY || 0;
+    var dx = Math.abs(x - pointerStartX);
+    var dy = Math.abs(y - pointerStartY);
+    if(!pointerMode) pointerMode = chooseMode(dx, dy);
+    if(!pointerMode) return;
+    stopGestureDefault(ev);
+    if(pointerMode === 'page') scrollPageBy(pointerLastY - y, pointerBoard);
+    else scrollBoardBy(pointerBoard, pointerLastX - x);
+    pointerLastX = x;
+    pointerLastY = y;
+  }, { passive: false, capture: true });
+
+  document.addEventListener('pointerup', finishPointer, { passive: true, capture: true });
+  document.addEventListener('pointercancel', finishPointer, { passive: true, capture: true });
 
   document.addEventListener('touchstart', function(ev){
-    var scrollArea = plannerScrollAreaFromEvent(ev);
-    if (!scrollArea || !ev.touches || ev.touches.length !== 1) {
-      trackingTouch = false;
+    if(usePointerEvents) return;
+    if(!ev || !ev.touches || ev.touches.length !== 1 || !graphFromTarget(ev.target)){
+      tracking = false;
       return;
     }
-
-    var touch = ev.touches[0];
-    trackingTouch = true;
-    startX = touch.clientX;
-    startY = touch.clientY;
-    lastY = touch.clientY;
-  }, { capture: true, passive: true });
+    var t = ev.touches[0];
+    gestureBoard = graphFromTarget(ev.target);
+    tracking = true;
+    gestureMode = '';
+    startX = t.clientX || 0;
+    startY = t.clientY || 0;
+    lastX = startX;
+    lastY = startY;
+  }, { passive: true, capture: true });
 
   document.addEventListener('touchmove', function(ev){
-    if (!trackingTouch || !ev.touches || ev.touches.length !== 1 || focusModeActive()) return;
+    if(usePointerEvents) return;
+    if(!tracking || !ev || !ev.touches || ev.touches.length !== 1) return;
+    var t = ev.touches[0];
+    var x = t.clientX || 0;
+    var y = t.clientY || 0;
+    var dx = Math.abs(x - startX);
+    var dy = Math.abs(y - startY);
+    if(!gestureMode) gestureMode = chooseMode(dx, dy);
+    if(!gestureMode) return;
+    stopGestureDefault(ev);
+    if(gestureMode === 'page') scrollPageBy(lastY - y, gestureBoard);
+    else scrollBoardBy(gestureBoard, lastX - x);
+    lastX = x;
+    lastY = y;
+  }, { passive: false, capture: true });
 
-    var touch = ev.touches[0];
-    var dx = Math.abs(touch.clientX - startX);
-    var dy = Math.abs(touch.clientY - startY);
-    if (dy <= dx + 6) return;
+  document.addEventListener('touchend', function(){ tracking = false; gestureMode = ''; gestureBoard = null; }, { passive: true, capture: true });
+  document.addEventListener('touchcancel', function(){ tracking = false; gestureMode = ''; gestureBoard = null; }, { passive: true, capture: true });
+  document.addEventListener('fullscreenchange', syncBottomFullscreen);
+  document.addEventListener('webkitfullscreenchange', syncBottomFullscreen);
+  document.addEventListener('mozfullscreenchange', syncBottomFullscreen);
+  document.addEventListener('MSFullscreenChange', syncBottomFullscreen);
 
-    var delta = lastY - touch.clientY;
-    if (Math.abs(delta) < 1) return;
-
-    ev.preventDefault();
-    ev.stopImmediatePropagation();
-    scrollPage(delta);
-    lastY = touch.clientY;
-  }, { capture: true, passive: false });
-
-  document.addEventListener('touchend', function(){
-    trackingTouch = false;
-  }, { capture: true, passive: true });
-
-  document.addEventListener('touchcancel', function(){
-    trackingTouch = false;
-  }, { capture: true, passive: true });
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bindBottomFullscreen);
+  else bindBottomFullscreen();
 })();
 </script>
 </body>
