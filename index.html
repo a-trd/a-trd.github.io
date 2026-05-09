@@ -4237,7 +4237,7 @@
     body.v5-mode:not(.planner-focus-mode):not(.week-overview-focus-mode) #plannerSection .planner {
       max-width: 100% !important;
       overflow-x: auto !important;
-      overflow-y: hidden !important;
+      overflow-y: visible !important;
       overscroll-behavior-x: contain !important;
       overscroll-behavior-y: auto !important;
       -webkit-overflow-scrolling: touch;
@@ -4704,6 +4704,8 @@
   }
 
   document.addEventListener('wheel', function(ev){
+    // Let the browser handle planner wheel and page zoom/pan natively.
+    return;
     if(!ev || ev.defaultPrevented || ev.ctrlKey || ev.metaKey || focusModeActive()) return;
     var target = ev.target;
     if(closest(target, '.modal') || closest(target, '.v5-command-modal')) return;
@@ -6663,7 +6665,7 @@ var App = {
   // IMPORTANT: Increment App.version *and* App.buildId whenever making functional changes to this file.
   // SAFETY NET: This build performs an automatic runtime check against the file name; if mismatched, it shows a blocking warning so it can't be overlooked.
   version: 'V5.0.21',
-    buildId: '2026-05-09.06',
+    buildId: '2026-05-09.07',
 settings: {
     dbUrl:'https://mnc-atrd-default-rtdb.asia-southeast1.firebasedatabase.app/', workspace:'mnc-atrd', authToken:'',
     theme:'light', themeName:'light-pastel-sky', recentColors:[], appTitle:'Aspire Workforce Command', logoUrl:'',
@@ -22674,6 +22676,8 @@ try{
   }
 
   document.addEventListener('wheel', function(ev){
+    // Native scroll chaining is more reliable here than manual pass-through.
+    return;
     try{
       if(!ev || ev.defaultPrevented || ev.ctrlKey || ev.metaKey) return;
       if(hasBodyClass('planner-focus-mode') || hasBodyClass('week-overview-focus-mode')) return;
@@ -22944,6 +22948,7 @@ try{
   var pointerMode = '';
   var pointerBoard = null;
   var usePointerEvents = !!window.PointerEvent;
+  var ENABLE_CUSTOM_BOARD_GESTURES = false;
   var activeTouchPointers = {};
   var activeTouchPointerCount = 0;
 
@@ -22959,6 +22964,8 @@ try{
     return document.scrollingElement || document.documentElement || document.body;
   }
   function begin(ev){
+    // The planner now relies on native touch panning and pinch zoom.
+    return;
     if(!ev || !ev.touches || ev.touches.length !== 1 || focusModeActive()){
       tracking = false;
       return;
@@ -22974,6 +22981,8 @@ try{
     lastY = t.clientY;
   }
   function move(ev){
+    // The planner now relies on native touch panning and pinch zoom.
+    return;
     if(!tracking || !ev || !ev.touches || ev.touches.length !== 1) return;
     var t = ev.touches[0];
     var dx = Math.abs(t.clientX - startX);
@@ -23364,17 +23373,17 @@ try{
   body.v5-mode:not(.planner-focus-mode):not(.week-overview-focus-mode) #plannerSection .planner,
   body.v5-mode:not(.planner-focus-mode):not(.week-overview-focus-mode) #plannerSection #weekOverview {
     overflow-x: auto !important;
-    overflow-y: hidden !important;
+    overflow-y: visible !important;
     overscroll-behavior-x: contain !important;
     overscroll-behavior-y: auto !important;
     -webkit-overflow-scrolling: touch;
-    touch-action: pinch-zoom !important;
+    touch-action: pan-x pan-y pinch-zoom !important;
   }
 
   body.v5-mode:not(.planner-focus-mode):not(.week-overview-focus-mode) #plannerSection #plannerGrid,
   body.v5-mode:not(.planner-focus-mode):not(.week-overview-focus-mode) #plannerSection #plannerGrid *,
   body.v5-mode:not(.planner-focus-mode):not(.week-overview-focus-mode) #plannerSection #weekOverview * {
-    touch-action: pinch-zoom !important;
+    touch-action: pan-x pan-y pinch-zoom !important;
   }
 
   html.desktop-mode-lock body.v5-mode:not(.v5-logged-out):not(.planner-focus-mode):not(.week-overview-focus-mode) {
@@ -23527,6 +23536,9 @@ try{
   var pointerMode = '';
   var pointerBoard = null;
   var usePointerEvents = !!window.PointerEvent;
+  var ENABLE_CUSTOM_BOARD_GESTURES = false;
+  var activeTouchPointers = {};
+  var activeTouchPointerCount = 0;
 
   function closest(el, selector){
     try{ return el && el.closest ? el.closest(selector) : null; }catch(e){ return null; }
@@ -23676,6 +23688,7 @@ try{
   }
 
   document.addEventListener('wheel', function(ev){
+    if(!ENABLE_CUSTOM_BOARD_GESTURES) return;
     if(!ev || ev.defaultPrevented || ev.ctrlKey || ev.metaKey) return;
     var board = graphFromTarget(ev.target);
     if(!board) return;
@@ -23687,6 +23700,7 @@ try{
   }, { passive: false, capture: true });
 
   document.addEventListener('pointerdown', function(ev){
+    if(!ENABLE_CUSTOM_BOARD_GESTURES) return;
     if(!usePointerEvents || !ev || (ev.pointerType !== 'touch' && ev.pointerType !== 'pen')) return;
     rememberTouchPointer(ev);
     if(ev.pointerType === 'touch' && activeTouchPointerCount > 1){
@@ -23705,6 +23719,7 @@ try{
   }, { passive: true, capture: true });
 
   document.addEventListener('pointermove', function(ev){
+    if(!ENABLE_CUSTOM_BOARD_GESTURES) return;
     if(!usePointerEvents || !pointerTracking || !ev || ev.pointerId !== pointerId) return;
     if(ev.pointerType === 'touch' && activeTouchPointerCount > 1) return;
     var x = ev.clientX || 0;
@@ -23720,10 +23735,11 @@ try{
     pointerLastY = y;
   }, { passive: false, capture: true });
 
-  document.addEventListener('pointerup', function(ev){ forgetTouchPointer(ev); finishPointer(); }, { passive: true, capture: true });
-  document.addEventListener('pointercancel', function(ev){ forgetTouchPointer(ev); finishPointer(); }, { passive: true, capture: true });
+  document.addEventListener('pointerup', function(ev){ if(!ENABLE_CUSTOM_BOARD_GESTURES) return; forgetTouchPointer(ev); finishPointer(); }, { passive: true, capture: true });
+  document.addEventListener('pointercancel', function(ev){ if(!ENABLE_CUSTOM_BOARD_GESTURES) return; forgetTouchPointer(ev); finishPointer(); }, { passive: true, capture: true });
 
   document.addEventListener('touchstart', function(ev){
+    if(!ENABLE_CUSTOM_BOARD_GESTURES) return;
     if(usePointerEvents) return;
     if(!ev || !ev.touches || ev.touches.length !== 1 || !graphFromTarget(ev.target)){
       tracking = false;
@@ -23740,6 +23756,7 @@ try{
   }, { passive: true, capture: true });
 
   document.addEventListener('touchmove', function(ev){
+    if(!ENABLE_CUSTOM_BOARD_GESTURES) return;
     if(usePointerEvents) return;
     if(!tracking || !ev || !ev.touches || ev.touches.length !== 1) return;
     var t = ev.touches[0];
