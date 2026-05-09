@@ -6663,7 +6663,7 @@ var App = {
   // IMPORTANT: Increment App.version *and* App.buildId whenever making functional changes to this file.
   // SAFETY NET: This build performs an automatic runtime check against the file name; if mismatched, it shows a blocking warning so it can't be overlooked.
   version: 'V5.0.21',
-    buildId: '2026-05-09.03',
+    buildId: '2026-05-09.04',
 settings: {
     dbUrl:'https://mnc-atrd-default-rtdb.asia-southeast1.firebasedatabase.app/', workspace:'mnc-atrd', authToken:'',
     theme:'light', themeName:'light-pastel-sky', recentColors:[], appTitle:'Aspire Workforce Command', logoUrl:'',
@@ -23368,7 +23368,7 @@ try{
     overscroll-behavior-x: contain !important;
     overscroll-behavior-y: auto !important;
     -webkit-overflow-scrolling: touch;
-    touch-action: none !important;
+    touch-action: pinch-zoom !important;
   }
 
   body.v5-mode:not(.planner-focus-mode):not(.week-overview-focus-mode) #plannerSection.show {
@@ -23383,7 +23383,34 @@ try{
   body.v5-mode:not(.planner-focus-mode):not(.week-overview-focus-mode) #plannerSection #plannerGrid,
   body.v5-mode:not(.planner-focus-mode):not(.week-overview-focus-mode) #plannerSection #plannerGrid *,
   body.v5-mode:not(.planner-focus-mode):not(.week-overview-focus-mode) #plannerSection #weekOverview * {
-    touch-action: none !important;
+    touch-action: pinch-zoom !important;
+  }
+
+  html.desktop-mode-lock body.v5-mode:not(.v5-logged-out):not(.planner-focus-mode):not(.week-overview-focus-mode) {
+    padding-bottom: var(--v5018-bottom-nav-h, 76px) !important;
+  }
+
+  html.desktop-mode-lock body.v5-mode:not(.v5-logged-out):not(.planner-focus-mode):not(.week-overview-focus-mode) .wrap {
+    padding-bottom: calc(var(--v5018-bottom-nav-h, 76px) + 28px) !important;
+  }
+
+  html.desktop-mode-lock body.v5-mode:not(.v5-logged-out):not(.planner-focus-mode):not(.week-overview-focus-mode) .bottom-nav {
+    position: fixed !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    z-index: 5200 !important;
+    display: flex !important;
+    transform: translateZ(0);
+    min-height: var(--v5018-bottom-nav-h, 76px) !important;
+    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 8px) !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  html.desktop-mode-lock body.v5-mode:not(.v5-logged-out):not(.planner-focus-mode):not(.week-overview-focus-mode) #plannerSection.show {
+    padding-bottom: calc(var(--v5018-bottom-nav-h, 76px) + 18px) !important;
   }
 
   body.planner-focus-mode #plannerSection .planner,
