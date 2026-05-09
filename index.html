@@ -54,7 +54,7 @@
     })();
   </script>
   <style id="v5021PhoneDesktopViewportCss">
-    /* V5.0.21 phone desktop native: keep the desktop layout viewport on phones and allow browser pinch zoom. */
+    /* V5.0.22 phone desktop native: keep the desktop layout viewport on phones and allow browser pinch zoom. */
     html.desktop-viewport-mobile,
     html.desktop-viewport-mobile body {
       width: max(100%, var(--desktop-mobile-width, 1366px)) !important;
@@ -69,7 +69,7 @@
     }
   </style>
 
-<title>Aspire Workforce Command (V5.0.21 Phone Desktop Native)</title>
+<title>Aspire Workforce Command (V5.0.22 Phone Desktop Native)</title>
   <meta name="theme-color" content="#22c55e"/>
 
   <style>
@@ -1945,7 +1945,7 @@
 </style>
 
   <style>
-    /* OrbitShift v2 — card-first, mobile-focused layout */
+    /* OrbitShift v2 â€” card-first, mobile-focused layout */
     body {
       background:
         radial-gradient(circle at 0% -20%, rgba(59,130,246,0.22), transparent 55%),
@@ -2505,8 +2505,8 @@
     .myreq-month-group summary { cursor:pointer; user-select:none; list-style:none; display:flex; align-items:center; justify-content:space-between; gap:10px; padding:9px 11px; font-weight:900; }
     .myreq-month-group summary::-webkit-details-marker { display:none; }
     .myreq-month-left { display:flex; align-items:center; gap:8px; min-width:0; }
-    .myreq-caret::before { content:'▶'; display:inline-block; width:16px; }
-    .myreq-month-group[open] .myreq-caret::before { content:'▼'; }
+    .myreq-caret::before { content:'â–¶'; display:inline-block; width:16px; }
+    .myreq-month-group[open] .myreq-caret::before { content:'â–¼'; }
     .myreq-month-title { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
     .myreq-month-count { color:var(--muted); font-size:11px; font-weight:800; white-space:nowrap; }
     .myreq-current-badge { display:inline-flex; align-items:center; padding:2px 7px; border-radius:999px; border:1px solid rgba(34,197,94,.45); background:rgba(34,197,94,.14); color:var(--good); font-size:10px; font-weight:900; letter-spacing:.04em; text-transform:uppercase; }
@@ -2529,7 +2529,23 @@
     .dailyops-check-row { display:grid; grid-template-columns:auto 1fr; gap:9px; align-items:start; }
     .dailyops-check-row input[type="checkbox"] { width:18px; height:18px; margin-top:2px; accent-color:var(--good); }
     .dailyops-task-title { font-weight:900; line-height:1.3; }
-    .dailyops-task-meta { display:grid; grid-template-columns:minmax(96px,150px) 1fr; gap:8px; margin-top:8px; }
+    .dailyops-task-meta { display:grid; grid-template-columns:minmax(96px,150px) 1fr auto; gap:8px; margin-top:8px; align-items:center; }
+    .dailyops-date-row { display:grid; grid-template-columns:30px minmax(140px,180px) 30px; gap:5px; align-items:center; justify-content:start; }
+    .dailyops-date-row button { width:30px; min-width:30px; height:36px; padding:0; line-height:1; }
+    .dailyops-note-add-row { display:grid; grid-template-columns:1fr auto auto; gap:8px; margin-top:8px; align-items:stretch; }
+    .dailyops-color { width:42px; min-width:42px; height:40px; padding:3px; border-radius:10px; }
+    .dailyops-mini-color { width:38px; min-width:38px; height:38px; padding:3px; border-radius:10px; }
+    .dailyops-manage-row.dailyops-has-color { grid-template-columns:1fr auto auto; }
+    .dailyops-attention-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; margin-top:8px; }
+    .dailyops-attention-card { border:1px solid var(--border); border-radius:12px; padding:8px; background:rgba(255,255,255,.035); }
+    .dailyops-attention-card label { display:flex; align-items:center; gap:7px; margin:0 0 6px; font-size:12px; font-weight:900; color:var(--fg); }
+    .dailyops-attention-text { display:grid; grid-template-columns:1fr auto; gap:6px; align-items:center; }
+    .dailyops-contrib { margin-top:8px; display:flex; gap:6px; flex-wrap:wrap; align-items:center; color:var(--muted); font-size:12px; line-height:1.35; }
+    .dailyops-contrib .pill { font-size:11px; padding:4px 7px; }
+    .dailyops-summary { margin-bottom:8px; }
+    .dailyops-summary strong { color:var(--fg); }
+    .dailyops-flag-filter { min-width:170px; max-width:230px; }
+    .dailyops-readonly-check { opacity:.9; pointer-events:none; }
     .dailyops-stock-row { display:grid; grid-template-columns:minmax(140px,210px) 140px 1fr; gap:8px; align-items:start; }
     .dailyops-stock-name { font-weight:900; padding-top:8px; line-height:1.3; }
     .dailyops-review-row { display:grid; grid-template-columns:1fr minmax(180px,240px); gap:10px; align-items:start; margin-bottom:8px; }
@@ -2539,20 +2555,29 @@
     .dailyops-owner-box label { display:flex; align-items:center; gap:8px; margin:0; font-weight:900; color:var(--fg); }
     .dailyops-owner-box input[type="checkbox"] { width:18px; height:18px; accent-color:var(--good); }
     .dailyops-manage-row { display:grid; grid-template-columns:1fr auto; gap:8px; align-items:center; margin-bottom:8px; }
-    .dailyops-add-row { display:grid; grid-template-columns:1fr auto; gap:8px; margin-top:8px; }
+    .dailyops-add-row { display:grid; grid-template-columns:1fr auto auto; gap:8px; margin-top:8px; }
     .dailyops-pill-low { background:rgba(245,158,11,.16); border-color:rgba(245,158,11,.38); color:var(--warn); }
     .dailyops-pill-out { background:rgba(239,68,68,.16); border-color:rgba(239,68,68,.38); color:var(--bad); }
     .dailyops-pill-ok { background:rgba(34,197,94,.16); border-color:rgba(34,197,94,.38); color:var(--good); }
+    .dailyops-pill-attention { background:rgba(239,68,68,.16); border-color:rgba(239,68,68,.42); color:#f87171; }
+    .dailyops-pill-supplies { background:rgba(56,189,248,.16); border-color:rgba(56,189,248,.42); color:#38bdf8; }
+    .dailyops-pill-stock { background:rgba(245,158,11,.16); border-color:rgba(245,158,11,.42); color:#f59e0b; }
+    .dailyops-pill-kind-checklist { background:rgba(167,139,250,.16); border-color:rgba(167,139,250,.42); color:#a78bfa; }
+    .dailyops-pill-kind-stock { background:rgba(45,212,191,.14); border-color:rgba(45,212,191,.38); color:#2dd4bf; }
+    .dailyops-stock-select-ok { color:var(--good); border-color:rgba(34,197,94,.55); }
+    .dailyops-stock-select-low { color:var(--warn); border-color:rgba(245,158,11,.55); }
+    .dailyops-stock-select-out { color:var(--bad); border-color:rgba(239,68,68,.55); }
     .dailyops-empty { border:1px dashed var(--border); border-radius:16px; padding:14px; color:var(--muted); background:rgba(255,255,255,.035); }
     @media (max-width:820px){
-      .dailyops-grid, .dailyops-stock-row, .dailyops-review-row, .dailyops-task-meta, .dailyops-manage-row, .dailyops-add-row { grid-template-columns:1fr; }
+      .dailyops-grid, .dailyops-stock-row, .dailyops-review-row, .dailyops-task-meta, .dailyops-manage-row, .dailyops-add-row, .dailyops-note-add-row, .dailyops-attention-grid { grid-template-columns:1fr; }
+      .dailyops-date-row { grid-template-columns:30px minmax(140px,180px) 30px; }
     }
   </style>
 
 
 
   <style id="v500Css">
-    /* ---------- V5.0.21 Aspire Workforce Command redesign ---------- */
+    /* ---------- V5.0.22 Aspire Workforce Command redesign ---------- */
     :root {
       --v5-bg: #050816;
       --v5-panel: rgba(13,18,35,.84);
@@ -2602,7 +2627,7 @@
       display: none !important;
     }
 
-    /* V5.0.21 staff/mobile safeguards */
+    /* V5.0.22 staff/mobile safeguards */
     body.v5-staff-lite #v5OpsDeck,
     body.v5-staff-lite #btnPushTop,
     body.v5-staff-lite #btnPushPlanner,
@@ -3474,7 +3499,7 @@
   </style>
 
   <style id="v508MobileComfortCss">
-    /* V5.0.21 mobile comfort: phone-sized controls with desktop-wide work boards inside scrollable panels. */
+    /* V5.0.22 mobile comfort: phone-sized controls with desktop-wide work boards inside scrollable panels. */
     html.mobile-comfort-view,
     html.mobile-comfort-view body {
       min-width: 0 !important;
@@ -3617,7 +3642,7 @@
 
 
   <style id="v510PlannerFocusCss">
-    /* V5.0.21 planner-only fullscreen view for shop tablet display. */
+    /* V5.0.22 planner-only fullscreen view for shop tablet display. */
     html.planner-focus-view,
     html.planner-focus-view body {
       width: 100% !important;
@@ -3887,7 +3912,7 @@
   </style>
 
   <style id="v510WeekOverviewFocusCss">
-    /* V5.0.21 week-overview-only fullscreen view for shop tablet display. */
+    /* V5.0.22 week-overview-only fullscreen view for shop tablet display. */
     html.week-overview-focus-view,
     html.week-overview-focus-view body {
       width: 100% !important;
@@ -4125,7 +4150,7 @@
 
 
 <style id="v5014MobileShiftModalCss">
-  /* V5.0.21 mobile shift editor reachability fix. */
+  /* V5.0.22 mobile shift editor reachability fix. */
   @media (max-width: 980px), (pointer: coarse) and (max-width: 1100px) {
     #shiftModal {
       z-index: 6200 !important;
@@ -4232,7 +4257,7 @@
 
 
 <style id="v5015MobilePlannerCss">
-  /* V5.0.21 compact mobile boards and normal-page scroll pass-through. */
+  /* V5.0.22 compact mobile boards and normal-page scroll pass-through. */
   @media (max-width: 980px), (pointer: coarse) and (max-width: 1100px) {
     body.v5-mode:not(.planner-focus-mode):not(.week-overview-focus-mode) #plannerSection .planner {
       max-width: 100% !important;
@@ -4467,7 +4492,7 @@
     body.v5-mode:not(.week-overview-focus-mode) #plannerSection .wo-chip { font-size: 7px !important; padding: 1px 2px !important; }
   }
 
-  /* V5.0.21 polish pass: responsive viewport, icon buttons, readable light tables. */
+  /* V5.0.22 polish pass: responsive viewport, icon buttons, readable light tables. */
   :root {
     --font-ui: Inter, Roboto, system-ui, -apple-system, Segoe UI, Arial, sans-serif;
     --font-data: "Roboto Mono", "SFMono-Regular", Consolas, "Liberation Mono", monospace;
@@ -4737,8 +4762,8 @@
       <div id="appLogoBox"></div>
       <div class="titlewrap">
         <div class="title" id="appTitle">Aspire Workforce Command</div>
-        <div class="version-pill" id="appVersion">V5.0.21</div>
-        <div class="sync-pill syncing" id="syncStatusChip" title="Sync status">Starting…</div>
+        <div class="version-pill" id="appVersion">V5.0.22</div>
+        <div class="sync-pill syncing" id="syncStatusChip" title="Sync status">Startingâ€¦</div>
       </div>
     </div>
     <div class="tabs">
@@ -4752,10 +4777,10 @@
       <button id="tabPrint">Print View</button>
       <button id="tabAbsences">Absences</button>
       <button id="tabSettings">Settings</button>
-      <button id="btnUndoTop" class="btn-outline">↶ Undo</button>
-      <button id="btnRedoTop" class="btn-outline">↷ Redo</button>
-      <button id="btnPullTop" class="btn-good">⬇ Pull</button>
-      <button id="btnPushTop" class="btn-primary">⬆ Push</button>
+      <button id="btnUndoTop" class="btn-outline">â†¶ Undo</button>
+      <button id="btnRedoTop" class="btn-outline">â†· Redo</button>
+      <button id="btnPullTop" class="btn-good">â¬‡ Pull</button>
+      <button id="btnPushTop" class="btn-primary">â¬† Push</button>
       <button id="btnLogout" class="btn-outline">Logout</button>
       <button id="btnTheme" class="btn-outline">Theme</button>
     </div>
@@ -4763,7 +4788,7 @@
 
   <!-- Sync splash -->
   <div id="splashSync">
-    <div id="splashBox">Syncing…</div>
+    <div id="splashBox">Syncingâ€¦</div>
   </div>
 
   <div id="toastHost" class="toast-host" aria-live="polite" aria-atomic="true"></div>
@@ -4806,9 +4831,9 @@
         <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:space-between;">
           <h3 style="margin:0;">My Shifts &amp; Wages</h3>
           <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
-            <button id="btnMyPrevWeek" class="btn-outline">← Prev week</button>
+            <button id="btnMyPrevWeek" class="btn-outline">â† Prev week</button>
             <div class="pill" id="myWeekLabel"></div>
-            <button id="btnMyNextWeek" class="btn-outline">Next week →</button>
+            <button id="btnMyNextWeek" class="btn-outline">Next week â†’</button>
           </div>
         </div>
         <div style="display:flex;gap:8px;align-items:center;margin:10px 0 8px;flex-wrap:wrap;">
@@ -4843,7 +4868,7 @@
             </table>
             <div class="muted" style="margin-top:4px;">
               Break time is not counted towards pay. Overnight shifts count toward the day they start.
-              Auto-break: 0m &lt;5h, 30m 5–9:59h, 60m ≥10h (unless overridden).
+              Auto-break: 0m &lt;5h, 30m 5â€“9:59h, 60m â‰¥10h (unless overridden).
             </div>
 
             <div id="myWithheldInfoWrap" style="margin-top:10px;">
@@ -4858,7 +4883,7 @@
                   </tbody>
                 </table>
               </div>
-              <div class="muted small" style="margin-top:4px;">Withheld amounts are set by admin on Payroll. Net pay = gross pay − withheld (shown week).</div>
+              <div class="muted small" style="margin-top:4px;">Withheld amounts are set by admin on Payroll. Net pay = gross pay âˆ’ withheld (shown week).</div>
             </div>
           </div>
         </div>
@@ -4909,7 +4934,11 @@
         <div class="dailyops-toolbar">
           <div class="dailyops-field">
             <label>Date</label>
-            <input id="dailyOpsDate" type="date">
+            <div class="dailyops-date-row">
+              <button id="dailyOpsPrevDate" class="btn-outline" type="button" title="Previous date">&lt;</button>
+              <input id="dailyOpsDate" type="date">
+              <button id="dailyOpsNextDate" class="btn-outline" type="button" title="Next date">&gt;</button>
+            </div>
           </div>
           <div class="dailyops-field">
             <label>Staff</label>
@@ -4950,8 +4979,9 @@
 
           <div style="margin-top:14px;">
             <label>Staff notes for owner</label>
-            <div class="dailyops-add-row">
+            <div class="dailyops-note-add-row">
               <textarea id="dailyOpsNewNote" placeholder="Add handover notes, maintenance issues, delivery notes or anything the owner should know." style="min-height:70px;"></textarea>
+              <input id="dailyOpsNewNoteColor" class="dailyops-color" type="color" value="#e5e7eb" title="Note text colour">
               <button id="dailyOpsAddNote" class="btn-primary" type="button">Add note</button>
             </div>
             <div id="dailyOpsNotesList" class="dailyops-list" style="margin-top:10px;"></div>
@@ -4972,17 +5002,24 @@
             <div>
               <label>Opening tasks</label>
               <div id="dailyOpsManageOpening"></div>
-              <div class="dailyops-add-row"><input id="dailyOpsNewOpeningTask" type="text" placeholder="Add opening task"><button id="dailyOpsAddOpeningTask" class="btn-outline" type="button">Add</button></div>
+              <div class="dailyops-add-row"><input id="dailyOpsNewOpeningTask" type="text" placeholder="Add opening task"><input id="dailyOpsNewOpeningTaskColor" class="dailyops-mini-color" type="color" value="#e5e7eb" title="Task text colour"><button id="dailyOpsAddOpeningTask" class="btn-outline" type="button">Add</button></div>
             </div>
             <div>
               <label>Closing tasks</label>
               <div id="dailyOpsManageClosing"></div>
-              <div class="dailyops-add-row"><input id="dailyOpsNewClosingTask" type="text" placeholder="Add closing task"><button id="dailyOpsAddClosingTask" class="btn-outline" type="button">Add</button></div>
+              <div class="dailyops-add-row"><input id="dailyOpsNewClosingTask" type="text" placeholder="Add closing task"><input id="dailyOpsNewClosingTaskColor" class="dailyops-mini-color" type="color" value="#e5e7eb" title="Task text colour"><button id="dailyOpsAddClosingTask" class="btn-outline" type="button">Add</button></div>
             </div>
             <div>
               <label>Stock items</label>
               <div id="dailyOpsManageStock"></div>
-              <div class="dailyops-add-row"><input id="dailyOpsNewStockItem" type="text" placeholder="Add stock or consumable item"><button id="dailyOpsAddStockItem" class="btn-outline" type="button">Add</button></div>
+              <div class="dailyops-add-row"><input id="dailyOpsNewStockItem" type="text" placeholder="Add stock or consumable item"><input id="dailyOpsNewStockItemColor" class="dailyops-mini-color" type="color" value="#e5e7eb" title="Stock item text colour"><button id="dailyOpsAddStockItem" class="btn-outline" type="button">Add</button></div>
+            </div>
+            <div>
+              <label>Checklist attention labels</label>
+              <div class="dailyops-row">
+                <div class="dailyops-add-row"><input id="dailyOpsAttentionLabel1" type="text" placeholder="Attention label 1"><input id="dailyOpsAttentionLabel2" type="text" placeholder="Attention label 2"></div>
+                <div class="muted" style="margin-top:8px;">These labels appear beside every checklist item with their own checkbox and note box.</div>
+              </div>
             </div>
             <div>
               <label>Custom task groups</label>
@@ -5012,17 +5049,17 @@
     <section id="plannerSection" class="section">
       <div class="card">
         <div class="toolbar" style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:8px;">
-          <button id="btnPrevWeek" class="btn-outline">← Prev week</button>
+          <button id="btnPrevWeek" class="btn-outline">â† Prev week</button>
           <div class="pill" id="weekLabel"></div>
-          <button id="btnNextWeek" class="btn-outline">Next week →</button>
+          <button id="btnNextWeek" class="btn-outline">Next week â†’</button>
           <div style="flex:1;"></div>
-          <button id="btnCopyDay" class="btn-outline">Copy Day →</button>
-          <button id="btnCopyWeek" class="btn-outline">Copy Week →</button>
-          <button id="btnTemplates" class="btn-outline">Templates…</button>
+          <button id="btnCopyDay" class="btn-outline">Copy Day â†’</button>
+          <button id="btnCopyWeek" class="btn-outline">Copy Week â†’</button>
+          <button id="btnTemplates" class="btn-outline">Templatesâ€¦</button>
           <button id="btnRecurring" class="btn-outline">Add Recurring</button>
           <button id="btnPublish" class="btn-outline">Toggle Publish</button>
           <button id="btnPrint" class="btn-outline">Print (current)</button>
-          <button id="btnPrintView" class="btn-outline">Print View…</button>
+          <button id="btnPrintView" class="btn-outline">Print Viewâ€¦</button>
           <button id="btnWeekOverviewFullView" class="btn-outline">Week overview full screen</button>
           <button id="btnPlannerFullView" class="btn-primary">Planner full screen</button>
         </div>
@@ -5032,13 +5069,13 @@
         <div id="weekOverview" class="week-overview" style="margin-bottom:8px;"></div>
 
         <div class="requests-strip">
-          <button id="btnPullPlanner" class="btn-good">⬇ Pull</button>
-          <button id="btnPushPlanner" class="btn-primary">⬆ Push</button>
+          <button id="btnPullPlanner" class="btn-good">â¬‡ Pull</button>
+          <button id="btnPushPlanner" class="btn-primary">â¬† Push</button>
           <button id="btnRequests" class="btn-requests">
             View requests
             <span id="requestsCountBadge" class="req-badge">0</span>
           </button>
-          <span id="requestsHint" class="requests-hint">Manager tools – pending leave, shift edits &amp; proposed shifts.</span>
+          <span id="requestsHint" class="requests-hint">Manager tools â€“ pending leave, shift edits &amp; proposed shifts.</span>
         </div>
 
         <div id="availabilityBar" class="availability" style="margin:6px 0;"></div>
@@ -5056,7 +5093,7 @@
     <!-- Print View (multi-week) -->
     <section id="printSection" class="section">
       <div class="card">
-        <h3>Print View (multi‑week)</h3>
+        <h3>Print View (multiâ€‘week)</h3>
         <div class="print-controls">
           <div>
             <label>Start Week Offset (0=this week)</label>
@@ -5079,9 +5116,9 @@
       <div class="card">
         <h3>Absences</h3>
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px;">
-          <button id="absPrev" class="btn-outline">←</button>
+          <button id="absPrev" class="btn-outline">â†</button>
           <div id="absMonthLabel" class="pill"></div>
-          <button id="absNext" class="btn-outline">→</button>
+          <button id="absNext" class="btn-outline">â†’</button>
           <div style="flex:1;"></div>
           <label>Staff</label>
           <select id="absStaffFilter"></select>
@@ -5095,15 +5132,15 @@
       <div class="card">
         <div class="toolbar" style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:8px;">
           <div class="pill" id="payrollWeekLabel"></div>
-          <button id="btnPayrollPrevWeek" class="btn-outline">← Prev week</button>
-          <button id="btnPayrollNextWeek" class="btn-outline">Next week →</button>
+          <button id="btnPayrollPrevWeek" class="btn-outline">â† Prev week</button>
+          <button id="btnPayrollNextWeek" class="btn-outline">Next week â†’</button>
           <button id="btnExportJSON" class="btn-outline">Export JSON</button>
           <button id="btnExportCSV" class="btn-outline">Export CSV</button>
           <input id="importJSONInput" type="file" accept="application/json" style="display:none">
           <button id="btnImportJSON" class="btn-outline">Import JSON</button>
           <div style="flex:1;"></div>
-          <button id="btnPull" class="btn-good">⬇ Pull</button>
-          <button id="btnPush" class="btn-primary">⬆ Push</button>
+          <button id="btnPull" class="btn-good">â¬‡ Pull</button>
+          <button id="btnPush" class="btn-primary">â¬† Push</button>
         </div>
         <div class="table-wrapper">
           <table class="table" id="payrollTable">
@@ -5664,7 +5701,7 @@
         <div class="biz-history-toolbar">
           <label class="muted" style="font-weight:700;">View</label>
           <select id="bizHistoryView" style="min-width:190px;">
-            <option value="tree" selected>Tree: month → week → day</option>
+            <option value="tree" selected>Tree: month â†’ week â†’ day</option>
             <option value="month">Monthly summary</option>
             <option value="week">Weekly summary</option>
             <option value="day">Daily list</option>
@@ -5703,8 +5740,8 @@
     <div class="stats-toolbar">
       <h3 style="margin:0;">Staff / Requests Analytics</h3>
       <div class="pill" id="statsWeekLabel"></div>
-      <button id="btnStatsPrevWeek" class="btn-outline">← Prev week</button>
-      <button id="btnStatsNextWeek" class="btn-outline">Next week →</button>
+      <button id="btnStatsPrevWeek" class="btn-outline">â† Prev week</button>
+      <button id="btnStatsNextWeek" class="btn-outline">Next week â†’</button>
       <div style="flex:1;"></div>
       <label class="muted" style="font-weight:700;">Range</label>
       <select id="statsRange" style="min-width:160px;">
@@ -5847,8 +5884,8 @@
             <button id="btnRestoreSafetyBackup" class="btn-outline">Restore Safety Backup</button>
           </div>
           <div class="muted" style="margin-top:6px;">
-            Syncs automatically on startup. Use global Push/Pull to force. Use “Push Planner + Settings” only when you intend to update settings on the server (admin only).
-            Auto Pull/Push run when set &amp; you’re logged in (Push requires manager/admin).
+            Syncs automatically on startup. Use global Push/Pull to force. Use â€œPush Planner + Settingsâ€ only when you intend to update settings on the server (admin only).
+            Auto Pull/Push run when set &amp; youâ€™re logged in (Push requires manager/admin).
             Imports and cache reset now create a local safety backup that can be restored from this panel.
           </div>
         </div>
@@ -5916,7 +5953,7 @@
 
             <label style="display:flex;align-items:center;gap:8px;">
               <input id="optRequestsPopupSuppressWhenRequestsTab" type="checkbox">
-              <span>Don’t auto pop-up while I’m on the Requests tab</span>
+              <span>Donâ€™t auto pop-up while Iâ€™m on the Requests tab</span>
             </label>
 
             <div class="muted" style="margin-top:2px;">
@@ -5933,7 +5970,7 @@
 
             <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
               <button id="btnReqNotifyBrowserTest" class="btn-outline" type="button">Test</button>
-              <span class="muted">Uses your browser’s notification permission.</span>
+              <span class="muted">Uses your browserâ€™s notification permission.</span>
             </div>
 
             <div style="margin-top:10px;display:flex;flex-direction:column;gap:8px;">
@@ -6108,11 +6145,11 @@
         <h3>Planner Options</h3>
         <div class="grid-2">
           <div>
-            <label>Start hour (0–23)</label>
+            <label>Start hour (0â€“23)</label>
             <input id="optStartHour" type="number" min="0" max="23" step="1" value="8">
           </div>
           <div>
-            <label>Hours shown (1–24)</label>
+            <label>Hours shown (1â€“24)</label>
             <input id="optHours" type="number" min="1" max="24" step="1" value="16">
           </div>
         </div>
@@ -6358,7 +6395,7 @@
       <div style="margin-top:14px;">
         <label>Withheld log (shown week)</label>
         <div id="withholdManageList" style="margin-top:8px;"></div>
-        <div class="muted small" style="margin-top:6px;">Tip: Use “Set withheld (shown week)” to correct a typo quickly. “Pay part of withheld” releases the oldest withheld weeks first and records each paid part in the log.</div>
+        <div class="muted small" style="margin-top:6px;">Tip: Use â€œSet withheld (shown week)â€ to correct a typo quickly. â€œPay part of withheldâ€ releases the oldest withheld weeks first and records each paid part in the log.</div>
       </div>
 
       <div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;margin-top:14px;">
@@ -6465,7 +6502,7 @@
         <label>Unavailable hours (optional)</label>
         <div style="display:flex;flex-wrap:wrap;gap:12px;margin-top:6px;font-size:12px;align-items:center;">
           <label><input id="recUnavailAllDay" type="checkbox" checked> All day</label>
-          <span class="muted">Uncheck to block only a time window (e.g., 9:00 AM–5:00 PM).</span>
+          <span class="muted">Uncheck to block only a time window (e.g., 9:00 AMâ€“5:00 PM).</span>
         </div>
         <div id="recUnavailTimeWrap" class="grid-2" style="margin-top:10px;display:none;">
           <div>
@@ -6503,7 +6540,7 @@
       <h3>Weekly roster templates</h3>
 
       <div class="muted" style="margin-top:4px;">
-        Create a template from the current week’s roster, then apply it to any week.
+        Create a template from the current weekâ€™s roster, then apply it to any week.
       </div>
 
       <div style="margin-top:12px;">
@@ -6535,7 +6572,7 @@
           </div>
         </div>
         <div class="muted" style="margin-top:6px;">
-          Replace overwrites that week’s shifts. Merge only adds shifts where that staff has no shift on that day.
+          Replace overwrites that weekâ€™s shifts. Merge only adds shifts where that staff has no shift on that day.
         </div>
       </div>
 
@@ -6588,61 +6625,61 @@
 
     <nav id="bottomNav" class="bottom-nav" aria-label="Primary navigation">
     <button id="bottomMy">
-      <span>🏠</span>
+      <span>ðŸ </span>
       <span class="label">My</span>
     </button>
     <button id="bottomRequests">
-      <span>📨</span>
+      <span>ðŸ“¨</span>
       <span class="label">Req</span>
     </button>
     <button id="bottomDailyOps">
-      <span>✓</span>
+      <span>âœ“</span>
       <span class="label">Tasks</span>
     </button>
     <button id="bottomPlanner">
-      <span>📅</span>
+      <span>ðŸ“…</span>
       <span class="label">Plan</span>
     </button>
     <button id="bottomPayroll">
-      <span>💰</span>
+      <span>ðŸ’°</span>
       <span class="label">Pay</span>
     </button>
     <button id="bottomStats">
-      <span>📊</span>
+      <span>ðŸ“Š</span>
       <span class="label">Biz</span>
     </button>
     <button id="bottomAbsences">
-      <span>🌴</span>
+      <span>ðŸŒ´</span>
       <span class="label">Away</span>
     </button>
     <button id="bottomSettings">
-      <span>⚙️</span>
+      <span>âš™ï¸</span>
       <span class="label">Settings</span>
     </button>
 
     <button id="bottomUndo" class="nav-mini">
-      <span>↶</span>
+      <span>â†¶</span>
       <span class="label">Undo</span>
     </button>
     <button id="bottomRedo" class="nav-mini">
-      <span>↷</span>
+      <span>â†·</span>
       <span class="label">Redo</span>
     </button>
   
     <button id="bottomPull">
-      <span>⬇</span>
+      <span>â¬‡</span>
       <span class="label">Pull</span>
     </button>
     <button id="bottomPush">
-      <span>⬆</span>
+      <span>â¬†</span>
       <span class="label">Push</span>
     </button>
     <button id="bottomFullscreen">
-      <span>⤢</span>
+      <span>â¤¢</span>
       <span class="label">Full</span>
     </button>
     <button id="bottomLogout">
-      <span>🚪</span>
+      <span>ðŸšª</span>
       <span class="label">Logout</span>
     </button></nav>
 
@@ -6664,8 +6701,8 @@ var DAY = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 var App = {
   // IMPORTANT: Increment App.version *and* App.buildId whenever making functional changes to this file.
   // SAFETY NET: This build performs an automatic runtime check against the file name; if mismatched, it shows a blocking warning so it can't be overlooked.
-  version: 'V5.0.21',
-    buildId: '2026-05-09.07',
+  version: 'V5.0.22',
+    buildId: '2026-05-10.01',
 settings: {
     dbUrl:'https://mnc-atrd-default-rtdb.asia-southeast1.firebasedatabase.app/', workspace:'mnc-atrd', authToken:'',
     theme:'light', themeName:'light-pastel-sky', recentColors:[], appTitle:'Aspire Workforce Command', logoUrl:'',
@@ -6954,7 +6991,7 @@ function setSyncStatus(state, label){
     if(!el) return;
     el.className = 'sync-pill ' + SyncState.state;
     el.textContent = SyncState.label;
-    el.title = 'Sync status — ' + SyncState.label;
+    el.title = 'Sync status â€” ' + SyncState.label;
   }catch(e){}
 }
 function bindSyncStatusEvents(){
@@ -7111,7 +7148,7 @@ function displayTime12(value, fallback){
   return (fallback!=null ? String(fallback) : String(value||''));
 }
 function displayTimeRange12(start, end){
-  return displayTime12(start, start||'') + '–' + displayTime12(end, end||'');
+  return displayTime12(start, start||'') + 'â€“' + displayTime12(end, end||'');
 }
 function shiftDisplayRange(sh){
   return displayTimeRange12(sh && sh.start, sh && sh.end);
@@ -7668,7 +7705,7 @@ function appendCoveredSourcePlannerChip(wrap, sh, shiftId, st, dayIndex){
   ghost.style.left=left+'%'; ghost.style.width=width+'%'; ghost.dataset.id=shiftId;
   applyStaffChipAppearance(ghost, st.color||'#5A31F4', false);
   var ghostStaffName = staffDisplayNameFromRecord(st, 'Staff');
-  ghost.title = ghostStaffName+' — '+shiftDisplayRange(sh)+' ('+coveredSourceReasonText(sh)+')';
+  ghost.title = ghostStaffName+' â€” '+shiftDisplayRange(sh)+' ('+coveredSourceReasonText(sh)+')';
   var label=document.createElement('span'); label.className='label'; label.textContent=ghostStaffName; label.style.position='relative'; label.style.zIndex='3';
   var hrs=document.createElement('span'); hrs.className='hours'; hrs.textContent=shiftDisplayRange(sh)+' ('+work.toFixed(2)+'h)'; hrs.style.position='relative'; hrs.style.zIndex='3';
   ghost.appendChild(label); ghost.appendChild(hrs);
@@ -7738,7 +7775,7 @@ function showToast(title, message, kind, ms, meta){
     var close = document.createElement('button');
     close.className = 't-close';
     close.type = 'button';
-    close.textContent = '×';
+    close.textContent = 'Ã—';
     close.onclick = function(){ try{ t.remove(); }catch(e){} };
 
     head.appendChild(tt);
@@ -7851,7 +7888,7 @@ function buildAbsDecisionMessage(iso, rec){
     reason = rec.reason || '';
     if(!reason && rec.blocks && rec.blocks[0] && rec.blocks[0].reason) reason = rec.blocks[0].reason;
   }
-  return date + ' — ' + kind + (reason?(' — ' + reason):'');
+  return date + ' â€” ' + kind + (reason?(' â€” ' + reason):'');
 }
 
 function isShiftProposalRequest(req){
@@ -7872,11 +7909,11 @@ function shiftRequestRangeLabel(req){
   try{
     var s = (req && req.newStart) ? to12hStr(req.newStart) : '';
     var e = (req && req.newEnd) ? to12hStr(req.newEnd) : '';
-    if(s && e) return s + '–' + e;
-    if(isShiftProposalRequest(req)) return (s || '?') + '–' + (e || '?');
+    if(s && e) return s + 'â€“' + e;
+    if(isShiftProposalRequest(req)) return (s || '?') + 'â€“' + (e || '?');
     var parts = [];
-    if(s) parts.push('start → ' + s);
-    if(e) parts.push('end → ' + e);
+    if(s) parts.push('start â†’ ' + s);
+    if(e) parts.push('end â†’ ' + e);
     return parts.length ? parts.join(', ') : 'Time change';
   }catch(e){
     return isShiftProposalRequest(req) ? 'Proposed shift' : 'Time change';
@@ -8054,9 +8091,9 @@ function buildShiftDecisionMessage(rec, isoFallback){
     date = (isoFallback ? String(isoFallback) : '');
   }
   var label = shiftRequestTypeLabel(rec);
-  var msg = (date ? (date + ' — ') : '') + label;
+  var msg = (date ? (date + ' â€” ') : '') + label;
   var details = shiftRequestDetails(rec);
-  if(details) msg += ' — ' + details;
+  if(details) msg += ' â€” ' + details;
   return msg;
 }
 
@@ -8605,8 +8642,8 @@ function startupSanitizeLocalCache(){
 // ---------- Firebase REST ----------
 function wsRoot(){ return App.settings.dbUrl.replace(/\/$/,'')+'/'+App.settings.workspace; }
 function withAuth(url){ return App.settings.authToken ? url+(url.indexOf('?')>=0?'&':'?')+'auth='+encodeURIComponent(App.settings.authToken) : url; }
-async function dbGet(p){ setSyncStatus('syncing', 'Syncing…'); try{ var r=await fetch(withAuth(wsRoot()+p+'.json')); if(!r.ok) throw new Error('GET '+r.status); var data = await r.json(); setSyncStatus('synced', 'Synced'); return data; }catch(e){ setSyncStatus('offline', navigator.onLine===false ? 'Offline' : 'Sync failed'); throw e; } }
-async function dbPatch(p,data){ setSyncStatus('syncing', 'Syncing…'); try{ var r=await fetch(withAuth(wsRoot()+p+'.json'),{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}); if(!r.ok) throw new Error('PATCH '+r.status); var res = await r.json(); setSyncStatus('synced', 'Synced'); return res; }catch(e){ setSyncStatus('offline', navigator.onLine===false ? 'Offline' : 'Sync failed'); throw e; } }
+async function dbGet(p){ setSyncStatus('syncing', 'Syncingâ€¦'); try{ var r=await fetch(withAuth(wsRoot()+p+'.json')); if(!r.ok) throw new Error('GET '+r.status); var data = await r.json(); setSyncStatus('synced', 'Synced'); return data; }catch(e){ setSyncStatus('offline', navigator.onLine===false ? 'Offline' : 'Sync failed'); throw e; } }
+async function dbPatch(p,data){ setSyncStatus('syncing', 'Syncingâ€¦'); try{ var r=await fetch(withAuth(wsRoot()+p+'.json'),{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}); if(!r.ok) throw new Error('PATCH '+r.status); var res = await r.json(); setSyncStatus('synced', 'Synced'); return res; }catch(e){ setSyncStatus('offline', navigator.onLine===false ? 'Offline' : 'Sync failed'); throw e; } }
 
 
 // ---------- User preferences (per-user; stored in Firebase) ----------
@@ -8759,7 +8796,7 @@ function splashShow(msg){
   if(!el) return;
   el.style.display='flex';
   var box=byId('splashBox');
-  if(box) box.textContent = msg || 'Syncing…';
+  if(box) box.textContent = msg || 'Syncingâ€¦';
   requestAnimationFrame(function(){
     el.style.opacity='1';
   });
@@ -9114,12 +9151,12 @@ function init(){
   if(byId('optNightShiftEnd')) byId('optNightShiftEnd').value = to12hStr(to24hhmm(App.settings.nightShiftEnd, '23:00'));
 
   // Initial pull with splash
-  splashShow('Syncing…'); byId('splashSync').style.display='flex';
+  splashShow('Syncingâ€¦'); byId('splashSync').style.display='flex';
   pullData(true).then(function(){
     populateLoginSelects(); populateExistingStaff();
     splashHide('Sync successful');
   }).catch(function(e){
-    var m=byId('loginMsg'); if(m) m.textContent='Startup sync failed: '+(e&&e.message?e.message:''); splashHide('Sync failed — offline mode available');
+    var m=byId('loginMsg'); if(m) m.textContent='Startup sync failed: '+(e&&e.message?e.message:''); splashHide('Sync failed â€” offline mode available');
   }).finally(function(){
     if(!App.staff || Object.keys(App.staff).length===0){
       var a=uid(), b=uid(), c=uid();
@@ -9205,7 +9242,7 @@ function init(){
       alert('Saved locally. Sync failed: '+(e&&e.message?e.message:e));
     });
   };
-  // Request notifications — Settings helpers
+  // Request notifications â€” Settings helpers
   try{
     var _bn = byId('optReqNotifyBrowser');
     if(_bn){
@@ -9263,11 +9300,11 @@ function init(){
         alert('Admin only.');
         return;
       }
-      splashShow('Pushing planner + settings…');
+      splashShow('Pushing planner + settingsâ€¦');
       pushPlannerAndSettingsAdmin().then(function(){
         return pushUserPrefsRequestPopups();
       }).then(function(){
-        splashHide('Pushed planner + settings ✓');
+        splashHide('Pushed planner + settings âœ“');
       }).catch(function(e){
         splashHide('Push failed');
         alert('Push failed: '+(e && e.message ? e.message : e));
@@ -9291,12 +9328,12 @@ function init(){
   }
 
   byId('btnPull').onclick = function(){
-  splashShow('Pulling latest…');
+  splashShow('Pulling latestâ€¦');
   pullData(false).then(function(){
     // Also pull per-user prefs (does not overwrite planner data)
     return pullUserPrefs();
   }).then(function(){
-    splashHide('Pulled latest ✓');
+    splashHide('Pulled latest âœ“');
   }).catch(function(e){
     splashHide('Pull failed');
     alert('Pull failed: '+e.message);
@@ -9306,20 +9343,20 @@ function init(){
   // Managers/Admins: push full dataset. Staff: push only personal prefs (e.g. Request pop-ups).
   if(!canEdit()){
     if(!App.currentUser) return alert('Please log in first.');
-    splashShow('Syncing your preferences…');
+    splashShow('Syncing your preferencesâ€¦');
     pushUserPrefsRequestPopups().then(function(){
-      splashHide('Preferences synced ✓');
+      splashHide('Preferences synced âœ“');
     }).catch(function(e){
       splashHide('Sync failed');
       alert('Sync failed: '+(e&&e.message?e.message:e));
     });
     return;
   }
-  splashShow('Pushing changes…');
+  splashShow('Pushing changesâ€¦');
   pushPlannerData().then(function(){
     return pushUserPrefsRequestPopups();
   }).then(function(){
-    splashHide('Pushed successfully ✓');
+    splashHide('Pushed successfully âœ“');
   }).catch(function(e){
     splashHide('Push failed');
     alert('Push failed: '+e.message);
@@ -10376,12 +10413,12 @@ function renderAdminHistory(){
           rec.blocks.forEach(function(b){
             if(!b) return;
             var seg = displayTimeRange12(b.start, b.end);
-            if(b.reason) seg += ' — ' + b.reason;
+            if(b.reason) seg += ' â€” ' + b.reason;
             parts.push(seg);
           });
         }else if(rec.unavailable){
           var seg = 'Full-day';
-          if(rec.reason) seg += ' — ' + rec.reason;
+          if(rec.reason) seg += ' â€” ' + rec.reason;
           parts.push(seg);
         }else if(rec.reason){
           parts.push(rec.reason);
@@ -10489,7 +10526,7 @@ function _normReqStatus(v){
   return v;
 }
 function _fmtTS(ts){
-  if(!ts) return '—';
+  if(!ts) return 'â€”';
   try{
     var d = new Date(ts);
     if(!isNaN(d.getTime())) return d.toLocaleString();
@@ -10570,12 +10607,12 @@ function renderAdminRequestsLog(){
           req.blocks.forEach(function(b){
             if(!b) return;
             var seg = displayTimeRange12(b.start, b.end);
-            if(b.reason) seg += ' — ' + b.reason;
+            if(b.reason) seg += ' â€” ' + b.reason;
             detailsParts.push(seg);
           });
         }else if(req.unavailable){
           var seg2 = 'Full-day';
-          if(req.reason) seg2 += ' — ' + req.reason;
+          if(req.reason) seg2 += ' â€” ' + req.reason;
           detailsParts.push(seg2);
         }else if(req.reason){
           detailsParts.push(req.reason);
@@ -10618,12 +10655,12 @@ function renderAdminRequestsLog(){
           rec.blocks.forEach(function(b){
             if(!b) return;
             var seg = displayTimeRange12(b.start, b.end);
-            if(b.reason) seg += ' — ' + b.reason;
+            if(b.reason) seg += ' â€” ' + b.reason;
             detailsParts.push(seg);
           });
         }else if(rec.unavailable){
           var seg2 = 'Full-day';
-          if(rec.reason) seg2 += ' — ' + rec.reason;
+          if(rec.reason) seg2 += ' â€” ' + rec.reason;
           detailsParts.push(seg2);
         }else if(rec.reason){
           detailsParts.push(rec.reason);
@@ -10781,7 +10818,7 @@ function renderAdminRequestsLog(){
     tr.setAttribute('data-kind', kind);
     tr.setAttribute('data-key', key);
     if(monthKey) tr.setAttribute('data-month', monthKey);
-    tr.innerHTML = '<td colspan="7"><span class="reqlog-caret">'+(open?'▼':'▶')+'</span> '
+    tr.innerHTML = '<td colspan="7"><span class="reqlog-caret">'+(open?'â–¼':'â–¶')+'</span> '
       + escapeHtml(label) + ' <span class="muted-small">(' + n + ')</span></td>';
     return tr;
   }
@@ -10849,7 +10886,7 @@ function renderAdminRequestsLog(){
     var nextOpen = !isOpen;
     t.classList.toggle('open', nextOpen);
     var caret = t.querySelector('.reqlog-caret');
-    if(caret) caret.textContent = nextOpen ? '▼' : '▶';
+    if(caret) caret.textContent = nextOpen ? 'â–¼' : 'â–¶';
 
     if(t.classList.contains('reqlog-month-head')){
       var mk = t.getAttribute('data-key') || '';
@@ -10897,7 +10934,7 @@ function renderAdminRequestsLog(){
 }
 
 // ---------- Daily Tasks / Stock mediator ----------
-var DailyOps = { view:'checklists', date:'' };
+var DailyOps = { view:'checklists', date:'', flagFilter:'all' };
 function dailyOpsTodayISO(){
   try{ var d=new Date(); d.setMinutes(d.getMinutes()-d.getTimezoneOffset()); return d.toISOString().slice(0,10); }catch(e){ return ''; }
 }
@@ -10920,9 +10957,26 @@ function dailyOpsEnsureStore(){
     if(!App.dailyOps.settings.stockItems.length) App.dailyOps.settings.stockItems = ['Milk and dairy','Core product stock','Takeaway cups, lids, bags and packaging','Cleaning chemicals','Toilet paper, soap and hand towels'];
     App.dailyOps.settings.seeded = true;
   }
+  if(!Array.isArray(App.dailyOps.settings.attentionLabels) || App.dailyOps.settings.attentionLabels.length < 2){
+    App.dailyOps.settings.attentionLabels = ['Needs attention','Supplies needed'];
+  }
+  App.dailyOps.settings.attentionLabels = [
+    String(App.dailyOps.settings.attentionLabels[0] || 'Needs attention'),
+    String(App.dailyOps.settings.attentionLabels[1] || 'Supplies needed')
+  ];
 }
 function dailyOpsTaskKey(text){
-  return String(text||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,80) || ('item-' + Math.random().toString(36).slice(2,8));
+  return dailyOpsTemplateText(text).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,80) || ('item-' + Math.random().toString(36).slice(2,8));
+}
+function dailyOpsTemplateText(item){
+  if(item && typeof item === 'object') return String(item.text || item.name || item.title || '').trim();
+  return String(item || '').trim();
+}
+function dailyOpsTemplateColor(item, fallback){
+  return dailyOpsCleanColor(item && typeof item === 'object' ? item.color : '', fallback || '#e5e7eb');
+}
+function dailyOpsTemplateValue(text, color){
+  return { text:String(text || '').trim(), color:dailyOpsCleanColor(color, '#e5e7eb') };
 }
 function dailyOpsStaffIds(){
   return Object.keys(App.staff||{}).filter(function(id){ return !(App.staff[id]||{}).hidden; }).sort(function(a,b){
@@ -10966,6 +11020,164 @@ function dailyOpsSave(syncNow){
 }
 function dailyOpsUserLabel(){
   try{ return App.currentUser ? staffDisplayNameForId(App.currentUser.id, App.currentUser.name || App.currentUser.id) : 'Staff'; }catch(e){ return 'Staff'; }
+}
+function dailyOpsUserId(){
+  try{ return App.currentUser && App.currentUser.id ? String(App.currentUser.id) : ''; }catch(e){ return ''; }
+}
+function dailyOpsCleanColor(value, fallback){
+  var v = String(value || '').trim();
+  return /^#[0-9a-fA-F]{6}$/.test(v) ? v : (fallback || '#e5e7eb');
+}
+function dailyOpsAttentionLabels(){
+  dailyOpsEnsureStore();
+  return App.dailyOps.settings.attentionLabels || ['Needs attention','Supplies needed'];
+}
+function dailyOpsChecklistItem(record, type, key, groupId){
+  if(!record) return {};
+  if(type === 'group'){
+    return (record.groups && record.groups[groupId] && record.groups[groupId][key]) || {};
+  }
+  return (record[type] && record[type][key]) || {};
+}
+function dailyOpsItemHasAttention(item){
+  item = item || {};
+  return !!(item.attention1 || item.attention2 || item.attention1Text || item.attention2Text);
+}
+function dailyOpsItemHasContent(item){
+  item = item || {};
+  return !!(item.done || item.note || dailyOpsItemHasAttention(item));
+}
+function dailyOpsTaskContributions(type, task, group){
+  var date = DailyOps.date || dailyOpsTodayISO();
+  var key = dailyOpsTaskKey(task);
+  var rows = [];
+  dailyOpsStaffIds().forEach(function(sid){
+    var rec = dailyOpsRecordFor(date, sid, false);
+    var item = dailyOpsChecklistItem(rec, type, key, group && group.id);
+    if(dailyOpsItemHasContent(item)){
+      rows.push({staffId:sid, staffName:staffDisplayNameForId(sid, sid), item:item});
+    }
+  });
+  return rows;
+}
+function dailyOpsAggregateCompletion(type, tasks, group){
+  var done = 0;
+  (tasks||[]).forEach(function(task){
+    var rows = dailyOpsTaskContributions(type, task, group).filter(function(row){ return row.item && row.item.done; });
+    if(rows.length) done++;
+  });
+  return {done:done,total:(tasks||[]).length};
+}
+function dailyOpsAggregateGroupsCompletion(){
+  var out = {done:0,total:0};
+  (App.dailyOps.settings.customGroups||[]).forEach(function(group){
+    var c = dailyOpsAggregateCompletion('group', group.tasks || [], group);
+    out.done += c.done;
+    out.total += c.total;
+  });
+  return out;
+}
+function dailyOpsContributorSummary(rows){
+  var names = [];
+  var seen = {};
+  (rows||[]).forEach(function(row){
+    if(!row || !row.item || !row.item.done) return;
+    var name = String(row.item.by || row.staffName || row.staffId || 'Staff').trim();
+    if(!name || seen[name]) return;
+    seen[name] = true;
+    names.push(name);
+  });
+  return names;
+}
+function dailyOpsContributionHtml(rows){
+  var doneNames = dailyOpsContributorSummary(rows);
+  var bits = '';
+  if(doneNames.length){
+    bits += '<div class="dailyops-contrib"><span>Checked by</span>' + doneNames.map(function(name){ return '<span class="pill dailyops-pill-ok">'+escapeHtml(name)+'</span>'; }).join('') + '</div>';
+  }
+  (rows||[]).forEach(function(row){
+    var item = row.item || {};
+    var actor = item.by || item.attentionBy || row.staffName || row.staffId || 'Staff';
+    var notes = [];
+    if(item.note) notes.push('<span style="color:'+escapeHtml(dailyOpsCleanColor(item.noteColor, '#e5e7eb'))+'">'+escapeHtml(item.note)+'</span>');
+    if(item.attention1 || item.attention1Text) notes.push('<b>'+escapeHtml(item.attention1Label || dailyOpsAttentionLabels()[0])+':</b> <span style="color:'+escapeHtml(dailyOpsCleanColor(item.attention1Color, '#f59e0b'))+'">'+escapeHtml(item.attention1Text || (item.attention1 ? 'Flagged' : ''))+'</span>');
+    if(item.attention2 || item.attention2Text) notes.push('<b>'+escapeHtml(item.attention2Label || dailyOpsAttentionLabels()[1])+':</b> <span style="color:'+escapeHtml(dailyOpsCleanColor(item.attention2Color, '#38bdf8'))+'">'+escapeHtml(item.attention2Text || (item.attention2 ? 'Flagged' : ''))+'</span>');
+    if(notes.length){
+      bits += '<div class="dailyops-contrib"><span class="pill">'+escapeHtml(actor)+'</span><span>'+notes.join(' &nbsp; ')+'</span></div>';
+    }
+  });
+  return bits;
+}
+function dailyOpsSectionSummaryHtml(type, tasks, group){
+  var names = {};
+  (tasks||[]).forEach(function(task){
+    dailyOpsTaskContributions(type, task, group).forEach(function(row){
+      if(row.item && row.item.done) names[row.item.by || row.staffName || row.staffId || 'Staff'] = true;
+    });
+  });
+  var list = Object.keys(names).sort();
+  if(!list.length) return '<div class="dailyops-empty dailyops-summary">No one has completed items in this checklist for the selected date yet.</div>';
+  return '<div class="dailyops-row dailyops-summary"><strong>Contributors:</strong> '+list.map(function(name){ return '<span class="pill dailyops-pill-ok">'+escapeHtml(name)+'</span>'; }).join(' ')+'</div>';
+}
+function dailyOpsBuildTaskPayload(done, by, note, noteColor, att1, att1Text, att1Color, att2, att2Text, att2Color){
+  var labels = dailyOpsAttentionLabels();
+  var actor = dailyOpsUserLabel() || String(by||'').trim() || 'Staff';
+  return {
+    done:!!done,
+    by:actor,
+    byStaffId:dailyOpsUserId(),
+    note:String(note||'').trim(),
+    noteColor:dailyOpsCleanColor(noteColor, '#e5e7eb'),
+    attention1:!!att1,
+    attention1Text:String(att1Text||'').trim(),
+    attention1Color:dailyOpsCleanColor(att1Color, '#f59e0b'),
+    attention1Label:labels[0],
+    attentionBy:actor,
+    attentionByStaffId:dailyOpsUserId(),
+    attention2:!!att2,
+    attention2Text:String(att2Text||'').trim(),
+    attention2Color:dailyOpsCleanColor(att2Color, '#38bdf8'),
+    attention2Label:labels[1],
+    time:new Date().toLocaleString()
+  };
+}
+function dailyOpsStockStatusLabel(status){
+  status = String(status || '');
+  if(status === 'ok') return 'Sufficient';
+  if(status === 'out') return 'Out';
+  if(status === 'low') return 'Low';
+  return 'Not checked';
+}
+function dailyOpsStockStatusPillClass(status){
+  status = String(status || '');
+  if(status === 'ok') return 'dailyops-pill-ok';
+  if(status === 'out') return 'dailyops-pill-out';
+  if(status === 'low') return 'dailyops-pill-stock';
+  return '';
+}
+function dailyOpsStockStatusSelectClass(status){
+  status = String(status || '');
+  if(status === 'ok') return 'dailyops-stock-select-ok';
+  if(status === 'out') return 'dailyops-stock-select-out';
+  if(status === 'low') return 'dailyops-stock-select-low';
+  return '';
+}
+function dailyOpsApplyStockSelectColor(sel){
+  if(!sel) return;
+  sel.classList.remove('dailyops-stock-select-ok','dailyops-stock-select-low','dailyops-stock-select-out');
+  var cls = dailyOpsStockStatusSelectClass(sel.value);
+  if(cls) sel.classList.add(cls);
+}
+function dailyOpsShiftDate(delta){
+  var iso = DailyOps.date || dailyOpsTodayISO();
+  try{
+    var parts = String(iso).split('-').map(function(x){ return parseInt(x, 10); });
+    var d = new Date(parts[0], (parts[1]||1)-1, parts[2]||1);
+    if(isNaN(d.getTime())) throw new Error('Bad date');
+    d.setDate(d.getDate() + delta);
+    DailyOps.date = d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate());
+  }catch(e){ DailyOps.date = dailyOpsTodayISO(); }
+  renderDailyOps();
 }
 function dailyOpsSetView(view){
   DailyOps.view = view || 'checklists';
@@ -11051,20 +11263,14 @@ function renderDailyOps(){
   var groups = dailyOpsGroupsCompletion(record);
   var stock = dailyOpsStockStats(record);
   if(!staffId && dailyOpsCanManage()){
-    opening = {done:0,total:0};
-    closing = {done:0,total:0};
-    groups = {done:0,total:0};
+    opening = dailyOpsAggregateCompletion('opening', App.dailyOps.settings.openingTasks);
+    closing = dailyOpsAggregateCompletion('closing', App.dailyOps.settings.closingTasks);
+    groups = dailyOpsAggregateGroupsCompletion();
     stock = {checked:0,total:0,needs:0,actioned:0};
     dailyOpsStaffIds().forEach(function(sid){
       var r = dailyOpsRecordFor(DailyOps.date, sid, false);
       if(!r) return;
-      var op = dailyOpsCompletion('opening', App.dailyOps.settings.openingTasks, r);
-      var cl = dailyOpsCompletion('closing', App.dailyOps.settings.closingTasks, r);
-      var gp = dailyOpsGroupsCompletion(r);
       var st = dailyOpsStockStats(r);
-      opening.done += op.done; opening.total += op.total;
-      closing.done += cl.done; closing.total += cl.total;
-      groups.done += gp.done; groups.total += gp.total;
       stock.checked += st.checked; stock.total += st.total; stock.needs += st.needs; stock.actioned += st.actioned;
     });
   }
@@ -11086,24 +11292,49 @@ function renderDailyOps(){
 function renderDailyOpsTaskList(type, tasks, host, record, staffId){
   if(!host) return;
   host.innerHTML = '';
+  if(!staffId && dailyOpsCanManage()){ renderDailyOpsAggregateTaskList(type, tasks, host); return; }
   if(!staffId){ host.innerHTML = '<div class="dailyops-empty">Choose a staff member to update this checklist.</div>'; return; }
   if(!tasks.length){ host.innerHTML = '<div class="dailyops-empty">No tasks yet. Add tasks in Manage Lists.</div>'; return; }
   tasks.forEach(function(task){
     var key = dailyOpsTaskKey(task);
+    var taskText = dailyOpsTemplateText(task);
+    var taskColor = dailyOpsTemplateColor(task);
     var item = (record[type] && record[type][key]) || {};
+    var labels = dailyOpsAttentionLabels();
+    var contrib = dailyOpsTaskContributions(type, task).filter(function(row){ return String(row.staffId) !== String(staffId) || (row.item && row.item.done); });
     var row = document.createElement('div');
     row.className = 'dailyops-row dailyops-check-row';
-    row.innerHTML = '<input type="checkbox" '+(item.done?'checked':'')+'><div><div class="dailyops-task-title">'+escapeHtml(task)+'</div><div class="dailyops-task-meta"><input type="text" placeholder="Confirmed by" value="'+escapeHtml(item.by||'')+'"><input type="text" placeholder="Optional note" value="'+escapeHtml(item.note||'')+'"></div><div class="muted" style="margin-top:6px;font-size:12px;">'+(item.time ? 'Updated '+escapeHtml(item.time) : 'Not confirmed yet')+'</div></div>';
-    var box = row.querySelector('input[type="checkbox"]');
-    var inputs = row.querySelectorAll('input[type="text"]');
+    row.innerHTML = '<input data-role="done" type="checkbox" '+(item.done?'checked':'')+'><div><div class="dailyops-task-title" style="color:'+escapeHtml(taskColor)+'">'+escapeHtml(taskText)+'</div><div class="dailyops-task-meta"><input data-role="by" type="text" placeholder="Confirmed by" value="'+escapeHtml(item.by||'')+'"><input data-role="note" type="text" placeholder="Optional note" value="'+escapeHtml(item.note||'')+'" style="color:'+escapeHtml(dailyOpsCleanColor(item.noteColor, '#e5e7eb'))+'"><input data-role="noteColor" class="dailyops-color" type="color" value="'+escapeHtml(dailyOpsCleanColor(item.noteColor, '#e5e7eb'))+'" title="Note text colour"></div><div class="dailyops-attention-grid"><div class="dailyops-attention-card"><label><input data-role="attention1" type="checkbox" '+(item.attention1?'checked':'')+'> '+escapeHtml(labels[0])+'</label><div class="dailyops-attention-text"><input data-role="attention1Text" type="text" placeholder="Details" value="'+escapeHtml(item.attention1Text||'')+'" style="color:'+escapeHtml(dailyOpsCleanColor(item.attention1Color, '#f59e0b'))+'"><input data-role="attention1Color" class="dailyops-color" type="color" value="'+escapeHtml(dailyOpsCleanColor(item.attention1Color, '#f59e0b'))+'" title="'+escapeHtml(labels[0])+' text colour"></div></div><div class="dailyops-attention-card"><label><input data-role="attention2" type="checkbox" '+(item.attention2?'checked':'')+'> '+escapeHtml(labels[1])+'</label><div class="dailyops-attention-text"><input data-role="attention2Text" type="text" placeholder="Details" value="'+escapeHtml(item.attention2Text||'')+'" style="color:'+escapeHtml(dailyOpsCleanColor(item.attention2Color, '#38bdf8'))+'"><input data-role="attention2Color" class="dailyops-color" type="color" value="'+escapeHtml(dailyOpsCleanColor(item.attention2Color, '#38bdf8'))+'" title="'+escapeHtml(labels[1])+' text colour"></div></div></div>'+dailyOpsContributionHtml(contrib)+'<div class="muted" style="margin-top:6px;font-size:12px;">'+(item.time ? 'Updated '+escapeHtml(item.time) : 'Not confirmed by you yet')+'</div></div>';
+    var box = row.querySelector('[data-role="done"]');
+    var byInput = row.querySelector('[data-role="by"]');
+    var noteInput = row.querySelector('[data-role="note"]');
+    var noteColor = row.querySelector('[data-role="noteColor"]');
+    var att1 = row.querySelector('[data-role="attention1"]');
+    var att1Text = row.querySelector('[data-role="attention1Text"]');
+    var att1Color = row.querySelector('[data-role="attention1Color"]');
+    var att2 = row.querySelector('[data-role="attention2"]');
+    var att2Text = row.querySelector('[data-role="attention2Text"]');
+    var att2Color = row.querySelector('[data-role="attention2Color"]');
     function saveTask(){
-      record[type][key] = { done:box.checked, by:String(inputs[0].value||'').trim() || dailyOpsUserLabel(), note:String(inputs[1].value||'').trim(), time:new Date().toLocaleString() };
+      record[type][key] = dailyOpsBuildTaskPayload(box.checked, byInput.value, noteInput.value, noteColor.value, att1.checked, att1Text.value, att1Color.value, att2.checked, att2Text.value, att2Color.value);
       dailyOpsSave();
       renderDailyOps();
     }
-    box.onchange = saveTask;
-    inputs[0].onchange = saveTask;
-    inputs[1].onchange = saveTask;
+    [box, byInput, noteInput, noteColor, att1, att1Text, att1Color, att2, att2Text, att2Color].forEach(function(el){ if(el) el.onchange = saveTask; });
+    host.appendChild(row);
+  });
+}
+function renderDailyOpsAggregateTaskList(type, tasks, host){
+  if(!tasks.length){ host.innerHTML = '<div class="dailyops-empty">No tasks yet. Add tasks in Manage Lists.</div>'; return; }
+  host.innerHTML = dailyOpsSectionSummaryHtml(type, tasks);
+  tasks.forEach(function(task){
+    var rows = dailyOpsTaskContributions(type, task);
+    var done = rows.some(function(row){ return row.item && row.item.done; });
+    var taskText = dailyOpsTemplateText(task);
+    var taskColor = dailyOpsTemplateColor(task);
+    var row = document.createElement('div');
+    row.className = 'dailyops-row dailyops-check-row';
+    row.innerHTML = '<input class="dailyops-readonly-check" type="checkbox" disabled '+(done?'checked':'')+'><div><div class="dailyops-task-title" style="color:'+escapeHtml(taskColor)+'">'+escapeHtml(taskText)+'</div>'+(rows.length ? dailyOpsContributionHtml(rows) : '<div class="muted" style="margin-top:6px;font-size:12px;">No staff have checked this item yet.</div>')+'</div>';
     host.appendChild(row);
   });
 }
@@ -11118,7 +11349,7 @@ function renderDailyOpsCustomGroups(record, staffId){
   groups.forEach(function(group){
     var card = document.createElement('div');
     card.className = 'dailyops-row';
-    var status = dailyOpsGroupCompletion(group, record);
+    var status = (!staffId && dailyOpsCanManage()) ? dailyOpsAggregateCompletion('group', group.tasks || [], group) : dailyOpsGroupCompletion(group, record);
     card.innerHTML =
       '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;">' +
       '<label style="margin:0;">'+escapeHtml(group.name)+'</label>' +
@@ -11132,26 +11363,52 @@ function renderDailyOpsCustomGroups(record, staffId){
 function renderDailyOpsGroupTaskList(group, host, record, staffId){
   if(!host) return;
   host.innerHTML = '';
+  if(!staffId && dailyOpsCanManage()){ renderDailyOpsAggregateGroupTaskList(group, host); return; }
   if(!staffId){ host.innerHTML = '<div class="dailyops-empty">Choose a staff member to update this group.</div>'; return; }
   var tasks = group.tasks || [];
   if(!tasks.length){ host.innerHTML = '<div class="dailyops-empty">No tasks in this group yet. Add tasks in Manage Lists.</div>'; return; }
   if(!record.groups[group.id]) record.groups[group.id] = {};
   tasks.forEach(function(task){
     var key = dailyOpsTaskKey(task);
+    var taskText = dailyOpsTemplateText(task);
+    var taskColor = dailyOpsTemplateColor(task);
     var item = (record.groups[group.id] && record.groups[group.id][key]) || {};
+    var labels = dailyOpsAttentionLabels();
+    var contrib = dailyOpsTaskContributions('group', task, group).filter(function(row){ return String(row.staffId) !== String(staffId) || (row.item && row.item.done); });
     var row = document.createElement('div');
     row.className = 'dailyops-row dailyops-check-row';
-    row.innerHTML = '<input type="checkbox" '+(item.done?'checked':'')+'><div><div class="dailyops-task-title">'+escapeHtml(task)+'</div><div class="dailyops-task-meta"><input type="text" placeholder="Confirmed by" value="'+escapeHtml(item.by||'')+'"><input type="text" placeholder="Optional note" value="'+escapeHtml(item.note||'')+'"></div><div class="muted" style="margin-top:6px;font-size:12px;">'+(item.time ? 'Updated '+escapeHtml(item.time) : 'Not confirmed yet')+'</div></div>';
-    var box = row.querySelector('input[type="checkbox"]');
-    var inputs = row.querySelectorAll('input[type="text"]');
+    row.innerHTML = '<input data-role="done" type="checkbox" '+(item.done?'checked':'')+'><div><div class="dailyops-task-title" style="color:'+escapeHtml(taskColor)+'">'+escapeHtml(taskText)+'</div><div class="dailyops-task-meta"><input data-role="by" type="text" placeholder="Confirmed by" value="'+escapeHtml(item.by||'')+'"><input data-role="note" type="text" placeholder="Optional note" value="'+escapeHtml(item.note||'')+'" style="color:'+escapeHtml(dailyOpsCleanColor(item.noteColor, '#e5e7eb'))+'"><input data-role="noteColor" class="dailyops-color" type="color" value="'+escapeHtml(dailyOpsCleanColor(item.noteColor, '#e5e7eb'))+'" title="Note text colour"></div><div class="dailyops-attention-grid"><div class="dailyops-attention-card"><label><input data-role="attention1" type="checkbox" '+(item.attention1?'checked':'')+'> '+escapeHtml(labels[0])+'</label><div class="dailyops-attention-text"><input data-role="attention1Text" type="text" placeholder="Details" value="'+escapeHtml(item.attention1Text||'')+'" style="color:'+escapeHtml(dailyOpsCleanColor(item.attention1Color, '#f59e0b'))+'"><input data-role="attention1Color" class="dailyops-color" type="color" value="'+escapeHtml(dailyOpsCleanColor(item.attention1Color, '#f59e0b'))+'" title="'+escapeHtml(labels[0])+' text colour"></div></div><div class="dailyops-attention-card"><label><input data-role="attention2" type="checkbox" '+(item.attention2?'checked':'')+'> '+escapeHtml(labels[1])+'</label><div class="dailyops-attention-text"><input data-role="attention2Text" type="text" placeholder="Details" value="'+escapeHtml(item.attention2Text||'')+'" style="color:'+escapeHtml(dailyOpsCleanColor(item.attention2Color, '#38bdf8'))+'"><input data-role="attention2Color" class="dailyops-color" type="color" value="'+escapeHtml(dailyOpsCleanColor(item.attention2Color, '#38bdf8'))+'" title="'+escapeHtml(labels[1])+' text colour"></div></div></div>'+dailyOpsContributionHtml(contrib)+'<div class="muted" style="margin-top:6px;font-size:12px;">'+(item.time ? 'Updated '+escapeHtml(item.time) : 'Not confirmed by you yet')+'</div></div>';
+    var box = row.querySelector('[data-role="done"]');
+    var byInput = row.querySelector('[data-role="by"]');
+    var noteInput = row.querySelector('[data-role="note"]');
+    var noteColor = row.querySelector('[data-role="noteColor"]');
+    var att1 = row.querySelector('[data-role="attention1"]');
+    var att1Text = row.querySelector('[data-role="attention1Text"]');
+    var att1Color = row.querySelector('[data-role="attention1Color"]');
+    var att2 = row.querySelector('[data-role="attention2"]');
+    var att2Text = row.querySelector('[data-role="attention2Text"]');
+    var att2Color = row.querySelector('[data-role="attention2Color"]');
     function saveTask(){
-      record.groups[group.id][key] = { done:box.checked, by:String(inputs[0].value||'').trim() || dailyOpsUserLabel(), note:String(inputs[1].value||'').trim(), time:new Date().toLocaleString() };
+      record.groups[group.id][key] = dailyOpsBuildTaskPayload(box.checked, byInput.value, noteInput.value, noteColor.value, att1.checked, att1Text.value, att1Color.value, att2.checked, att2Text.value, att2Color.value);
       dailyOpsSave();
       renderDailyOps();
     }
-    box.onchange = saveTask;
-    inputs[0].onchange = saveTask;
-    inputs[1].onchange = saveTask;
+    [box, byInput, noteInput, noteColor, att1, att1Text, att1Color, att2, att2Text, att2Color].forEach(function(el){ if(el) el.onchange = saveTask; });
+    host.appendChild(row);
+  });
+}
+function renderDailyOpsAggregateGroupTaskList(group, host){
+  var tasks = group.tasks || [];
+  if(!tasks.length){ host.innerHTML = '<div class="dailyops-empty">No tasks in this group yet. Add tasks in Manage Lists.</div>'; return; }
+  host.innerHTML = dailyOpsSectionSummaryHtml('group', tasks, group);
+  tasks.forEach(function(task){
+    var rows = dailyOpsTaskContributions('group', task, group);
+    var done = rows.some(function(row){ return row.item && row.item.done; });
+    var taskText = dailyOpsTemplateText(task);
+    var taskColor = dailyOpsTemplateColor(task);
+    var row = document.createElement('div');
+    row.className = 'dailyops-row dailyops-check-row';
+    row.innerHTML = '<input class="dailyops-readonly-check" type="checkbox" disabled '+(done?'checked':'')+'><div><div class="dailyops-task-title" style="color:'+escapeHtml(taskColor)+'">'+escapeHtml(taskText)+'</div>'+(rows.length ? dailyOpsContributionHtml(rows) : '<div class="muted" style="margin-top:6px;font-size:12px;">No staff have checked this item yet.</div>')+'</div>';
     host.appendChild(row);
   });
 }
@@ -11159,13 +11416,29 @@ function renderDailyOpsNotes(record, staffId){
   var host = byId('dailyOpsNotesList');
   if(!host) return;
   host.innerHTML = '';
+  if(!staffId && dailyOpsCanManage()){
+    var allNotes = [];
+    dailyOpsStaffIds().forEach(function(sid){
+      var rec = dailyOpsRecordFor(DailyOps.date, sid, false);
+      ((rec && rec.notes) || []).forEach(function(note, idx){ allNotes.push({staffId:sid, note:note, idx:idx}); });
+    });
+    if(!allNotes.length){ host.innerHTML = '<div class="dailyops-empty">No staff notes for this day.</div>'; return; }
+    allNotes.forEach(function(row){
+      var note = row.note || {};
+      var el = document.createElement('div');
+      el.className = 'dailyops-row';
+      el.innerHTML = '<b>'+escapeHtml(staffDisplayNameForId(row.staffId,row.staffId))+' - '+escapeHtml(note.by||'Staff')+' - '+escapeHtml(note.time||'')+'</b><div class="muted" style="margin-top:4px;color:'+escapeHtml(dailyOpsCleanColor(note.color, '#e5e7eb'))+';">'+escapeHtml(note.text||'')+'</div>';
+      host.appendChild(el);
+    });
+    return;
+  }
   if(!staffId){ host.innerHTML = '<div class="dailyops-empty">Choose a staff member to view or add notes.</div>'; return; }
   var notes = (record && record.notes) || [];
   if(!notes.length){ host.innerHTML = '<div class="dailyops-empty">No staff notes for this day.</div>'; return; }
   notes.forEach(function(note, idx){
     var row = document.createElement('div');
     row.className = 'dailyops-row';
-    row.innerHTML = '<b>'+escapeHtml(note.by||'Staff')+' - '+escapeHtml(note.time||'')+'</b><div class="muted" style="margin-top:4px;">'+escapeHtml(note.text||'')+'</div>';
+    row.innerHTML = '<b>'+escapeHtml(note.by||'Staff')+' - '+escapeHtml(note.time||'')+'</b><div class="muted" style="margin-top:4px;color:'+escapeHtml(dailyOpsCleanColor(note.color, '#e5e7eb'))+';">'+escapeHtml(note.text||'')+'</div>';
     if(dailyOpsCanManage() || (App.currentUser && String(note.staffId||'')===String(App.currentUser.id))){
       var btn = document.createElement('button');
       btn.type = 'button';
@@ -11182,19 +11455,48 @@ function renderDailyOpsStock(record, staffId){
   var host = byId('dailyOpsStockList');
   if(!host) return;
   host.innerHTML = '';
+  if(!staffId && dailyOpsCanManage()){
+    if(!App.dailyOps.settings.stockItems.length){ host.innerHTML = '<div class="dailyops-empty">No stock items yet. Add them in Manage Lists.</div>'; return; }
+    var any = false;
+    App.dailyOps.settings.stockItems.forEach(function(item){
+      var reports = [];
+      var key = dailyOpsTaskKey(item);
+      var itemText = dailyOpsTemplateText(item);
+      var itemColor = dailyOpsTemplateColor(item);
+      dailyOpsStaffIds().forEach(function(sid){
+        var rec = dailyOpsRecordFor(DailyOps.date, sid, false);
+        var st = rec && rec.stock ? rec.stock[key] : null;
+        if(st && st.status) reports.push({staffId:sid, stock:st});
+      });
+      var row = document.createElement('div');
+      row.className = 'dailyops-row';
+      row.innerHTML = '<div class="dailyops-task-title" style="color:'+escapeHtml(itemColor)+'">'+escapeHtml(itemText)+'</div>' + (reports.length ? reports.map(function(r){
+        any = true;
+        var cls = dailyOpsStockStatusPillClass(r.stock.status);
+        return '<div class="dailyops-contrib"><span class="pill '+cls+'">'+escapeHtml(dailyOpsStockStatusLabel(r.stock.status))+'</span><span>'+escapeHtml(r.stock.by || staffDisplayNameForId(r.staffId,r.staffId))+' - '+escapeHtml(r.stock.findings || 'No findings typed.')+'</span></div>';
+      }).join('') : '<div class="muted" style="margin-top:6px;font-size:12px;">No staff have checked this stock item yet.</div>');
+      host.appendChild(row);
+    });
+    if(!any && !host.children.length) host.innerHTML = '<div class="dailyops-empty">No stock findings recorded for this date.</div>';
+    return;
+  }
   if(!staffId){ host.innerHTML = '<div class="dailyops-empty">Choose a staff member to update stock findings.</div>'; return; }
   if(!App.dailyOps.settings.stockItems.length){ host.innerHTML = '<div class="dailyops-empty">No stock items yet. Add them in Manage Lists.</div>'; return; }
   App.dailyOps.settings.stockItems.forEach(function(item){
     var key = dailyOpsTaskKey(item);
+    var itemText = dailyOpsTemplateText(item);
+    var itemColor = dailyOpsTemplateColor(item);
     var rec = (record.stock && record.stock[key]) || {};
     var row = document.createElement('div');
     row.className = 'dailyops-row dailyops-stock-row';
-    row.innerHTML = '<div class="dailyops-stock-name">'+escapeHtml(item)+'</div><div><label>Status</label><select><option value="">Not checked</option><option value="ok">Sufficient</option><option value="low">Low</option><option value="out">Out</option></select></div><div><label>Findings</label><textarea placeholder="Quantity left, urgency, supplier note or order request..." style="min-height:70px;">'+escapeHtml(rec.findings||'')+'</textarea></div>';
+    row.innerHTML = '<div class="dailyops-stock-name" style="color:'+escapeHtml(itemColor)+'">'+escapeHtml(itemText)+'</div><div><label>Status</label><select><option value="">Not checked</option><option value="ok" style="color:#22c55e;">Sufficient</option><option value="low" style="color:#f59e0b;">Low</option><option value="out" style="color:#ef4444;">Out</option></select></div><div><label>Findings</label><textarea placeholder="Quantity left, urgency, supplier note or order request..." style="min-height:70px;">'+escapeHtml(rec.findings||'')+'</textarea></div>';
     var sel = row.querySelector('select');
     var txt = row.querySelector('textarea');
     sel.value = rec.status || '';
+    dailyOpsApplyStockSelectColor(sel);
     function saveStock(){
-      record.stock[key] = { name:item, status:sel.value, findings:String(txt.value||'').trim(), by:dailyOpsUserLabel(), staffId:staffId, time:new Date().toLocaleString(), ownerActioned:(record.stock[key] && record.stock[key].ownerActioned && sel.value !== 'ok') ? true : false, ownerNote:(record.stock[key] && sel.value !== 'ok') ? (record.stock[key].ownerNote||'') : '' };
+      dailyOpsApplyStockSelectColor(sel);
+      record.stock[key] = { name:itemText, status:sel.value, findings:String(txt.value||'').trim(), by:dailyOpsUserLabel(), byStaffId:dailyOpsUserId(), staffId:staffId, time:new Date().toLocaleString(), ownerActioned:(record.stock[key] && record.stock[key].ownerActioned && sel.value !== 'ok') ? true : false, ownerNote:(record.stock[key] && sel.value !== 'ok') ? (record.stock[key].ownerNote||'') : '' };
       dailyOpsSave();
       renderDailyOps();
     }
@@ -11202,6 +11504,75 @@ function renderDailyOpsStock(record, staffId){
     txt.onchange = saveStock;
     host.appendChild(row);
   });
+}
+function dailyOpsCollectFlaggedRows(){
+  var date = DailyOps.date || dailyOpsTodayISO();
+  var selected = dailyOpsSelectedStaffId();
+  var staffIds = selected ? [selected] : dailyOpsStaffIds();
+  var labels = dailyOpsAttentionLabels();
+  var rows = [];
+  function addTaskFlags(sid, section, task, item){
+    if(!item) return;
+    var taskText = dailyOpsTemplateText(task);
+    var taskColor = dailyOpsTemplateColor(task);
+    if(item.attention1 || item.attention1Text){
+      rows.push({kind:'Checklist', flagType:'attention1', staffId:sid, section:section, item:taskText, color:taskColor, label:item.attention1Label || labels[0], text:item.attention1Text || 'Flagged', textColor:dailyOpsCleanColor(item.attention1Color, '#f59e0b'), by:item.attentionBy || item.by || staffDisplayNameForId(sid,sid), time:item.time || ''});
+    }
+    if(item.attention2 || item.attention2Text){
+      rows.push({kind:'Checklist', flagType:'attention2', staffId:sid, section:section, item:taskText, color:taskColor, label:item.attention2Label || labels[1], text:item.attention2Text || 'Flagged', textColor:dailyOpsCleanColor(item.attention2Color, '#38bdf8'), by:item.attentionBy || item.by || staffDisplayNameForId(sid,sid), time:item.time || ''});
+    }
+  }
+  staffIds.forEach(function(sid){
+    var rec = dailyOpsRecordFor(date, sid, false);
+    if(!rec) return;
+    (App.dailyOps.settings.openingTasks||[]).forEach(function(task){ addTaskFlags(sid, 'Opening', task, rec.opening && rec.opening[dailyOpsTaskKey(task)]); });
+    (App.dailyOps.settings.closingTasks||[]).forEach(function(task){ addTaskFlags(sid, 'Closing', task, rec.closing && rec.closing[dailyOpsTaskKey(task)]); });
+    (App.dailyOps.settings.customGroups||[]).forEach(function(group){
+      (group.tasks||[]).forEach(function(task){ addTaskFlags(sid, group.name || 'Checklist', task, rec.groups && rec.groups[group.id] && rec.groups[group.id][dailyOpsTaskKey(task)]); });
+    });
+    (App.dailyOps.settings.stockItems||[]).forEach(function(item){
+      var st = rec.stock && rec.stock[dailyOpsTaskKey(item)];
+      if(st && (st.status === 'low' || st.status === 'out')){
+        rows.push({kind:'Stock', flagType:'stock', stockStatus:st.status, staffId:sid, section:'Stock Check', item:dailyOpsTemplateText(item), color:dailyOpsTemplateColor(item), label:dailyOpsStockStatusLabel(st.status), text:st.findings || 'No findings typed.', textColor:(st.status === 'out' ? '#ef4444' : '#f59e0b'), by:st.by || staffDisplayNameForId(sid,sid), time:st.time || ''});
+      }
+    });
+  });
+  return rows;
+}
+function dailyOpsFlagSummaryHtml(){
+  if(!dailyOpsCanManage()) return '';
+  var allRows = dailyOpsCollectFlaggedRows();
+  if(!allRows.length) return '<div class="dailyops-empty dailyops-summary">No flagged checklist or stock items for this date.</div>';
+  var labels = dailyOpsAttentionLabels();
+  var filter = DailyOps.flagFilter || 'all';
+  var rows = filter === 'all' ? allRows : allRows.filter(function(row){ return row.flagType === filter; });
+  function pillClass(row){
+    if(row.flagType === 'attention1') return 'dailyops-pill-attention';
+    if(row.flagType === 'attention2') return 'dailyops-pill-supplies';
+    return dailyOpsStockStatusPillClass(row.stockStatus || row.label);
+  }
+  function kindClass(row){
+    return row.kind === 'Stock' ? 'dailyops-pill-kind-stock' : 'dailyops-pill-kind-checklist';
+  }
+  var options =
+    '<option value="all" '+(filter==='all'?'selected':'')+'>All flagged items</option>' +
+    '<option value="attention1" '+(filter==='attention1'?'selected':'')+'>'+escapeHtml(labels[0])+'</option>' +
+    '<option value="attention2" '+(filter==='attention2'?'selected':'')+'>'+escapeHtml(labels[1])+'</option>' +
+    '<option value="stock" '+(filter==='stock'?'selected':'')+'>Stock low/out</option>';
+  return '<div class="dailyops-row dailyops-summary"><div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:8px;"><strong>Flagged items summary</strong><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;"><select id="dailyOpsFlagFilter" class="dailyops-flag-filter">'+options+'</select><span class="pill dailyops-pill-low">'+rows.length+' of '+allRows.length+' flagged</span></div></div>' +
+    (rows.length ? '' : '<div class="dailyops-empty">No items match this flag filter.</div>') +
+    rows.map(function(row){
+      return '<div class="dailyops-contrib"><span class="pill '+kindClass(row)+'">'+escapeHtml(row.kind)+'</span><span class="pill '+pillClass(row)+'">'+escapeHtml(row.label)+'</span><span><b style="color:'+escapeHtml(row.color || '#e5e7eb')+'">'+escapeHtml(row.item)+'</b> - '+escapeHtml(row.section)+' - <span style="color:'+escapeHtml(dailyOpsCleanColor(row.textColor, '#e5e7eb'))+'">'+escapeHtml(row.text)+'</span> <span class="muted">by '+escapeHtml(row.by)+' '+escapeHtml(row.time||'')+'</span></span></div>';
+    }).join('') + '</div>';
+}
+function bindDailyOpsFlagFilter(){
+  var sel = byId('dailyOpsFlagFilter');
+  if(!sel || sel._dailyOpsBound) return;
+  sel._dailyOpsBound = true;
+  sel.onchange = function(){
+    DailyOps.flagFilter = sel.value || 'all';
+    renderDailyOpsReview();
+  };
 }
 function renderDailyOpsReview(){
   var host = byId('dailyOpsReviewList');
@@ -11215,18 +11586,25 @@ function renderDailyOpsReview(){
     if(!rec) return;
     App.dailyOps.settings.stockItems.forEach(function(item){
       var st = rec.stock[dailyOpsTaskKey(item)];
-      if(st && (st.status==='low' || st.status==='out')) rows.push({staffId:sid,item:item,stock:st,key:dailyOpsTaskKey(item)});
+      if(st && (st.status==='low' || st.status==='out')) rows.push({staffId:sid,item:dailyOpsTemplateText(item),itemColor:dailyOpsTemplateColor(item),stock:st,key:dailyOpsTaskKey(item)});
     });
     (rec.notes||[]).forEach(function(note){ rows.push({staffId:sid,note:note}); });
   });
-  if(!rows.length){ host.innerHTML = '<div class="dailyops-empty">No stock issues or notes recorded for this date.</div>'; return; }
+  var flagHtml = dailyOpsFlagSummaryHtml();
+  if(!rows.length){ host.innerHTML = flagHtml || '<div class="dailyops-empty">No stock issues or notes recorded for this date.</div>'; bindDailyOpsFlagFilter(); return; }
   host.innerHTML = '';
+  if(flagHtml){
+    var wrap = document.createElement('div');
+    wrap.innerHTML = flagHtml;
+    while(wrap.firstChild) host.appendChild(wrap.firstChild);
+    bindDailyOpsFlagFilter();
+  }
   rows.forEach(function(row){
     var card = document.createElement('div');
     card.className = 'dailyops-row dailyops-review-row';
     if(row.stock){
       var cls = row.stock.status === 'out' ? 'dailyops-pill-out' : 'dailyops-pill-low';
-      card.innerHTML = '<div><h4>'+escapeHtml(row.item)+' <span class="pill '+cls+'">'+escapeHtml(row.stock.status==='out'?'Out':'Low')+'</span> <span class="pill '+(row.stock.ownerActioned?'dailyops-pill-ok':'dailyops-pill-low')+'">'+(row.stock.ownerActioned?'Actioned':'Needs action')+'</span></h4><p>'+escapeHtml(row.stock.findings || 'No findings typed.')+'</p><p>Reported by '+escapeHtml(staffDisplayNameForId(row.staffId,row.staffId))+' - '+escapeHtml(row.stock.time||'')+'</p></div><div class="dailyops-owner-box"><label><input type="checkbox" '+(row.stock.ownerActioned?'checked':'')+'> Actioned</label><input type="text" placeholder="Owner note" value="'+escapeHtml(row.stock.ownerNote||'')+'"></div>';
+      card.innerHTML = '<div><h4 style="color:'+escapeHtml(row.itemColor || '#e5e7eb')+'">'+escapeHtml(row.item)+' <span class="pill '+cls+'">'+escapeHtml(row.stock.status==='out'?'Out':'Low')+'</span> <span class="pill '+(row.stock.ownerActioned?'dailyops-pill-ok':'dailyops-pill-low')+'">'+(row.stock.ownerActioned?'Actioned':'Needs action')+'</span></h4><p>'+escapeHtml(row.stock.findings || 'No findings typed.')+'</p><p>Reported by '+escapeHtml(row.stock.by || staffDisplayNameForId(row.staffId,row.staffId))+' - '+escapeHtml(row.stock.time||'')+'</p></div><div class="dailyops-owner-box"><label><input type="checkbox" '+(row.stock.ownerActioned?'checked':'')+'> Actioned</label><input type="text" placeholder="Owner note" value="'+escapeHtml(row.stock.ownerNote||'')+'"></div>';
       var cb = card.querySelector('input[type="checkbox"]');
       var noteInput = card.querySelector('input[type="text"]');
       cb.disabled = !dailyOpsCanManage();
@@ -11253,9 +11631,29 @@ function renderDailyOpsManage(){
   renderDailyOpsManageList('openingTasks', byId('dailyOpsManageOpening'));
   renderDailyOpsManageList('closingTasks', byId('dailyOpsManageClosing'));
   renderDailyOpsManageList('stockItems', byId('dailyOpsManageStock'));
+  renderDailyOpsAttentionLabelSettings();
   renderDailyOpsManageGroups();
-  ['dailyOpsNewOpeningTask','dailyOpsNewClosingTask','dailyOpsNewStockItem','dailyOpsAddOpeningTask','dailyOpsAddClosingTask','dailyOpsAddStockItem','dailyOpsNewGroupName','dailyOpsAddGroup'].forEach(function(id){ var x=byId(id); if(x) x.disabled = !dailyOpsCanManage(); });
+  ['dailyOpsNewOpeningTask','dailyOpsNewOpeningTaskColor','dailyOpsNewClosingTask','dailyOpsNewClosingTaskColor','dailyOpsNewStockItem','dailyOpsNewStockItemColor','dailyOpsAddOpeningTask','dailyOpsAddClosingTask','dailyOpsAddStockItem','dailyOpsNewGroupName','dailyOpsAddGroup','dailyOpsAttentionLabel1','dailyOpsAttentionLabel2'].forEach(function(id){ var x=byId(id); if(x) x.disabled = !dailyOpsCanManage(); });
   var m = byId('dailyOpsTabManage'); if(m) m.style.display = dailyOpsCanManage() ? '' : 'none';
+}
+function renderDailyOpsAttentionLabelSettings(){
+  var a = byId('dailyOpsAttentionLabel1');
+  var b = byId('dailyOpsAttentionLabel2');
+  if(!a || !b) return;
+  var labels = dailyOpsAttentionLabels();
+  if(a.value !== labels[0]) a.value = labels[0];
+  if(b.value !== labels[1]) b.value = labels[1];
+  function saveLabels(){
+    if(!dailyOpsCanManage()) return;
+    App.dailyOps.settings.attentionLabels = [
+      String(a.value || '').trim() || 'Needs attention',
+      String(b.value || '').trim() || 'Supplies needed'
+    ];
+    dailyOpsSave();
+    renderDailyOps();
+  }
+  a.onchange = saveLabels;
+  b.onchange = saveLabels;
 }
 function renderDailyOpsManageList(field, host){
   if(!host) return;
@@ -11264,13 +11662,17 @@ function renderDailyOpsManageList(field, host){
   if(!list.length){ host.innerHTML = '<div class="dailyops-empty">No items yet.</div>'; return; }
   list.forEach(function(item, idx){
     var row = document.createElement('div');
-    row.className = 'dailyops-manage-row';
-    row.innerHTML = '<input type="text" value="'+escapeHtml(item)+'"><button type="button" class="btn-outline">Remove</button>';
+    row.className = 'dailyops-manage-row dailyops-has-color';
+    row.innerHTML = '<input type="text" value="'+escapeHtml(dailyOpsTemplateText(item))+'" style="color:'+escapeHtml(dailyOpsTemplateColor(item))+'"><input type="color" class="dailyops-mini-color" value="'+escapeHtml(dailyOpsTemplateColor(item))+'" title="Text colour"><button type="button" class="btn-outline">Remove</button>';
     var input = row.querySelector('input');
+    var color = row.querySelector('input[type="color"]');
     var btn = row.querySelector('button');
     input.disabled = !dailyOpsCanManage();
+    color.disabled = !dailyOpsCanManage();
     btn.disabled = !dailyOpsCanManage();
-    input.onchange = function(){ if(!dailyOpsCanManage()) return; list[idx] = String(input.value||'').trim() || item; dailyOpsSave(); renderDailyOps(); };
+    function saveItem(){ if(!dailyOpsCanManage()) return; list[idx] = dailyOpsTemplateValue(String(input.value||'').trim() || dailyOpsTemplateText(item), color.value); dailyOpsSave(); renderDailyOps(); }
+    input.onchange = saveItem;
+    color.onchange = saveItem;
     btn.onclick = function(){ if(!dailyOpsCanManage()) return; if(!confirm('Remove this item from future daily tasks? Existing records stay saved.')) return; list.splice(idx,1); dailyOpsSave(); renderDailyOps(); };
     host.appendChild(row);
   });
@@ -11288,12 +11690,13 @@ function renderDailyOpsManageGroups(){
     row.innerHTML =
       '<div class="dailyops-manage-row"><input type="text" value="'+escapeHtml(group.name)+'"><button type="button" class="btn-outline">Remove group</button></div>' +
       '<div class="dailyops-list" style="margin-top:8px;"></div>' +
-      '<div class="dailyops-add-row"><input type="text" placeholder="Add task to '+escapeHtml(group.name)+'"><button type="button" class="btn-outline">Add task</button></div>';
+      '<div class="dailyops-add-row"><input type="text" placeholder="Add task to '+escapeHtml(group.name)+'"><input type="color" class="dailyops-mini-color" value="#e5e7eb" title="Task text colour"><button type="button" class="btn-outline">Add task</button></div>';
     var inputs = row.querySelectorAll('input');
     var buttons = row.querySelectorAll('button');
     var taskHost = row.querySelector('.dailyops-list');
     inputs[0].disabled = !dailyOpsCanManage();
     inputs[1].disabled = !dailyOpsCanManage();
+    inputs[2].disabled = !dailyOpsCanManage();
     buttons[0].disabled = !dailyOpsCanManage();
     buttons[1].disabled = !dailyOpsCanManage();
     inputs[0].onchange = function(){ if(!dailyOpsCanManage()) return; group.name = String(inputs[0].value||'').trim() || group.name; dailyOpsSave(); renderDailyOps(); };
@@ -11303,7 +11706,7 @@ function renderDailyOpsManageGroups(){
       var value = String(inputs[1].value||'').trim();
       if(!value) return;
       group.tasks = Array.isArray(group.tasks) ? group.tasks : [];
-      group.tasks.push(value);
+      group.tasks.push(dailyOpsTemplateValue(value, inputs[2] && inputs[2].value));
       inputs[1].value = '';
       dailyOpsSave();
       renderDailyOps();
@@ -11320,23 +11723,28 @@ function renderDailyOpsManageGroupTasks(group, host){
   if(!tasks.length){ host.innerHTML = '<div class="dailyops-empty">No tasks in this group yet.</div>'; return; }
   tasks.forEach(function(task, idx){
     var row = document.createElement('div');
-    row.className = 'dailyops-manage-row';
-    row.innerHTML = '<input type="text" value="'+escapeHtml(task)+'"><button type="button" class="btn-outline">Remove</button>';
+    row.className = 'dailyops-manage-row dailyops-has-color';
+    row.innerHTML = '<input type="text" value="'+escapeHtml(dailyOpsTemplateText(task))+'" style="color:'+escapeHtml(dailyOpsTemplateColor(task))+'"><input type="color" class="dailyops-mini-color" value="'+escapeHtml(dailyOpsTemplateColor(task))+'" title="Text colour"><button type="button" class="btn-outline">Remove</button>';
     var input = row.querySelector('input');
+    var color = row.querySelector('input[type="color"]');
     var button = row.querySelector('button');
     input.disabled = !dailyOpsCanManage();
+    color.disabled = !dailyOpsCanManage();
     button.disabled = !dailyOpsCanManage();
-    input.onchange = function(){ if(!dailyOpsCanManage()) return; group.tasks[idx] = String(input.value||'').trim() || task; dailyOpsSave(); renderDailyOps(); };
+    function saveTaskTemplate(){ if(!dailyOpsCanManage()) return; group.tasks[idx] = dailyOpsTemplateValue(String(input.value||'').trim() || dailyOpsTemplateText(task), color.value); dailyOpsSave(); renderDailyOps(); }
+    input.onchange = saveTaskTemplate;
+    color.onchange = saveTaskTemplate;
     button.onclick = function(){ if(!dailyOpsCanManage()) return; group.tasks.splice(idx,1); dailyOpsSave(); renderDailyOps(); };
     host.appendChild(row);
   });
 }
-function dailyOpsAddTemplateItem(field, inputId){
+function dailyOpsAddTemplateItem(field, inputId, colorId){
   if(!dailyOpsCanManage()) return alert('Manager/Admin only.');
   var input = byId(inputId);
+  var color = byId(colorId);
   var value = input ? String(input.value||'').trim() : '';
   if(!value) return;
-  App.dailyOps.settings[field].push(value);
+  App.dailyOps.settings[field].push(dailyOpsTemplateValue(value, color && color.value));
   input.value = '';
   dailyOpsSave();
   renderDailyOps();
@@ -11359,6 +11767,8 @@ function initDailyOps(){
   DailyOps.date = dailyOpsTodayISO();
   var d = byId('dailyOpsDate'); if(d) d.onchange = function(){ DailyOps.date = d.value || dailyOpsTodayISO(); renderDailyOps(); };
   var s = byId('dailyOpsStaffSelect'); if(s) s.onchange = renderDailyOps;
+  var nav = byId('dailyOpsPrevDate'); if(nav) nav.onclick = function(){ dailyOpsShiftDate(-1); };
+  nav = byId('dailyOpsNextDate'); if(nav) nav.onclick = function(){ dailyOpsShiftDate(1); };
   var b = byId('dailyOpsToday'); if(b) b.onclick = function(){ DailyOps.date = dailyOpsTodayISO(); renderDailyOps(); };
   b = byId('dailyOpsResetDay'); if(b) b.onclick = function(){
     var sid = dailyOpsSelectedStaffId();
@@ -11378,25 +11788,26 @@ function initDailyOps(){
     var sid = dailyOpsSelectedStaffId();
     if(!sid) return alert('Choose a staff member first.');
     var txt = byId('dailyOpsNewNote');
+    var color = byId('dailyOpsNewNoteColor');
     var val = txt ? String(txt.value||'').trim() : '';
     if(!val) return;
     var rec = dailyOpsRecordFor(DailyOps.date, sid, true);
-    rec.notes.unshift({text:val, by:dailyOpsUserLabel(), staffId:(App.currentUser&&App.currentUser.id)||sid, time:new Date().toLocaleString()});
+    rec.notes.unshift({text:val, color:dailyOpsCleanColor(color && color.value, '#e5e7eb'), by:dailyOpsUserLabel(), staffId:(App.currentUser&&App.currentUser.id)||sid, time:new Date().toLocaleString()});
     txt.value = '';
     dailyOpsSave();
     renderDailyOps();
   };
-  b = byId('dailyOpsAddOpeningTask'); if(b) b.onclick = function(){ dailyOpsAddTemplateItem('openingTasks','dailyOpsNewOpeningTask'); };
-  b = byId('dailyOpsAddClosingTask'); if(b) b.onclick = function(){ dailyOpsAddTemplateItem('closingTasks','dailyOpsNewClosingTask'); };
-  b = byId('dailyOpsAddStockItem'); if(b) b.onclick = function(){ dailyOpsAddTemplateItem('stockItems','dailyOpsNewStockItem'); };
+  b = byId('dailyOpsAddOpeningTask'); if(b) b.onclick = function(){ dailyOpsAddTemplateItem('openingTasks','dailyOpsNewOpeningTask','dailyOpsNewOpeningTaskColor'); };
+  b = byId('dailyOpsAddClosingTask'); if(b) b.onclick = function(){ dailyOpsAddTemplateItem('closingTasks','dailyOpsNewClosingTask','dailyOpsNewClosingTaskColor'); };
+  b = byId('dailyOpsAddStockItem'); if(b) b.onclick = function(){ dailyOpsAddTemplateItem('stockItems','dailyOpsNewStockItem','dailyOpsNewStockItemColor'); };
   b = byId('dailyOpsAddGroup'); if(b) b.onclick = dailyOpsAddGroup;
   ['dailyOpsNewOpeningTask','dailyOpsNewClosingTask','dailyOpsNewStockItem','dailyOpsNewGroupName'].forEach(function(id){
     var input = byId(id);
     if(input) input.onkeydown = function(ev){
       if(ev.key !== 'Enter') return;
-      if(id==='dailyOpsNewOpeningTask') dailyOpsAddTemplateItem('openingTasks',id);
-      if(id==='dailyOpsNewClosingTask') dailyOpsAddTemplateItem('closingTasks',id);
-      if(id==='dailyOpsNewStockItem') dailyOpsAddTemplateItem('stockItems',id);
+      if(id==='dailyOpsNewOpeningTask') dailyOpsAddTemplateItem('openingTasks',id,'dailyOpsNewOpeningTaskColor');
+      if(id==='dailyOpsNewClosingTask') dailyOpsAddTemplateItem('closingTasks',id,'dailyOpsNewClosingTaskColor');
+      if(id==='dailyOpsNewStockItem') dailyOpsAddTemplateItem('stockItems',id,'dailyOpsNewStockItemColor');
       if(id==='dailyOpsNewGroupName') dailyOpsAddGroup();
     };
   });
@@ -11686,7 +12097,7 @@ function renderMyShifts(){
   if(MyView) MyView.weekStartISO = weekISO;
   var endLbl = new Date(start); endLbl.setDate(endLbl.getDate()+6);
   var wl = byId('myWeekLabel');
-  if(wl) wl.textContent = 'Week of '+fmtDMY(start)+' – '+fmtDMY(endLbl);
+  if(wl) wl.textContent = 'Week of '+fmtDMY(start)+' â€“ '+fmtDMY(endLbl);
   var days = DAY.map(function(_,i){ var d=new Date(start); d.setDate(d.getDate()+i); return d; });
   var list=byId('myShiftsList'); list.innerHTML='';
   var tw=0,tb=0,tp=0,py=0,totOT=0;
@@ -11732,7 +12143,7 @@ function renderMyShifts(){
         var coverNote = '';
         if(shiftIsCover(sh)){
           var coverBase = shiftBaseStaffName(sh) || 'set roster';
-          coverNote = ' — Covering for '+coverBase;
+          coverNote = ' â€” Covering for '+coverBase;
         }
         var div=document.createElement('div');
         div.textContent = fmtDMY(days[i])+': '+shiftDisplayRange(sh)+(overnight?' (next day)':'')+coverNote+' ('+workAfterLeave.toFixed(2)+'h worked'+leaveText+', break '+br.toFixed(2)+'h, pay '+fmtMoney(pay)+ (split.ot>0?(' incl OT '+split.ot.toFixed(2)+'h'):'') +')';
@@ -11752,7 +12163,7 @@ function renderMyShifts(){
   byId('myTotalPayable').textContent=tp.toFixed(2);
   byId('myTotalOT').textContent=totOT.toFixed(2);
   byId('myTotalPay').textContent=fmtMoney(py);
-  byId('myHours').textContent='Week of '+fmtDMY(start)+' – '+fmtDMY(endLbl)+': '+tp.toFixed(2)+' payable hours — '+fmtMoney(py);
+  byId('myHours').textContent='Week of '+fmtDMY(start)+' â€“ '+fmtDMY(endLbl)+': '+tp.toFixed(2)+' payable hours â€” '+fmtMoney(py);
 
   // Withheld pay (staff view)
   try{
@@ -12058,7 +12469,7 @@ function renderMyRequests(){
       if(rec.blocks && rec.blocks.length){
         rec.blocks.forEach(function(b, idx){
           var seg = displayTimeRange12(b.start||'?', b.end||'?');
-          var sub = seg + (b.reason ? (' — ' + String(b.reason)) : (reason ? (' — ' + reason) : ''));
+          var sub = seg + (b.reason ? (' â€” ' + String(b.reason)) : (reason ? (' â€” ' + reason) : ''));
           pendingItems.push({
             dateISO: iso,
             sortISO: iso,
@@ -12109,11 +12520,11 @@ function renderMyRequests(){
       if(rec.blocks && rec.blocks.length){
         sub = rec.blocks.map(function(b){
           var seg = displayTimeRange12(b.start||'?', b.end||'?');
-          if(b.reason) seg += ' — ' + String(b.reason);
+          if(b.reason) seg += ' â€” ' + String(b.reason);
           return seg;
         }).join(' | ');
       }else if(rec.unavailable){
-        sub = rec.reason ? ('Full-day — ' + String(rec.reason)) : 'Full-day away';
+        sub = rec.reason ? ('Full-day â€” ' + String(rec.reason)) : 'Full-day away';
       }else if(rec.reason){
         sub = String(rec.reason);
       }
@@ -12121,7 +12532,7 @@ function renderMyRequests(){
         dateISO: iso,
         sortISO: iso,
         requestedAt: rec.resolvedAt || rec.createdAt || rec.requestedAt || rec.ts || '',
-        title: (rec.status==='approved'?'Approved':'Rejected') + ' — ' + formatIsoForHuman(iso),
+        title: (rec.status==='approved'?'Approved':'Rejected') + ' â€” ' + formatIsoForHuman(iso),
         sub: sub,
         actionsHtml: '',
         kindKey: kindKey,
@@ -12143,7 +12554,7 @@ function renderMyRequests(){
           dateISO: dateISO,
           sortISO: dateISO || iso,
           requestedAt: rec.resolvedAt || rec.createdAt || rec.requestedAt || rec.ts || '',
-          title: (rec.status==='approved'?'Approved':'Rejected') + ' — ' + (when || iso),
+          title: (rec.status==='approved'?'Approved':'Rejected') + ' â€” ' + (when || iso),
           sub: shiftRequestDetails(rec),
           actionsHtml: '',
           kindKey: shiftRequestKindKey(rec),
@@ -12155,7 +12566,7 @@ function renderMyRequests(){
 
   _renderMyReqMonthGroups(pendingEl, pendingItems, 'No pending requests.');
   _renderMyReqMonthGroups(histEl, historyItems, 'No history yet.');
-  countEl.textContent = 'Pending: ' + pendingItems.length + ' · History: ' + historyItems.length;
+  countEl.textContent = 'Pending: ' + pendingItems.length + ' Â· History: ' + historyItems.length;
 }
 
 // Delegation for cancel buttons inside My Requests
@@ -12274,10 +12685,10 @@ function buildGridTemplate(){ var tpl='var(--staffW, 220px) '; for(var i=0;i<col
 
 function renderPlanner(){
   var s=fromISO(Planner.weekStartISO);
-  byId('weekLabel').textContent=fmtDMY(s)+'  –  '+fmtDMY(new Date(s.getFullYear(),s.getMonth(),s.getDate()+6));
+  byId('weekLabel').textContent=fmtDMY(s)+'  â€“  '+fmtDMY(new Date(s.getFullYear(),s.getMonth(),s.getDate()+6));
   byId('payrollWeekLabel').textContent='Week of '+fmtDMY(s);
   var end=new Date(s); end.setDate(end.getDate()+6);
-  var ph=byId('plannerPrintHeader'); if(ph) ph.textContent='Week of '+fmtDMY(s)+' – '+fmtDMY(end);
+  var ph=byId('plannerPrintHeader'); if(ph) ph.textContent='Week of '+fmtDMY(s)+' â€“ '+fmtDMY(end);
   byId('plannerGrid').innerHTML='';
   renderLegend();
   renderWeekOverview();
@@ -12291,7 +12702,7 @@ function renderPlanner(){
   for(var i=0;i<colCount();i++){
     var t = gridStartMins() + i*slotMinutes();
     var hh = Math.floor((t/60)%24), mm = t%60;
-    var label = (mm===0) ? (((hh%12)||12)+(hh<12?'a':'p')) : '·';
+    var label = (mm===0) ? (((hh%12)||12)+(hh<12?'a':'p')) : 'Â·';
     var cell=document.createElement('div'); cell.textContent=label.toUpperCase(); header.appendChild(cell);
   }
   byId('plannerGrid').appendChild(header);
@@ -12383,8 +12794,8 @@ sc.appendChild(mini);
       var chipStaffName = staffDisplayNameForId(id, st.name||id);
       if(isCoverShift) chip.classList.add('cover-shift');
       chip.title = isCoverShift
-        ? (chipStaffName+' covering for '+baseStaffName+' — '+displayRange+' ('+work.toFixed(2)+'h, break '+breakMin+'m)')
-        : (chipStaffName+' — '+displayRange+' ('+work.toFixed(2)+'h, break '+breakMin+'m)');
+        ? (chipStaffName+' covering for '+baseStaffName+' â€” '+displayRange+' ('+work.toFixed(2)+'h, break '+breakMin+'m)')
+        : (chipStaffName+' â€” '+displayRange+' ('+work.toFixed(2)+'h, break '+breakMin+'m)');
 
       if(isCoverShift){
         var coverTag=document.createElement('span'); coverTag.className='cover-tag'; coverTag.textContent='Cover';
@@ -12394,7 +12805,7 @@ sc.appendChild(mini);
       var hrs=document.createElement('span'); hrs.className='hours'; hrs.textContent=displayRange+' ('+work.toFixed(2)+'h)';
       chip.appendChild(label); chip.appendChild(hrs);
 
-      var bpill=document.createElement('span'); bpill.className='breakpill'; bpill.textContent='⏱ '+breakMin+'m';
+      var bpill=document.createElement('span'); bpill.className='breakpill'; bpill.textContent='â± '+breakMin+'m';
       bpill.title = 'Click to toggle break: 0m vs auto ('+breakMin+'m)';
       if(canEdit() && !isPublished){
         bpill.onclick=function(e){
@@ -12467,7 +12878,7 @@ function renderCoverageBar(){
   });
   for(var i=0;i<colCount();i++){
     var t=gridStartMins()+i*slotMinutes();
-    var slot=document.createElement('div'); slot.className='slot'; slot.title=((Math.floor(t/60)%24)+':'+pad(t%60))+' — '+counts[i]+' assigned';
+    var slot=document.createElement('div'); slot.className='slot'; slot.title=((Math.floor(t/60)%24)+':'+pad(t%60))+' â€” '+counts[i]+' assigned';
     slot.style.width='calc(var(--colW) - 2px)';
     slot.style.background = counts[i] >= target ? 'linear-gradient(180deg, rgba(34,197,94,.8), rgba(34,197,94,.4))' : 'linear-gradient(180deg, rgba(239,68,68,.8), rgba(239,68,68,.4))';
     el.appendChild(slot);
@@ -13118,8 +13529,8 @@ function renderWeekOverview(){
       if(nSegs.length && !hasAwayDuringSegments(sh.staffId, nSegs)) nightSet[String(sh.staffId)] = true;
     });
 
-    var _dsLabel = 'Day shift: ' + times12(((dayStart%1440)+1440)%1440) + '–' + times12(((dayEnd0%1440)+1440)%1440);
-    var _nsLabel = 'Night shift: ' + times12(((nightStart%1440)+1440)%1440) + '–' + times12(((nightEnd0%1440)+1440)%1440);
+    var _dsLabel = 'Day shift: ' + times12(((dayStart%1440)+1440)%1440) + 'â€“' + times12(((dayEnd0%1440)+1440)%1440);
+    var _nsLabel = 'Night shift: ' + times12(((nightStart%1440)+1440)%1440) + 'â€“' + times12(((nightEnd0%1440)+1440)%1440);
     return {day:Object.keys(daySet).length, night:Object.keys(nightSet).length, dayLabel:_dsLabel, nightLabel:_nsLabel};
   }
 
@@ -13140,8 +13551,8 @@ function renderWeekOverview(){
       return b;
     }
 
-    badges.appendChild(mkBadge('day','☀',cts.day,cts.dayLabel||''));
-    badges.appendChild(mkBadge('night','🌙',cts.night,cts.nightLabel||''));
+    badges.appendChild(mkBadge('day','â˜€',cts.day,cts.dayLabel||''));
+    badges.appendChild(mkBadge('night','ðŸŒ™',cts.night,cts.nightLabel||''));
 
     h.appendChild(label);
     h.appendChild(badges);
@@ -13186,7 +13597,7 @@ function renderWeekOverview(){
         var isCover = shiftIsCover(sh);
         if(isCover) chip.classList.add('cover-shift');
         applyStaffChipAppearance(chip, s.color||'#5A31F4', isCover);
-        chip.textContent=shiftDisplayRange(sh)+(isCover?' ↺':'');
+        chip.textContent=shiftDisplayRange(sh)+(isCover?' â†º':'');
         if(shiftIsCover(sh)){
           var baseNm = shiftBaseStaffName(sh) || 'set roster';
           chip.title = 'Covering for '+baseNm;
@@ -13308,7 +13719,7 @@ function openDayToolsFor(staffId, dayIndex){
   if(titleEl) titleEl.textContent = 'Day tools';
   if(subEl){
     try{
-      subEl.textContent = name + ' — ' + DAY[dayIndex] + ' ' + fmtDMY(d0);
+      subEl.textContent = name + ' â€” ' + DAY[dayIndex] + ' ' + fmtDMY(d0);
     }catch(e){
       subEl.textContent = name;
     }
@@ -13556,7 +13967,7 @@ function openAwayMultiModal(mode){
   try{
     var start = fromISO(Planner.weekStartISO);
     var end = new Date(start); end.setDate(end.getDate()+6);
-    if(sub) sub.textContent = staffDisplayNameForId(staffId, staffId) + ' — Week of ' + fmtDMY(start) + ' – ' + fmtDMY(end);
+    if(sub) sub.textContent = staffDisplayNameForId(staffId, staffId) + ' â€” Week of ' + fmtDMY(start) + ' â€“ ' + fmtDMY(end);
   }catch(e){
     if(sub) sub.textContent = staffDisplayNameForId(staffId, staffId);
   }
@@ -13643,7 +14054,7 @@ function openRecurringUnavailModal(staffId, ruleId, baseISO, dayIndex){
     if(sub){
       var baseISO2 = (baseISO!=null ? String(baseISO) : ((DayToolsCtx && DayToolsCtx.iso) ? String(DayToolsCtx.iso) : ''));
       var dayName = (DayToolsCtx && DayToolsCtx.dayIndex!=null) ? (DAY[parseInt(DayToolsCtx.dayIndex,10)]||'') : '';
-      sub.textContent = nm + (dayName ? (' — ' + dayName) : '') + (baseISO2 ? (' — ' + fmtDMY(fromISO(baseISO2))) : '');
+      sub.textContent = nm + (dayName ? (' â€” ' + dayName) : '') + (baseISO2 ? (' â€” ' + fmtDMY(fromISO(baseISO2))) : '');
     }
 
     // reset inputs
@@ -13784,10 +14195,10 @@ function renderRecurringUnavailExisting(staffId){
         if(!allDay){
           var ts = (r && r.timeStart) ? String(r.timeStart) : '';
           var te = (r && r.timeEnd) ? String(r.timeEnd) : '';
-          if(ts && te) timePart = ' · ' + to12hStr(ts) + '–' + to12hStr(te);
+          if(ts && te) timePart = ' Â· ' + to12hStr(ts) + 'â€“' + to12hStr(te);
         }
       }catch(e){}
-      top.textContent = (dayStr||'Day(s)') + ' — ' + s + ' → ' + e + timePart;
+      top.textContent = (dayStr||'Day(s)') + ' â€” ' + s + ' â†’ ' + e + timePart;
 
       var sub = document.createElement('div');
       sub.style.fontSize='12px';
@@ -14123,7 +14534,7 @@ function renderAvailabilityBar(){
 
     var item=document.createElement('div');
     item.className='day'+(published?' off':'');
-    item.textContent = DAY[d]+' — '+label;
+    item.textContent = DAY[d]+' â€” '+label;
     item.title = published ? 'Click to view away reason' : (pendingRec ? 'Click to view/cancel request' : 'Click to request one or more days away');
 
     (function(iso,published,pendingRec,dayIndex){
@@ -14228,7 +14639,7 @@ function recurringUnavailabilityLinesFor(iso, staffId){
       if(!allDay){
         var ts = (r && r.timeStart) ? String(r.timeStart) : '';
         var te = (r && r.timeEnd) ? String(r.timeEnd) : '';
-        if(ts && te) timePart = ' ('+to12hStr(ts)+'–'+to12hStr(te)+')';
+        if(ts && te) timePart = ' ('+to12hStr(ts)+'â€“'+to12hStr(te)+')';
       }
     }catch(e){}
     out.push('Recurring unavailable: ' + reason + timePart + range);
@@ -14322,7 +14733,7 @@ function drawAwayOverlays(wrapEl, iso, staffId){
           else{
             var ts = (b.rule && b.rule.timeStart) ? String(b.rule.timeStart) : '';
             var te = (b.rule && b.rule.timeEnd) ? String(b.rule.timeEnd) : '';
-            uc.textContent = 'UNAVAIL ' + (ts&&te ? (to12hStr(ts)+'–'+to12hStr(te)) : '');
+            uc.textContent = 'UNAVAIL ' + (ts&&te ? (to12hStr(ts)+'â€“'+to12hStr(te)) : '');
           }
           try{
             uc.style.cursor = 'pointer';
@@ -14403,7 +14814,7 @@ function drawAwayOverlays(wrapEl, iso, staffId){
         var de = (b.end!=null?String(b.end):'');
         var ds12 = ds ? to12hStr(to24hhmm(ds, '09:00')) : '';
         var de12 = de ? to12hStr(to24hhmm(de, '17:00')) : '';
-        chip2.textContent='AWAY '+(ds12||ds)+'–'+(de12||de);
+        chip2.textContent='AWAY '+(ds12||ds)+'â€“'+(de12||de);
         var canClickPartialAway = canManageAwayForStaff(staffId);
         try{ chip2.style.cursor=canClickPartialAway ? 'pointer' : 'help'; chip2.title=canClickPartialAway ? 'Click to edit' : 'Click to view info'; }catch(e){}
         (function(blockIndex){
@@ -14720,12 +15131,12 @@ function renderAbsenceCalendar(){
         reason = (reason!=null ? String(reason).trim() : '');
         if(!reason) reason = '(no reason recorded)';
 
-        var title = 'Away reason — ' + staffName + ' — ' + dateLabel;
+        var title = 'Away reason â€” ' + staffName + ' â€” ' + dateLabel;
         var body = '';
         if(type === 'block'){
           var s = chip.getAttribute('data-start') || '';
           var e2 = chip.getAttribute('data-end') || '';
-          body = 'Partial away ' + s + '–' + e2 + ': ' + reason;
+          body = 'Partial away ' + s + 'â€“' + e2 + ': ' + reason;
         }else{
           body = 'Away (full-day): ' + reason;
         }
@@ -14779,8 +15190,8 @@ function renderAbsenceCalendar(){
     for(var k=0;k<keys.length;k++){
       var sid=keys[k]; if(filterId && sid!==filterId) continue;
       var val=rec[sid]; var st=App.staff[sid]; if(!st) continue;
-      if(val.unavailable){ var ch=document.createElement('div'); ch.className='abs-chip full'; ch.setAttribute('data-iso', iso); ch.setAttribute('data-staff', sid); ch.setAttribute('data-type','full'); ch.setAttribute('data-reason', (val.reason!=null?String(val.reason):'')); ch.title='Click to view reason'; ch.textContent=staffDisplayNameForId(sid, '')+' — AWAY'; cell.appendChild(ch); }
-      if(val.blocks && val.blocks.length){ for(var b=0;b<val.blocks.length;b++){ var bl=val.blocks[b]; if(!bl) continue; var ch2=document.createElement('div'); ch2.className='abs-chip block'; ch2.setAttribute('data-iso', iso); ch2.setAttribute('data-staff', sid); ch2.setAttribute('data-type','block'); ch2.setAttribute('data-start', (bl.start!=null?String(bl.start):'')); ch2.setAttribute('data-end', (bl.end!=null?String(bl.end):'')); ch2.setAttribute('data-reason', (bl.reason!=null?String(bl.reason):'')); ch2.title='Click to view reason'; ch2.textContent=staffDisplayNameForId(sid, '')+' — '+displayTimeRange12(bl.start, bl.end); cell.appendChild(ch2); } }
+      if(val.unavailable){ var ch=document.createElement('div'); ch.className='abs-chip full'; ch.setAttribute('data-iso', iso); ch.setAttribute('data-staff', sid); ch.setAttribute('data-type','full'); ch.setAttribute('data-reason', (val.reason!=null?String(val.reason):'')); ch.title='Click to view reason'; ch.textContent=staffDisplayNameForId(sid, '')+' â€” AWAY'; cell.appendChild(ch); }
+      if(val.blocks && val.blocks.length){ for(var b=0;b<val.blocks.length;b++){ var bl=val.blocks[b]; if(!bl) continue; var ch2=document.createElement('div'); ch2.className='abs-chip block'; ch2.setAttribute('data-iso', iso); ch2.setAttribute('data-staff', sid); ch2.setAttribute('data-type','block'); ch2.setAttribute('data-start', (bl.start!=null?String(bl.start):'')); ch2.setAttribute('data-end', (bl.end!=null?String(bl.end):'')); ch2.setAttribute('data-reason', (bl.reason!=null?String(bl.reason):'')); ch2.title='Click to view reason'; ch2.textContent=staffDisplayNameForId(sid, '')+' â€” '+displayTimeRange12(bl.start, bl.end); cell.appendChild(ch2); } }
     }
     grid.appendChild(cell);
   }
@@ -14955,7 +15366,7 @@ function openRequestsModal(){
       if(req.blocks && req.blocks.length){
         details = req.blocks.map(function(b){
           var seg = displayTimeRange12(b.start||'?', b.end||'?');
-          if(b.reason) seg += ' — ' + String(b.reason);
+          if(b.reason) seg += ' â€” ' + String(b.reason);
           return seg;
         }).join(' | ');
       }else if(req.unavailable){
@@ -15075,9 +15486,9 @@ function openRequestsModal(){
         var summary = '';
         if(er.type==='away'){
           if(er.mode==='full'){
-            summary = 'Reason → ' + String((er.proposed&&er.proposed.reason)||'');
+            summary = 'Reason â†’ ' + String((er.proposed&&er.proposed.reason)||'');
           }else if(er.mode==='partial'){
-            summary = (er.proposed&&er.proposed.start?String(er.proposed.start):'') + '–' + (er.proposed&&er.proposed.end?String(er.proposed.end):'') + ' · ' + String((er.proposed&&er.proposed.reason)||'');
+            summary = (er.proposed&&er.proposed.start?String(er.proposed.start):'') + 'â€“' + (er.proposed&&er.proposed.end?String(er.proposed.end):'') + ' Â· ' + String((er.proposed&&er.proposed.reason)||'');
           }
         }
         var appB = document.createElement('button'); appB.className='btn-good'; appB.textContent='Approve';
@@ -15413,7 +15824,7 @@ function pendingRequestBreakdownText(info){
   if(info.shiftEdit) parts.push('Shift edits ' + info.shiftEdit);
   if(info.shiftProposal) parts.push('Shift proposals ' + info.shiftProposal);
   if(info.edit) parts.push('Edits ' + info.edit);
-  return parts.join(' · ');
+  return parts.join(' Â· ');
 }
 function diffPendingRequestBreakdown(prev, cur){
   var out = {awayFull:0, awayPartial:0, shiftEdit:0, shiftProposal:0, edit:0, total:0};
@@ -15442,7 +15853,7 @@ function updateRequestsBadge(){
   try{ __maybeAutoPopupRequests('badge'); }catch(e){}
 }
 
-// Auto-popup pending requests modal (manager/admin) — can continue after login
+// Auto-popup pending requests modal (manager/admin) â€” can continue after login
 var __requestsPopupLastCount = null;
 var __requestsPopupLastAt = 0;
 
@@ -15635,7 +16046,7 @@ function __fireRequestNotifications(prevInfo, curInfo){
     }
 
     var body = pendingRequestBreakdownText(curInfo);
-    if(body) body = body + ' · Pending total ' + curTotal;
+    if(body) body = body + ' Â· Pending total ' + curTotal;
     else body = 'Pending requests: ' + curTotal;
 
     __notifyBrowser(title, body);
@@ -15750,7 +16161,7 @@ function armRequestsAutoPopupAfterLogin(){
   try{ startLiveRequestListener(); }catch(e){}
 }
 function maybeAutoOpenRequestsModal(disarmIfNone){
-  // Legacy hook used elsewhere — now routes to the new logic.
+  // Legacy hook used elsewhere â€” now routes to the new logic.
   __maybeAutoPopupRequests('legacy');
 }
 
@@ -16351,7 +16762,7 @@ function openWithholdManageModal(staffId){
   var s = fromISO(weekIso);
   var e = new Date(s); e.setDate(e.getDate()+6);
 
-  byId('withholdManageSubtitle').textContent = staffDisplayNameForId(staffId, 'staff '+staffId)+' • Week of '+fmtDMY(s)+' – '+fmtDMY(e);
+  byId('withholdManageSubtitle').textContent = staffDisplayNameForId(staffId, 'staff '+staffId)+' â€¢ Week of '+fmtDMY(s)+' â€“ '+fmtDMY(e);
 
   var wWeek = getWithheldForWeek(weekIso, staffId);
   var wBal = getWithheldBalance(staffId);
@@ -16541,7 +16952,7 @@ function payrollWeekRangeLabel(weekIso){
     var s = fromISO(weekIso);
     var e = new Date(s);
     e.setDate(e.getDate() + 6);
-    return 'Week of ' + fmtDMY(s) + ' – ' + fmtDMY(e);
+    return 'Week of ' + fmtDMY(s) + ' â€“ ' + fmtDMY(e);
   }catch(err){
     return String(weekIso||'');
   }
@@ -17341,7 +17752,7 @@ function renderPayrollDocumentHtml(doc){
   }
   if(((doc.summary && doc.summary.otherDeductions) || 0) > 0){
     var otherLabel = 'Other deductions';
-    if(doc.notes && doc.notes.otherDeductionDetails) otherLabel += ' — ' + escapeHtml(doc.notes.otherDeductionDetails);
+    if(doc.notes && doc.notes.otherDeductionDetails) otherLabel += ' â€” ' + escapeHtml(doc.notes.otherDeductionDetails);
     if(doc.notes && doc.notes.adjustmentComment && ((doc.summary && doc.summary.negativeAdjustment) || 0) > 0) otherLabel += ' / ' + escapeHtml(doc.notes.adjustmentComment);
     deductionsRows += '<tr><td>' + otherLabel + '</td><td>-' + escapeHtml(fmtMoney(doc.summary.otherDeductions || 0)) + '</td></tr>';
   }
@@ -17444,7 +17855,7 @@ function openPayrollDocModal(doc, fromBuilder){
   var modal = byId('payrollDocModal');
   if(host) host.innerHTML = renderPayrollDocumentHtml(doc);
   setTextIfExists('payrollDocModalTitle', doc.type === 'paymentSummary' ? 'Payment summary preview' : 'Payslip preview');
-  setTextIfExists('payrollDocModalMeta', (doc.periodLabel || '') + ' • ' + (doc.staffName || '') + ' • ' + (doc.documentNo || ''));
+  setTextIfExists('payrollDocModalMeta', (doc.periodLabel || '') + ' â€¢ ' + (doc.staffName || '') + ' â€¢ ' + (doc.documentNo || ''));
   if(modal) modal.style.display = 'flex';
 }
 function printPayrollDocument(doc, recordToHistory){
@@ -17529,7 +17940,7 @@ function renderPayslipHistory(){
     var tr = document.createElement('tr');
     tr.innerHTML = ''
       + '<td>' + escapeHtml(String((r.updatedAt||r.createdAt||r.generatedAt||'').replace('T',' ').slice(0,16))) + '</td>'
-      + '<td>' + escapeHtml((r.type === 'paymentSummary' ? 'Payment summary' : 'Payslip') + ' • ' + (r.documentNo || '')) + '</td>'
+      + '<td>' + escapeHtml((r.type === 'paymentSummary' ? 'Payment summary' : 'Payslip') + ' â€¢ ' + (r.documentNo || '')) + '</td>'
       + '<td>' + escapeHtml(r.staffName || payrollStaffName(r.staffId)) + '</td>'
       + '<td>' + escapeHtml(r.periodLabel || (r.financialYear ? ('Financial year ' + r.financialYear) : '')) + '</td>'
       + '<td>' + escapeHtml(r.payDate || r.statementDate || '') + '</td>'
@@ -17550,7 +17961,7 @@ function renderPayroll(){
   var s=fromISO(Planner.weekStartISO);
   byId('payrollWeekLabel').textContent='Week of '+fmtDMY(s);
   var end=new Date(s); end.setDate(end.getDate()+6);
-  var ph=byId('plannerPrintHeader'); if(ph) ph.textContent='Week of '+fmtDMY(s)+' – '+fmtDMY(end);
+  var ph=byId('plannerPrintHeader'); if(ph) ph.textContent='Week of '+fmtDMY(s)+' â€“ '+fmtDMY(end);
 
   var aW=0,aB=0,aP=0,aM=0,aOT=0,aAdj=0,aPaid=0,aPaidEligible=0;
 
@@ -17636,7 +18047,7 @@ function renderPayroll(){
       var adjHtml = '';
       if(Math.abs(adjAmt) > 0.0001){
         var sign = adjAmt>0?'+':'';
-        adjHtml = '<div class="muted small">Adj: '+sign+fmtMoney(adjAmt)+(adjComment?(' — '+escapeHtml(adjComment)):'')+'</div>';
+        adjHtml = '<div class="muted small">Adj: '+sign+fmtMoney(adjAmt)+(adjComment?(' â€” '+escapeHtml(adjComment)):'')+'</div>';
       }
 
       var withheldHtml = '';
@@ -17825,7 +18236,7 @@ function _renderLegend(el, series, fmt){
     left.appendChild(sw); left.appendChild(nm);
     var right=document.createElement('div'); right.className='legend-val';
     var pct = total>0 ? ((s.value/total)*100) : 0;
-    right.textContent = (fmt?fmt(s.value):String(s.value)) + ' · ' + pct.toFixed(0) + '%';
+    right.textContent = (fmt?fmt(s.value):String(s.value)) + ' Â· ' + pct.toFixed(0) + '%';
     row.appendChild(left); row.appendChild(right);
     el.appendChild(row);
   });
@@ -18024,7 +18435,7 @@ function renderStats(){
     var s=fromISO(Planner.weekStartISO);
     var end=new Date(s); end.setDate(end.getDate()+6);
     var wl=byId('statsWeekLabel');
-    if(wl) wl.textContent = 'Week of '+fmtDMY(s)+' – '+fmtDMY(end);
+    if(wl) wl.textContent = 'Week of '+fmtDMY(s)+' â€“ '+fmtDMY(end);
   }catch(e){}
 
   // Aggregate stats across weeks
@@ -18103,9 +18514,9 @@ function renderStats(){
       addKpi('Total requests', String(totalReq), (weeks.length>1?('Across '+weeks.length+' weeks'):'This week'));
       if(topId && topTotal>0){
         var c=rc[topId]||{};
-        addKpi('Top requester', topName+' ('+String(topTotal)+')', 'Away '+(c.away||0)+' · Shift requests '+(c.shift||0));
+        addKpi('Top requester', topName+' ('+String(topTotal)+')', 'Away '+(c.away||0)+' Â· Shift requests '+(c.shift||0));
       }else{
-        addKpi('Top requester', '—', 'No requests in range');
+        addKpi('Top requester', 'â€”', 'No requests in range');
       }
     }catch(e){}
   }
@@ -18199,8 +18610,8 @@ function renderStats(){
   var rqEl=byId('statsRequests');
   if(rqEl){
     var parts=[];
-    parts.push('<div><b>Pending</b>: Away '+rq.pendingAbs+' · Shift requests '+rq.pendingShift+'</div>');
-    parts.push('<div class="muted-small"><b>In range</b>: Away approved '+rq.absApproved+' · rejected '+rq.absRejected+' · Shift requests approved '+rq.shApproved+' · rejected '+rq.shRejected+'</div>');
+    parts.push('<div><b>Pending</b>: Away '+rq.pendingAbs+' Â· Shift requests '+rq.pendingShift+'</div>');
+    parts.push('<div class="muted-small"><b>In range</b>: Away approved '+rq.absApproved+' Â· rejected '+rq.absRejected+' Â· Shift requests approved '+rq.shApproved+' Â· rejected '+rq.shRejected+'</div>');
     rqEl.innerHTML = parts.join('');
   }
   try{ renderAdminRequestsLog(); }catch(e){}
@@ -19274,7 +19685,7 @@ function bizHistorySummaryRangeText(summary){
   try{
     if(!summary || !summary.firstISO) return '';
     if(summary.firstISO === summary.lastISO) return fmtDMY(fromISO(summary.firstISO));
-    return fmtDMY(fromISO(summary.firstISO)) + ' – ' + fmtDMY(fromISO(summary.lastISO));
+    return fmtDMY(fromISO(summary.firstISO)) + ' â€“ ' + fmtDMY(fromISO(summary.lastISO));
   }catch(e){ return ''; }
 }
 function bizSummarizeRows(rows, key, label, type){
@@ -19402,7 +19813,7 @@ function bizHistorySummarySubtext(summary, mode, extra){
   parts.push(String(summary && summary.activeDays || 0) + ' active day(s)');
   if(extra) parts.push(extra);
   if(summary && summary.noteCount) parts.push(String(summary.noteCount) + ' note(s)');
-  return parts.join(' • ');
+  return parts.join(' â€¢ ');
 }
 function bizHistorySummaryRowHtml(summary, level, opts){
   opts = opts || {};
@@ -19411,7 +19822,7 @@ function bizHistorySummaryRowHtml(summary, level, opts){
   var content = '';
   if(opts.toggleLevel){
     content = '<button type="button" class="biz-history-toggle" data-level="' + escapeHtml(opts.toggleLevel) + '" data-key="' + escapeHtml(opts.toggleKey || summary.key) + '" aria-expanded="' + (opts.expanded ? 'true' : 'false') + '">' +
-      '<span class="biz-history-caret">' + (opts.expanded ? '▾' : '▸') + '</span>' +
+      '<span class="biz-history-caret">' + (opts.expanded ? 'â–¾' : 'â–¸') + '</span>' +
       '<span class="biz-history-row-text"><span class="biz-history-row-title">' + escapeHtml(summary.label || '') + '</span>' +
       (secondary ? ('<span class="biz-history-subtext">' + escapeHtml(secondary) + '</span>') : '') +
       '</span></button>';
@@ -19444,7 +19855,7 @@ function bizHistoryDayRowHtml(row, level){
   if(row.notes) details.push(bizShorten(row.notes, 100));
   var spendSummary = bizSpendItemsSummary(row.spendItems || [], 3);
   if(spendSummary) details.push(bizShorten(spendSummary, 100));
-  var secondary = details.join(' • ');
+  var secondary = details.join(' â€¢ ');
   return '<tr class="biz-history-level-day">' +
     '<td><div class="biz-history-row-static">' +
       '<span class="biz-history-indent ' + escapeHtml(indentClass) + '"></span>' +
@@ -20126,7 +20537,7 @@ function bizBuildPdfReportHtml(dataset){
       '<td class="num">' + escapeHtml(fmtMoney(row.ongoingCosts||0)) + '</td>' +
       '<td class="num">' + escapeHtml(fmtMoney(row.totalCosts||0)) + '</td>' +
       '<td class="num ' + (numOr0(row.profit) < -0.009 ? 'bad' : (numOr0(row.profit) > 0.009 ? 'good' : '')) + '">' + escapeHtml(fmtMoney(row.profit||0)) + '</td>' +
-      '<td>' + escapeHtml(noteBits.join(' • ')) + '</td>' +
+      '<td>' + escapeHtml(noteBits.join(' â€¢ ')) + '</td>' +
     '</tr>';
   }).join('');
   var spendingRowsHtml = (dataset.allSpendItems||[]).map(function(item){
@@ -20151,7 +20562,7 @@ function bizBuildPdfReportHtml(dataset){
     return '<tr><td>' + escapeHtml(item.name) + '</td><td class="num">' + escapeHtml(fmtMoney(item.value||0)) + '</td></tr>';
   }).join('');
   var trendImage = dataset.charts && dataset.charts.trend ? '<div class="chart-card"><h3>Current range trend</h3><img alt="Trend chart" src="' + escapeHtml(dataset.charts.trend) + '"></div>' : '';
-  var customImage = dataset.charts && dataset.charts.custom ? '<div class="chart-card"><h3>Current custom chart</h3><div class="mini-sub">' + escapeHtml(dataset.customGraph.metricALabel + ' vs ' + dataset.customGraph.metricBLabel + ' • ' + String(dataset.customGraph.group||'').toUpperCase() + ' • ' + String(dataset.customGraph.type||'').toUpperCase()) + '</div><img alt="Custom chart" src="' + escapeHtml(dataset.charts.custom) + '"></div>' : '';
+  var customImage = dataset.charts && dataset.charts.custom ? '<div class="chart-card"><h3>Current custom chart</h3><div class="mini-sub">' + escapeHtml(dataset.customGraph.metricALabel + ' vs ' + dataset.customGraph.metricBLabel + ' â€¢ ' + String(dataset.customGraph.group||'').toUpperCase() + ' â€¢ ' + String(dataset.customGraph.type||'').toUpperCase()) + '</div><img alt="Custom chart" src="' + escapeHtml(dataset.charts.custom) + '"></div>' : '';
   var chartsHtml = (trendImage || customImage) ? '<section class="report-section" id="charts"><div class="section-head"><h2>Current range charts</h2><div class="section-sub">Charts reflect the currently selected Business Analytics range.</div></div><div class="chart-grid">' + trendImage + customImage + '</div></section>' : '';
   var mixHtml = '<section class="report-section" id="mix"><div class="section-head"><h2>Current range mix</h2><div class="section-sub">Revenue and cost composition for the selected range.</div></div><div class="mini-grid">' +
     bizReportMixHtml('Revenue mix', dataset.selectedMix.revenue, dataset.selectedMix.revenueTotal) +
@@ -20161,7 +20572,7 @@ function bizBuildPdfReportHtml(dataset){
   return '<!doctype html><html><head><meta charset="utf-8"><title>' + escapeHtml((dataset.appTitle || 'Business Analytics') + ' - ' + bizExportFileStamp()) + '</title>' +
     '<style>' +
       '@page{size:auto;margin:14mm;}body{font-family:Arial,Helvetica,sans-serif;color:#0f172a;background:#f4f7fb;margin:0;padding:0;}a{color:#1d4ed8;text-decoration:none;}a:hover{text-decoration:underline;} .screen-bar{position:sticky;top:0;z-index:10;display:flex;gap:8px;align-items:center;justify-content:space-between;padding:12px 16px;background:#0f172a;color:#fff;} .screen-actions{display:flex;gap:8px;flex-wrap:wrap;} .screen-actions button{border:none;border-radius:999px;padding:8px 14px;font-weight:700;cursor:pointer;} .screen-actions .primary{background:#2563eb;color:#fff;} .screen-actions .secondary{background:#e2e8f0;color:#0f172a;} .report{max-width:1120px;margin:0 auto;padding:18px;} .hero{background:#fff;border-radius:18px;padding:18px 20px;box-shadow:0 12px 28px rgba(15,23,42,.10);} .hero h1{margin:0;font-size:28px;} .hero-meta{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:14px;} .hero-meta .meta{background:#eef4ff;border-radius:14px;padding:10px 12px;} .hero-meta .meta .label{font-size:11px;color:#475569;text-transform:uppercase;letter-spacing:.06em;font-weight:700;} .hero-meta .meta .value{margin-top:4px;font-size:14px;font-weight:700;} .toc{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 4px;} .toc a{display:inline-flex;align-items:center;padding:7px 11px;border-radius:999px;background:#fff;border:1px solid #d7e1ee;font-size:12px;font-weight:700;} .report-section{background:#fff;border-radius:18px;padding:16px 18px;margin-top:16px;box-shadow:0 10px 22px rgba(15,23,42,.08);} .section-head{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:12px;} .section-head h2{margin:0;font-size:20px;} .section-sub{color:#475569;font-size:12px;} .summary-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;} .summary-card{border:1px solid #dbe5f0;border-radius:14px;padding:12px;background:#f8fbff;} .summary-card .label{font-size:11px;color:#475569;text-transform:uppercase;letter-spacing:.06em;font-weight:700;} .summary-card .value{margin-top:8px;font-size:20px;font-weight:800;line-height:1.25;} .summary-card .value.small{font-size:15px;} .summary-card .value.good{color:#047857;} .summary-card .value.bad{color:#b91c1c;} .summary-card .sub{margin-top:6px;color:#475569;font-size:12px;} .mini-grid,.chart-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;} .mini-card,.chart-card{border:1px solid #dbe5f0;border-radius:14px;padding:12px;background:#f8fbff;} .mini-card h3,.chart-card h3{margin:0 0 8px;font-size:16px;} .mini-sub{color:#475569;font-size:12px;margin-bottom:8px;} .dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:8px;vertical-align:middle;} .report-table{width:100%;border-collapse:collapse;font-size:12px;} .report-table th,.report-table td{border-bottom:1px solid #dbe5f0;padding:8px 10px;vertical-align:top;} .report-table th{background:#eef4ff;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.05em;} .report-table .num{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums;} .report-table .good{color:#047857;font-weight:800;} .report-table .bad{color:#b91c1c;font-weight:800;} .report-table.tight th,.report-table.tight td{padding:7px 8px;} .chart-card img{width:100%;height:auto;border-radius:12px;border:1px solid #dbe5f0;background:#fff;} @media (max-width:900px){.hero-meta,.summary-grid,.mini-grid,.chart-grid{grid-template-columns:1fr 1fr;}} @media (max-width:640px){.hero-meta,.summary-grid,.mini-grid,.chart-grid{grid-template-columns:1fr;} .screen-bar{position:static;}} @media print{body{background:#fff;} .screen-bar{display:none !important;} .report{max-width:none;padding:0;} .hero,.report-section{box-shadow:none;border:1px solid #dbe5f0;break-inside:avoid-page;} .toc a{color:#0f172a;border-color:#dbe5f0;} a{text-decoration:none;color:#0f172a;} }' +
-    '</style></head><body><div class="screen-bar"><div><strong>Business Analytics PDF export</strong></div><div class="screen-actions"><button class="primary" onclick="window.print()">Print / Save PDF</button><button class="secondary" onclick="window.close()">Close</button></div></div><div class="report"><section class="hero"><h1>' + escapeHtml(dataset.appTitle) + ' — Business Analytics</h1><div class="section-sub">Generated ' + escapeHtml(new Date(dataset.generatedAt).toLocaleString()) + '</div><div class="hero-meta"><div class="meta"><div class="label">Workspace</div><div class="value">' + escapeHtml(dataset.workspace || '-') + '</div></div><div class="meta"><div class="label">Version</div><div class="value">' + escapeHtml(dataset.version || '-') + '</div></div><div class="meta"><div class="label">Selected range</div><div class="value">' + escapeHtml(bizReportRangeLabel(dataset.selectedRange)) + '</div></div><div class="meta"><div class="label">Full export coverage</div><div class="value">' + escapeHtml(bizReportRangeLabel(dataset.allRange)) + '</div></div></div></section>' + tocHtml + summarySelected + summaryAll + chartsHtml + mixHtml + bizReportTableHtml('Current range detail', 'current-range-detail', ['Date','Cash','EFTPOS','Revenue','Staff cost','Spendings','Total costs','Net'], currentRangeRowsHtml, 'Tracked business rows in the selected range.') + bizReportTableHtml('Monthly summary', 'monthly-summary', ['Month','Active days','Revenue','Staff cost','Spendings','Utilities','Ongoing','Total costs','Net'], monthlyRowsHtml, 'All exported business data rolled up by month.') + bizReportTableHtml('Weekly summary', 'weekly-summary', ['Week','Active days','Revenue','Staff cost','Spendings','Utilities','Ongoing','Total costs','Net'], weeklyRowsHtml, 'All exported business data rolled up by week.') + bizReportTableHtml('Recurring costs', 'recurring-costs', ['Name','Category','Frequency','Amount / occurrence','Start','End','Selected allocation','Full allocation','Notes'], recurringRowsHtml, 'Recurring costs are prorated across their active cycle.') + bizReportTableHtml('Daily ledger', 'daily-ledger', ['Date','Cash','EFTPOS','Revenue','Staff cost','Spendings','Utilities','Ongoing','Total costs','Net','Notes / spending summary'], dailyRowsHtml, 'Full day-by-day ledger across the export coverage.') + bizReportTableHtml('Spending items', 'spending-items', ['Date','Description','Amount','Day notes'], spendingRowsHtml, 'Each recorded spending line item.') + bizReportTableHtml('Cost centres', 'cost-centres', ['Cost centre','Amount'], costCentreRowsHtml, 'All exported cost centres by total value.') + '</div><script>window.addEventListener("load",function(){setTimeout(function(){try{window.focus();window.print();}catch(e){}},350);});<\/script></body></html>';
+    '</style></head><body><div class="screen-bar"><div><strong>Business Analytics PDF export</strong></div><div class="screen-actions"><button class="primary" onclick="window.print()">Print / Save PDF</button><button class="secondary" onclick="window.close()">Close</button></div></div><div class="report"><section class="hero"><h1>' + escapeHtml(dataset.appTitle) + ' â€” Business Analytics</h1><div class="section-sub">Generated ' + escapeHtml(new Date(dataset.generatedAt).toLocaleString()) + '</div><div class="hero-meta"><div class="meta"><div class="label">Workspace</div><div class="value">' + escapeHtml(dataset.workspace || '-') + '</div></div><div class="meta"><div class="label">Version</div><div class="value">' + escapeHtml(dataset.version || '-') + '</div></div><div class="meta"><div class="label">Selected range</div><div class="value">' + escapeHtml(bizReportRangeLabel(dataset.selectedRange)) + '</div></div><div class="meta"><div class="label">Full export coverage</div><div class="value">' + escapeHtml(bizReportRangeLabel(dataset.allRange)) + '</div></div></div></section>' + tocHtml + summarySelected + summaryAll + chartsHtml + mixHtml + bizReportTableHtml('Current range detail', 'current-range-detail', ['Date','Cash','EFTPOS','Revenue','Staff cost','Spendings','Total costs','Net'], currentRangeRowsHtml, 'Tracked business rows in the selected range.') + bizReportTableHtml('Monthly summary', 'monthly-summary', ['Month','Active days','Revenue','Staff cost','Spendings','Utilities','Ongoing','Total costs','Net'], monthlyRowsHtml, 'All exported business data rolled up by month.') + bizReportTableHtml('Weekly summary', 'weekly-summary', ['Week','Active days','Revenue','Staff cost','Spendings','Utilities','Ongoing','Total costs','Net'], weeklyRowsHtml, 'All exported business data rolled up by week.') + bizReportTableHtml('Recurring costs', 'recurring-costs', ['Name','Category','Frequency','Amount / occurrence','Start','End','Selected allocation','Full allocation','Notes'], recurringRowsHtml, 'Recurring costs are prorated across their active cycle.') + bizReportTableHtml('Daily ledger', 'daily-ledger', ['Date','Cash','EFTPOS','Revenue','Staff cost','Spendings','Utilities','Ongoing','Total costs','Net','Notes / spending summary'], dailyRowsHtml, 'Full day-by-day ledger across the export coverage.') + bizReportTableHtml('Spending items', 'spending-items', ['Date','Description','Amount','Day notes'], spendingRowsHtml, 'Each recorded spending line item.') + bizReportTableHtml('Cost centres', 'cost-centres', ['Cost centre','Amount'], costCentreRowsHtml, 'All exported cost centres by total value.') + '</div><script>window.addEventListener("load",function(){setTimeout(function(){try{window.focus();window.print();}catch(e){}},350);});<\/script></body></html>';
 }
 function bizOpenReportWindow(html){
   var win = window.open('', '_blank');
@@ -20408,7 +20819,7 @@ function buildPrintView(){
   for(var w=0; w<weeks; w++){
     var ws=toISO(weekStart(new Date(base.getFullYear(), base.getMonth(), base.getDate()+w*7)));
     var paper=document.createElement('div'); paper.className='print-week';
-    var h=document.createElement('div'); h.style.fontWeight='800'; h.style.margin='4px 0 8px'; var start=fromISO(ws); var end=new Date(start); end.setDate(end.getDate()+6); h.textContent='Week of '+fmtDMY(start)+' – '+fmtDMY(end); paper.appendChild(h);
+    var h=document.createElement('div'); h.style.fontWeight='800'; h.style.margin='4px 0 8px'; var start=fromISO(ws); var end=new Date(start); end.setDate(end.getDate()+6); h.textContent='Week of '+fmtDMY(start)+' â€“ '+fmtDMY(end); paper.appendChild(h);
     var grid=document.createElement('div'); grid.className='print-grid'; var headBlank=document.createElement('div'); headBlank.className='print-head'; headBlank.textContent=''; grid.appendChild(headBlank);
     for(var d=0; d<7; d++){ var hd=document.createElement('div'); hd.className='print-head'; hd.textContent=DAY[d]; grid.appendChild(hd); }
     var entries=Object.keys(App.staff).map(function(id){ return [id,App.staff[id]]; }).filter(function(p){
@@ -20432,7 +20843,7 @@ function buildPrintView(){
             var isCoverPrint=shiftIsCover(sh); applyStaffChipAppearance(chip, st.color||'#5A31F4', isCoverPrint); chip.textContent=shiftDisplayRange(sh);
             if(isCoverPrint){
               chip.classList.add('cover-shift');
-              chip.textContent += ' ↺';
+              chip.textContent += ' â†º';
               chip.title = 'Covering for ' + (shiftBaseStaffName(sh) || 'set roster');
             }
           }
@@ -20445,7 +20856,7 @@ function buildPrintView(){
       var m24=s.match(/^(\d{1,2}):(\d{2})$/); if(m24){ return (parseInt(m24[1],10)||0)*60+(parseInt(m24[2],10)||0); }
       var n=parseInt(s,10); return isFinite(n)? n:null; }
     var st = toMin(sh && (sh.start!=null?sh.start:(sh.startMin!=null?sh.startMin:null)));
-    var badge = (!isFinite(st) ? '' : (st>=8*60 && st<=16*60+59 ? '☀️' : (st>=17*60 || st===0 ? '🌙' : '')));
+    var badge = (!isFinite(st) ? '' : (st>=8*60 && st<=16*60+59 ? 'â˜€ï¸' : (st>=17*60 || st===0 ? 'ðŸŒ™' : '')));
     if(badge){ var sp=document.createElement('span'); sp.textContent=badge+' '; sp.style.marginRight='4px'; chip.insertBefore(sp, chip.firstChild); }
   }catch(e){}
 })(sh);
@@ -20802,7 +21213,7 @@ function renderTemplatesModal(){
     left.style.minWidth='220px';
     left.innerHTML =
       '<div style="font-weight:800">'+escapeHtml(t.name||'')+'</div>'+
-      '<div class="muted" style="font-size:12px;">Created '+escapeHtml(__tplFmtDate(t.createdAt||0))+(t.sourceWeekISO?(' · from '+escapeHtml(t.sourceWeekISO)):'')+'</div>';
+      '<div class="muted" style="font-size:12px;">Created '+escapeHtml(__tplFmtDate(t.createdAt||0))+(t.sourceWeekISO?(' Â· from '+escapeHtml(t.sourceWeekISO)):'')+'</div>';
 
     var applyBtn = document.createElement('button');
     applyBtn.className='btn-good';
@@ -21104,7 +21515,7 @@ window.proposeShiftEdit = async function(iso, staffId){
       var msg = 'Select shift to edit:\n';
       for(var i=0;i<options.length;i++){
         var shOpt = options[i].shift;
-        msg += i + ': ' + (shOpt.start || '?') + '–' + (shOpt.end || '?') + '\n';
+        msg += i + ': ' + (shOpt.start || '?') + 'â€“' + (shOpt.end || '?') + '\n';
       }
       var inp = prompt(msg, '0');
       if(inp == null) return;
@@ -21221,7 +21632,7 @@ try{
   var byId = window.byId || function(id){ return document.getElementById(id); };
   var fromISO = window.fromISO || function(iso){ return new Date(String(iso || '') + 'T00:00:00'); };
   var fmtDMY = window.fmtDMY || function(d){ try{ return new Date(d).toLocaleDateString(); }catch(e){ return String(d||''); } };
-  var displayTimeRange12 = window.displayTimeRange12 || function(start, end){ return String(start||'') + '–' + String(end||''); };
+  var displayTimeRange12 = window.displayTimeRange12 || function(start, end){ return String(start||'') + 'â€“' + String(end||''); };
   var staffNameForId = window.staffNameForId || function(sid, fallback){
     sid = (sid==null ? '' : String(sid));
     try{
@@ -21276,7 +21687,7 @@ try{
     var staffName = staffNameForId(staffId, 'Staff ' + staffId);
     var dateLabel = iso;
     try{ dateLabel = fmtDMY(fromISO(iso)); }catch(e){}
-    var title = 'Info for this day — ' + staffName + ' — ' + dateLabel;
+    var title = 'Info for this day â€” ' + staffName + ' â€” ' + dateLabel;
 
     function openInfoModalSafe(t, body){
       try{
@@ -21373,9 +21784,9 @@ try{
 
     try{
       var localApproved = getDayRec(App.availability, iso, staffId);
-      addLinesFromRec(localApproved, 'Approved', '— on roster');
+      addLinesFromRec(localApproved, 'Approved', 'â€” on roster');
       var localPending = getDayRec(App.absenceRequests, iso, staffId);
-      addLinesFromRec(localPending, 'Pending', '— requested');
+      addLinesFromRec(localPending, 'Pending', 'â€” requested');
       try{
         var recs = getRecurringUnavailabilityForDate(iso, staffId) || [];
         if(recs.length){
@@ -21426,12 +21837,12 @@ try{
 
         var dayAvail = await fetchJson('/availability/' + encodeURIComponent(iso));
         if(dayAvail){
-          addLinesFromRec(dayAvail[staffId] || dayAvail[String(staffId)] || dayAvail[Number(staffId)], 'Approved', '— on roster');
+          addLinesFromRec(dayAvail[staffId] || dayAvail[String(staffId)] || dayAvail[Number(staffId)], 'Approved', 'â€” on roster');
         }
 
         var dayReqs = await fetchJson('/absenceRequests/' + encodeURIComponent(iso));
         if(dayReqs){
-          addLinesFromRec(dayReqs[staffId] || dayReqs[String(staffId)] || dayReqs[Number(staffId)], 'Pending', '— requested');
+          addLinesFromRec(dayReqs[staffId] || dayReqs[String(staffId)] || dayReqs[Number(staffId)], 'Pending', 'â€” requested');
         }
 
         try{
@@ -21582,7 +21993,7 @@ try{
 (function(){
   'use strict';
   var APP_NAME = 'Aspire Workforce Command';
-  var APP_VERSION = 'V5.0.21';
+  var APP_VERSION = 'V5.0.22';
   var OLD_TITLE = 'M&C-ATRD-scheduler --=Aspire Group=--';
 
   var NAVS = [
@@ -21817,7 +22228,7 @@ try{
   }
 
   function countPendingRequests(){
-    // V5.0.21: count only real pending requests, not nested/history request-like objects.
+    // V5.0.22: count only real pending requests, not nested/history request-like objects.
     var app = window.App || {};
     var count = 0;
     function pending(rec){
@@ -22233,7 +22644,7 @@ try{
 
 
 <style id="v5013FullscreenZoomCss">
-  /* V5.0.21 full-screen control colour, auto-fit scaling and in-app pinch zoom support. */
+  /* V5.0.22 full-screen control colour, auto-fit scaling and in-app pinch zoom support. */
   body:not(.week-overview-focus-mode) #btnWeekOverviewFullView {
     background: linear-gradient(135deg, #22c55e, #14b8a6) !important;
     border-color: transparent !important;
@@ -22708,7 +23119,7 @@ try{
 
 
 <style id="v5016StaffMobileActionsStyle">
-  /* V5.0.21 staff mobile action restoration */
+  /* V5.0.22 staff mobile action restoration */
   #v5016StaffDayActions { display:none; }
 
   @media (max-width: 768px) {
@@ -22820,7 +23231,7 @@ try{
   }
 </style>
 <style id="v5018DesktopViewportNavPlannerFixes">
-  /* V5.0.21 desktop-viewport phone fixes: keep fixed navs joined and planner staff actions inside their rows. */
+  /* V5.0.22 desktop-viewport phone fixes: keep fixed navs joined and planner staff actions inside their rows. */
   :root {
     --v5018-bottom-nav-h: calc(76px + env(safe-area-inset-bottom, 0px));
     --v5018-planner-row-h: max(calc(var(--rowH, 38px) + 44px), 82px);
@@ -22869,7 +23280,7 @@ try{
   }
 </style>
 <style id="v5019PlannerScrollLoginScaleFixes">
-  /* V5.0.21: let vertical gestures leave the planner, and make logged-out view readable in desktop viewport. */
+  /* V5.0.22: let vertical gestures leave the planner, and make logged-out view readable in desktop viewport. */
   body.v5-mode:not(.planner-focus-mode):not(.week-overview-focus-mode) #plannerSection .planner {
     overflow-x: auto !important;
     overflow-y: visible !important;
@@ -23130,7 +23541,7 @@ try{
         else card.appendChild(host);
       }
       var lbl = byId('v5016StaffDayLabel');
-      if(lbl) lbl.textContent = 'Propose Away, Partial Away, Propose Edit, Propose Shift, INFO — ' + dayName();
+      if(lbl) lbl.textContent = 'Propose Away, Partial Away, Propose Edit, Propose Shift, INFO â€” ' + dayName();
       var btn = byId('v5016OpenStaffDayTools');
       if(btn && !btn.dataset.v5016Bound){
         btn.dataset.v5016Bound = '1';
@@ -23787,3 +24198,4 @@ try{
 </script>
 </body>
 </html>
+
