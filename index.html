@@ -69,7 +69,7 @@
     }
   </style>
 
-<title>Aspire Workforce Command (V5.0.23 Phone Desktop Native)</title>
+<title>Aspire Workforce Command (V5.0.24 Phone Desktop Native)</title>
   <meta name="theme-color" content="#22c55e"/>
 
   <style>
@@ -4797,7 +4797,7 @@
       <div id="appLogoBox"></div>
       <div class="titlewrap">
         <div class="title" id="appTitle">Aspire Workforce Command</div>
-        <div class="version-pill" id="appVersion">V5.0.23</div>
+        <div class="version-pill" id="appVersion">V5.0.24</div>
         <div class="sync-pill syncing" id="syncStatusChip" title="Sync status">Starting…</div>
       </div>
     </div>
@@ -6795,8 +6795,8 @@ var DAY = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 var App = {
   // IMPORTANT: Increment App.version *and* App.buildId whenever making functional changes to this file.
   // SAFETY NET: This build performs an automatic runtime check against the file name; if mismatched, it shows a blocking warning so it can't be overlooked.
-  version: 'V5.0.23',
-    buildId: '2026-05-10.03',
+  version: 'V5.0.24',
+    buildId: '2026-05-10.04',
 settings: {
     dbUrl:'https://mnc-atrd-default-rtdb.asia-southeast1.firebasedatabase.app/', workspace:'mnc-atrd', authToken:'',
     theme:'light', themeName:'light-pastel-sky', recentColors:[], appTitle:'Aspire Workforce Command', logoUrl:'',
@@ -22209,7 +22209,7 @@ try{
 (function(){
   'use strict';
   var APP_NAME = 'Aspire Workforce Command';
-  var APP_VERSION = 'V5.0.23';
+  var APP_VERSION = 'V5.0.24';
   var OLD_TITLE = 'M&C-ATRD-scheduler --=Aspire Group=--';
 
   var NAVS = [
@@ -23049,11 +23049,13 @@ try{
   function fitZoomForTarget(target){
     if(!target || !target.container || !target.surface) return 1;
     var size = naturalSize(target);
-    var rect = { width:0 };
+    var rect = { width:0, height:0 };
     try{ rect = target.container.getBoundingClientRect(); }catch(e){}
-    var available = Math.max(220, (target.container.clientWidth || rect.width || window.innerWidth || 0) - 2);
-    var naturalWidth = Math.max(1, size.width || available || 1);
-    var fit = Math.min(1, available / naturalWidth);
+    var availableWidth = Math.max(120, (target.container.clientWidth || rect.width || window.innerWidth || 0) - 2);
+    var availableHeight = Math.max(120, (target.container.clientHeight || rect.height || window.innerHeight || 0) - 2);
+    var naturalWidth = Math.max(1, size.width || availableWidth || 1);
+    var naturalHeight = Math.max(1, size.height || availableHeight || 1);
+    var fit = Math.min(1, availableWidth / naturalWidth, availableHeight / naturalHeight);
     return clamp(fit, MIN_ZOOM, 1);
   }
   function applySurface(surface, value){
@@ -23806,15 +23808,27 @@ try{
       nav.style.removeProperty('bottom');
       nav.style.removeProperty('transform');
       nav.style.removeProperty('position');
+      nav.style.removeProperty('--navCompactIconPx');
       nav.classList.remove('nav-compact-zoom');
       return;
     }
     var viewportWidth = Math.max(1, Math.ceil((vv && vv.width) || window.innerWidth || document.documentElement.clientWidth || 320));
+    var viewportLeft = Math.floor((vv && vv.offsetLeft) || window.pageXOffset || 0);
     var bottomGap = vv ? Math.max(0, window.innerHeight - vv.offsetTop - vv.height) : 0;
+    var visibleCount = 0;
+    try{
+      var buttons = nav.querySelectorAll('button');
+      for(var i=0;i<buttons.length;i++){
+        if(window.getComputedStyle(buttons[i]).display !== 'none') visibleCount++;
+      }
+    }catch(e){}
+    visibleCount = Math.max(1, visibleCount || 1);
+    var compactIconPx = Math.max(9, Math.min(16, Math.floor((viewportWidth - 12) / visibleCount) - 2));
     nav.classList.add('visual-viewport-pinned');
-    nav.classList.toggle('nav-compact-zoom', viewportWidth < 620);
+    nav.classList.toggle('nav-compact-zoom', viewportWidth < 760);
+    nav.style.setProperty('--navCompactIconPx', compactIconPx + 'px');
     nav.style.setProperty('position', 'fixed', 'important');
-    nav.style.setProperty('left', '0px', 'important');
+    nav.style.setProperty('left', viewportLeft + 'px', 'important');
     nav.style.setProperty('width', viewportWidth + 'px', 'important');
     nav.style.setProperty('min-width', '0px', 'important');
     nav.style.setProperty('max-width', 'none', 'important');
@@ -24097,9 +24111,9 @@ try{
 
   html.desktop-mode-lock body.v5-mode .bottom-nav.visual-viewport-pinned.nav-compact-zoom {
     justify-content: stretch !important;
-    gap: 2px !important;
-    padding-left: 3px !important;
-    padding-right: 3px !important;
+    gap: 1px !important;
+    padding-left: 2px !important;
+    padding-right: 2px !important;
     overflow-x: hidden !important;
   }
 
@@ -24108,8 +24122,8 @@ try{
     min-width: 0 !important;
     max-width: none !important;
     width: auto !important;
-    padding-left: 1px !important;
-    padding-right: 1px !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
   }
 
   html.desktop-mode-lock body.v5-mode .bottom-nav.visual-viewport-pinned.nav-compact-zoom button span.label {
@@ -24117,8 +24131,13 @@ try{
   }
 
   html.desktop-mode-lock body.v5-mode .bottom-nav.visual-viewport-pinned.nav-compact-zoom .emoji-icon {
-    font-size: 16px !important;
+    font-size: var(--navCompactIconPx, 14px) !important;
     line-height: 1 !important;
+  }
+
+  body.v5-mode:not(.planner-focus-mode):not(.week-overview-focus-mode) #plannerSection #weekOverview.week-horizontal-dragging {
+    touch-action: none !important;
+    cursor: grabbing;
   }
 
   html.desktop-mode-lock body.v5-mode:not(.v5-logged-out):not(.planner-focus-mode):not(.week-overview-focus-mode) #plannerSection.show {
@@ -24228,6 +24247,94 @@ try{
     }
   }
 </style>
+<script id="v5024WeekOverviewHorizontalPan">
+(function(){
+  'use strict';
+  var tracking = false;
+  var active = false;
+  var startX = 0;
+  var startY = 0;
+  var lastX = 0;
+  var board = null;
+  var pointerId = null;
+  var usePointer = !!window.PointerEvent;
+
+  function byId(id){ return document.getElementById(id); }
+  function hasBodyClass(cls){
+    try{ return !!(document.body && document.body.classList && document.body.classList.contains(cls)); }catch(e){ return false; }
+  }
+  function isInteractive(el){
+    try{ return !!(el && el.closest && el.closest('button,input,select,textarea,a,label,.modal,.v5-command-modal')); }catch(e){ return false; }
+  }
+  function canUse(target){
+    if(hasBodyClass('planner-focus-mode') || hasBodyClass('week-overview-focus-mode')) return null;
+    if(isInteractive(target)) return null;
+    var w = byId('weekOverview');
+    if(!w || !w.contains(target)) return null;
+    return w;
+  }
+  function begin(x, y, target, id){
+    board = canUse(target);
+    if(!board) return;
+    tracking = true;
+    active = false;
+    pointerId = id == null ? null : id;
+    startX = lastX = x || 0;
+    startY = y || 0;
+  }
+  function move(x, y, ev, id){
+    if(!tracking || !board) return;
+    if(pointerId != null && id != null && pointerId !== id) return;
+    x = x || 0;
+    y = y || 0;
+    var dx = Math.abs(x - startX);
+    var dy = Math.abs(y - startY);
+    if(!active){
+      if(Math.max(dx, dy) < 7) return;
+      if(dx <= dy + 3) return;
+      active = true;
+      try{ board.classList.add('week-horizontal-dragging'); }catch(e){}
+    }
+    try{ ev.preventDefault(); }catch(e){}
+    try{ ev.stopPropagation(); }catch(e){}
+    try{ board.scrollLeft = Math.max(0, (board.scrollLeft || 0) + (lastX - x)); }catch(e){}
+    lastX = x;
+  }
+  function end(){
+    if(board){ try{ board.classList.remove('week-horizontal-dragging'); }catch(e){} }
+    tracking = false;
+    active = false;
+    board = null;
+    pointerId = null;
+  }
+
+  if(usePointer){
+    document.addEventListener('pointerdown', function(ev){
+      if(!ev || (ev.pointerType !== 'touch' && ev.pointerType !== 'pen')) return;
+      begin(ev.clientX || 0, ev.clientY || 0, ev.target, ev.pointerId);
+    }, {passive:true, capture:true});
+    document.addEventListener('pointermove', function(ev){
+      if(!ev || (ev.pointerType !== 'touch' && ev.pointerType !== 'pen')) return;
+      move(ev.clientX || 0, ev.clientY || 0, ev, ev.pointerId);
+    }, {passive:false, capture:true});
+    document.addEventListener('pointerup', end, {passive:true, capture:true});
+    document.addEventListener('pointercancel', end, {passive:true, capture:true});
+  }else{
+    document.addEventListener('touchstart', function(ev){
+      if(!ev || !ev.touches || ev.touches.length !== 1) return;
+      var t = ev.touches[0];
+      begin(t.clientX || 0, t.clientY || 0, ev.target, null);
+    }, {passive:true, capture:true});
+    document.addEventListener('touchmove', function(ev){
+      if(!ev || !ev.touches || ev.touches.length !== 1) return;
+      var t = ev.touches[0];
+      move(t.clientX || 0, t.clientY || 0, ev, null);
+    }, {passive:false, capture:true});
+    document.addEventListener('touchend', end, {passive:true, capture:true});
+    document.addEventListener('touchcancel', end, {passive:true, capture:true});
+  }
+})();
+</script>
 <script id="v5022GraphScrollFullscreenPatch">
 (function(){
   'use strict';
