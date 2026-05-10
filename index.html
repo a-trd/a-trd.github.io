@@ -69,7 +69,7 @@
     }
   </style>
 
-<title>Aspire Workforce Command (V5.0.24 Phone Desktop Native)</title>
+<title>Aspire Workforce Command (V5.0.30 Phone Desktop Native)</title>
   <meta name="theme-color" content="#22c55e"/>
 
   <style>
@@ -4797,7 +4797,7 @@
       <div id="appLogoBox"></div>
       <div class="titlewrap">
         <div class="title" id="appTitle">Aspire Workforce Command</div>
-        <div class="version-pill" id="appVersion">V5.0.24</div>
+        <div class="version-pill" id="appVersion">V5.0.30</div>
         <div class="sync-pill syncing" id="syncStatusChip" title="Sync status">Starting…</div>
       </div>
     </div>
@@ -6795,8 +6795,8 @@ var DAY = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 var App = {
   // IMPORTANT: Increment App.version *and* App.buildId whenever making functional changes to this file.
   // SAFETY NET: This build performs an automatic runtime check against the file name; if mismatched, it shows a blocking warning so it can't be overlooked.
-  version: 'V5.0.24',
-    buildId: '2026-05-10.04',
+  version: 'V5.0.30',
+    buildId: '2026-05-10.10',
 settings: {
     dbUrl:'https://mnc-atrd-default-rtdb.asia-southeast1.firebasedatabase.app/', workspace:'mnc-atrd', authToken:'',
     theme:'light', themeName:'light-pastel-sky', recentColors:[], appTitle:'Aspire Workforce Command', logoUrl:'',
@@ -22209,7 +22209,7 @@ try{
 (function(){
   'use strict';
   var APP_NAME = 'Aspire Workforce Command';
-  var APP_VERSION = 'V5.0.24';
+  var APP_VERSION = 'V5.0.30';
   var OLD_TITLE = 'M&C-ATRD-scheduler --=Aspire Group=--';
 
   var NAVS = [
@@ -24604,5 +24604,242 @@ try{
   else bindBottomFullscreen();
 })();
 </script>
+
+<style id="v5030HorizontalTopPanelCss">
+  body.v5-mode.v5030-horizontal-panel-mode {
+    --v5-rail-w: 0px;
+  }
+
+  body.v5-mode.v5030-horizontal-panel-mode .v5-rail,
+  html.desktop-mode-lock body.v5-mode.v5030-horizontal-panel-mode .v5-rail {
+    display: none !important;
+  }
+
+  body.v5-mode.v5030-horizontal-panel-mode .v5-topbar,
+  html.desktop-mode-lock body.v5-mode.v5030-horizontal-panel-mode .v5-topbar,
+  body.v5-mode.v5030-horizontal-panel-mode .wrap,
+  html.desktop-mode-lock body.v5-mode.v5030-horizontal-panel-mode .wrap {
+    margin-left: 0 !important;
+  }
+
+  body.v5-mode.v5030-horizontal-panel-mode .wrap,
+  html.desktop-mode-lock body.v5-mode.v5030-horizontal-panel-mode .wrap {
+    width: 100% !important;
+  }
+
+  #v5030TopPanel {
+    position: sticky;
+    top: var(--v5030-topbar-h, var(--v5-top-h, 86px));
+    z-index: 418;
+    display: grid;
+    grid-template-columns: auto minmax(0,1fr);
+    align-items: center;
+    gap: 12px;
+    min-height: 54px;
+    padding: 7px 18px;
+    background: linear-gradient(180deg, rgba(15,23,42,.88), rgba(15,23,42,.72));
+    border-bottom: 1px solid rgba(148,163,184,.20);
+    color: #f8fafc;
+    backdrop-filter: blur(22px);
+  }
+
+  [data-theme="light"] #v5030TopPanel {
+    background: linear-gradient(180deg, rgba(255,255,255,.94), rgba(240,249,255,.82));
+    color: #0f172a;
+    border-bottom-color: rgba(15,23,42,.10);
+  }
+
+  .v5030-top-brand {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    min-width: 0;
+    padding-right: 4px;
+  }
+
+  .v5030-top-mark {
+    width: 34px;
+    height: 34px;
+    border-radius: 13px;
+    display: grid;
+    place-items: center;
+    flex: 0 0 auto;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 1000;
+    letter-spacing: -.06em;
+    background: linear-gradient(135deg, var(--v5-blue), var(--v5-purple) 54%, var(--v5-pink));
+    box-shadow: 0 14px 34px rgba(56,189,248,.20);
+  }
+
+  .v5030-top-title {
+    font-size: 11px;
+    line-height: 1.1;
+    font-weight: 1000;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  #v5030TopNavSlot {
+    min-width: 0;
+  }
+
+  #v5030TopPanel #v5Nav {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: stretch !important;
+    gap: 8px !important;
+    min-height: 0 !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    padding: 0 2px 2px !important;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x proximity;
+  }
+
+  #v5030TopPanel #v5Nav::-webkit-scrollbar {
+    height: 4px;
+  }
+
+  #v5030TopPanel #v5Nav::-webkit-scrollbar-thumb {
+    background: rgba(148,163,184,.30);
+    border-radius: 99px;
+  }
+
+  #v5030TopPanel .v5-nav-btn {
+    width: auto !important;
+    min-width: 108px !important;
+    max-width: 160px !important;
+    flex: 0 0 auto !important;
+    grid-template-columns: 30px minmax(0,1fr) !important;
+    gap: 8px !important;
+    padding: 9px 10px !important;
+    border-radius: 16px !important;
+    scroll-snap-align: start;
+  }
+
+  #v5030TopPanel .v5-nav-btn:hover {
+    transform: translateY(-1px) !important;
+  }
+
+  #v5030TopPanel .v5-nav-btn.active {
+    box-shadow: inset 0 -3px 0 var(--v5-blue), 0 12px 24px rgba(15,23,42,.16) !important;
+  }
+
+  #v5030TopPanel .v5-nav-icon {
+    width: 30px !important;
+    height: 30px !important;
+    border-radius: 12px !important;
+    font-size: 11px !important;
+  }
+
+  #v5030TopPanel .v5-nav-name {
+    font-size: 12px !important;
+  }
+
+  #v5030TopPanel .v5-nav-sub,
+  #v5030TopPanel .v5-nav-arrow {
+    display: none !important;
+  }
+
+  body.v5-logged-out #v5030TopPanel,
+  body.planner-focus-mode #v5030TopPanel,
+  body.week-overview-focus-mode #v5030TopPanel,
+  body.v5030-native-fullscreen #v5Topbar,
+  body.v5030-native-fullscreen #v5030TopPanel,
+  html.v5030-native-fullscreen #v5Topbar,
+  html.v5030-native-fullscreen #v5030TopPanel {
+    display: none !important;
+  }
+
+  body.v5-mode.v5030-native-fullscreen .wrap,
+  html.desktop-mode-lock body.v5-mode.v5030-native-fullscreen .wrap {
+    margin-left: 0 !important;
+    width: 100% !important;
+    padding-top: 12px !important;
+  }
+
+  @media (max-width: 700px) {
+    #v5030TopPanel {
+      grid-template-columns: 1fr;
+      gap: 7px;
+      padding: 8px 10px;
+    }
+
+    .v5030-top-brand {
+      display: none;
+    }
+
+    #v5030TopPanel .v5-nav-btn {
+      min-width: 96px !important;
+      max-width: 136px !important;
+    }
+  }
+</style>
+<script id="v5030HorizontalTopPanelScript">
+(function(){
+  'use strict';
+  var lastTopbarHeight = 0;
+
+  function byId(id){ return document.getElementById(id); }
+  function fullscreenActive(){
+    return !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement);
+  }
+  function syncFullscreenLayout(){
+    var active = fullscreenActive();
+    try{ document.documentElement.classList.toggle('v5030-native-fullscreen', active); }catch(e){}
+    try{ if(document.body) document.body.classList.toggle('v5030-native-fullscreen', active); }catch(e){}
+  }
+  function measureTopbar(){
+    try{
+      var top = byId('v5Topbar');
+      if(!top) return;
+      var h = Math.max(58, Math.ceil(top.getBoundingClientRect().height || 86));
+      if(h !== lastTopbarHeight){
+        lastTopbarHeight = h;
+        document.documentElement.style.setProperty('--v5030-topbar-h', h + 'px');
+      }
+    }catch(e){}
+  }
+  function ensureHorizontalPanel(){
+    try{
+      if(!document.body.classList.contains('v5030-horizontal-panel-mode')) document.body.classList.add('v5030-horizontal-panel-mode');
+    }catch(e){}
+    var top = byId('v5Topbar');
+    var nav = byId('v5Nav');
+    if(!top || !nav) return;
+    var panel = byId('v5030TopPanel');
+    if(!panel){
+      panel = document.createElement('div');
+      panel.id = 'v5030TopPanel';
+      panel.innerHTML = '<div class="v5030-top-brand"><div class="v5030-top-mark">AW</div><div><div class="v5030-top-title">Aspire Workforce</div></div></div><div id="v5030TopNavSlot"></div>';
+      if(top.parentNode) top.parentNode.insertBefore(panel, top.nextSibling);
+    }
+    var slot = byId('v5030TopNavSlot');
+    if(slot && nav.parentNode !== slot){
+      slot.appendChild(nav);
+      nav.classList.add('v5030-horizontal-nav');
+    }
+    measureTopbar();
+  }
+  function tick(){
+    ensureHorizontalPanel();
+    measureTopbar();
+    syncFullscreenLayout();
+  }
+  document.addEventListener('fullscreenchange', syncFullscreenLayout);
+  document.addEventListener('webkitfullscreenchange', syncFullscreenLayout);
+  document.addEventListener('mozfullscreenchange', syncFullscreenLayout);
+  document.addEventListener('MSFullscreenChange', syncFullscreenLayout);
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', tick); else tick();
+  window.addEventListener('resize', tick, {passive:true});
+  try{ if(window.visualViewport) window.visualViewport.addEventListener('resize', tick, {passive:true}); }catch(e){}
+  setTimeout(tick, 80);
+  setTimeout(tick, 500);
+  setInterval(tick, 4000);
+})();
+</script>
+
 </body>
 </html>
