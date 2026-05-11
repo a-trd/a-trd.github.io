@@ -79,7 +79,7 @@
     }
   </style>
 
-<title>Aspire Workforce Command (V5.0.32 Phone Desktop Native)</title>
+<title>Aspire Workforce Command (V5.0.36 Phone Desktop Native)</title>
   <meta name="theme-color" content="#22c55e"/>
 
   <style>
@@ -4807,7 +4807,7 @@
       <div id="appLogoBox"></div>
       <div class="titlewrap">
         <div class="title" id="appTitle">Aspire Workforce Command</div>
-        <div class="version-pill" id="appVersion">V5.0.32</div>
+        <div class="version-pill" id="appVersion">V5.0.36</div>
         <div class="sync-pill syncing" id="syncStatusChip" title="Sync status">Starting…</div>
       </div>
     </div>
@@ -6805,8 +6805,8 @@ var DAY = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 var App = {
   // IMPORTANT: Increment App.version *and* App.buildId whenever making functional changes to this file.
   // SAFETY NET: This build performs an automatic runtime check against the file name; if mismatched, it shows a blocking warning so it can't be overlooked.
-  version: 'V5.0.32',
-    buildId: '2026-05-12.02',
+  version: 'V5.0.36',
+    buildId: '2026-05-12.06',
 settings: {
     dbUrl:'https://mnc-atrd-default-rtdb.asia-southeast1.firebasedatabase.app/', workspace:'mnc-atrd', authToken:'',
     theme:'light', themeName:'light-pastel-sky', recentColors:[], appTitle:'Aspire Workforce Command', logoUrl:'',
@@ -13116,6 +13116,7 @@ function renderCoverageBar(){
 // ---------- Shift modal ----------
 function openShiftModal(opts){
   var m=byId('shiftModal'); m.style.display='flex';
+  try{ if(window.v5033KeepVisibleModal) window.v5033KeepVisibleModal(m); }catch(e){}
   resetShiftModalState({
     openedFromExisting: false,
     originalShiftId: '',
@@ -13924,7 +13925,7 @@ function updateWeekOverviewHours(){
 }
 
 // ---------- Week Overview Day Tools ----------
-var DayToolsCtx = {staffId:null, dayIndex:null, iso:null};
+var DayToolsCtx = {staffId:null, dayIndex:null, iso:null, weekStartISO:null};
 
 function openDayToolsFor(staffId, dayIndex){
   staffId = String(staffId);
@@ -13933,6 +13934,15 @@ function openDayToolsFor(staffId, dayIndex){
     alert('Please log in first.');
     return;
   }
+  try{
+    if(document.body && document.body.classList && (
+      document.body.classList.contains('planner-focus-mode') ||
+      document.body.classList.contains('week-overview-focus-mode') ||
+      document.body.classList.contains('v5030-native-fullscreen')
+    )){
+      return;
+    }
+  }catch(e){}
   var modal = byId('dayToolsModal');
   if(!modal) return;
   DayToolsCtx.staffId = staffId;
@@ -13940,6 +13950,7 @@ function openDayToolsFor(staffId, dayIndex){
   var d0 = fromISO(Planner.weekStartISO);
   d0.setDate(d0.getDate()+dayIndex);
   DayToolsCtx.iso = toISO(d0);
+  DayToolsCtx.weekStartISO = Planner.weekStartISO;
   var staff = App.staff[staffId] || {};
   var name = staffDisplayNameForId(staffId, staff.name || ('Staff ' + staffId));
   var titleEl = byId('dayToolsTitle');
@@ -13960,6 +13971,7 @@ function openDayToolsFor(staffId, dayIndex){
   var btnDeleteShift = byId('dtDeleteShift');
   if(btnDeleteShift) btnDeleteShift.style.display = (canEdit() && !!dayToolsResolveShiftKey(staffId, dayIndex)) ? '' : 'none';
   modal.style.display = 'flex';
+  try{ if(window.v5033KeepVisibleModal) window.v5033KeepVisibleModal(modal); }catch(e){}
 }
 
 function closeDayTools(){
@@ -13967,11 +13979,33 @@ function closeDayTools(){
   if(modal) modal.style.display = 'none';
 }
 
+function openDayToolsForDate(staffId, iso){
+  try{
+    if(!iso) return;
+    var dt = fromISO(String(iso));
+    if(!dt || isNaN(dt.getTime())) return;
+    var ws = weekStart(dt);
+    var weekIso = toISO(ws);
+    var dayIndex = Math.round((new Date(dt.getFullYear(), dt.getMonth(), dt.getDate()).getTime() - new Date(ws.getFullYear(), ws.getMonth(), ws.getDate()).getTime()) / 86400000);
+    dayIndex = Math.max(0, Math.min(6, dayIndex));
+    var oldWeek = Planner.weekStartISO;
+    Planner.weekStartISO = weekIso;
+    openDayToolsFor(staffId, dayIndex);
+    Planner.weekStartISO = oldWeek;
+    DayToolsCtx.weekStartISO = weekIso;
+    DayToolsCtx.iso = toISO(dt);
+  }catch(e){
+    console.error('openDayToolsForDate error', e);
+  }
+}
+try{ window.openDayToolsForDate = openDayToolsForDate; }catch(e){}
+
 function dayToolsResolveShiftKey(staffId, dayIndex){
   try{
     staffId = String(staffId || '');
     dayIndex = parseInt(dayIndex||0, 10);
-    var week = App.weeks[Planner.weekStartISO] || {};
+    var weekIso = (DayToolsCtx && DayToolsCtx.weekStartISO) ? String(DayToolsCtx.weekStartISO) : Planner.weekStartISO;
+    var week = App.weeks[weekIso] || {};
     var dayBucket = week[String(dayIndex)] || {};
     var directKey = null;
     Object.keys(dayBucket).some(function(k){
@@ -14003,6 +14037,7 @@ function dayToolsEditShift(){
   var staffId = DayToolsCtx.staffId;
   var dayIndex = DayToolsCtx.dayIndex || 0;
   closeDayTools();
+  if(DayToolsCtx.weekStartISO) Planner.weekStartISO = String(DayToolsCtx.weekStartISO);
   Planner.activeDayIndex = dayIndex;
   var firstKey = dayToolsResolveShiftKey(staffId, dayIndex);
   if(firstKey){
@@ -14017,6 +14052,7 @@ function dayToolsDeleteShift(){
   if(!DayToolsCtx || DayToolsCtx.staffId==null) return;
   var staffId = DayToolsCtx.staffId;
   var dayIndex = DayToolsCtx.dayIndex || 0;
+  if(DayToolsCtx.weekStartISO) Planner.weekStartISO = String(DayToolsCtx.weekStartISO);
   var shiftKey = dayToolsResolveShiftKey(staffId, dayIndex);
   if(!shiftKey) return alert('No shift found for this day.');
   closeDayTools();
@@ -14193,7 +14229,7 @@ function openAwayMultiModal(mode){
 
   // subtitle: staff + week range
   try{
-    var start = fromISO(Planner.weekStartISO);
+    var start = fromISO((DayToolsCtx && DayToolsCtx.weekStartISO) ? String(DayToolsCtx.weekStartISO) : Planner.weekStartISO);
     var end = new Date(start); end.setDate(end.getDate()+6);
     if(sub) sub.textContent = staffDisplayNameForId(staffId, staffId) + ' — Week of ' + fmtDMY(start) + ' – ' + fmtDMY(end);
   }catch(e){
@@ -14242,6 +14278,7 @@ function openAwayMultiModal(mode){
   if(submit) submit.onclick = function(){ submitAwayMultiModal(); };
 
   modal.style.display = 'flex';
+  try{ if(window.v5033KeepVisibleModal) window.v5033KeepVisibleModal(modal); }catch(e){}
 }
 
 function closeAwayMultiModal(){
@@ -14359,6 +14396,7 @@ function openRecurringUnavailModal(staffId, ruleId, baseISO, dayIndex){
 
     renderRecurringUnavailExisting(sid);
     m.style.display='flex';
+    try{ if(window.v5033KeepVisibleModal) window.v5033KeepVisibleModal(m); }catch(e){}
   }catch(e){
     console.error('openRecurringUnavailModal error', e);
   }
@@ -14647,7 +14685,7 @@ function submitAwayMultiModal(){
       if(count>maxDays){ alert('Date range is too long (max '+maxDays+' days).'); return; }
     }
   }else{
-    var ws = fromISO(Planner.weekStartISO);
+    var ws = fromISO((DayToolsCtx && DayToolsCtx.weekStartISO) ? String(DayToolsCtx.weekStartISO) : Planner.weekStartISO);
     for(var j=0;j<dayIdxs.length;j++){
       var idx = dayIdxs[j];
       var dt2 = new Date(ws); dt2.setDate(ws.getDate()+idx);
@@ -15349,6 +15387,13 @@ function renderAbsenceCalendar(){
         var sid2=chip.getAttribute('data-staff');
         if(!iso2 || !sid2) return;
 
+        if(window.openDayToolsForDate){
+          ev.preventDefault();
+          ev.stopPropagation();
+          window.openDayToolsForDate(sid2, iso2);
+          return;
+        }
+
         // Prefer showing the exact clicked entry's reason immediately.
         var staffName = staffNameForId(sid2, sid2);
         var dateLabel = iso2;
@@ -15397,11 +15442,43 @@ function renderAbsenceCalendar(){
       }
     });
   }
+  function openAbsenceDayTools(ev, staffId, iso){
+    try{
+      if(ev){
+        ev.preventDefault();
+        ev.stopPropagation();
+      }
+      if(window.openDayToolsForDate) window.openDayToolsForDate(staffId, iso);
+    }catch(e){
+      console.error('openAbsenceDayTools error', e);
+    }
+  }
+  function absenceCalendarTargetStaffId(){
+    try{
+      var isAdminUser = !!(App.currentUser && App.currentUser.role === 'admin');
+      var filterId = (isAdminUser && staffSel) ? String(staffSel.value||'') : '';
+      if(filterId && App.staff && App.staff[filterId]) return filterId;
+      if(App.currentUser && App.currentUser.id && App.staff && App.staff[App.currentUser.id]){
+        var st = App.staff[App.currentUser.id] || {};
+        if((st.role||'staff') !== 'admin') return String(App.currentUser.id);
+      }
+    }catch(e){}
+    return '';
+  }
   var lab=byId('absMonthLabel'); var staffSel=byId('absStaffFilter');
   if(staffSel && staffSel.options.length===0){
     var optAll=document.createElement('option'); optAll.value=''; optAll.textContent='All staff'; staffSel.appendChild(optAll);
     var arr = Object.keys(App.staff).map(function(id){ return [id,App.staff[id]]; }).sort(function(a,b){ return staffSortNameForId(a[0]).localeCompare(staffSortNameForId(b[0])); });
     for(var i=0;i<arr.length;i++){ var sid=arr[i][0], s=arr[i][1]; if((s.role||'staff')==='admin') continue; var o=document.createElement('option'); o.value=sid; o.textContent=staffDisplayNameForId(sid, sid); staffSel.appendChild(o); }
+  }
+  var showStaffFilter = !!(App.currentUser && App.currentUser.role === 'admin');
+  if(staffSel){
+    staffSel.style.display = showStaffFilter ? '' : 'none';
+    if(!showStaffFilter) staffSel.value = '';
+    try{
+      var staffLabel = staffSel.previousElementSibling;
+      if(staffLabel && String(staffLabel.tagName||'').toLowerCase()==='label') staffLabel.style.display = showStaffFilter ? '' : 'none';
+    }catch(e){}
   }
   var y=AbsCal.date.getFullYear(), m=AbsCal.date.getMonth();
   var first=new Date(y,m,1); var start=weekStart(first);
@@ -15412,14 +15489,60 @@ function renderAbsenceCalendar(){
     var cell=document.createElement('div'); cell.className='abs-day';
     var head=document.createElement('div'); head.className='abs-date'; head.textContent = d.getDate()+' '+d.toLocaleDateString(undefined,{weekday:'short'}); cell.appendChild(head);
     var iso=toISO(d);
+    var filterId = (showStaffFilter && staffSel) ? staffSel.value : '';
+    var dayTargetStaffId = absenceCalendarTargetStaffId();
+    if(dayTargetStaffId){
+      cell.classList.add('abs-day-actionable');
+      cell.title='Tap to add or manage absence for '+staffDisplayNameForId(dayTargetStaffId, dayTargetStaffId);
+      cell.onclick=(function(sid2, iso2){
+        return function(ev){
+          try{
+            var t = ev && ev.target;
+            if(t && t.closest && t.closest('.abs-chip, button, input, select, textarea, label')) return;
+          }catch(e){}
+          openAbsenceDayTools(ev, sid2, iso2);
+        };
+      })(dayTargetStaffId, iso);
+    }else if(canModerateAbsences()){
+      cell.classList.add('abs-day-actionable');
+      cell.title='Select a staff member first, then tap a day to add absence';
+      cell.onclick=function(ev){
+        try{
+          var t = ev && ev.target;
+          if(t && t.closest && t.closest('.abs-chip, button, input, select, textarea, label')) return;
+        }catch(e){}
+        alert('Select a staff member from the Staff filter first, then tap the day to add absence.');
+      };
+    }
+    if(filterId && App.staff && App.staff[filterId]){
+      var action=document.createElement('button');
+      action.type='button';
+      action.className='abs-staff-action';
+      action.textContent=staffDisplayNameForId(filterId, filterId);
+      action.title='Open staff day tools for ' + formatIsoForHuman(iso);
+      action.onclick=(function(sid2, iso2){
+        return function(ev){
+          ev.preventDefault();
+          ev.stopPropagation();
+          if(window.openDayToolsForDate) window.openDayToolsForDate(sid2, iso2);
+        };
+      })(filterId, iso);
+      cell.appendChild(action);
+    }
     var rec = (App.availability && App.availability[iso]) ? App.availability[iso] : {};
-    var filterId = staffSel ? staffSel.value : '';
     var keys = Object.keys(rec);
     for(var k=0;k<keys.length;k++){
       var sid=keys[k]; if(filterId && sid!==filterId) continue;
       var val=rec[sid]; var st=App.staff[sid]; if(!st) continue;
-      if(val.unavailable){ var ch=document.createElement('div'); ch.className='abs-chip full'; ch.setAttribute('data-iso', iso); ch.setAttribute('data-staff', sid); ch.setAttribute('data-type','full'); ch.setAttribute('data-reason', (val.reason!=null?String(val.reason):'')); ch.title='Click to view reason'; ch.textContent=staffDisplayNameForId(sid, '')+' — AWAY'; cell.appendChild(ch); }
-      if(val.blocks && val.blocks.length){ for(var b=0;b<val.blocks.length;b++){ var bl=val.blocks[b]; if(!bl) continue; var ch2=document.createElement('div'); ch2.className='abs-chip block'; ch2.setAttribute('data-iso', iso); ch2.setAttribute('data-staff', sid); ch2.setAttribute('data-type','block'); ch2.setAttribute('data-start', (bl.start!=null?String(bl.start):'')); ch2.setAttribute('data-end', (bl.end!=null?String(bl.end):'')); ch2.setAttribute('data-reason', (bl.reason!=null?String(bl.reason):'')); ch2.title='Click to view reason'; ch2.textContent=staffDisplayNameForId(sid, '')+' — '+displayTimeRange12(bl.start, bl.end); cell.appendChild(ch2); } }
+      var toolsBtn=document.createElement('button');
+      toolsBtn.type='button';
+      toolsBtn.className='abs-staff-action abs-staff-action-inline';
+      toolsBtn.textContent='Tools: '+staffDisplayNameForId(sid, sid);
+      toolsBtn.title='Open day tools for '+formatIsoForHuman(iso);
+      toolsBtn.onclick=(function(sid2, iso2){ return function(ev){ openAbsenceDayTools(ev, sid2, iso2); }; })(sid, iso);
+      cell.appendChild(toolsBtn);
+      if(val.unavailable){ var ch=document.createElement('div'); ch.className='abs-chip full'; ch.setAttribute('data-iso', iso); ch.setAttribute('data-staff', sid); ch.setAttribute('data-type','full'); ch.setAttribute('data-reason', (val.reason!=null?String(val.reason):'')); ch.title='Open staff day tools'; ch.textContent=staffDisplayNameForId(sid, '')+' — AWAY'; cell.appendChild(ch); }
+      if(val.blocks && val.blocks.length){ for(var b=0;b<val.blocks.length;b++){ var bl=val.blocks[b]; if(!bl) continue; var ch2=document.createElement('div'); ch2.className='abs-chip block'; ch2.setAttribute('data-iso', iso); ch2.setAttribute('data-staff', sid); ch2.setAttribute('data-type','block'); ch2.setAttribute('data-start', (bl.start!=null?String(bl.start):'')); ch2.setAttribute('data-end', (bl.end!=null?String(bl.end):'')); ch2.setAttribute('data-reason', (bl.reason!=null?String(bl.reason):'')); ch2.title='Open staff day tools'; ch2.textContent=staffDisplayNameForId(sid, '')+' — '+displayTimeRange12(bl.start, bl.end); cell.appendChild(ch2); } }
     }
     grid.appendChild(cell);
   }
@@ -22221,7 +22344,7 @@ try{
 (function(){
   'use strict';
   var APP_NAME = 'Aspire Workforce Command';
-  var APP_VERSION = 'V5.0.32';
+  var APP_VERSION = 'V5.0.36';
   var OLD_TITLE = 'M&C-ATRD-scheduler --=Aspire Group=--';
 
   var NAVS = [
@@ -23467,7 +23590,7 @@ try{
   }
 </style>
 <style id="v5019PlannerScrollLoginScaleFixes">
-  /* V5.0.32: let vertical gestures leave the planner, and keep logged-out view phone-friendly in desktop viewport. */
+  /* V5.0.36: let vertical gestures leave the planner, and keep logged-out view phone-friendly in desktop viewport. */
   body.v5-mode:not(.planner-focus-mode):not(.week-overview-focus-mode) #plannerSection .planner {
     overflow-x: auto !important;
     overflow-y: visible !important;
@@ -24591,7 +24714,7 @@ try{
   }
 </style>
 <style id="v5032NativeWeekOverviewScrollCss">
-  /* V5.0.32: native browser scroll/pan for the normal week overview. */
+  /* V5.0.36: native browser scroll/pan for the normal week overview. */
   body.v5-mode:not(.week-overview-focus-mode) #plannerSection #weekOverview.week-overview {
     width: 100% !important;
     max-width: 100% !important;
@@ -24621,6 +24744,149 @@ try{
     }
   }
 </style>
+<style id="v5036ModalAbsenceActionCss">
+  .modal.v5033-visual-modal {
+    inset: auto !important;
+    box-sizing: border-box !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  .modal.v5033-visual-modal > .panel {
+    max-width: calc(100% - 20px) !important;
+    max-height: calc(100% - 20px) !important;
+    overscroll-behavior: contain;
+  }
+
+  .abs-staff-action {
+    display: none !important;
+    width: 100%;
+    margin: 4px 0 5px;
+    padding: 5px 7px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: rgba(34,197,94,.14);
+    color: var(--fg);
+    font-size: 11px;
+    font-weight: 900;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .abs-staff-action:hover {
+    border-color: var(--good);
+    background: rgba(34,197,94,.22);
+  }
+
+  .abs-staff-action-inline {
+    background: rgba(14,165,233,.14);
+    border-color: rgba(14,165,233,.34);
+  }
+
+  .abs-day-actionable {
+    cursor: pointer;
+    position: relative;
+  }
+
+  .abs-day-actionable:hover {
+    outline: 2px solid rgba(34,197,94,.42);
+    outline-offset: -2px;
+  }
+
+  .abs-day-actionable .abs-date:after {
+    content: "Tap to add";
+    display: block;
+    margin-top: 2px;
+    font-size: 9px;
+    font-weight: 850;
+    color: var(--good);
+    opacity: .9;
+  }
+</style>
+<script id="v5036VisibleModalAndAbsenceTools">
+(function(){
+  'use strict';
+
+  function fullscreenModeActive(){
+    try{
+      return !!(document.body && document.body.classList && (
+        document.body.classList.contains('planner-focus-mode') ||
+        document.body.classList.contains('week-overview-focus-mode') ||
+        document.body.classList.contains('v5030-native-fullscreen')
+      ));
+    }catch(e){ return false; }
+  }
+
+  function visibleViewportBox(){
+    var vv = window.visualViewport;
+    var top = 0, left = 0, width = window.innerWidth || document.documentElement.clientWidth || 320, height = window.innerHeight || document.documentElement.clientHeight || 480;
+    if(vv){
+      top = vv.offsetTop || 0;
+      left = vv.offsetLeft || 0;
+      width = vv.width || width;
+      height = vv.height || height;
+    }
+    return {
+      top: Math.max(0, Math.floor(top)),
+      left: Math.max(0, Math.floor(left)),
+      width: Math.max(260, Math.ceil(width)),
+      height: Math.max(320, Math.ceil(height))
+    };
+  }
+
+  function keepVisibleModal(modal){
+    try{
+      if(!modal || !modal.style) return;
+      if(fullscreenModeActive()) return;
+      var shown = modal.style.display === 'flex' || window.getComputedStyle(modal).display === 'flex';
+      if(!shown) return;
+      var box = visibleViewportBox();
+      modal.classList.add('v5033-visual-modal');
+      modal.style.setProperty('position', 'fixed', 'important');
+      modal.style.setProperty('inset', 'auto', 'important');
+      modal.style.setProperty('top', box.top + 'px', 'important');
+      modal.style.setProperty('left', box.left + 'px', 'important');
+      modal.style.setProperty('width', box.width + 'px', 'important');
+      modal.style.setProperty('height', box.height + 'px', 'important');
+      modal.style.setProperty('min-height', box.height + 'px', 'important');
+      modal.style.setProperty('padding', '10px', 'important');
+      var panel = modal.querySelector('.panel');
+      if(panel){
+        panel.style.setProperty('max-width', Math.max(240, box.width - 20) + 'px', 'important');
+        panel.style.setProperty('max-height', Math.max(260, box.height - 20) + 'px', 'important');
+      }
+    }catch(e){}
+  }
+
+  function keepVisibleModals(){
+    try{
+      if(fullscreenModeActive()){
+        var dt = document.getElementById('dayToolsModal');
+        if(dt && dt.style && dt.style.display === 'flex') dt.style.display = 'none';
+        return;
+      }
+      var ids = ['shiftModal','dayToolsModal','awayMultiModal','recUnavailModal','infoModal','requestsModal','reqUpdatesModal','templatesModal','payrollDocModal','withholdManageModal'];
+      for(var i=0;i<ids.length;i++){
+        keepVisibleModal(document.getElementById(ids[i]));
+      }
+    }catch(e){}
+  }
+
+  window.v5033KeepVisibleModal = keepVisibleModal;
+  window.v5033KeepVisibleModals = keepVisibleModals;
+
+  document.addEventListener('click', function(){ setTimeout(keepVisibleModals, 0); setTimeout(keepVisibleModals, 120); }, true);
+  window.addEventListener('resize', keepVisibleModals, {passive:true});
+  window.addEventListener('scroll', keepVisibleModals, {passive:true});
+  try{
+    if(window.visualViewport){
+      window.visualViewport.addEventListener('resize', keepVisibleModals, {passive:true});
+      window.visualViewport.addEventListener('scroll', keepVisibleModals, {passive:true});
+    }
+  }catch(e){}
+  setInterval(keepVisibleModals, 700);
+})();
+</script>
 <script id="v5030HorizontalTopPanelScript">
 (function(){
   'use strict';
