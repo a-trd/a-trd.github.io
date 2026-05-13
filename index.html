@@ -79,7 +79,7 @@
     }
   </style>
 
-<title>Aspire Workforce Command (V5.0.36 Phone Desktop Native)</title>
+<title>Aspire Workforce Command (V5.0.39 Phone Desktop Native)</title>
   <meta name="theme-color" content="#22c55e"/>
 
   <style>
@@ -4807,7 +4807,7 @@
       <div id="appLogoBox"></div>
       <div class="titlewrap">
         <div class="title" id="appTitle">Aspire Workforce Command</div>
-        <div class="version-pill" id="appVersion">V5.0.36</div>
+        <div class="version-pill" id="appVersion">V5.0.39</div>
         <div class="sync-pill syncing" id="syncStatusChip" title="Sync status">Starting…</div>
       </div>
     </div>
@@ -5500,6 +5500,142 @@
 
         <div class="payroll-box" style="margin-top:14px;">
           <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+            <h3 style="margin:0;">Generic non-permanent payslip</h3>
+          </div>
+          <div class="grid-2" style="margin-top:10px;">
+            <div>
+              <label>Staff / worker name</label>
+              <input id="genericPayslipStaffName" type="text" placeholder="Full name shown on payslip">
+            </div>
+            <div>
+              <label>Employee / reference ID (optional)</label>
+              <input id="genericPayslipEmployeeId" type="text" placeholder="Payroll ID, invoice ref or blank">
+            </div>
+          </div>
+          <div class="grid-2">
+            <div>
+              <label>Staff company / business name (optional)</label>
+              <input id="genericPayslipCompanyName" type="text" placeholder="Sole trader or contractor business name">
+            </div>
+            <div>
+              <label>Staff ABN / ACN (optional)</label>
+              <input id="genericPayslipABNACN" type="text" placeholder="ABN, ACN or contractor entity ID">
+            </div>
+          </div>
+          <div class="grid-2">
+            <div>
+              <label>Employment type</label>
+              <select id="genericPayslipEmploymentType">
+                <option value="Casual">Casual</option>
+                <option value="Temporary">Temporary</option>
+                <option value="Contractor">Contractor</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div>
+              <label>Position / classification</label>
+              <input id="genericPayslipClassification" type="text" placeholder="Role or classification">
+            </div>
+          </div>
+          <div>
+            <label>Address (optional)</label>
+            <input id="genericPayslipAddress" type="text" placeholder="Worker postal or street address">
+          </div>
+          <div class="grid-2">
+            <div>
+              <label>Email (optional)</label>
+              <input id="genericPayslipEmail" type="text" placeholder="worker@email.com">
+            </div>
+            <div>
+              <label>Phone (optional)</label>
+              <input id="genericPayslipPhone" type="text" placeholder="Contact number">
+            </div>
+          </div>
+          <div class="grid-2">
+            <div>
+              <label>Period start</label>
+              <input id="genericPayslipPeriodStart" type="date">
+            </div>
+            <div>
+              <label>Period end</label>
+              <input id="genericPayslipPeriodEnd" type="date">
+            </div>
+          </div>
+          <div class="grid-2">
+            <div>
+              <label>Payment date</label>
+              <input id="genericPayslipPayDate" type="date">
+            </div>
+            <div>
+              <label>Days worked</label>
+              <input id="genericPayslipDaysWorked" type="number" min="0" step="1" placeholder="Auto from weekdays" readonly>
+            </div>
+          </div>
+          <div style="margin-top:8px;">
+            <label>Hours by weekday</label>
+            <div style="display:grid;grid-template-columns:repeat(7,minmax(72px,1fr));gap:8px;margin-top:6px;">
+              <div><label style="font-size:11px;">Mon</label><input class="generic-payslip-day-hours" id="genericPayslipDay0" type="number" min="0" step="0.01" placeholder="0"></div>
+              <div><label style="font-size:11px;">Tue</label><input class="generic-payslip-day-hours" id="genericPayslipDay1" type="number" min="0" step="0.01" placeholder="0"></div>
+              <div><label style="font-size:11px;">Wed</label><input class="generic-payslip-day-hours" id="genericPayslipDay2" type="number" min="0" step="0.01" placeholder="0"></div>
+              <div><label style="font-size:11px;">Thu</label><input class="generic-payslip-day-hours" id="genericPayslipDay3" type="number" min="0" step="0.01" placeholder="0"></div>
+              <div><label style="font-size:11px;">Fri</label><input class="generic-payslip-day-hours" id="genericPayslipDay4" type="number" min="0" step="0.01" placeholder="0"></div>
+              <div><label style="font-size:11px;">Sat</label><input class="generic-payslip-day-hours" id="genericPayslipDay5" type="number" min="0" step="0.01" placeholder="0"></div>
+              <div><label style="font-size:11px;">Sun</label><input class="generic-payslip-day-hours" id="genericPayslipDay6" type="number" min="0" step="0.01" placeholder="0"></div>
+            </div>
+            <div class="muted" style="margin-top:6px;">Breaks auto-calculate: shifts of 5 hours or more include a 30 minute unpaid break.</div>
+          </div>
+          <div class="grid-2">
+            <div>
+              <label>Total hours worked</label>
+              <input id="genericPayslipHoursWorked" type="number" min="0" step="0.01" placeholder="Auto from weekdays" readonly>
+            </div>
+            <div>
+              <label>Auto unpaid breaks</label>
+              <input id="genericPayslipBreakHours" type="number" min="0" step="0.01" placeholder="Auto" readonly>
+            </div>
+          </div>
+          <div class="grid-2">
+            <div>
+              <label>Payable hours</label>
+              <input id="genericPayslipPayableHours" type="number" min="0" step="0.01" placeholder="Auto" readonly>
+            </div>
+            <div>
+              <label>Hourly rate</label>
+              <input id="genericPayslipHourlyRate" type="number" min="0" step="0.01" placeholder="Example: 32.50">
+            </div>
+          </div>
+          <div class="grid-2">
+            <div>
+              <label>PAYG withheld</label>
+              <input id="genericPayslipPAYG" type="number" min="0" step="0.01" value="0">
+            </div>
+            <div>
+              <label>Other deductions</label>
+              <input id="genericPayslipOtherDeduction" type="number" min="0" step="0.01" value="0">
+            </div>
+          </div>
+          <div class="grid-2">
+            <div>
+              <label>Super amount (leave blank for auto)</label>
+              <input id="genericPayslipSuper" type="number" min="0" step="0.01" placeholder="Auto from business super rate">
+            </div>
+            <div>
+              <label>Days worked details (optional)</label>
+              <input id="genericPayslipDaysNote" type="text" placeholder="Example: Mon 4h, Wed 7.5h, Fri 7h">
+            </div>
+          </div>
+          <div>
+            <label>Document note (optional)</label>
+            <input id="genericPayslipNote" type="text" placeholder="Optional note shown on this payslip">
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
+            <button id="btnPreviewGenericPayslip" class="btn-outline">Preview generic payslip</button>
+            <button id="btnPrintGenericPayslipPdf" class="btn-primary">Print / Save PDF</button>
+          </div>
+        </div>
+
+        <div class="payroll-box" style="margin-top:14px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
             <h3 style="margin:0;">Document history</h3>
             <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
               <label>Staff</label>
@@ -5508,6 +5644,7 @@
               <select id="payslipHistoryTypeFilter">
                 <option value="">All</option>
                 <option value="payslip">Payslips</option>
+                <option value="genericPayslip">Generic payslips</option>
                 <option value="paymentSummary">Payment summaries</option>
               </select>
             </div>
@@ -6805,8 +6942,8 @@ var DAY = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 var App = {
   // IMPORTANT: Increment App.version *and* App.buildId whenever making functional changes to this file.
   // SAFETY NET: This build performs an automatic runtime check against the file name; if mismatched, it shows a blocking warning so it can't be overlooked.
-  version: 'V5.0.36',
-    buildId: '2026-05-12.06',
+  version: 'V5.0.39',
+    buildId: '2026-05-13.03',
 settings: {
     dbUrl:'https://mnc-atrd-default-rtdb.asia-southeast1.firebasedatabase.app/', workspace:'mnc-atrd', authToken:'',
     theme:'light', themeName:'light-pastel-sky', recentColors:[], appTitle:'Aspire Workforce Command', logoUrl:'',
@@ -17557,6 +17694,215 @@ function syncPayrollWeekInputsFromApp(){
   setInputValueIfIdle('payrollWeekLeaveLong', rec.leaveLong || '');
   setInputValueIfIdle('payrollWeekNote', rec.note || '');
 }
+function syncGenericPayslipDefaults(){
+  var today = '';
+  try{ today = toISO(new Date()); }catch(e){}
+  if(today){
+    setInputValueIfIdle('genericPayslipPayDate', byId('genericPayslipPayDate') && byId('genericPayslipPayDate').value ? byId('genericPayslipPayDate').value : today);
+    setInputValueIfIdle('genericPayslipPeriodStart', byId('genericPayslipPeriodStart') && byId('genericPayslipPeriodStart').value ? byId('genericPayslipPeriodStart').value : today);
+    setInputValueIfIdle('genericPayslipPeriodEnd', byId('genericPayslipPeriodEnd') && byId('genericPayslipPeriodEnd').value ? byId('genericPayslipPeriodEnd').value : today);
+  }
+  if(byId('genericPayslipEmploymentType') && !byId('genericPayslipEmploymentType').value) byId('genericPayslipEmploymentType').value = 'Casual';
+  if(byId('genericPayslipPAYG') && byId('genericPayslipPAYG').value === '') setInputValueIfIdle('genericPayslipPAYG', '0');
+  if(byId('genericPayslipOtherDeduction') && byId('genericPayslipOtherDeduction').value === '') setInputValueIfIdle('genericPayslipOtherDeduction', '0');
+  updateGenericPayslipComputedFields();
+}
+function genericPayslipBreakForHours(hours){
+  hours = numOr0(hours);
+  if(hours >= 5) return Math.min(0.5, hours);
+  return 0;
+}
+function genericPayslipComputedHours(){
+  var out = {daysWorked:0, workHours:0, breakHours:0, payableHours:0, dayLines:[]};
+  for(var i=0;i<7;i++){
+    var h = numOr0(byId('genericPayslipDay' + i) && byId('genericPayslipDay' + i).value || 0);
+    if(h <= 0) continue;
+    var br = genericPayslipBreakForHours(h);
+    var payable = Math.max(0, h - br);
+    out.daysWorked += 1;
+    out.workHours += h;
+    out.breakHours += br;
+    out.payableHours += payable;
+    out.dayLines.push({
+      dayIndex:i,
+      dayLabel:DAY[i],
+      workHours:round2(h),
+      breakHours:round2(br),
+      payableHours:round2(payable)
+    });
+  }
+  out.daysWorked = round2(out.daysWorked);
+  out.workHours = round2(out.workHours);
+  out.breakHours = round2(out.breakHours);
+  out.payableHours = round2(out.payableHours);
+  return out;
+}
+function updateGenericPayslipComputedFields(){
+  var c = genericPayslipComputedHours();
+  var days = byId('genericPayslipDaysWorked'); if(days) days.value = c.daysWorked ? String(c.daysWorked) : '';
+  var worked = byId('genericPayslipHoursWorked'); if(worked) worked.value = c.workHours ? c.workHours.toFixed(2) : '';
+  var breaks = byId('genericPayslipBreakHours'); if(breaks) breaks.value = c.breakHours ? c.breakHours.toFixed(2) : '';
+  var payable = byId('genericPayslipPayableHours'); if(payable) payable.value = c.payableHours ? c.payableHours.toFixed(2) : '';
+}
+function genericPayslipDateForDay(periodStart, periodEnd, dayIndex){
+  try{
+    if(!periodStart || !periodEnd) return {iso:'', label:''};
+    var d = fromISO(periodStart);
+    var e = fromISO(periodEnd);
+    for(var i=0;i<32;i++){
+      if(d > e) break;
+      var idx = (d.getDay() + 6) % 7;
+      if(idx === dayIndex) return {iso:toISO(d), label:fmtDMY(d)};
+      d.setDate(d.getDate() + 1);
+    }
+  }catch(e){}
+  return {iso:'', label:''};
+}
+function readGenericPayslipInputs(){
+  var computed = genericPayslipComputedHours();
+  return {
+    staffName:(byId('genericPayslipStaffName') && byId('genericPayslipStaffName').value || '').trim(),
+    employeeId:(byId('genericPayslipEmployeeId') && byId('genericPayslipEmployeeId').value || '').trim(),
+    companyName:(byId('genericPayslipCompanyName') && byId('genericPayslipCompanyName').value || '').trim(),
+    abnAcn:(byId('genericPayslipABNACN') && byId('genericPayslipABNACN').value || '').trim(),
+    employmentType:(byId('genericPayslipEmploymentType') && byId('genericPayslipEmploymentType').value || 'Casual').trim(),
+    classification:(byId('genericPayslipClassification') && byId('genericPayslipClassification').value || '').trim(),
+    address:(byId('genericPayslipAddress') && byId('genericPayslipAddress').value || '').trim(),
+    email:(byId('genericPayslipEmail') && byId('genericPayslipEmail').value || '').trim(),
+    phone:(byId('genericPayslipPhone') && byId('genericPayslipPhone').value || '').trim(),
+    periodStart:(byId('genericPayslipPeriodStart') && byId('genericPayslipPeriodStart').value || '').trim(),
+    periodEnd:(byId('genericPayslipPeriodEnd') && byId('genericPayslipPeriodEnd').value || '').trim(),
+    payDate:(byId('genericPayslipPayDate') && byId('genericPayslipPayDate').value || '').trim(),
+    daysWorked:computed.daysWorked,
+    hoursWorked:computed.workHours,
+    breakHours:computed.breakHours,
+    payableHours:computed.payableHours,
+    dayLines:computed.dayLines,
+    hourlyRate:numOr0(byId('genericPayslipHourlyRate') && byId('genericPayslipHourlyRate').value || 0),
+    paygWithheld:numOr0(byId('genericPayslipPAYG') && byId('genericPayslipPAYG').value || 0),
+    otherDeductions:numOr0(byId('genericPayslipOtherDeduction') && byId('genericPayslipOtherDeduction').value || 0),
+    superAmount:(function(){ var v = byId('genericPayslipSuper') && byId('genericPayslipSuper').value; return v==null || v==='' ? '' : round2(v); })(),
+    daysNote:(byId('genericPayslipDaysNote') && byId('genericPayslipDaysNote').value || '').trim(),
+    note:(byId('genericPayslipNote') && byId('genericPayslipNote').value || '').trim()
+  };
+}
+function validateGenericPayslipInputs(rec){
+  rec = rec || {};
+  if(!rec.staffName) return 'Enter the staff / worker name.';
+  if(!rec.periodStart) return 'Choose a period start date.';
+  if(!rec.periodEnd) return 'Choose a period end date.';
+  if(!rec.payDate) return 'Choose a payment date.';
+  if(rec.periodEnd < rec.periodStart) return 'Period end must be on or after the period start.';
+  if(!isFinite(rec.daysWorked) || rec.daysWorked < 0) return 'Days worked must be zero or more.';
+  if(!isFinite(rec.hoursWorked) || rec.hoursWorked <= 0) return 'Enter hours in at least one weekday block.';
+  if(!isFinite(rec.hourlyRate) || rec.hourlyRate <= 0) return 'Hourly rate must be greater than zero.';
+  if(!isFinite(rec.paygWithheld) || rec.paygWithheld < 0) return 'PAYG withheld must be zero or more.';
+  if(!isFinite(rec.otherDeductions) || rec.otherDeductions < 0) return 'Other deductions must be zero or more.';
+  if(rec.superAmount !== '' && (!isFinite(rec.superAmount) || rec.superAmount < 0)) return 'Super amount must be blank, zero or more.';
+  var textFields = [rec.staffName, rec.employeeId, rec.companyName, rec.abnAcn, rec.employmentType, rec.classification, rec.address, rec.email, rec.phone, rec.daysNote, rec.note];
+  for(var i=0;i<textFields.length;i++){
+    if(String(textFields[i]||'').length > 280) return 'Generic payslip text fields must be 280 characters or fewer.';
+    if(/[<>]/.test(String(textFields[i]||''))) return 'Generic payslip text fields cannot contain < or > characters.';
+  }
+  return '';
+}
+function buildGenericPayslipDocument(){
+  ensurePayrollDocStores();
+  var rec = readGenericPayslipInputs();
+  var validationError = validateGenericPayslipInputs(rec);
+  if(validationError) throw new Error(validationError);
+  var business = readPayrollBusinessInputs();
+  if(!business.businessName) business = getPayrollBusinessProfile();
+  if(!business.businessName) business.businessName = App.settings.appTitle || 'Employer';
+  var grossPay = round2(rec.payableHours * rec.hourlyRate);
+  var paygWithheld = round2(rec.paygWithheld);
+  var otherDeductions = round2(rec.otherDeductions);
+  var superRate = numOr0(business.superRatePct || 12) || 12;
+  var superAmount = rec.superAmount === '' ? round2(grossPay * superRate / 100) : round2(rec.superAmount);
+  var netPay = round2(grossPay - paygWithheld - otherDeductions);
+  if(netPay < 0) netPay = 0;
+  var safeName = String(rec.staffName || 'worker').replace(/[^A-Za-z0-9]/g,'').slice(0,10).toUpperCase() || 'WORKER';
+  var docNo = 'GPS-' + String(rec.payDate || '').replace(/-/g,'') + '-' + safeName;
+  var staffId = 'generic|' + safeName;
+  var lines = (rec.dayLines || []).map(function(day){
+    var dateInfo = genericPayslipDateForDay(rec.periodStart, rec.periodEnd, day.dayIndex);
+    var amount = round2(numOr0(day.payableHours) * rec.hourlyRate);
+    return {
+      iso:dateInfo.iso || rec.periodStart,
+      dayLabel:day.dayLabel || '',
+      dateLabel:dateInfo.label || '',
+      shiftLabel:rec.daysNote || 'Manual hours',
+      workHours:round2(day.workHours),
+      breakHours:round2(day.breakHours),
+      payableHours:round2(day.payableHours),
+      ordinaryHours:round2(day.payableHours),
+      otHours:0,
+      rate:round2(rec.hourlyRate),
+      linePay:amount,
+      rateLabel:'Manual',
+      notes:rec.daysNote || ''
+    };
+  });
+  return {
+    type:'genericPayslip',
+    key:'gp|' + safeName + '|' + rec.periodStart + '|' + rec.periodEnd + '|' + rec.payDate,
+    documentNo:docNo,
+    generatedAt:new Date().toISOString(),
+    periodStart:rec.periodStart,
+    periodEnd:rec.periodEnd,
+    periodLabel:'Manual period ' + rec.periodStart + ' to ' + rec.periodEnd,
+    payDate:rec.payDate,
+    staffId:staffId,
+    staffName:rec.staffName,
+    business:business,
+    employee:{
+      name:rec.staffName,
+      employeeId:rec.employeeId,
+      companyName:rec.companyName,
+      employmentType:rec.employmentType,
+      classification:rec.classification,
+      abnAcn:rec.abnAcn,
+      address:rec.address,
+      email:rec.email,
+      phone:rec.phone,
+      superFundName:business.superFundName || '',
+      superFundNumber:business.superFundNumber || '',
+      superMemberNumber:'',
+      bankMasked:'',
+      baseRate:round2(rec.hourlyRate)
+    },
+    lines:lines,
+    summary:{
+      daysWorked:round2(rec.daysWorked),
+      workHours:round2(rec.hoursWorked),
+      breakHours:round2(rec.breakHours),
+      payableHours:round2(rec.payableHours),
+      ordinaryHours:round2(rec.payableHours),
+      otHours:0,
+      ordinaryPay:grossPay,
+      overtimePay:0,
+      grossBase:grossPay,
+      positiveAdjustment:0,
+      negativeAdjustment:0,
+      paygWithheld:paygWithheld,
+      otherDeductions:otherDeductions,
+      withheldThisWeek:0,
+      superAmount:superAmount,
+      superBase:grossPay,
+      grossPay:grossPay,
+      netPay:netPay
+    },
+    notes:{
+      quickNote:String(rec.note || ''),
+      payrollNote:rec.daysNote || '',
+      adjustmentComment:'',
+      otherDeductionDetails:'',
+      leaveAnnual:'',
+      leaveSick:'',
+      leaveLong:''
+    }
+  };
+}
 function syncPayrollFYSelect(){
   var sel = byId('payrollDocFySelect');
   if(!sel) return;
@@ -17597,6 +17943,7 @@ function syncPayrollFormsFromApp(){
   togglePayrollDocMode();
   syncPayrollStaffInputsFromApp();
   syncPayrollWeekInputsFromApp();
+  syncGenericPayslipDefaults();
 }
 function bindPayrollDocUI(){
   var btnB = byId('btnSavePayrollBusiness'); if(btnB && !btnB._bound){ btnB._bound = true; btnB.onclick = function(){ savePayrollBusinessProfile(false); }; }
@@ -17610,8 +17957,18 @@ function bindPayrollDocUI(){
   var ht = byId('payslipHistoryTypeFilter'); if(ht && !ht._bound){ ht._bound = true; ht.onchange = function(){ renderPayslipHistory(); }; }
   var prev = byId('btnPreviewPayslip'); if(prev && !prev._bound){ prev._bound = true; prev.onclick = function(){ try{ openPayrollDocModal(buildSelectedPayrollDocument(), true); }catch(e){ alert(e && e.message ? e.message : e); } }; }
   var prn = byId('btnPrintPayslipPdf'); if(prn && !prn._bound){ prn._bound = true; prn.onclick = function(){ try{ savePayrollBusinessProfile(true); savePayrollStaffProfile(true); if(((byId('payrollDocType') && byId('payrollDocType').value) || 'payslip') === 'payslip') savePayrollWeekData(true); var doc = buildSelectedPayrollDocument(); openPayrollDocModal(doc, true); printPayrollDocument(doc, true); }catch(e){ alert(e && e.message ? e.message : e); } }; }
+  var gprev = byId('btnPreviewGenericPayslip'); if(gprev && !gprev._bound){ gprev._bound = true; gprev.onclick = function(){ try{ syncGenericPayslipDefaults(); openPayrollDocModal(buildGenericPayslipDocument(), true); }catch(e){ alert(e && e.message ? e.message : e); } }; }
+  var gprn = byId('btnPrintGenericPayslipPdf'); if(gprn && !gprn._bound){ gprn._bound = true; gprn.onclick = function(){ try{ savePayrollBusinessProfile(true); syncGenericPayslipDefaults(); var doc = buildGenericPayslipDocument(); openPayrollDocModal(doc, true); printPayrollDocument(doc, true); }catch(e){ alert(e && e.message ? e.message : e); } }; }
+  for(var gd=0; gd<7; gd++){
+    var gel = byId('genericPayslipDay' + gd);
+    if(gel && !gel._bound){
+      gel._bound = true;
+      gel.addEventListener('input', updateGenericPayslipComputedFields);
+      gel.addEventListener('change', updateGenericPayslipComputedFields);
+    }
+  }
   var close = byId('btnPayrollDocModalClose'); if(close && !close._bound){ close._bound = true; close.onclick = function(){ var m = byId('payrollDocModal'); if(m) m.style.display = 'none'; }; }
-  var modalPrint = byId('btnPayrollDocModalPrint'); if(modalPrint && !modalPrint._bound){ modalPrint._bound = true; modalPrint.onclick = function(){ try{ savePayrollBusinessProfile(true); savePayrollStaffProfile(true); if(PayrollDocs.currentDoc && PayrollDocs.currentDoc.type === 'payslip') savePayrollWeekData(true); }catch(e){} if(PayrollDocs.currentDoc) printPayrollDocument(PayrollDocs.currentDoc, true); }; }
+  var modalPrint = byId('btnPayrollDocModalPrint'); if(modalPrint && !modalPrint._bound){ modalPrint._bound = true; modalPrint.onclick = function(){ try{ var curType = PayrollDocs.currentDoc && PayrollDocs.currentDoc.type; savePayrollBusinessProfile(true); if(curType !== 'genericPayslip'){ savePayrollStaffProfile(true); if(curType === 'payslip') savePayrollWeekData(true); } }catch(e){} if(PayrollDocs.currentDoc) printPayrollDocument(PayrollDocs.currentDoc, true); }; }
   if(!document.__payrollDocHistoryBound){
     document.__payrollDocHistoryBound = true;
     document.addEventListener('click', function(ev){
@@ -17976,6 +18333,9 @@ function payrollDocumentCss(){
     '.doc-kv{width:100%;border-collapse:collapse;font-size:11px;}',
     '.doc-kv td{padding:1.4mm 0;vertical-align:top;}',
     '.doc-kv td:first-child{color:#475569;width:38%;padding-right:3mm;font-weight:700;}',
+    '.doc-hours-summary{width:100%;border-collapse:collapse;table-layout:fixed;font-size:10.5px;}',
+    '.doc-hours-summary th,.doc-hours-summary td{border-bottom:1px solid #e2e8f0;padding:2.1mm 1.5mm;text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;}',
+    '.doc-hours-summary th{background:#f8fafc;color:#334155;font-size:9.5px;text-transform:uppercase;letter-spacing:.035em;}',
     '.doc-lines,.doc-summary{width:100%;border-collapse:collapse;table-layout:fixed;font-size:10.6px;}',
     '.doc-lines th,.doc-lines td,.doc-summary td{border-bottom:1px solid #e2e8f0;padding:2.4mm 2mm;text-align:left;vertical-align:top;}',
     '.doc-lines th{background:#f8fafc;font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:#334155;}',
@@ -17998,6 +18358,31 @@ function payrollDocumentCss(){
 function payrollDocInfoLine(label, value){
   if(value == null || value === '') return '';
   return '<tr><td>' + escapeHtml(label) + '</td><td>' + escapeHtml(String(value)) + '</td></tr>';
+}
+function payrollDocTypeLabel(type){
+  if(type === 'paymentSummary') return 'Payment summary';
+  if(type === 'genericPayslip') return 'Generic payslip';
+  return 'Payslip';
+}
+function payrollHoursSummaryHtml(doc){
+  var s = (doc && doc.summary) || {};
+  var hasDays = s.daysWorked != null && numOr0(s.daysWorked) > 0;
+  return [
+    '<table class="doc-hours-summary">',
+      '<thead><tr>',
+        (hasDays ? '<th>Days</th>' : ''),
+        '<th>Worked</th><th>Breaks</th><th>Payable</th><th>Ordinary</th><th>Overtime</th>',
+      '</tr></thead>',
+      '<tbody><tr>',
+        (hasDays ? ('<td>' + escapeHtml(numOr0(s.daysWorked).toFixed(2)) + '</td>') : ''),
+        '<td>', escapeHtml(numOr0(s.workHours).toFixed(2)), '</td>',
+        '<td>', escapeHtml(numOr0(s.breakHours).toFixed(2)), '</td>',
+        '<td>', escapeHtml(numOr0(s.payableHours).toFixed(2)), '</td>',
+        '<td>', escapeHtml(numOr0(s.ordinaryHours).toFixed(2)), '</td>',
+        '<td>', escapeHtml(numOr0(s.otHours).toFixed(2)), '</td>',
+      '</tr></tbody>',
+    '</table>'
+  ].join('');
 }
 function renderPayrollDocumentHtml(doc){
   if(!doc) return '<div class="doc-sheet"><div class="doc-bad">No document data.</div></div>';
@@ -18039,6 +18424,7 @@ function renderPayrollDocumentHtml(doc){
           '</table></div>',
           '<div class="doc-card"><h4>Employee</h4><table class="doc-kv">',
             payrollDocInfoLine('Employee name', doc.employee.name || ''),
+            payrollDocInfoLine('Company / business name', doc.employee.companyName || ''),
             payrollDocInfoLine('Employee ID', doc.employee.employeeId || ''),
             payrollDocInfoLine('Employment type', doc.employee.employmentType || ''),
             payrollDocInfoLine('Classification', doc.employee.classification || ''),
@@ -18117,13 +18503,17 @@ function renderPayrollDocumentHtml(doc){
   if(doc.notes && doc.notes.payrollNote) notes.push('Payroll note: ' + escapeHtml(doc.notes.payrollNote));
   if(doc.notes && doc.notes.quickNote) notes.push('Document note: ' + escapeHtml(doc.notes.quickNote));
   if(doc.business && doc.business.note) notes.push('Business note: ' + escapeHtml(doc.business.note));
+  var isGenericPayslip = doc.type === 'genericPayslip';
+  if(isGenericPayslip) notes = [];
+  var docTitle = isGenericPayslip ? 'Employee Payslip' : 'Payslip';
+  var docSubtitle = isGenericPayslip ? '' : 'Electronic pay slip generated in English';
 
   return [
     '<div class="doc-sheet">',
       '<div class="doc-header">',
         '<div>',
-          '<div class="doc-title">Payslip</div>',
-          '<div class="doc-subtitle">Electronic pay slip generated in English</div>',
+          '<div class="doc-title">', escapeHtml(docTitle), '</div>',
+          (docSubtitle ? ('<div class="doc-subtitle">' + escapeHtml(docSubtitle) + '</div>') : ''),
         '</div>',
         '<div style="text-align:right;display:flex;flex-direction:column;gap:8px;align-items:flex-end;">',
           '<div class="doc-chip">Document ', escapeHtml(doc.documentNo || ''), '</div>',
@@ -18142,6 +18532,7 @@ function renderPayrollDocumentHtml(doc){
         '</table></div>',
         '<div class="doc-card"><h4>Employee</h4><table class="doc-kv">',
           payrollDocInfoLine('Employee name', doc.employee.name || ''),
+          payrollDocInfoLine('Company / business name', doc.employee.companyName || ''),
           payrollDocInfoLine('Employee ID', doc.employee.employeeId || ''),
           payrollDocInfoLine('Employment type', doc.employee.employmentType || ''),
           payrollDocInfoLine('Classification', doc.employee.classification || ''),
@@ -18157,6 +18548,7 @@ function renderPayrollDocumentHtml(doc){
           payrollDocInfoLine('Period start', payrollDocDisplayDate(doc.periodStart || '')),
           payrollDocInfoLine('Period end', payrollDocDisplayDate(doc.periodEnd || '')),
           payrollDocInfoLine('Payment date', payrollDocDisplayDate(doc.payDate || '')),
+          payrollDocInfoLine('Days worked', (doc.summary && doc.summary.daysWorked) ? numOr0(doc.summary.daysWorked).toFixed(2) : ''),
           payrollDocInfoLine('Generated', payrollDocDisplayTimestamp(doc.generatedAt || '')),
           payrollDocInfoLine('Paid to', doc.employee.bankMasked || ''),
         '</table></div>',
@@ -18177,13 +18569,7 @@ function renderPayrollDocumentHtml(doc){
       '</table>',
       '<div class="doc-grid" style="margin-top:6mm;">',
         '<div class="doc-card"><h4>Other payments and deductions</h4><table class="doc-kv">', deductionsRows, '</table></div>',
-        '<div class="doc-card"><h4>Hours summary</h4><table class="doc-kv">',
-          payrollDocInfoLine('Worked hours', numOr0(doc.summary && doc.summary.workHours).toFixed(2)),
-          payrollDocInfoLine('Break hours', numOr0(doc.summary && doc.summary.breakHours).toFixed(2)),
-          payrollDocInfoLine('Payable hours', numOr0(doc.summary && doc.summary.payableHours).toFixed(2)),
-          payrollDocInfoLine('Ordinary hours', numOr0(doc.summary && doc.summary.ordinaryHours).toFixed(2)),
-          payrollDocInfoLine('Overtime hours', numOr0(doc.summary && doc.summary.otHours).toFixed(2)),
-        '</table></div>',
+        '<div class="doc-card"><h4>Hours summary</h4>', payrollHoursSummaryHtml(doc), '</div>',
       '</div>',
       '<table class="doc-summary">',
         '<tr><td>Gross pay</td><td>', escapeHtml(fmtMoney((doc.summary && doc.summary.grossPay) || 0)), '</td></tr>',
@@ -18192,8 +18578,8 @@ function renderPayrollDocumentHtml(doc){
         '<tr><td>Held back this week</td><td>-', escapeHtml(fmtMoney((doc.summary && doc.summary.withheldThisWeek) || 0)), '</td></tr>',
         '<tr class="total"><td>Net pay</td><td>', escapeHtml(fmtMoney((doc.summary && doc.summary.netPay) || 0)), '</td></tr>',
       '</table>',
-      (notes.length ? ('<div class="doc-note"><strong>Notes:</strong> ' + notes.join('. ') + '.</div>') : ''),
-      '<div class="doc-note">This payslip shows employer and employee names, pay period, payment date, gross pay, net pay, hourly-rate lines, deductions and super contribution details.</div>',
+      (!isGenericPayslip && notes.length ? ('<div class="doc-note"><strong>Notes:</strong> ' + notes.join('. ') + '.</div>') : ''),
+      (!isGenericPayslip ? '<div class="doc-note">This payslip shows employer and employee names, pay period, payment date, gross pay, net pay, hourly-rate lines, deductions and super contribution details.</div>' : ''),
     '</div>'
   ].join('');
 }
@@ -18205,7 +18591,7 @@ function openPayrollDocModal(doc, fromBuilder){
   var host = byId('payrollDocPreviewHost');
   var modal = byId('payrollDocModal');
   if(host) host.innerHTML = renderPayrollDocumentHtml(doc);
-  setTextIfExists('payrollDocModalTitle', doc.type === 'paymentSummary' ? 'Payment summary preview' : 'Payslip preview');
+  setTextIfExists('payrollDocModalTitle', payrollDocTypeLabel(doc.type) + ' preview');
   setTextIfExists('payrollDocModalMeta', (doc.periodLabel || '') + ' • ' + (doc.staffName || '') + ' • ' + (doc.documentNo || ''));
   if(modal) modal.style.display = 'flex';
 }
@@ -18291,7 +18677,7 @@ function renderPayslipHistory(){
     var tr = document.createElement('tr');
     tr.innerHTML = ''
       + '<td>' + escapeHtml(String((r.updatedAt||r.createdAt||r.generatedAt||'').replace('T',' ').slice(0,16))) + '</td>'
-      + '<td>' + escapeHtml((r.type === 'paymentSummary' ? 'Payment summary' : 'Payslip') + ' • ' + (r.documentNo || '')) + '</td>'
+      + '<td>' + escapeHtml(payrollDocTypeLabel(r.type) + ' • ' + (r.documentNo || '')) + '</td>'
       + '<td>' + escapeHtml(r.staffName || payrollStaffName(r.staffId)) + '</td>'
       + '<td>' + escapeHtml(r.periodLabel || (r.financialYear ? ('Financial year ' + r.financialYear) : '')) + '</td>'
       + '<td>' + escapeHtml(r.payDate || r.statementDate || '') + '</td>'
@@ -22344,7 +22730,7 @@ try{
 (function(){
   'use strict';
   var APP_NAME = 'Aspire Workforce Command';
-  var APP_VERSION = 'V5.0.36';
+  var APP_VERSION = 'V5.0.39';
   var OLD_TITLE = 'M&C-ATRD-scheduler --=Aspire Group=--';
 
   var NAVS = [
@@ -23590,7 +23976,7 @@ try{
   }
 </style>
 <style id="v5019PlannerScrollLoginScaleFixes">
-  /* V5.0.36: let vertical gestures leave the planner, and keep logged-out view phone-friendly in desktop viewport. */
+  /* V5.0.39: let vertical gestures leave the planner, and keep logged-out view phone-friendly in desktop viewport. */
   body.v5-mode:not(.planner-focus-mode):not(.week-overview-focus-mode) #plannerSection .planner {
     overflow-x: auto !important;
     overflow-y: visible !important;
@@ -24714,7 +25100,7 @@ try{
   }
 </style>
 <style id="v5032NativeWeekOverviewScrollCss">
-  /* V5.0.36: native browser scroll/pan for the normal week overview. */
+  /* V5.0.39: native browser scroll/pan for the normal week overview. */
   body.v5-mode:not(.week-overview-focus-mode) #plannerSection #weekOverview.week-overview {
     width: 100% !important;
     max-width: 100% !important;
