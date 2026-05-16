@@ -79,7 +79,7 @@
     }
   </style>
 
-<title>Aspire Workforce Command (V5.0.39 Phone Desktop Native)</title>
+<title>Aspire Workforce Command (V5.0.40 Phone Desktop Native)</title>
   <meta name="theme-color" content="#22c55e"/>
 
   <style>
@@ -4807,7 +4807,7 @@
       <div id="appLogoBox"></div>
       <div class="titlewrap">
         <div class="title" id="appTitle">Aspire Workforce Command</div>
-        <div class="version-pill" id="appVersion">V5.0.39</div>
+        <div class="version-pill" id="appVersion">V5.0.40</div>
         <div class="sync-pill syncing" id="syncStatusChip" title="Sync status">Starting…</div>
       </div>
     </div>
@@ -6942,8 +6942,8 @@ var DAY = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 var App = {
   // IMPORTANT: Increment App.version *and* App.buildId whenever making functional changes to this file.
   // SAFETY NET: This build performs an automatic runtime check against the file name; if mismatched, it shows a blocking warning so it can't be overlooked.
-  version: 'V5.0.39',
-    buildId: '2026-05-13.03',
+  version: 'V5.0.40',
+    buildId: '2026-05-17.01',
 settings: {
     dbUrl:'https://mnc-atrd-default-rtdb.asia-southeast1.firebasedatabase.app/', workspace:'mnc-atrd', authToken:'',
     theme:'light', themeName:'light-pastel-sky', recentColors:[], appTitle:'Aspire Workforce Command', logoUrl:'',
@@ -22730,7 +22730,7 @@ try{
 (function(){
   'use strict';
   var APP_NAME = 'Aspire Workforce Command';
-  var APP_VERSION = 'V5.0.39';
+  var APP_VERSION = 'V5.0.40';
   var OLD_TITLE = 'M&C-ATRD-scheduler --=Aspire Group=--';
 
   var NAVS = [
@@ -23976,7 +23976,7 @@ try{
   }
 </style>
 <style id="v5019PlannerScrollLoginScaleFixes">
-  /* V5.0.39: let vertical gestures leave the planner, and keep logged-out view phone-friendly in desktop viewport. */
+  /* V5.0.40: let vertical gestures leave the planner, and keep logged-out view phone-friendly in desktop viewport. */
   body.v5-mode:not(.planner-focus-mode):not(.week-overview-focus-mode) #plannerSection .planner {
     overflow-x: auto !important;
     overflow-y: visible !important;
@@ -25100,7 +25100,7 @@ try{
   }
 </style>
 <style id="v5032NativeWeekOverviewScrollCss">
-  /* V5.0.39: native browser scroll/pan for the normal week overview. */
+  /* V5.0.40: native browser scroll/pan for the normal week overview. */
   body.v5-mode:not(.week-overview-focus-mode) #plannerSection #weekOverview.week-overview {
     width: 100% !important;
     max-width: 100% !important;
@@ -25271,6 +25271,204 @@ try{
     }
   }catch(e){}
   setInterval(keepVisibleModals, 700);
+})();
+</script>
+<style id="v5040MobileVisibilityPlannerToggleCss">
+  html.desktop-mode-lock body.v5-mode.v5-logged-out .wrap.v5040-login-pinned {
+    position: fixed !important;
+    z-index: 2800 !important;
+    display: grid !important;
+    place-items: center !important;
+    box-sizing: border-box !important;
+    margin: 0 !important;
+    padding: 12px !important;
+    overflow: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  body.v5-mode.v5-logged-out #loginSection {
+    max-width: min(720px, calc(100% - 12px)) !important;
+  }
+
+  body.v5-mode.v5-logged-out #loginSection .card {
+    max-height: calc(100% - 12px) !important;
+    overflow: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  #splashSync.v5040-visual-pinned {
+    inset: auto !important;
+    box-sizing: border-box !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  #toastHost.v5040-visual-pinned {
+    right: auto !important;
+    bottom: auto !important;
+    align-items: center !important;
+    width: auto !important;
+    max-width: none !important;
+    z-index: 9000 !important;
+  }
+
+  #toastHost.v5040-visual-pinned .toast {
+    width: min(360px, calc(100% - 24px)) !important;
+  }
+
+  #plannerSection.planner-grid-collapsed #legend,
+  #plannerSection.planner-grid-collapsed #availabilityBar,
+  #plannerSection.planner-grid-collapsed #coverageBar,
+  #plannerSection.planner-grid-collapsed .daytabs,
+  #plannerSection.planner-grid-collapsed #plannerPrintHeader,
+  #plannerSection.planner-grid-collapsed .planner,
+  #plannerSection.planner-grid-collapsed .v505-mobile-planner-help {
+    display: none !important;
+  }
+
+  #plannerToggleWrap {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 7px 10px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--grid);
+    font-size: 12px;
+    font-weight: 900;
+    color: var(--fg);
+    user-select: none;
+  }
+
+  #plannerToggleWrap input {
+    width: auto !important;
+    margin: 0 !important;
+    accent-color: var(--good);
+  }
+</style>
+<script id="v5040MobileVisibilityPlannerToggleScript">
+(function(){
+  'use strict';
+
+  var plannerVisible = false;
+
+  function byId(id){ return document.getElementById(id); }
+
+  function visualBox(){
+    var vv = window.visualViewport;
+    var w = window.innerWidth || document.documentElement.clientWidth || 320;
+    var h = window.innerHeight || document.documentElement.clientHeight || 480;
+    var left = window.pageXOffset || 0;
+    var top = window.pageYOffset || 0;
+    if(vv){
+      w = vv.width || w;
+      h = vv.height || h;
+      left = vv.offsetLeft || left;
+      top = vv.offsetTop || top;
+    }
+    return {
+      left: Math.max(0, Math.floor(left)),
+      top: Math.max(0, Math.floor(top)),
+      width: Math.max(260, Math.ceil(w)),
+      height: Math.max(320, Math.ceil(h))
+    };
+  }
+
+  function positionVisibleChrome(){
+    var box = visualBox();
+    try{
+      var splash = byId('splashSync');
+      if(splash){
+        splash.classList.add('v5040-visual-pinned');
+        splash.style.setProperty('position', 'fixed', 'important');
+        splash.style.setProperty('left', box.left + 'px', 'important');
+        splash.style.setProperty('top', box.top + 'px', 'important');
+        splash.style.setProperty('width', box.width + 'px', 'important');
+        splash.style.setProperty('height', box.height + 'px', 'important');
+      }
+    }catch(e){}
+    try{
+      var host = byId('toastHost');
+      if(host){
+        host.classList.add('v5040-visual-pinned');
+        host.style.setProperty('position', 'fixed', 'important');
+        host.style.setProperty('left', (box.left + Math.max(12, Math.floor(box.width / 2) - 180)) + 'px', 'important');
+        host.style.setProperty('top', (box.top + Math.max(14, Math.min(72, Math.floor(box.height * 0.08)))) + 'px', 'important');
+        host.style.setProperty('width', Math.min(360, Math.max(240, box.width - 24)) + 'px', 'important');
+      }
+    }catch(e){}
+  }
+
+  function positionLogin(){
+    try{
+      var wrap = document.querySelector('body.v5-mode.v5-logged-out .wrap');
+      if(!wrap) return;
+      var box = visualBox();
+      wrap.classList.add('v5040-login-pinned');
+      wrap.style.setProperty('left', box.left + 'px', 'important');
+      wrap.style.setProperty('top', box.top + 'px', 'important');
+      wrap.style.setProperty('width', box.width + 'px', 'important');
+      wrap.style.setProperty('height', box.height + 'px', 'important');
+      wrap.style.setProperty('min-width', '0px', 'important');
+      wrap.style.setProperty('min-height', box.height + 'px', 'important');
+    }catch(e){}
+  }
+
+  function setPlannerVisible(next){
+    plannerVisible = !!next;
+    applyPlannerToggle();
+  }
+
+  function applyPlannerToggle(){
+    try{
+      var section = byId('plannerSection');
+      if(!section) return;
+      var focus = document.body && document.body.classList && (document.body.classList.contains('planner-focus-mode') || document.body.classList.contains('week-overview-focus-mode'));
+      section.classList.toggle('planner-grid-collapsed', !plannerVisible && !focus);
+      var input = byId('plannerVisibilityToggle');
+      if(input) input.checked = !!plannerVisible;
+      var label = byId('plannerVisibilityText');
+      if(label) label.textContent = plannerVisible ? 'Planner visible' : 'Planner hidden';
+    }catch(e){}
+  }
+
+  function ensurePlannerToggle(){
+    try{
+      var toolbar = byId('plannerSection') && byId('plannerSection').querySelector('.toolbar');
+      if(!toolbar || byId('plannerToggleWrap')) return;
+      var fullBtn = byId('btnPlannerFullView');
+      var wrap = document.createElement('label');
+      wrap.id = 'plannerToggleWrap';
+      wrap.title = 'Show or hide the detailed planner grid. Week overview stays visible.';
+      wrap.innerHTML = '<input id="plannerVisibilityToggle" type="checkbox"><span id="plannerVisibilityText">Planner hidden</span>';
+      if(fullBtn && fullBtn.parentNode === toolbar) toolbar.insertBefore(wrap, fullBtn);
+      else toolbar.appendChild(wrap);
+      var input = byId('plannerVisibilityToggle');
+      if(input) input.onchange = function(){ setPlannerVisible(!!input.checked); };
+    }catch(e){}
+  }
+
+  function tick(){
+    positionVisibleChrome();
+    positionLogin();
+    ensurePlannerToggle();
+    applyPlannerToggle();
+  }
+
+  window.v5040SetPlannerVisible = setPlannerVisible;
+  window.v5040ApplyPlannerToggle = applyPlannerToggle;
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', tick); else tick();
+  document.addEventListener('click', function(){ setTimeout(tick, 0); }, true);
+  window.addEventListener('resize', tick, {passive:true});
+  window.addEventListener('scroll', tick, {passive:true});
+  window.addEventListener('orientationchange', function(){ setTimeout(tick, 250); }, {passive:true});
+  try{
+    if(window.visualViewport){
+      window.visualViewport.addEventListener('resize', tick, {passive:true});
+      window.visualViewport.addEventListener('scroll', tick, {passive:true});
+    }
+  }catch(e){}
+  setInterval(tick, 800);
 })();
 </script>
 <script id="v5030HorizontalTopPanelScript">
