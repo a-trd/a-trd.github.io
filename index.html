@@ -79,7 +79,7 @@
     }
   </style>
 
-<title>Aspire Workforce Command (V5.0.40 Phone Desktop Native)</title>
+<title>Aspire Workforce Command (V5.0.41 Phone Desktop Native)</title>
   <meta name="theme-color" content="#22c55e"/>
 
   <style>
@@ -4807,7 +4807,7 @@
       <div id="appLogoBox"></div>
       <div class="titlewrap">
         <div class="title" id="appTitle">Aspire Workforce Command</div>
-        <div class="version-pill" id="appVersion">V5.0.40</div>
+        <div class="version-pill" id="appVersion">V5.0.41</div>
         <div class="sync-pill syncing" id="syncStatusChip" title="Sync status">Starting…</div>
       </div>
     </div>
@@ -6942,8 +6942,8 @@ var DAY = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 var App = {
   // IMPORTANT: Increment App.version *and* App.buildId whenever making functional changes to this file.
   // SAFETY NET: This build performs an automatic runtime check against the file name; if mismatched, it shows a blocking warning so it can't be overlooked.
-  version: 'V5.0.40',
-    buildId: '2026-05-17.01',
+  version: 'V5.0.41',
+    buildId: '2026-05-17.02',
 settings: {
     dbUrl:'https://mnc-atrd-default-rtdb.asia-southeast1.firebasedatabase.app/', workspace:'mnc-atrd', authToken:'',
     theme:'light', themeName:'light-pastel-sky', recentColors:[], appTitle:'Aspire Workforce Command', logoUrl:'',
@@ -22730,7 +22730,7 @@ try{
 (function(){
   'use strict';
   var APP_NAME = 'Aspire Workforce Command';
-  var APP_VERSION = 'V5.0.40';
+  var APP_VERSION = 'V5.0.41';
   var OLD_TITLE = 'M&C-ATRD-scheduler --=Aspire Group=--';
 
   var NAVS = [
@@ -25401,6 +25401,17 @@ try{
 
   function positionLogin(){
     try{
+      var isLoggedOut = !!(document.body && document.body.classList && document.body.classList.contains('v5-logged-out'));
+      if(!isLoggedOut){
+        var normalWrap = document.querySelector('body.v5-mode .wrap');
+        if(normalWrap){
+          normalWrap.classList.remove('v5040-login-pinned');
+          ['left','top','width','height','min-width','min-height'].forEach(function(prop){
+            try{ normalWrap.style.removeProperty(prop); }catch(e){}
+          });
+        }
+        return;
+      }
       var wrap = document.querySelector('body.v5-mode.v5-logged-out .wrap');
       if(!wrap) return;
       var box = visualBox();
