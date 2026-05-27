@@ -25755,6 +25755,43 @@ try{
 })();
 </script>
 <style id="v5041PublicForecastCss">
+  html.desktop-mode-lock body.v5-mode.v5-logged-out.v5041-public-forecast-mode.week-overview-focus-mode,
+  body.v5-mode.v5-logged-out.v5041-public-forecast-mode.week-overview-focus-mode {
+    padding: 0 !important;
+    overflow: hidden !important;
+  }
+
+  html.desktop-mode-lock body.v5-mode.v5-logged-out.v5041-public-forecast-mode.week-overview-focus-mode .wrap,
+  body.v5-mode.v5-logged-out.v5041-public-forecast-mode.week-overview-focus-mode .wrap,
+  html.desktop-mode-lock body.v5-mode.v5-logged-out.v5041-public-forecast-mode.week-overview-focus-mode .wrap.v5040-login-pinned {
+    position: static !important;
+    inset: auto !important;
+    transform: none !important;
+    width: 100% !important;
+    max-width: none !important;
+    height: 100vh !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+  }
+
+  html.desktop-mode-lock body.v5-mode.v5-logged-out.v5041-public-forecast-mode.week-overview-focus-mode #loginSection,
+  body.v5-mode.v5-logged-out.v5041-public-forecast-mode.week-overview-focus-mode #loginSection,
+  body.v5041-public-forecast-mode.week-overview-focus-mode #loginSection,
+  body.v5041-public-forecast-mode.week-overview-focus-mode .login {
+    display: none !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+  }
+
+  html.desktop-mode-lock body.v5-mode.v5-logged-out.v5041-public-forecast-mode.week-overview-focus-mode #plannerSection,
+  body.v5-mode.v5-logged-out.v5041-public-forecast-mode.week-overview-focus-mode #plannerSection,
+  body.v5041-public-forecast-mode.week-overview-focus-mode #plannerSection {
+    display: block !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+  }
+
   body.v5041-public-forecast-mode.week-overview-focus-mode #plannerSection .toolbar #btnPublicForecastRefresh,
   body.v5041-public-forecast-mode.week-overview-focus-mode #plannerSection .toolbar #btnPublicForecastLogin,
   body.v5041-public-forecast-mode.week-overview-focus-mode #plannerSection .toolbar #publicForecastStatus {
@@ -25766,13 +25803,48 @@ try{
   }
 
   body.v5041-public-forecast-mode.week-overview-focus-mode #plannerSection .toolbar #btnPublicForecastRefresh {
-    background: rgba(34,197,94,.22) !important;
-    border-color: rgba(34,197,94,.45) !important;
-    color: #dcfce7 !important;
+    flex-direction: column !important;
+    gap: 3px !important;
+    padding: 6px 12px !important;
+    min-width: 74px !important;
+    min-height: 50px !important;
+    background: #22c55e !important;
+    border: 1px solid rgba(255,255,255,.28) !important;
+    color: #052e16 !important;
+    font-weight: 1000 !important;
+    box-shadow: 0 8px 22px rgba(34,197,94,.32) !important;
   }
 
   body.v5041-public-forecast-mode.week-overview-focus-mode[data-theme="light"] #plannerSection .toolbar #btnPublicForecastRefresh {
-    color: #166534 !important;
+    color: #052e16 !important;
+  }
+
+  body.v5041-public-forecast-mode.week-overview-focus-mode #plannerSection .toolbar #btnPublicForecastRefresh .forecast-refresh-icon {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 22px !important;
+    height: 22px !important;
+    color: inherit !important;
+  }
+
+  body.v5041-public-forecast-mode.week-overview-focus-mode #plannerSection .toolbar #btnPublicForecastRefresh .forecast-refresh-icon svg {
+    width: 22px !important;
+    height: 22px !important;
+    display: block !important;
+    stroke: currentColor !important;
+    stroke-width: 2.5 !important;
+    stroke-linecap: round !important;
+    stroke-linejoin: round !important;
+    fill: none !important;
+  }
+
+  body.v5041-public-forecast-mode.week-overview-focus-mode #plannerSection .toolbar #btnPublicForecastRefresh .forecast-refresh-label {
+    display: block !important;
+    font-size: 10px !important;
+    line-height: 1 !important;
+    letter-spacing: .05em !important;
+    text-transform: uppercase !important;
   }
 
   body.v5041-public-forecast-mode.week-overview-focus-mode #plannerSection .toolbar #btnPublicForecastLogin {
@@ -25815,7 +25887,8 @@ try{
       refresh.id = 'btnPublicForecastRefresh';
       refresh.type = 'button';
       refresh.className = 'btn-good';
-      refresh.textContent = 'Refresh forecast';
+      refresh.innerHTML = '<span class="forecast-refresh-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 0 1-15.3 6.4"></path><path d="M3 12a9 9 0 0 1 15.3-6.4"></path><path d="M18 2v4h-4"></path><path d="M6 22v-4h4"></path></svg></span><span class="forecast-refresh-label">Refresh</span>';
+      refresh.setAttribute('aria-label', 'Refresh weekly forecast');
       refresh.onclick = function(){ refreshForecast(true); };
       var exitBtn = byId('btnWeekOverviewFullView');
       if(exitBtn && exitBtn.parentNode === toolbar) toolbar.insertBefore(refresh, exitBtn);
@@ -25875,9 +25948,23 @@ try{
       var iso = (typeof toISO === 'function' && typeof weekStart === 'function') ? toISO(weekStart(new Date())) : '';
       if(iso && window.Planner) Planner.weekStartISO = iso;
     }catch(e){}
+    try{
+      Array.prototype.forEach.call(document.querySelectorAll('.section, .login'), function(el){ el.classList.remove('show'); });
+      var login = byId('loginSection'); if(login) login.classList.remove('show');
+      var planner = byId('plannerSection'); if(planner) planner.classList.add('show');
+      var nav = byId('bottomNav'); if(nav) nav.style.display = 'none';
+    }catch(e){}
     try{ showTab('Planner'); }catch(e){}
+    try{
+      var login2 = byId('loginSection'); if(login2) login2.classList.remove('show');
+      var planner2 = byId('plannerSection'); if(planner2) planner2.classList.add('show');
+    }catch(e){}
     renderForecast();
     try{ enterWeekOverviewFocusMode(); }catch(e){}
+    try{
+      var login3 = byId('loginSection'); if(login3) login3.classList.remove('show');
+      var planner3 = byId('plannerSection'); if(planner3) planner3.classList.add('show');
+    }catch(e){}
     ensureControls();
     setStatus('View only');
     setTimeout(function(){ refreshForecast(false); }, 120);
