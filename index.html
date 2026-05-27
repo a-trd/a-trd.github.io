@@ -25712,29 +25712,41 @@ try{
   'use strict';
   function byId(id){ return document.getElementById(id); }
   function perf(){ return window.AspirePerf || {mode:'full', lowPower:false}; }
+  function updateButton(btn){
+    if(!btn) return;
+    var label = perf().mode === 'lite' ? 'Lite' : 'Full';
+    btn.innerHTML = '<span class="emoji-icon">&#9889;</span><span class="label">' + label + '</span>';
+    btn.title = 'Toggle performance mode. Lite is smoother on older tablets.';
+    btn.setAttribute('aria-label', label + ' performance mode');
+  }
   function ensureToggle(){
     try{
-      var host = byId('v5Topbar') || byId('v5030TopPanel') || document.querySelector('.appbar');
-      if(!host || byId('v5041PerfToggle')) return;
-      var btn = document.createElement('button');
-      btn.id = 'v5041PerfToggle';
-      btn.type = 'button';
-      btn.className = 'btn-outline';
-      btn.style.marginLeft = '6px';
-      btn.style.whiteSpace = 'nowrap';
-      btn.textContent = perf().mode === 'lite' ? 'Lite mode' : 'Full mode';
-      btn.title = 'Toggle performance mode. Lite is smoother on older tablets.';
-      btn.onclick = function(){
-        var next = perf().mode === 'lite' ? 'full' : 'lite';
-        if(window.AspirePerf && typeof AspirePerf.setMode === 'function') AspirePerf.setMode(next);
-      };
-      host.appendChild(btn);
+      var host = byId('bottomNav');
+      if(!host) return;
+      var btn = byId('v5041PerfToggle');
+      if(!btn){
+        btn = document.createElement('button');
+        btn.id = 'v5041PerfToggle';
+        btn.type = 'button';
+        btn.className = 'nav-mini';
+        btn.style.order = '-9999';
+        btn.onclick = function(){
+          var next = perf().mode === 'lite' ? 'full' : 'lite';
+          if(window.AspirePerf && typeof AspirePerf.setMode === 'function') AspirePerf.setMode(next);
+        };
+      }
+      updateButton(btn);
+      if(btn.parentNode !== host){
+        host.insertBefore(btn, host.firstChild);
+      }else if(host.firstChild !== btn){
+        host.insertBefore(btn, host.firstChild);
+      }
     }catch(e){}
   }
   function tick(){
     ensureToggle();
     var btn = byId('v5041PerfToggle');
-    if(btn) btn.textContent = perf().mode === 'lite' ? 'Lite mode' : 'Full mode';
+    updateButton(btn);
   }
   if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', tick); else tick();
   window.addEventListener('resize', tick, {passive:true});
