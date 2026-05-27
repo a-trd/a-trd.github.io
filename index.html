@@ -63,6 +63,82 @@
       window.addEventListener('resize', function(){ setTimeout(setViewport, 80); });
     })();
   </script>
+  <script id="v5041PerformanceGuard">
+    (function(){
+      'use strict';
+      var ua = (navigator.userAgent || '').toLowerCase();
+      var mem = navigator.deviceMemory || 0;
+      var cores = navigator.hardwareConcurrency || 0;
+      var touch = (navigator.maxTouchPoints || 0) > 0;
+      var oldAndroid = /android\s([0-8])\b/.test(ua);
+      var oldIos = /os\s(1[0-4])[_\s]/.test(ua);
+      var smallTablet = touch && Math.min(screen.width || 0, screen.height || 0) <= 900;
+      var saved = '';
+      try{ saved = localStorage.getItem('aspirePerformanceMode') || ''; }catch(e){}
+      var lowPower = saved === 'lite' || (!saved && touch && (oldAndroid || oldIos || smallTablet || (mem && mem <= 4) || (cores && cores <= 4)));
+
+      window.AspirePerf = {
+        lowPower: !!lowPower,
+        mode: lowPower ? 'lite' : 'full',
+        setMode: function(mode){
+          try{ localStorage.setItem('aspirePerformanceMode', mode === 'full' ? 'full' : 'lite'); }catch(e){}
+          location.reload();
+        }
+      };
+
+      function applyClass(){
+        if(!document.documentElement) return;
+        document.documentElement.classList.toggle('low-power-mode', !!lowPower);
+        document.documentElement.classList.toggle('full-power-mode', !lowPower);
+      }
+      applyClass();
+      if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', applyClass);
+
+      var nativeSetInterval = window.setInterval;
+      window.setInterval = function(fn, delay){
+        var d = Number(delay) || 0;
+        if(lowPower && d > 0 && d < 1600) d = 2600;
+        return nativeSetInterval(fn, d);
+      };
+
+      function throttle(fn, wait){
+        var last = 0, timer = 0, pendingArgs = null, pendingThis = null;
+        return function(){
+          var now = Date.now();
+          pendingArgs = arguments;
+          pendingThis = this;
+          function run(){
+            last = Date.now();
+            timer = 0;
+            fn.apply(pendingThis, pendingArgs);
+            pendingArgs = pendingThis = null;
+          }
+          if(now - last >= wait) run();
+          else if(!timer) timer = setTimeout(run, wait - (now - last));
+        };
+      }
+
+      var nativeWindowAdd = window.addEventListener;
+      window.addEventListener = function(type, listener, options){
+        if(lowPower && listener && (type === 'resize' || type === 'scroll')){
+          listener = throttle(listener, 180);
+        }
+        return nativeWindowAdd.call(this, type, listener, options);
+      };
+
+      try{
+        if(window.visualViewport && window.visualViewport.addEventListener){
+          var nativeVvAdd = window.visualViewport.addEventListener;
+          window.visualViewport.addEventListener = function(type, listener, options){
+            if(lowPower && listener && (type === 'resize' || type === 'scroll')){
+              listener = throttle(listener, 220);
+            }
+            return nativeVvAdd.call(this, type, listener, options);
+          };
+        }
+      }catch(e){}
+    })();
+  </script>
   <style id="v5021PhoneDesktopViewportCss">
     /* V5.0.21 phone desktop native: keep the desktop layout viewport on phones and allow browser pinch zoom. */
     html.desktop-viewport-mobile,
@@ -76,6 +152,92 @@
 
     html.desktop-viewport-mobile body {
       min-height: 100vh;
+    }
+  </style>
+
+  <style id="v5041PerformanceLiteCss">
+    /* Older tablet performance mode: reduce paint/composite work before the app boots. */
+    html.low-power-mode *,
+    html.low-power-mode *::before,
+    html.low-power-mode *::after {
+      animation-duration: .001ms !important;
+      animation-iteration-count: 1 !important;
+      scroll-behavior: auto !important;
+      transition-duration: .001ms !important;
+    }
+
+    html.low-power-mode body {
+      background: var(--bg) !important;
+    }
+
+    html.low-power-mode .appbar,
+    html.low-power-mode .card,
+    html.low-power-mode .panel,
+    html.low-power-mode .modal .panel,
+    html.low-power-mode .bottom-nav,
+    html.low-power-mode .v5-shell,
+    html.low-power-mode .v5-rail,
+    html.low-power-mode .v5-command-panel,
+    html.low-power-mode .payroll-box,
+    html.low-power-mode .summary-card,
+    html.low-power-mode .mini-card,
+    html.low-power-mode .chart-card,
+    html.low-power-mode .payroll-doc-preview-host,
+    html.low-power-mode .top-tools-dropdown {
+      box-shadow: none !important;
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+      filter: none !important;
+    }
+
+    html.low-power-mode .appbar,
+    html.low-power-mode .version-pill,
+    html.low-power-mode .sync-pill,
+    html.low-power-mode button,
+    html.low-power-mode .btn-primary,
+    html.low-power-mode .btn-outline,
+    html.low-power-mode .btn-good,
+    html.low-power-mode .btn-mini,
+    html.low-power-mode .dailyops-tabs button.active,
+    html.low-power-mode .settings-nav button.active,
+    html.low-power-mode .easy-tile.primary {
+      background-image: none !important;
+    }
+
+    html.low-power-mode .btn-mini:hover,
+    html.low-power-mode button:hover,
+    html.low-power-mode .v5-nav-item:hover {
+      transform: none !important;
+    }
+
+    html.low-power-mode .away-reason-tooltip,
+    html.low-power-mode .v5-ops-deck,
+    html.low-power-mode .planner-warning-panel {
+      contain: content;
+    }
+
+    html.low-power-mode #plannerGrid,
+    html.low-power-mode #weekOverview,
+    html.low-power-mode .table-wrapper,
+    html.low-power-mode #requestsList,
+    html.low-power-mode #myShiftsList {
+      content-visibility: auto;
+      contain-intrinsic-size: 680px;
+    }
+
+    html.low-power-mode .modal {
+      background: rgba(0,0,0,.42) !important;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        animation-duration: .001ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: .001ms !important;
+      }
     }
   </style>
 
@@ -25543,6 +25705,40 @@ try{
   setTimeout(tick, 80);
   setTimeout(tick, 500);
   setInterval(tick, 4000);
+})();
+</script>
+<script id="v5041PerformanceToggle">
+(function(){
+  'use strict';
+  function byId(id){ return document.getElementById(id); }
+  function perf(){ return window.AspirePerf || {mode:'full', lowPower:false}; }
+  function ensureToggle(){
+    try{
+      var host = byId('v5Topbar') || byId('v5030TopPanel') || document.querySelector('.appbar');
+      if(!host || byId('v5041PerfToggle')) return;
+      var btn = document.createElement('button');
+      btn.id = 'v5041PerfToggle';
+      btn.type = 'button';
+      btn.className = 'btn-outline';
+      btn.style.marginLeft = '6px';
+      btn.style.whiteSpace = 'nowrap';
+      btn.textContent = perf().mode === 'lite' ? 'Lite mode' : 'Full mode';
+      btn.title = 'Toggle performance mode. Lite is smoother on older tablets.';
+      btn.onclick = function(){
+        var next = perf().mode === 'lite' ? 'full' : 'lite';
+        if(window.AspirePerf && typeof AspirePerf.setMode === 'function') AspirePerf.setMode(next);
+      };
+      host.appendChild(btn);
+    }catch(e){}
+  }
+  function tick(){
+    ensureToggle();
+    var btn = byId('v5041PerfToggle');
+    if(btn) btn.textContent = perf().mode === 'lite' ? 'Lite mode' : 'Full mode';
+  }
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', tick); else tick();
+  window.addEventListener('resize', tick, {passive:true});
+  setInterval(tick, 5000);
 })();
 </script>
 
