@@ -5025,6 +5025,7 @@
           </div>
           <div style="display:flex;align-items:flex-end;gap:8px;flex-wrap:wrap;">
             <button id="btnLogin" class="btn-primary">Login</button>
+            <button id="btnPublicWeeklyForecast" class="btn-good" type="button">View Weekly Forecast</button>
             <button id="btnContinueOffline" class="btn-outline">Continue offline (local cache)</button>
             <button id="btnResetLocalLogin" class="btn-outline">Reset Local Cache</button>
           </div>
@@ -25751,6 +25752,154 @@ try{
   if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', tick); else tick();
   window.addEventListener('resize', tick, {passive:true});
   setInterval(tick, 5000);
+})();
+</script>
+<style id="v5041PublicForecastCss">
+  body.v5041-public-forecast-mode.week-overview-focus-mode #plannerSection .toolbar #btnPublicForecastRefresh,
+  body.v5041-public-forecast-mode.week-overview-focus-mode #plannerSection .toolbar #btnPublicForecastLogin,
+  body.v5041-public-forecast-mode.week-overview-focus-mode #plannerSection .toolbar #publicForecastStatus {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-height: 38px !important;
+    flex: 0 0 auto !important;
+  }
+
+  body.v5041-public-forecast-mode.week-overview-focus-mode #plannerSection .toolbar #btnPublicForecastRefresh {
+    background: rgba(34,197,94,.22) !important;
+    border-color: rgba(34,197,94,.45) !important;
+    color: #dcfce7 !important;
+  }
+
+  body.v5041-public-forecast-mode.week-overview-focus-mode[data-theme="light"] #plannerSection .toolbar #btnPublicForecastRefresh {
+    color: #166534 !important;
+  }
+
+  body.v5041-public-forecast-mode.week-overview-focus-mode #plannerSection .toolbar #btnPublicForecastLogin {
+    background: rgba(148,163,184,.16) !important;
+    color: var(--fg) !important;
+  }
+
+  body.v5041-public-forecast-mode.week-overview-focus-mode #plannerSection .toolbar #publicForecastStatus {
+    color: var(--muted) !important;
+    font-size: 12px !important;
+    font-weight: 850 !important;
+    padding: 0 8px !important;
+    white-space: nowrap !important;
+  }
+
+  body.v5041-public-forecast-mode.week-overview-focus-mode #plannerSection .toolbar #btnWeekOverviewFullView {
+    display: none !important;
+  }
+
+  body.v5041-public-forecast-mode.week-overview-focus-mode #plannerSection #weekOverview .wo-cell {
+    cursor: default !important;
+  }
+</style>
+<script id="v5041PublicForecastMode">
+(function(){
+  'use strict';
+  function byId(id){ return document.getElementById(id); }
+  function nowLabel(){
+    try{ return new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}); }catch(e){ return ''; }
+  }
+  function setStatus(msg){
+    var el = byId('publicForecastStatus');
+    if(el) el.textContent = msg || '';
+  }
+  function ensureControls(){
+    var toolbar = byId('plannerSection') && byId('plannerSection').querySelector('.toolbar');
+    if(!toolbar) return;
+    if(!byId('btnPublicForecastRefresh')){
+      var refresh = document.createElement('button');
+      refresh.id = 'btnPublicForecastRefresh';
+      refresh.type = 'button';
+      refresh.className = 'btn-good';
+      refresh.textContent = 'Refresh forecast';
+      refresh.onclick = function(){ refreshForecast(true); };
+      var exitBtn = byId('btnWeekOverviewFullView');
+      if(exitBtn && exitBtn.parentNode === toolbar) toolbar.insertBefore(refresh, exitBtn);
+      else toolbar.appendChild(refresh);
+    }
+    if(!byId('publicForecastStatus')){
+      var status = document.createElement('span');
+      status.id = 'publicForecastStatus';
+      status.textContent = 'View only';
+      var refreshBtn = byId('btnPublicForecastRefresh');
+      if(refreshBtn && refreshBtn.parentNode === toolbar) toolbar.insertBefore(status, refreshBtn.nextSibling);
+      else toolbar.appendChild(status);
+    }
+    if(!byId('btnPublicForecastLogin')){
+      var login = document.createElement('button');
+      login.id = 'btnPublicForecastLogin';
+      login.type = 'button';
+      login.className = 'btn-outline';
+      login.textContent = 'Back to login';
+      login.onclick = exitForecast;
+      toolbar.appendChild(login);
+    }
+  }
+  function renderForecast(){
+    try{ renderWeekOverview(); }catch(e){}
+    try{ updateWeekOverviewHours(); }catch(e){}
+    try{ syncFullscreenButton(); }catch(e){}
+  }
+  function refreshForecast(showMessage){
+    ensureControls();
+    if(showMessage) setStatus('Refreshing...');
+    try{
+      var ws = byId('wsIdInput');
+      if(ws && ws.value && App && App.settings) App.settings.workspace = String(ws.value || '').trim() || App.settings.workspace;
+    }catch(e){}
+    if(typeof pullData !== 'function'){
+      renderForecast();
+      setStatus('Local data ' + nowLabel());
+      return Promise.resolve();
+    }
+    return pullData(false).then(function(){
+      renderForecast();
+      setStatus('Updated ' + nowLabel());
+    }).catch(function(e){
+      renderForecast();
+      setStatus('Offline cache ' + nowLabel());
+      try{ console.warn('Public forecast refresh failed', e); }catch(_){}
+    });
+  }
+  function enterForecast(){
+    try{ clearIdleFullscreenTimer(); }catch(e){}
+    ensureControls();
+    try{ if(window.AspirePerf && AspirePerf.mode !== 'lite') document.documentElement.classList.add('low-power-mode'); }catch(e){}
+    try{ if(document.body) document.body.classList.add('v5041-public-forecast-mode'); }catch(e){}
+    try{ App.currentUser = null; App.userPrefs = null; }catch(e){}
+    try{
+      var iso = (typeof toISO === 'function' && typeof weekStart === 'function') ? toISO(weekStart(new Date())) : '';
+      if(iso && window.Planner) Planner.weekStartISO = iso;
+    }catch(e){}
+    try{ showTab('Planner'); }catch(e){}
+    renderForecast();
+    try{ enterWeekOverviewFocusMode(); }catch(e){}
+    ensureControls();
+    setStatus('View only');
+    setTimeout(function(){ refreshForecast(false); }, 120);
+  }
+  function exitForecast(){
+    try{ if(document.body) document.body.classList.remove('v5041-public-forecast-mode'); }catch(e){}
+    try{ exitWeekOverviewFocusMode(); }catch(e){}
+    try{ showLogin(); }catch(e){}
+    setStatus('');
+  }
+  function bind(){
+    ensureControls();
+    var btn = byId('btnPublicWeeklyForecast');
+    if(btn && !btn.dataset.v5041ForecastBound){
+      btn.dataset.v5041ForecastBound = '1';
+      btn.onclick = enterForecast;
+    }
+  }
+  window.v5041EnterPublicForecast = enterForecast;
+  window.v5041RefreshPublicForecast = refreshForecast;
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bind); else bind();
+  document.addEventListener('click', function(){ setTimeout(bind, 0); }, true);
 })();
 </script>
 
