@@ -25810,13 +25810,14 @@ try{
     min-height: 50px !important;
     background: #22c55e !important;
     border: 1px solid rgba(255,255,255,.28) !important;
-    color: #052e16 !important;
+    color: #ffffff !important;
     font-weight: 1000 !important;
     box-shadow: 0 8px 22px rgba(34,197,94,.32) !important;
+    text-shadow: 0 1px 2px rgba(0,0,0,.30) !important;
   }
 
   body.v5041-public-forecast-mode.week-overview-focus-mode[data-theme="light"] #plannerSection .toolbar #btnPublicForecastRefresh {
-    color: #052e16 !important;
+    color: #ffffff !important;
   }
 
   body.v5041-public-forecast-mode.week-overview-focus-mode #plannerSection .toolbar #btnPublicForecastRefresh .forecast-refresh-icon {
@@ -25847,6 +25848,19 @@ try{
     text-transform: uppercase !important;
   }
 
+  #btnPublicForecastRefresh,
+  #btnPublicForecastRefresh *,
+  #btnPublicForecastRefresh svg,
+  #btnPublicForecastRefresh path {
+    color: #ffffff !important;
+    stroke: #ffffff !important;
+  }
+
+  #btnPublicForecastRefresh {
+    background: #16a34a !important;
+    border-color: rgba(255,255,255,.35) !important;
+  }
+
   body.v5041-public-forecast-mode.week-overview-focus-mode #plannerSection .toolbar #btnPublicForecastLogin {
     background: rgba(148,163,184,.16) !important;
     color: var(--fg) !important;
@@ -25867,6 +25881,17 @@ try{
   body.v5041-public-forecast-mode.week-overview-focus-mode #plannerSection #weekOverview .wo-cell {
     cursor: default !important;
   }
+
+  body.v5041-public-forecast-mode.week-overview-focus-mode .away-reason-tooltip,
+  body.v5041-public-forecast-mode.week-overview-focus-mode #awayReasonTooltip,
+  body.v5041-public-forecast-mode.week-overview-focus-mode #infoModal,
+  body.v5041-public-forecast-mode.week-overview-focus-mode .unavail-chip,
+  body.v5041-public-forecast-mode.week-overview-focus-mode .away-chip {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+  }
 </style>
 <script id="v5041PublicForecastMode">
 (function(){
@@ -25882,6 +25907,14 @@ try{
   function ensureControls(){
     var toolbar = byId('plannerSection') && byId('plannerSection').querySelector('.toolbar');
     if(!toolbar) return;
+    var active = !!(document.body && document.body.classList && document.body.classList.contains('v5041-public-forecast-mode'));
+    if(!active){
+      ['btnPublicForecastRefresh','publicForecastStatus','btnPublicForecastLogin'].forEach(function(id){
+        var el = byId(id);
+        if(el && el.parentNode) el.parentNode.removeChild(el);
+      });
+      return;
+    }
     if(!byId('btnPublicForecastRefresh')){
       var refresh = document.createElement('button');
       refresh.id = 'btnPublicForecastRefresh';
@@ -25915,7 +25948,25 @@ try{
   function renderForecast(){
     try{ renderWeekOverview(); }catch(e){}
     try{ updateWeekOverviewHours(); }catch(e){}
+    try{ scrubForecastPrivateDetails(); }catch(e){}
     try{ syncFullscreenButton(); }catch(e){}
+  }
+  function scrubForecastPrivateDetails(){
+    var host = byId('weekOverview');
+    if(!host) return;
+    Array.prototype.forEach.call(host.querySelectorAll('[title], [data-reason]'), function(el){
+      try{ el.removeAttribute('title'); }catch(e){}
+      try{ el.removeAttribute('data-reason'); }catch(e){}
+    });
+    Array.prototype.forEach.call(host.querySelectorAll('.away-chip, .unavail-chip'), function(el){
+      try{ el.remove(); }catch(e){}
+    });
+    var tip = byId('awayReasonTooltip');
+    if(tip){
+      tip.classList.remove('show');
+      tip.textContent = '';
+      tip.setAttribute('aria-hidden', 'true');
+    }
   }
   function refreshForecast(showMessage){
     ensureControls();
@@ -25940,9 +25991,9 @@ try{
   }
   function enterForecast(){
     try{ clearIdleFullscreenTimer(); }catch(e){}
-    ensureControls();
     try{ if(window.AspirePerf && AspirePerf.mode !== 'lite') document.documentElement.classList.add('low-power-mode'); }catch(e){}
     try{ if(document.body) document.body.classList.add('v5041-public-forecast-mode'); }catch(e){}
+    ensureControls();
     try{ App.currentUser = null; App.userPrefs = null; }catch(e){}
     try{
       var iso = (typeof toISO === 'function' && typeof weekStart === 'function') ? toISO(weekStart(new Date())) : '';
@@ -25976,7 +26027,6 @@ try{
     setStatus('');
   }
   function bind(){
-    ensureControls();
     var btn = byId('btnPublicWeeklyForecast');
     if(btn && !btn.dataset.v5041ForecastBound){
       btn.dataset.v5041ForecastBound = '1';
