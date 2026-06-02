@@ -7145,7 +7145,7 @@ settings: {
     emailjsTemplateId: '',
 publishedWeeks: {}
   },
-  staff:{}, availability:{}, weeks:{}, absenceRequests:{}, absenceHistory:{}, shiftChangeRequests:{}, shiftChangeHistory:{}, payrollAdjustments:{}, payrollPaid:{},
+  staff:{}, availability:{}, weeks:{}, absenceRequests:{}, absenceHistory:{}, shiftChangeRequests:{}, shiftChangeHistory:{}, payrollAdjustments:{}, payrollPaid:{}, payrollPaidSnapshots:{},
   payWithheld:{}, payWithheldByWeek:{}, payWithheldLog:[],
   payrollProfiles:{business:{}, staff:{}},
   payrollWeekData:{},
@@ -7312,6 +7312,7 @@ function buildAppExportData(){
     shiftChangeHistory:App.shiftChangeHistory||{},
     payrollAdjustments:App.payrollAdjustments||{},
     payrollPaid:App.payrollPaid||{},
+    payrollPaidSnapshots:App.payrollPaidSnapshots||{},
     payWithheld:App.payWithheld||{},
     payWithheldByWeek:App.payWithheldByWeek||{},
     payWithheldLog:App.payWithheldLog||[],
@@ -7341,6 +7342,7 @@ function applyExportDataToApp(d){
   App.shiftChangeHistory = d.shiftChangeHistory || App.shiftChangeHistory || {};
   App.payrollAdjustments = d.payrollAdjustments || App.payrollAdjustments || {};
   App.payrollPaid = d.payrollPaid || App.payrollPaid || {};
+  App.payrollPaidSnapshots = d.payrollPaidSnapshots || App.payrollPaidSnapshots || {};
   App.payWithheld = d.payWithheld || App.payWithheld || {};
   App.payWithheldByWeek = d.payWithheldByWeek || App.payWithheldByWeek || {};
   App.payWithheldLog = d.payWithheldLog || App.payWithheldLog || [];
@@ -8309,10 +8311,37 @@ function shiftRequestKindKey(req){
 function shiftRequestTypeLabel(req){
   return isShiftProposalRequest(req) ? 'Shift proposal' : 'Shift edit';
 }
+function v5041AppliedShiftForRequest(req){
+  try{
+    if(!req) return null;
+    var weekIso = String(req.weekStartISO || '');
+    var dayIndex = req.dayIndex;
+    if(!weekIso || dayIndex==null) return null;
+    var day = (((App.weeks||{})[weekIso]||{})[String(dayIndex)]) || {};
+    var id = String(req.appliedShiftId || req.createdShiftId || req.shiftId || '');
+    if(id && day[id]) return day[id];
+    if(isShiftProposalRequest(req)){
+      var sid = String(req.staffId || '');
+      var ns = to12hStr(req.appliedStart || req.newStart || '');
+      var ne = to12hStr(req.appliedEnd || req.newEnd || '');
+      var keys = Object.keys(day);
+      var candidates = [];
+      for(var i=0;i<keys.length;i++){
+        var sh = day[keys[i]];
+        if(!sh || String(sh.staffId||'') !== sid) continue;
+        candidates.push(sh);
+        if(ns && ne && to12hStr(sh.start||'') === ns && to12hStr(sh.end||'') === ne) return sh;
+      }
+      if(candidates.length === 1) return candidates[0];
+    }
+  }catch(e){}
+  return null;
+}
 function shiftRequestRangeLabel(req){
   try{
-    var s = (req && req.newStart) ? to12hStr(req.newStart) : '';
-    var e = (req && req.newEnd) ? to12hStr(req.newEnd) : '';
+    var applied = v5041AppliedShiftForRequest(req);
+    var s = applied ? to12hStr(applied.start || '') : ((req && (req.appliedStart || req.newStart)) ? to12hStr(req.appliedStart || req.newStart) : '');
+    var e = applied ? to12hStr(applied.end || '') : ((req && (req.appliedEnd || req.newEnd)) ? to12hStr(req.appliedEnd || req.newEnd) : '');
     if(s && e) return s + '–' + e;
     if(isShiftProposalRequest(req)) return (s || '?') + '–' + (e || '?');
     var parts = [];
@@ -8899,6 +8928,7 @@ function historyApplySnapshotString(s){
     if(d.shiftChangeHistory) App.shiftChangeHistory = d.shiftChangeHistory;
     if(d.payrollAdjustments) App.payrollAdjustments = d.payrollAdjustments;
     if(d.payrollPaid) App.payrollPaid = d.payrollPaid;
+    if(d.payrollPaidSnapshots) App.payrollPaidSnapshots = d.payrollPaidSnapshots;
     if(d.payWithheld) App.payWithheld = d.payWithheld;
     if(d.payWithheldByWeek) App.payWithheldByWeek = d.payWithheldByWeek;
     if(d.payWithheldLog) App.payWithheldLog = d.payWithheldLog;
@@ -9919,6 +9949,7 @@ function v413EnsureStores(){
   try{
     if(!Array.isArray(App.auditLog)) App.auditLog = [];
     if(!App.payRunStatus || typeof App.payRunStatus !== 'object') App.payRunStatus = {};
+    if(!App.payrollPaidSnapshots || typeof App.payrollPaidSnapshots !== 'object') App.payrollPaidSnapshots = {};
     if(!App.syncMeta || typeof App.syncMeta !== 'object') App.syncMeta = {};
     if(!App.syncMeta.clientId){
       try{
@@ -9965,6 +9996,7 @@ function v413AddAudit(action, detail, entity){
     v413EnsureStores();
     d.auditLog = App.auditLog || [];
     d.payRunStatus = App.payRunStatus || {};
+    d.payrollPaidSnapshots = App.payrollPaidSnapshots || {};
     d.syncMeta = App.syncMeta || {};
     d.version = App.version;
     d.buildId = App.buildId;
@@ -9978,6 +10010,7 @@ function v413AddAudit(action, detail, entity){
     try{
       if(payload && Array.isArray(payload.auditLog)) App.auditLog = payload.auditLog;
       if(payload && payload.payRunStatus && typeof payload.payRunStatus==='object') App.payRunStatus = payload.payRunStatus;
+      if(payload && payload.payrollPaidSnapshots && typeof payload.payrollPaidSnapshots==='object') App.payrollPaidSnapshots = payload.payrollPaidSnapshots;
       if(payload && payload.syncMeta && typeof payload.syncMeta==='object') App.syncMeta = payload.syncMeta;
       v413EnsureStores();
     }catch(e){}
@@ -10287,7 +10320,7 @@ function v413ExportAuditCsv(){
 // Import validation and preview.
 function v413ValidateImportPayload(d){
   var payload = v413FindExportPayload(d);
-  var known = ['settings','staff','availability','weeks','absenceRequests','absenceHistory','shiftChangeRequests','shiftChangeHistory','payrollAdjustments','payrollPaid','payWithheld','payWithheldByWeek','payWithheldLog','payrollProfiles','payrollWeekData','payslipRecords','businessAnalytics','dailyOps','recurringUnavailability','editRequests','rosterTemplates','auditLog','payRunStatus','syncMeta','version','buildId'];
+  var known = ['settings','staff','availability','weeks','absenceRequests','absenceHistory','shiftChangeRequests','shiftChangeHistory','payrollAdjustments','payrollPaid','payrollPaidSnapshots','payWithheld','payWithheldByWeek','payWithheldLog','payrollProfiles','payrollWeekData','payslipRecords','businessAnalytics','dailyOps','recurringUnavailability','editRequests','rosterTemplates','auditLog','payRunStatus','syncMeta','version','buildId'];
   var stats = [];
   var warnings = [];
   function cntObj(k){ return payload && payload[k] && typeof payload[k]==='object' ? Object.keys(payload[k]).length : 0; }
@@ -16307,7 +16340,18 @@ function approveShiftChange(iso,key,req){
     try{
       if(!App.shiftChangeHistory) App.shiftChangeHistory = {};
       if(!App.shiftChangeHistory[iso]) App.shiftChangeHistory[iso] = {};
-      App.shiftChangeHistory[iso][key] = Object.assign({}, req || {}, {status:'approved', resolvedAt:new Date().toISOString(), appliedShiftId:(createdShiftId||null)});
+      var appliedShift = null;
+      try{
+        appliedShift = isShiftProposalRequest(req) ? dayBucket[createdShiftId] : dayBucket[req.shiftId || key];
+      }catch(e){}
+      App.shiftChangeHistory[iso][key] = Object.assign({}, req || {}, {
+        status:'approved',
+        resolvedAt:new Date().toISOString(),
+        appliedShiftId:(createdShiftId || req.shiftId || key || null),
+        appliedStart:(appliedShift && appliedShift.start) ? appliedShift.start : (req && req.newStart ? to12hStr(req.newStart) : ''),
+        appliedEnd:(appliedShift && appliedShift.end) ? appliedShift.end : (req && req.newEnd ? to12hStr(req.newEnd) : ''),
+        appliedBreakMins:(appliedShift && appliedShift.breakMins!=null) ? appliedShift.breakMins : (req ? req.newBreakMins : null)
+      });
     }catch(e){}
 
     if(App.shiftChangeRequests && App.shiftChangeRequests[iso]){
@@ -18957,12 +19001,14 @@ function renderPayroll(){
       if(withheldBal>0.0001){
         withheldHtml += '<div class="muted small">Withheld balance: '+fmtMoney(withheldBal)+'</div>';
       }
+      var paidDeltaHtml = isPaid ? v5041PaidDeltaHtml(weekKey, id, {work:W, breakH:B, payable:P, ot:OT, gross:finalPay, net:netPay}) : '';
 
       var totalCell = ''
         + '<div>'+fmtMoney(netPay)+'</div>'
         + (withheldThisWeek>0.0001 ? '<div class="muted small">Gross: '+fmtMoney(finalPay)+'</div>' : '')
         + adjHtml
         + withheldHtml
+        + paidDeltaHtml
         + '<button type="button" class="btn-outline payroll-adjust-btn" data-staff="'+escapeHtml(String(id))+'" style="margin-top:4px;">Adjust</button>'
         + '<button type="button" class="btn-outline payroll-withhold-btn" data-staff="'+escapeHtml(String(id))+'" style="margin-top:4px;">Withhold</button>'
         + '<button type=\"button\" class=\"btn-outline payroll-managewithheld-btn\" data-staff=\"'+escapeHtml(String(id))+'\" style=\"margin-top:4px;\">Fix / Undo withhold</button>'
@@ -19536,6 +19582,87 @@ function exportPayrollCSV(){
 function ensurePayrollStores(){
   if(!App.payrollAdjustments) App.payrollAdjustments = {};
   if(!App.payrollPaid) App.payrollPaid = {};
+  if(!App.payrollPaidSnapshots) App.payrollPaidSnapshots = {};
+}
+function v5041PayrollSnapshotForStaff(weekIso, staffId){
+  ensurePayrollStores();
+  weekIso = String(weekIso || '');
+  staffId = String(staffId || '');
+  var st = App.staff && App.staff[staffId] ? App.staff[staffId] : {};
+  var totals = {work:0, breakH:0, payable:0, ot:0, gross:0, net:0, adjustment:0, withheld:0};
+  if(!weekIso || !staffId || !st) return totals;
+  try{
+    var s = fromISO(weekIso);
+    var weekCum = 0;
+    for(var j=0;j<7;j++){
+      var d = new Date(s); d.setDate(d.getDate()+j);
+      var iso = toISO(d);
+      var ds = (App.weeks[weekIso] && App.weeks[weekIso][String(j)]) ? App.weeks[weekIso][String(j)] : {};
+      var dayCum = 0;
+      Object.keys(ds).forEach(function(k){
+        var sh = ds[k];
+        if(!sh || String(sh.staffId)!==String(staffId) || shiftIsCoveredSource(sh)) return;
+        var shiftDur = hoursBetweenAny(sh.start, sh.end);
+        var leaveH = leaveOverlapHours(iso, staffId, sh);
+        var workAfterLeave = Math.max(0, shiftDur - leaveH);
+        var br = (breakMinutesForShift(sh, st)||0)/60;
+        if(br > workAfterLeave) br = workAfterLeave;
+        var payH = Math.max(0, workAfterLeave - br);
+        var rate = effectiveRate(staffId, j, sh);
+        var mult = parseFloat(st.otMult||1.5)||1.5;
+        var split = splitOvertime(staffId, j, payH, {weekCum:weekCum, dayCum:dayCum});
+        var pay = (split.normal*rate) + (split.ot*rate*mult);
+        totals.work += workAfterLeave;
+        totals.breakH += br;
+        totals.payable += payH;
+        totals.ot += split.ot;
+        totals.gross += pay;
+        weekCum += (split.normal + split.ot);
+        dayCum += payH;
+      });
+    }
+    var adjBucket = App.payrollAdjustments[weekIso] || {};
+    var adjRec = adjBucket[staffId] || {amount:0};
+    totals.adjustment = parseFloat(adjRec.amount||0);
+    if(!isFinite(totals.adjustment)) totals.adjustment = 0;
+    totals.gross += totals.adjustment;
+    totals.withheld = getWithheldForWeek(weekIso, staffId);
+    totals.net = totals.gross - totals.withheld;
+    if(!isFinite(totals.net)) totals.net = totals.gross;
+    if(totals.net < 0) totals.net = 0;
+  }catch(e){}
+  return totals;
+}
+function v5041StorePaidSnapshot(weekIso, staffId){
+  ensurePayrollStores();
+  weekIso = String(weekIso||'');
+  staffId = String(staffId||'');
+  if(!weekIso || !staffId) return null;
+  if(!App.payrollPaidSnapshots[weekIso]) App.payrollPaidSnapshots[weekIso] = {};
+  var snap = v5041PayrollSnapshotForStaff(weekIso, staffId);
+  snap.capturedAt = new Date().toISOString();
+  App.payrollPaidSnapshots[weekIso][staffId] = snap;
+  return snap;
+}
+function v5041PaidDeltaHtml(weekIso, staffId, current){
+  ensurePayrollStores();
+  weekIso = String(weekIso||'');
+  staffId = String(staffId||'');
+  if(!weekIso || !staffId || !current) return '';
+  var bucket = App.payrollPaidSnapshots[weekIso] || {};
+  var snap = bucket[staffId] || null;
+  if(!snap){
+    snap = v5041StorePaidSnapshot(weekIso, staffId);
+    try{ saveLocal(true, {silentSyncState:true}); }catch(e){}
+    return '<div class="muted small payroll-paid-delta neutral">Paid baseline captured for future changes.</div>';
+  }
+  var payDelta = (parseFloat(current.net||0)||0) - (parseFloat(snap.net||0)||0);
+  var hrsDelta = (parseFloat(current.payable||0)||0) - (parseFloat(snap.payable||0)||0);
+  if(Math.abs(payDelta) < 0.005 && Math.abs(hrsDelta) < 0.005) return '<div class="muted small payroll-paid-delta neutral">Paid delta: no change</div>';
+  var cls = payDelta > 0 ? 'more' : 'less';
+  var sign = payDelta > 0 ? '+' : '';
+  var hSign = hrsDelta > 0 ? '+' : '';
+  return '<div class="muted small payroll-paid-delta '+cls+'">Paid delta: '+sign+fmtMoney(payDelta)+' ('+hSign+hrsDelta.toFixed(2)+' payable hrs)</div>';
 }
 function setPayrollAdjustment(weekIso, staffId, amount, comment){
   ensurePayrollStores();
@@ -19552,8 +19679,11 @@ function setPayrollPaid(weekIso, staffId, paid){
   staffId = String(staffId||'');
   if(!weekIso || !staffId) return;
   if(!App.payrollPaid[weekIso]) App.payrollPaid[weekIso] = {};
-  if(paid){ App.payrollPaid[weekIso][staffId] = true; }
-  else { delete App.payrollPaid[weekIso][staffId]; }
+  if(paid){ App.payrollPaid[weekIso][staffId] = true; v5041StorePaidSnapshot(weekIso, staffId); }
+  else {
+    delete App.payrollPaid[weekIso][staffId];
+    try{ if(App.payrollPaidSnapshots && App.payrollPaidSnapshots[weekIso]) delete App.payrollPaidSnapshots[weekIso][staffId]; }catch(e){}
+  }
   saveLocal();
 }
 function openPayrollAdjustmentPrompt(staffId){
@@ -21874,6 +22004,7 @@ try{
     App.shiftChangeHistory=data.shiftChangeHistory||App.shiftChangeHistory||{};
     App.payrollAdjustments=data.payrollAdjustments||App.payrollAdjustments||{};
     App.payrollPaid=data.payrollPaid||App.payrollPaid||{};
+    App.payrollPaidSnapshots=data.payrollPaidSnapshots||App.payrollPaidSnapshots||{};
     App.payWithheld=data.payWithheld||App.payWithheld||{};
     App.payWithheldByWeek=data.payWithheldByWeek||App.payWithheldByWeek||{};
     App.payWithheldLog=data.payWithheldLog||App.payWithheldLog||[]; App.payrollProfiles=data.payrollProfiles||App.payrollProfiles||{business:{},staff:{}}; App.payrollWeekData=data.payrollWeekData||App.payrollWeekData||{}; App.payslipRecords=data.payslipRecords||App.payslipRecords||[]; App.businessAnalytics=data.businessAnalytics||App.businessAnalytics||{daily:{}, recurringCosts:{}}; App.dailyOps=data.dailyOps||App.dailyOps||{};
@@ -22831,7 +22962,13 @@ try{
             if(!App.payrollPaid) App.payrollPaid = {};
             if(!App.payrollPaid[weekIso]) App.payrollPaid[weekIso] = {};
             var stats = (typeof _computeWeekStats === 'function') ? (_computeWeekStats(weekIso)||{}) : {};
-            Object.keys(stats).forEach(function(id){ var r=stats[id]||{}; if((r.work||0)>0 || (r.payable||0)>0 || (r.pay||0)>0) App.payrollPaid[weekIso][id] = true; });
+            Object.keys(stats).forEach(function(id){
+              var r=stats[id]||{};
+              if((r.work||0)>0 || (r.payable||0)>0 || (r.pay||0)>0){
+                App.payrollPaid[weekIso][id] = true;
+                try{ if(typeof v5041StorePaidSnapshot === 'function') v5041StorePaidSnapshot(weekIso, id); }catch(e){}
+              }
+            });
             try{ v413AddAudit('Pay run paid - staff marked paid', 'Week ' + weekIso, 'payrun'); }catch(e){}
             saveLocal();
             try{ renderPayroll(); }catch(e){}
@@ -25708,6 +25845,31 @@ try{
   setInterval(tick, 4000);
 })();
 </script>
+<style id="v5041PayrollPaidDeltaCss">
+  .payroll-paid-delta {
+    margin-top: 5px;
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 7px;
+    border-radius: 999px;
+    font-weight: 950;
+    border: 1px solid var(--border);
+  }
+  .payroll-paid-delta.more {
+    color: #22c55e !important;
+    background: rgba(34,197,94,.14);
+    border-color: rgba(34,197,94,.38);
+  }
+  .payroll-paid-delta.less {
+    color: #fb7185 !important;
+    background: rgba(239,68,68,.13);
+    border-color: rgba(239,68,68,.36);
+  }
+  .payroll-paid-delta.neutral {
+    color: var(--muted) !important;
+    background: rgba(148,163,184,.10);
+  }
+</style>
 <script id="v5041PerformanceToggle">
 (function(){
   'use strict';
