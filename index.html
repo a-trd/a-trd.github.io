@@ -80,6 +80,7 @@
       window.AspirePerf = {
         lowPower: !!lowPower,
         mode: lowPower ? 'lite' : 'full',
+        intervalPause: 'hidden-fast-ui-and-logged-out-sub-2s',
         setMode: function(mode){
           try{ localStorage.setItem('aspirePerformanceMode', mode === 'full' ? 'full' : 'lite'); }catch(e){}
           location.reload();
@@ -94,10 +95,28 @@
       applyClass();
       if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', applyClass);
 
+      function fastUiIntervalShouldPause(delayMs){
+        try{
+          var d = Number(delayMs) || 0;
+          if(d <= 0 || d > 10000) return false;
+          if(document.hidden) return true;
+          if(document.body && document.body.classList && document.body.classList.contains('v5-logged-out') && d < 2000) return true;
+        }catch(e){}
+        return false;
+      }
+
       var nativeSetInterval = window.setInterval;
       window.setInterval = function(fn, delay){
+        var originalDelay = Number(delay) || 0;
         var d = Number(delay) || 0;
         if(lowPower && d > 0 && d < 1600) d = 2600;
+        if(typeof fn === 'function'){
+          var originalFn = fn;
+          fn = function(){
+            if(fastUiIntervalShouldPause(originalDelay || d)) return;
+            return originalFn.apply(this, arguments);
+          };
+        }
         return nativeSetInterval(fn, d);
       };
 
@@ -241,7 +260,7 @@
     }
   </style>
 
-<title>Aspire Workforce Command (V5.0.41 Phone Desktop Native)</title>
+<title>Aspire Workforce Command (V5.0.42 Responsiveness Review)</title>
   <meta name="theme-color" content="#22c55e"/>
 
   <style>
@@ -4969,7 +4988,7 @@
       <div id="appLogoBox"></div>
       <div class="titlewrap">
         <div class="title" id="appTitle">Aspire Workforce Command</div>
-        <div class="version-pill" id="appVersion">V5.0.41</div>
+        <div class="version-pill" id="appVersion">V5.0.42</div>
         <div class="sync-pill syncing" id="syncStatusChip" title="Sync status">Starting…</div>
       </div>
     </div>
@@ -7105,8 +7124,8 @@ var DAY = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 var App = {
   // IMPORTANT: Increment App.version *and* App.buildId whenever making functional changes to this file.
   // SAFETY NET: This build performs an automatic runtime check against the file name; if mismatched, it shows a blocking warning so it can't be overlooked.
-  version: 'V5.0.41',
-    buildId: '2026-05-17.02',
+  version: 'V5.0.42',
+    buildId: '2026-06-20.01',
 settings: {
     dbUrl:'https://mnc-atrd-default-rtdb.asia-southeast1.firebasedatabase.app/', workspace:'mnc-atrd', authToken:'',
     theme:'light', themeName:'light-pastel-sky', recentColors:[], appTitle:'Aspire Workforce Command', logoUrl:'',
@@ -8770,6 +8789,7 @@ function historySnapshotObj(){
     shiftChangeHistory: App.shiftChangeHistory,
     payrollAdjustments: App.payrollAdjustments,
     payrollPaid: App.payrollPaid,
+    payrollPaidSnapshots: App.payrollPaidSnapshots,
     payWithheld: App.payWithheld,
     payWithheldByWeek: App.payWithheldByWeek,
     payWithheldLog: App.payWithheldLog,
@@ -18954,7 +18974,16 @@ function renderPayroll(){
       });
     }
 
-    if(W>0 || B>0 || P>0){
+    var weekKey = Planner.weekStartISO;
+    if(!App.payrollAdjustments) App.payrollAdjustments = {};
+    if(!App.payrollPaid) App.payrollPaid = {};
+    var adjBucket = App.payrollAdjustments[weekKey] || {};
+    var paidBucket = App.payrollPaid[weekKey] || {};
+    var adjRec = adjBucket[id] || {amount:0, comment:''};
+    var adjAmt = parseFloat(adjRec.amount||0); if(!isFinite(adjAmt)) adjAmt = 0;
+    var isPaid = !!paidBucket[id];
+
+    if(W>0 || B>0 || P>0 || Math.abs(adjAmt)>0.0001 || isPaid){
       var tr=document.createElement('tr');
 
       // light background tint using staff color for readability
@@ -18971,15 +19000,7 @@ function renderPayroll(){
         tr.style.color = lum>150 ? '#020617' : '#f9fafb';
       }catch(e){}
 
-      var weekKey = Planner.weekStartISO;
-      if(!App.payrollAdjustments) App.payrollAdjustments = {};
-      if(!App.payrollPaid) App.payrollPaid = {};
-      var adjBucket = App.payrollAdjustments[weekKey] || {};
-      var paidBucket = App.payrollPaid[weekKey] || {};
-      var adjRec = adjBucket[id] || {amount:0, comment:''};
-      var adjAmt = parseFloat(adjRec.amount||0); if(!isFinite(adjAmt)) adjAmt = 0;
       var adjComment = adjRec.comment || '';
-      var isPaid = !!paidBucket[id];
       var finalPay = M + adjAmt;
 
       var withheldThisWeek = getWithheldForWeek(weekKey, id);
@@ -19644,6 +19665,24 @@ function v5041StorePaidSnapshot(weekIso, staffId){
   App.payrollPaidSnapshots[weekIso][staffId] = snap;
   return snap;
 }
+function v5041NextWeekIso(weekIso){
+  try{
+    var d = fromISO(String(weekIso || Planner.weekStartISO || ''));
+    d.setDate(d.getDate() + 7);
+    return toISO(weekStart(d));
+  }catch(e){ return ''; }
+}
+function v5041SignedMoney(n){
+  var v = parseFloat(n||0);
+  if(!isFinite(v)) v = 0;
+  var sign = v > 0 ? '+' : (v < 0 ? '-' : '');
+  return sign + fmtMoney(Math.abs(v));
+}
+function v5041SignedHours(n){
+  var v = parseFloat(n||0);
+  if(!isFinite(v)) v = 0;
+  return (v > 0 ? '+' : '') + v.toFixed(2);
+}
 function v5041PaidDeltaHtml(weekIso, staffId, current){
   ensurePayrollStores();
   weekIso = String(weekIso||'');
@@ -19660,9 +19699,52 @@ function v5041PaidDeltaHtml(weekIso, staffId, current){
   var hrsDelta = (parseFloat(current.payable||0)||0) - (parseFloat(snap.payable||0)||0);
   if(Math.abs(payDelta) < 0.005 && Math.abs(hrsDelta) < 0.005) return '<div class="muted small payroll-paid-delta neutral">Paid delta: no change</div>';
   var cls = payDelta > 0 ? 'more' : 'less';
-  var sign = payDelta > 0 ? '+' : '';
-  var hSign = hrsDelta > 0 ? '+' : '';
-  return '<div class="muted small payroll-paid-delta '+cls+'">Paid delta: '+sign+fmtMoney(payDelta)+' ('+hSign+hrsDelta.toFixed(2)+' payable hrs)</div>';
+  var targetWeek = v5041NextWeekIso(weekIso);
+  return '<div class="muted small payroll-paid-delta '+cls+'"><span>Paid delta: '+v5041SignedMoney(payDelta)+' ('+v5041SignedHours(hrsDelta)+' payable hrs)</span><button type="button" class="payroll-carry-delta-btn" data-week="'+escapeHtml(weekIso)+'" data-staff="'+escapeHtml(staffId)+'" title="Add this paid delta to the next pay cycle">Add to next week</button>'+(targetWeek?'<span class="payroll-delta-target">to '+escapeHtml(targetWeek)+'</span>':'')+'</div>';
+}
+function v5041CarryPaidDeltaToNextWeek(weekIso, staffId){
+  ensurePayrollStores();
+  weekIso = String(weekIso||'');
+  staffId = String(staffId||'');
+  if(!weekIso || !staffId) return;
+  var snapBucket = App.payrollPaidSnapshots[weekIso] || {};
+  var snap = snapBucket[staffId] || null;
+  if(!snap){
+    v5041StorePaidSnapshot(weekIso, staffId);
+    saveLocal();
+    renderPayroll();
+    alert('Paid baseline captured. Make the hours change, then use Add to next week once a delta appears.');
+    return;
+  }
+  var current = v5041PayrollSnapshotForStaff(weekIso, staffId);
+  var payDelta = (parseFloat(current.net||0)||0) - (parseFloat(snap.net||0)||0);
+  var hrsDelta = (parseFloat(current.payable||0)||0) - (parseFloat(snap.payable||0)||0);
+  if(Math.abs(payDelta) < 0.005){
+    v5041StorePaidSnapshot(weekIso, staffId);
+    saveLocal();
+    renderPayroll();
+    alert('No dollar difference to carry forward.');
+    return;
+  }
+  var targetWeek = v5041NextWeekIso(weekIso);
+  if(!targetWeek){ alert('Could not find the next pay cycle for this week.'); return; }
+  if(typeof v413IsPayRunLocked === 'function' && v413IsPayRunLocked(targetWeek)){
+    alert('The next pay run (' + targetWeek + ') is locked/paid. Reopen it before adding this carry-forward adjustment.');
+    return;
+  }
+  if(!App.payrollAdjustments[targetWeek]) App.payrollAdjustments[targetWeek] = {};
+  var targetBucket = App.payrollAdjustments[targetWeek];
+  var existing = targetBucket[staffId] || {amount:0, comment:''};
+  var existingAmt = parseFloat(existing.amount||0);
+  if(!isFinite(existingAmt)) existingAmt = 0;
+  var note = 'Carry-forward from paid week ' + weekIso + ': ' + v5041SignedMoney(payDelta) + ' (' + v5041SignedHours(hrsDelta) + ' payable hrs)';
+  var nextComment = existing.comment ? (String(existing.comment) + ' | ' + note) : note;
+  setPayrollAdjustment(targetWeek, staffId, existingAmt + payDelta, nextComment);
+  v5041StorePaidSnapshot(weekIso, staffId);
+  try{ v413AddAudit('Paid delta carried forward', staffDisplayNameForId(staffId, staffId) + ' ' + weekIso + ' -> ' + targetWeek + ' ' + v5041SignedMoney(payDelta), 'payroll'); }catch(e){}
+  saveLocal();
+  renderPayroll();
+  alert('Added ' + v5041SignedMoney(payDelta) + ' to ' + staffDisplayNameForId(staffId, 'staff ' + staffId) + ' in the next pay cycle (' + targetWeek + ').');
 }
 function setPayrollAdjustment(weekIso, staffId, amount, comment){
   ensurePayrollStores();
@@ -19707,6 +19789,11 @@ function openPayrollAdjustmentPrompt(staffId){
 document.addEventListener('click', function(ev){
   var t = ev.target;
   if(!t || !t.closest) return;
+  var carryBtn = t.closest('.payroll-carry-delta-btn');
+  if(carryBtn){
+    v5041CarryPaidDeltaToNextWeek(carryBtn.getAttribute('data-week'), carryBtn.getAttribute('data-staff'));
+    return;
+  }
   var btn = t.closest('.payroll-adjust-btn');
   if(btn){
     var sid = btn.getAttribute('data-staff');
@@ -22341,6 +22428,7 @@ async function pushPlannerData(){
     shiftChangeHistory:App.shiftChangeHistory||{},
     payrollAdjustments:App.payrollAdjustments||{},
     payrollPaid:App.payrollPaid||{},
+    payrollPaidSnapshots:App.payrollPaidSnapshots||{},
     payWithheld:App.payWithheld||{},
     payWithheldByWeek:App.payWithheldByWeek||{},
     payWithheldLog:App.payWithheldLog||[],
@@ -22372,6 +22460,7 @@ async function pushPlannerAndSettingsAdmin(){
     shiftChangeHistory:App.shiftChangeHistory||{},
     payrollAdjustments:App.payrollAdjustments||{},
     payrollPaid:App.payrollPaid||{},
+    payrollPaidSnapshots:App.payrollPaidSnapshots||{},
     payWithheld:App.payWithheld||{},
     payWithheldByWeek:App.payWithheldByWeek||{},
     payWithheldLog:App.payWithheldLog||[],
@@ -23030,7 +23119,7 @@ try{
 (function(){
   'use strict';
   var APP_NAME = 'Aspire Workforce Command';
-  var APP_VERSION = 'V5.0.41';
+  var APP_VERSION = 'V5.0.42';
   var OLD_TITLE = 'M&C-ATRD-scheduler --=Aspire Group=--';
 
   var NAVS = [
@@ -25850,10 +25939,31 @@ try{
     margin-top: 5px;
     display: inline-flex;
     align-items: center;
+    gap: 5px;
+    flex-wrap: wrap;
     padding: 3px 7px;
     border-radius: 999px;
     font-weight: 950;
     border: 1px solid var(--border);
+  }
+  .payroll-paid-delta .payroll-carry-delta-btn {
+    margin: 0 !important;
+    padding: 2px 7px;
+    border-radius: 999px;
+    border: 1px solid currentColor;
+    background: rgba(255,255,255,.10);
+    color: inherit;
+    font-size: 10px;
+    font-weight: 950;
+    line-height: 1.2;
+    cursor: pointer;
+  }
+  .payroll-paid-delta .payroll-carry-delta-btn:hover {
+    background: rgba(255,255,255,.18);
+  }
+  .payroll-paid-delta .payroll-delta-target {
+    opacity: .78;
+    font-weight: 850;
   }
   .payroll-paid-delta.more {
     color: #22c55e !important;
