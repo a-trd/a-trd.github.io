@@ -62,7 +62,8 @@
       window.addEventListener('orientationchange', function(){ setTimeout(setViewport, 250); });
       window.addEventListener('resize', function(){ setTimeout(setViewport, 80); });
     })();
-  </script>
+  
+</script>
   <script id="v5041PerformanceGuard">
     (function(){
       'use strict';
@@ -157,7 +158,8 @@
         }
       }catch(e){}
     })();
-  </script>
+  
+</script>
   <style id="v5021PhoneDesktopViewportCss">
     /* V5.0.21 phone desktop native: keep the desktop layout viewport on phones and allow browser pinch zoom. */
     html.desktop-viewport-mobile,
@@ -172,7 +174,8 @@
     html.desktop-viewport-mobile body {
       min-height: 100vh;
     }
-  </style>
+  
+</style>
 
   <style id="v5041PerformanceLiteCss">
     /* Older tablet performance mode: reduce paint/composite work before the app boots. */
@@ -258,9 +261,10 @@
         transition-duration: .001ms !important;
       }
     }
-  </style>
+  
+</style>
 
-<title>Aspire Workforce Command (V5.0.42 Responsiveness Review)</title>
+<title>Aspire Workforce Command (V5.0.45 Modular Build)</title>
   <meta name="theme-color" content="#22c55e"/>
 
   <style>
@@ -2609,7 +2613,8 @@
         border-radius: 0;
       }
     }
-  </style>
+  
+</style>
 
 
   <style>
@@ -2646,7 +2651,8 @@
     [data-theme="light"] #payrollSection .doc-history-table tbody tr:hover td {
       background: rgba(15,23,42,.06);
     }
-  </style>
+  
+</style>
 
 
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
@@ -2711,7 +2717,8 @@
     .staff-requests-shortcut-card { border-style:dashed; }
     #staffRequestsQuickHost > #adminRequestsLogCard, #staffRequestsStatsHost > #adminRequestsLogCard { margin-top:12px; }
     @media (max-width:700px){ .payrun-panel,.request-filter-bar,.import-preview-grid{ grid-template-columns:1fr; } .top-tools-dropdown{ right:auto; left:0; } }
-  </style>
+  
+</style>
 
   <style id="dailyOpsCss">
     .dailyops-toolbar { display:flex; gap:8px; flex-wrap:wrap; align-items:flex-end; justify-content:space-between; margin:10px 0 14px; }
@@ -2769,7 +2776,8 @@
       .dailyops-grid, .dailyops-stock-row, .dailyops-review-row, .dailyops-task-meta, .dailyops-manage-row, .dailyops-add-row, .dailyops-note-add-row, .dailyops-attention-grid { grid-template-columns:1fr; }
       .dailyops-date-row { grid-template-columns:30px minmax(140px,180px) 30px; }
     }
-  </style>
+  
+</style>
 
   <style id="easyViewCss">
     .easy-shell { display:flex; flex-direction:column; gap:12px; }
@@ -2798,7 +2806,8 @@
       .easy-hero h2 { font-size:22px; }
       .easy-tile { min-height:88px; }
     }
-  </style>
+  
+</style>
 
 
 
@@ -3722,7 +3731,8 @@
       .v5-command-modal { display: none !important; }
       body.v5-mode .wrap { margin-left: 0 !important; width: 100% !important; padding: 0 !important; }
     }
-  </style>
+  
+</style>
 
   <style id="v508MobileComfortCss">
     /* V5.0.21 mobile comfort: phone-sized controls with desktop-wide work boards inside scrollable panels. */
@@ -3864,7 +3874,8 @@
         min-width: 56px !important;
       }
     }
-  </style>
+  
+</style>
 
 
   <style id="v510PlannerFocusCss">
@@ -4135,7 +4146,8 @@
         --rowH: 52px;
       }
     }
-  </style>
+  
+</style>
 
   <style id="v510WeekOverviewFocusCss">
     /* V5.0.21 week-overview-only fullscreen view for shop tablet display. */
@@ -4371,7 +4383,8 @@
         padding: 8px !important;
       }
     }
-  </style>
+  
+</style>
 
 
 
@@ -4988,7 +5001,7 @@
       <div id="appLogoBox"></div>
       <div class="titlewrap">
         <div class="title" id="appTitle">Aspire Workforce Command</div>
-        <div class="version-pill" id="appVersion">V5.0.42</div>
+        <div class="version-pill" id="appVersion">V5.0.45</div>
         <div class="sync-pill syncing" id="syncStatusChip" title="Sync status">Starting…</div>
       </div>
     </div>
@@ -7148,8 +7161,8 @@ var DAY = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 var App = {
   // IMPORTANT: Increment App.version *and* App.buildId whenever making functional changes to this file.
   // SAFETY NET: This build performs an automatic runtime check against the file name; if mismatched, it shows a blocking warning so it can't be overlooked.
-  version: 'V5.0.42',
-    buildId: '2026-06-20.01',
+  version: 'V5.0.45',
+    buildId: '2026-07-07.03',
 settings: {
     dbUrl:'https://mnc-atrd-default-rtdb.asia-southeast1.firebasedatabase.app/', workspace:'mnc-atrd', authToken:'',
     theme:'light', themeName:'light-pastel-sky', recentColors:[], appTitle:'Aspire Workforce Command', logoUrl:'',
@@ -9067,12 +9080,30 @@ function bindUndoRedoShortcuts(){
 }
 
 // ---------- Local Storage ----------
+function recordSyncDiagnostic(kind, path, err){
+  try{
+    var diag = window.AspireSyncDiagnostics || {};
+    diag.lastKind = String(kind || '');
+    diag.lastPath = String(path || '');
+    diag.lastAt = new Date().toISOString();
+    diag.lastError = err ? String((err && err.message) || err) : '';
+    window.AspireSyncDiagnostics = diag;
+  }catch(e){}
+}
+
 function saveLocal(skipHistory, opts){
+  var savedOk = false;
   try{
     localStorage.setItem(App.cacheKey, JSON.stringify(buildAppExportData()));
-  }catch(e){}
-  try{ if(!(opts && opts.silentSyncState)) setSyncStatus('local', 'Local changes'); }catch(e){}
-  try{ if(!skipHistory) historyCapture(); }catch(e){}
+    savedOk = true;
+    recordSyncDiagnostic('local-save-ok', App.cacheKey);
+  }catch(e){
+    recordSyncDiagnostic('local-save-error', App.cacheKey, e);
+    try{ setSyncStatus('offline', 'Local save failed'); }catch(e2){}
+  }
+  try{ if(savedOk && !(opts && opts.silentSyncState)) setSyncStatus('local', 'Local changes'); }catch(e){}
+  try{ if(savedOk && !skipHistory) historyCapture(); }catch(e){}
+  return savedOk;
 }
 
 function loadLocal(){ try{
@@ -9136,6 +9167,42 @@ async function dbPatch(p,data){ setSyncStatus('syncing', 'Syncing…'); try{ var
 
 
 // ---------- User preferences (per-user; stored in Firebase) ----------
+
+// V5.0.45: clearer sync diagnostics, keeping the public dbGet/dbPatch API unchanged.
+dbGet = async function(p){
+  var path = String(p || '');
+  setSyncStatus('syncing', 'Syncing...');
+  recordSyncDiagnostic('get-start', path);
+  try{
+    var r = await fetch(withAuth(wsRoot()+path+'.json'));
+    if(!r.ok) throw new Error('GET '+r.status);
+    var data = await r.json();
+    recordSyncDiagnostic('get-ok', path);
+    setSyncStatus('synced', 'Synced');
+    return data;
+  }catch(e){
+    recordSyncDiagnostic('get-error', path, e);
+    setSyncStatus('offline', navigator.onLine===false ? 'Offline' : 'Sync failed');
+    throw e;
+  }
+};
+dbPatch = async function(p, data){
+  var path = String(p || '');
+  setSyncStatus('syncing', 'Syncing...');
+  recordSyncDiagnostic('patch-start', path);
+  try{
+    var r = await fetch(withAuth(wsRoot()+path+'.json'), {method:'PATCH', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data)});
+    if(!r.ok) throw new Error('PATCH '+r.status);
+    var res = await r.json();
+    recordSyncDiagnostic('patch-ok', path);
+    setSyncStatus('synced', 'Synced');
+    return res;
+  }catch(e){
+    recordSyncDiagnostic('patch-error', path, e);
+    setSyncStatus('offline', navigator.onLine===false ? 'Offline' : 'Sync failed');
+    throw e;
+  }
+};
 
 // Push request pop-up related user preferences to Firebase (per-user)
 async function pushUserPrefsRequestPopups(){
@@ -9258,6 +9325,7 @@ function queueSettingsSync(){
     }, 500);
   }catch(e){}
 }
+
 
 // ---------- Roles ----------
 function isAdmin(){ return App.currentUser && App.currentUser.role==='admin'; }
@@ -10748,6 +10816,7 @@ function v413RenderPlannerWarnings(){
 
 document.addEventListener('DOMContentLoaded', init);
 
+
 // ---------- Theme helpers ----------
 function initColorRecents(){
   var pick=byId('colorPicker'); var box=byId('recentColors');
@@ -11426,6 +11495,7 @@ function renderAdminRequestsLog(){
   empty.style.display = '';
 
 }
+
 
 // ---------- Daily Tasks / Stock mediator ----------
 var DailyOps = { view:'checklists', date:'', flagFilter:'all' };
@@ -12307,6 +12377,7 @@ function initDailyOps(){
   });
 }
 
+
 // ---------- Easy View ----------
 function easyTodayIso(){
   try{ return dailyOpsTodayISO(); }catch(e){ try{ return toISO(new Date()); }catch(e2){ return ''; } }
@@ -12676,6 +12747,7 @@ function splitOvertime(staffId, dayIndex, hours, state){
   }
   return {normal:normal, ot:ot};
 }
+
 
 // ---------- My Shifts ----------
 
@@ -13263,6 +13335,7 @@ function openStaffAwayMulti(){
   openAwayMultiModal('full');
 }
 
+
 // ---------- Planner ----------
 var Planner = { weekStartISO: toISO(weekStart(new Date())), activeDayIndex:0, editingShift:null };
 function initPlanner(){ renderDayTabs(); renderPlanner(); fitPlanner(); }
@@ -13803,6 +13876,8 @@ function saveShiftFromModal(){
   var state = getShiftModalState();
   var staffId=byId('shiftStaff').value;
   var dayIndex=parseInt(byId('shiftDay').value||'0',10);
+  if(!staffId || !(App.staff && App.staff[staffId])){ alert('Select a staff member before saving this shift.'); return; }
+  if(!isFinite(dayIndex) || dayIndex < 0 || dayIndex > 6){ alert('Select a valid day for this shift.'); return; }
   var startNorm=normalizeHHMM(byId('shiftStart').value);
   var endNorm=normalizeHHMM(byId('shiftEnd').value);
   if(!startNorm || !endNorm){ alert('Please enter Start and End as an hour (minutes will default to :00) or HH:MM.'); return; }
@@ -13824,7 +13899,8 @@ function saveShiftFromModal(){
   }
   var notes=byId('shiftNotes').value||'';
   var penalty=!!byId('shiftPenalty').checked;
-  var repeat=Math.max(0, parseInt(byId('shiftRepeat').value||'0',10));
+  var repeatRaw=parseInt(byId('shiftRepeat').value||'0',10);
+  var repeat=isFinite(repeatRaw) ? Math.max(0, repeatRaw) : 0;
   var isCoverShift=!!(byId('shiftIsCover') && byId('shiftIsCover').checked);
   var baseStaffId = isCoverShift ? String((byId('shiftCoverFor') && byId('shiftCoverFor').value) || '') : String(staffId||'');
   if(isCoverShift){
@@ -13985,7 +14061,10 @@ function saveShiftFromModal(){
     }
   }
 
-  saveLocal(); closeShiftModal(); renderPlanner(); renderPayroll(); try{ byId('tabMyRequests').style.display='inline-block'; }catch(e){}
+  saveLocal();
+  try{ v413AddAudit('Shift saved', staffDisplayNameForId(staffId, staffId)+' '+Planner.weekStartISO+' '+(DAY[dayIndex]||'')+' '+start12+'-'+end12, 'planner'); }catch(e){}
+  closeShiftModal(); renderPlanner(); renderPayroll(); try{ byId('tabMyRequests').style.display='inline-block'; }catch(e){}
+  try{ showToast('Shift saved', staffDisplayNameForId(staffId, staffId)+' '+(DAY[dayIndex]||'')+' '+start12+'-'+end12, 'success', 2500); }catch(e){}
   renderMyShifts();
 }
 function deleteShiftFromModal(){
@@ -13995,6 +14074,7 @@ function deleteShiftFromModal(){
   var dk=String(Planner.editingShift.dayIndex);
   var day = (App.weeks[Planner.weekStartISO] && App.weeks[Planner.weekStartISO][dk]) ? App.weeks[Planner.weekStartISO][dk] : null;
   var sh = day && day[Planner.editingShift.id] ? day[Planner.editingShift.id] : null;
+  var deletedStaffId = sh && sh.staffId ? String(sh.staffId) : '';
   if(day && sh){
     if(shiftIsCover(sh)){
       clearCoveredSourceForCover(Planner.weekStartISO, Planner.editingShift.dayIndex, String(Planner.editingShift.id||''));
@@ -14004,7 +14084,10 @@ function deleteShiftFromModal(){
     }
     delete day[Planner.editingShift.id];
   }
-  saveLocal(); closeShiftModal(); renderPlanner(); renderPayroll(); try{ byId('tabMyRequests').style.display='inline-block'; }catch(e){}
+  saveLocal();
+  try{ v413AddAudit('Shift deleted', (deletedStaffId ? staffDisplayNameForId(deletedStaffId, deletedStaffId)+' ' : '')+Planner.weekStartISO+' '+(DAY[parseInt(dk,10)]||''), 'planner'); }catch(e){}
+  closeShiftModal(); renderPlanner(); renderPayroll(); try{ byId('tabMyRequests').style.display='inline-block'; }catch(e){}
+  try{ showToast('Shift deleted', (deletedStaffId ? staffDisplayNameForId(deletedStaffId, deletedStaffId) : 'Roster shift'), 'warn', 2500); }catch(e){}
   renderMyShifts();
 }
 
@@ -14084,6 +14167,7 @@ function clearStaffForm(){
   var hiddenEl = byId('staffHiddenInput');
   if(hiddenEl) hiddenEl.checked = false;
 }
+
 
 // ---------- Legend/Overview/Availability ----------
 function renderLegend(){ var el=byId('legend'); if(!el) return; el.innerHTML=''; el.style.display='none'; }
@@ -15265,6 +15349,7 @@ try{ dbPatch('/absenceRequests/'+iso, (function(){ var o={}; o[String(u.id)]=nul
     el.appendChild(item);
   }
 }
+
 
 
 // ---------- Absences: overlays + calendar + requests ----------
@@ -16711,6 +16796,7 @@ function __maybeAutoPopupRequests(reason){
 // ---------- Live request notifications (manager/admin) ----------
 var __liveReqESAbs = null;
 var __liveReqESShift = null;
+var __liveReqESEdit = null;
 var __liveReqPollTimer = null;
 var __liveReqDebounce = null;
 var __liveReqLastSyncedAt = 0;
@@ -16887,6 +16973,12 @@ function __scheduleLiveRequestsRefresh(){
   }, 450);
 }
 
+function __liveRequestUrl(path){
+  var base = wsRoot().replace(/\/$/, '');
+  var url = withAuth(base + path + '.json');
+  return url + (url.indexOf('?')>=0 ? '&' : '?') + 'print=silent';
+}
+
 function startLiveRequestListener(){
   try{
     stopLiveRequestListener();
@@ -16894,10 +16986,10 @@ function startLiveRequestListener(){
     if(!App || !App.settings) return;
     if(!('EventSource' in window)) return;
 
-    // Needs valid workspace and generally auth token for protected DBs
-    var base = wsRoot().replace(/\/$/, '');
-    var absUrl = withAuth(base + '/absenceRequests.json') + (base.indexOf('?')>=0?'&':'?') + 'print=silent';
-    var shUrl  = withAuth(base + '/shiftChangeRequests.json') + (base.indexOf('?')>=0?'&':'?') + 'print=silent';
+    // Needs valid workspace and generally auth token for protected DBs.
+    var absUrl = __liveRequestUrl('/absenceRequests');
+    var shUrl  = __liveRequestUrl('/shiftChangeRequests');
+    var editUrl = __liveRequestUrl('/editRequests');
 
     __liveReqESAbs = new EventSource(absUrl);
     __liveReqESAbs.onmessage = function(){ __scheduleLiveRequestsRefresh(); };
@@ -16906,6 +16998,10 @@ function startLiveRequestListener(){
     __liveReqESShift = new EventSource(shUrl);
     __liveReqESShift.onmessage = function(){ __scheduleLiveRequestsRefresh(); };
     __liveReqESShift.onerror = function(){ /* silent */ };
+
+    __liveReqESEdit = new EventSource(editUrl);
+    __liveReqESEdit.onmessage = function(){ __scheduleLiveRequestsRefresh(); };
+    __liveReqESEdit.onerror = function(){ /* silent */ };
 
     // prime baseline
     try{
@@ -16931,9 +17027,11 @@ function stopLiveRequestListener(){
   try{
     if(__liveReqESAbs){ try{ __liveReqESAbs.close(); }catch(e){} }
     if(__liveReqESShift){ try{ __liveReqESShift.close(); }catch(e){} }
+    if(__liveReqESEdit){ try{ __liveReqESEdit.close(); }catch(e){} }
   }catch(e){}
   __liveReqESAbs = null;
   __liveReqESShift = null;
+  __liveReqESEdit = null;
 }
 
 
@@ -17163,6 +17261,8 @@ renderPlanner();
   renderAbsenceCalendar();
   if(typeof window._refreshSchedulerDebug==='function') window._refreshSchedulerDebug();
 }
+
+
 // ---------- Copy & Payroll ----------
 function copyDayToNext(){
   var f=Planner.activeDayIndex;
@@ -17884,6 +17984,7 @@ document.addEventListener('click', function(ev){
     removeWithheldLogEntry(idx);
   }
 });
+
 
 
 // ---------- Payroll documents ----------
@@ -19140,7 +19241,7 @@ function printPayrollDocument(doc, recordToHistory){
   var w = window.open('', '_blank');
   if(!w) return alert('Pop-up blocked. Allow pop-ups to print or save PDF.');
   w.document.open();
-  w.document.write('<!doctype html><html><head><meta charset="utf-8"><title>' + escapeHtml((doc.documentNo||'Payroll document')) + '</title><style>' + payrollDocumentCss() + '</style></head><body>' + html + '</body></html>');
+  w.document.write('<!doctype html><html><head><meta charset="utf-8"><title>' + escapeHtml((doc.documentNo||'Payroll document')) + '</title><!-- MODULE_STYLE:styles/16-style-16.css --></head><body>' + html + '</body></html>');
   w.document.close();
   setTimeout(function(){ try{ w.focus(); w.print(); }catch(e){} }, 250);
 }
@@ -19985,6 +20086,21 @@ function v5041StorePaidSnapshot(weekIso, staffId){
   App.payrollPaidSnapshots[weekIso][staffId] = snap;
   return snap;
 }
+function v5041SyncPayrollPaidState(weekIso){
+  ensurePayrollStores();
+  weekIso = String(weekIso||'');
+  if(!weekIso) return;
+  try{
+    var paidPatch = {};
+    paidPatch[weekIso] = (App.payrollPaid && App.payrollPaid[weekIso]) ? App.payrollPaid[weekIso] : {};
+    dbPatch('/payrollPaid', paidPatch).catch(function(){});
+  }catch(e){}
+  try{
+    var snapPatch = {};
+    snapPatch[weekIso] = (App.payrollPaidSnapshots && App.payrollPaidSnapshots[weekIso]) ? App.payrollPaidSnapshots[weekIso] : {};
+    dbPatch('/payrollPaidSnapshots', snapPatch).catch(function(){});
+  }catch(e){}
+}
 function v5041NextWeekIso(weekIso){
   try{
     var d = fromISO(String(weekIso || Planner.weekStartISO || ''));
@@ -20032,6 +20148,7 @@ function v5041CarryPaidDeltaToNextWeek(weekIso, staffId){
   if(!snap){
     v5041StorePaidSnapshot(weekIso, staffId);
     saveLocal();
+    v5041SyncPayrollPaidState(weekIso);
     renderPayroll();
     alert('Paid baseline captured. Make the hours change, then use Add to next week once a delta appears.');
     return;
@@ -20042,6 +20159,7 @@ function v5041CarryPaidDeltaToNextWeek(weekIso, staffId){
   if(Math.abs(payDelta) < 0.005){
     v5041StorePaidSnapshot(weekIso, staffId);
     saveLocal();
+    v5041SyncPayrollPaidState(weekIso);
     renderPayroll();
     alert('No dollar difference to carry forward.');
     return;
@@ -20061,6 +20179,7 @@ function v5041CarryPaidDeltaToNextWeek(weekIso, staffId){
   var nextComment = existing.comment ? (String(existing.comment) + ' | ' + note) : note;
   setPayrollAdjustment(targetWeek, staffId, existingAmt + payDelta, nextComment);
   v5041StorePaidSnapshot(weekIso, staffId);
+  v5041SyncPayrollPaidState(weekIso);
   try{ v413AddAudit('Paid delta carried forward', staffDisplayNameForId(staffId, staffId) + ' ' + weekIso + ' -> ' + targetWeek + ' ' + v5041SignedMoney(payDelta), 'payroll'); }catch(e){}
   saveLocal();
   renderPayroll();
@@ -20096,6 +20215,7 @@ function setPayrollPaid(weekIso, staffId, paid){
     try{ if(App.payrollPaidSnapshots && App.payrollPaidSnapshots[weekIso]) delete App.payrollPaidSnapshots[weekIso][staffId]; }catch(e){}
   }
   saveLocal();
+  v5041SyncPayrollPaidState(weekIso);
 }
 function openPayrollAdjustmentPrompt(staffId){
   staffId = String(staffId||'');
@@ -21875,13 +21995,13 @@ function bizBuildExcelWorkbookXml(dataset){
     '<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet" xmlns:html="http://www.w3.org/TR/REC-html40">' +
       '<DocumentProperties xmlns="urn:schemas-microsoft-com:office:office"><Author>OpenAI</Author><Created>' + bizXmlEsc(dataset.generatedAt) + '</Created><Company>' + bizXmlEsc(dataset.appTitle) + '</Company></DocumentProperties>' +
       '<Styles>' +
-        '<Style ss:ID="Default" ss:Name="Normal"><Alignment ss:Vertical="Center"/><Borders/><Font ss:FontName="Calibri" ss:Size="11"/><Interior/><NumberFormat/><Protection/></Style>' +
-        '<Style ss:ID="sTitle"><Font ss:Bold="1" ss:Size="15"/><Interior ss:Color="#DDEBF7" ss:Pattern="Solid"/></Style>' +
-        '<Style ss:ID="sHeader"><Font ss:Bold="1"/><Interior ss:Color="#E2F0D9" ss:Pattern="Solid"/><Borders><Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1"/></Borders></Style>' +
-        '<Style ss:ID="sSection"><Font ss:Bold="1"/></Style>' +
-        '<Style ss:ID="sMoney"><NumberFormat ss:Format="Currency"/></Style>' +
-        '<Style ss:ID="sNumber"><NumberFormat ss:Format="0.00"/></Style>' +
-        '<Style ss:ID="sPercent"><NumberFormat ss:Format="0.00"/></Style>' +
+        '<!-- MODULE_STYLE:styles/17-Default.css -->' +
+        '<!-- MODULE_STYLE:styles/18-sTitle.css -->' +
+        '<!-- MODULE_STYLE:styles/19-sHeader.css -->' +
+        '<!-- MODULE_STYLE:styles/20-sSection.css -->' +
+        '<!-- MODULE_STYLE:styles/21-sMoney.css -->' +
+        '<!-- MODULE_STYLE:styles/22-sNumber.css -->' +
+        '<!-- MODULE_STYLE:styles/23-sPercent.css -->' +
       '</Styles>' +
       bizExcelWorksheetXml('Overview', overviewRows, [200,140,140]) +
       bizExcelWorksheetXml('Current Range', currentRangeRows, [180,90,90,90,100,100,100,100]) +
@@ -22019,9 +22139,7 @@ function bizBuildPdfReportHtml(dataset){
   '</div></section>';
   var tocHtml = '<nav class="toc"><a href="#selected-range-summary">Selected summary</a><a href="#full-data-summary">Full summary</a><a href="#charts">Charts</a><a href="#mix">Mix</a><a href="#current-range-detail">Current range detail</a><a href="#monthly-summary">Monthly summary</a><a href="#weekly-summary">Weekly summary</a><a href="#recurring-costs">Recurring costs</a><a href="#daily-ledger">Daily ledger</a><a href="#spending-items">Spending items</a><a href="#cost-centres">Cost centres</a></nav>';
   return '<!doctype html><html><head><meta charset="utf-8"><title>' + escapeHtml((dataset.appTitle || 'Business Analytics') + ' - ' + bizExportFileStamp()) + '</title>' +
-    '<style>' +
-      '@page{size:auto;margin:14mm;}body{font-family:Arial,Helvetica,sans-serif;color:#0f172a;background:#f4f7fb;margin:0;padding:0;}a{color:#1d4ed8;text-decoration:none;}a:hover{text-decoration:underline;} .screen-bar{position:sticky;top:0;z-index:10;display:flex;gap:8px;align-items:center;justify-content:space-between;padding:12px 16px;background:#0f172a;color:#fff;} .screen-actions{display:flex;gap:8px;flex-wrap:wrap;} .screen-actions button{border:none;border-radius:999px;padding:8px 14px;font-weight:700;cursor:pointer;} .screen-actions .primary{background:#2563eb;color:#fff;} .screen-actions .secondary{background:#e2e8f0;color:#0f172a;} .report{max-width:1120px;margin:0 auto;padding:18px;} .hero{background:#fff;border-radius:18px;padding:18px 20px;box-shadow:0 12px 28px rgba(15,23,42,.10);} .hero h1{margin:0;font-size:28px;} .hero-meta{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:14px;} .hero-meta .meta{background:#eef4ff;border-radius:14px;padding:10px 12px;} .hero-meta .meta .label{font-size:11px;color:#475569;text-transform:uppercase;letter-spacing:.06em;font-weight:700;} .hero-meta .meta .value{margin-top:4px;font-size:14px;font-weight:700;} .toc{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 4px;} .toc a{display:inline-flex;align-items:center;padding:7px 11px;border-radius:999px;background:#fff;border:1px solid #d7e1ee;font-size:12px;font-weight:700;} .report-section{background:#fff;border-radius:18px;padding:16px 18px;margin-top:16px;box-shadow:0 10px 22px rgba(15,23,42,.08);} .section-head{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:12px;} .section-head h2{margin:0;font-size:20px;} .section-sub{color:#475569;font-size:12px;} .summary-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;} .summary-card{border:1px solid #dbe5f0;border-radius:14px;padding:12px;background:#f8fbff;} .summary-card .label{font-size:11px;color:#475569;text-transform:uppercase;letter-spacing:.06em;font-weight:700;} .summary-card .value{margin-top:8px;font-size:20px;font-weight:800;line-height:1.25;} .summary-card .value.small{font-size:15px;} .summary-card .value.good{color:#047857;} .summary-card .value.bad{color:#b91c1c;} .summary-card .sub{margin-top:6px;color:#475569;font-size:12px;} .mini-grid,.chart-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;} .mini-card,.chart-card{border:1px solid #dbe5f0;border-radius:14px;padding:12px;background:#f8fbff;} .mini-card h3,.chart-card h3{margin:0 0 8px;font-size:16px;} .mini-sub{color:#475569;font-size:12px;margin-bottom:8px;} .dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:8px;vertical-align:middle;} .report-table{width:100%;border-collapse:collapse;font-size:12px;} .report-table th,.report-table td{border-bottom:1px solid #dbe5f0;padding:8px 10px;vertical-align:top;} .report-table th{background:#eef4ff;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.05em;} .report-table .num{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums;} .report-table .good{color:#047857;font-weight:800;} .report-table .bad{color:#b91c1c;font-weight:800;} .report-table.tight th,.report-table.tight td{padding:7px 8px;} .chart-card img{width:100%;height:auto;border-radius:12px;border:1px solid #dbe5f0;background:#fff;} @media (max-width:900px){.hero-meta,.summary-grid,.mini-grid,.chart-grid{grid-template-columns:1fr 1fr;}} @media (max-width:640px){.hero-meta,.summary-grid,.mini-grid,.chart-grid{grid-template-columns:1fr;} .screen-bar{position:static;}} @media print{body{background:#fff;} .screen-bar{display:none !important;} .report{max-width:none;padding:0;} .hero,.report-section{box-shadow:none;border:1px solid #dbe5f0;break-inside:avoid-page;} .toc a{color:#0f172a;border-color:#dbe5f0;} a{text-decoration:none;color:#0f172a;} }' +
-    '</style></head><body><div class="screen-bar"><div><strong>Business Analytics PDF export</strong></div><div class="screen-actions"><button class="primary" onclick="window.print()">Print / Save PDF</button><button class="secondary" onclick="window.close()">Close</button></div></div><div class="report"><section class="hero"><h1>' + escapeHtml(dataset.appTitle) + ' — Business Analytics</h1><div class="section-sub">Generated ' + escapeHtml(new Date(dataset.generatedAt).toLocaleString()) + '</div><div class="hero-meta"><div class="meta"><div class="label">Workspace</div><div class="value">' + escapeHtml(dataset.workspace || '-') + '</div></div><div class="meta"><div class="label">Version</div><div class="value">' + escapeHtml(dataset.version || '-') + '</div></div><div class="meta"><div class="label">Selected range</div><div class="value">' + escapeHtml(bizReportRangeLabel(dataset.selectedRange)) + '</div></div><div class="meta"><div class="label">Full export coverage</div><div class="value">' + escapeHtml(bizReportRangeLabel(dataset.allRange)) + '</div></div></div></section>' + tocHtml + summarySelected + summaryAll + chartsHtml + mixHtml + bizReportTableHtml('Current range detail', 'current-range-detail', ['Date','Cash','EFTPOS','Revenue','Staff cost','Spendings','Total costs','Net'], currentRangeRowsHtml, 'Tracked business rows in the selected range.') + bizReportTableHtml('Monthly summary', 'monthly-summary', ['Month','Active days','Revenue','Staff cost','Spendings','Utilities','Ongoing','Total costs','Net'], monthlyRowsHtml, 'All exported business data rolled up by month.') + bizReportTableHtml('Weekly summary', 'weekly-summary', ['Week','Active days','Revenue','Staff cost','Spendings','Utilities','Ongoing','Total costs','Net'], weeklyRowsHtml, 'All exported business data rolled up by week.') + bizReportTableHtml('Recurring costs', 'recurring-costs', ['Name','Category','Frequency','Amount / occurrence','Start','End','Selected allocation','Full allocation','Notes'], recurringRowsHtml, 'Recurring costs are prorated across their active cycle.') + bizReportTableHtml('Daily ledger', 'daily-ledger', ['Date','Cash','EFTPOS','Revenue','Staff cost','Spendings','Utilities','Ongoing','Total costs','Net','Notes / spending summary'], dailyRowsHtml, 'Full day-by-day ledger across the export coverage.') + bizReportTableHtml('Spending items', 'spending-items', ['Date','Description','Amount','Day notes'], spendingRowsHtml, 'Each recorded spending line item.') + bizReportTableHtml('Cost centres', 'cost-centres', ['Cost centre','Amount'], costCentreRowsHtml, 'All exported cost centres by total value.') + '</div><script>window.addEventListener("load",function(){setTimeout(function(){try{window.focus();window.print();}catch(e){}},350);});<\/script></body></html>';
+    '<!-- MODULE_STYLE:styles/24-style-24.css --></head><body><div class="screen-bar"><div><strong>Business Analytics PDF export</strong></div><div class="screen-actions"><button class="primary" onclick="window.print()">Print / Save PDF</button><button class="secondary" onclick="window.close()">Close</button></div></div><div class="report"><section class="hero"><h1>' + escapeHtml(dataset.appTitle) + ' — Business Analytics</h1><div class="section-sub">Generated ' + escapeHtml(new Date(dataset.generatedAt).toLocaleString()) + '</div><div class="hero-meta"><div class="meta"><div class="label">Workspace</div><div class="value">' + escapeHtml(dataset.workspace || '-') + '</div></div><div class="meta"><div class="label">Version</div><div class="value">' + escapeHtml(dataset.version || '-') + '</div></div><div class="meta"><div class="label">Selected range</div><div class="value">' + escapeHtml(bizReportRangeLabel(dataset.selectedRange)) + '</div></div><div class="meta"><div class="label">Full export coverage</div><div class="value">' + escapeHtml(bizReportRangeLabel(dataset.allRange)) + '</div></div></div></section>' + tocHtml + summarySelected + summaryAll + chartsHtml + mixHtml + bizReportTableHtml('Current range detail', 'current-range-detail', ['Date','Cash','EFTPOS','Revenue','Staff cost','Spendings','Total costs','Net'], currentRangeRowsHtml, 'Tracked business rows in the selected range.') + bizReportTableHtml('Monthly summary', 'monthly-summary', ['Month','Active days','Revenue','Staff cost','Spendings','Utilities','Ongoing','Total costs','Net'], monthlyRowsHtml, 'All exported business data rolled up by month.') + bizReportTableHtml('Weekly summary', 'weekly-summary', ['Week','Active days','Revenue','Staff cost','Spendings','Utilities','Ongoing','Total costs','Net'], weeklyRowsHtml, 'All exported business data rolled up by week.') + bizReportTableHtml('Recurring costs', 'recurring-costs', ['Name','Category','Frequency','Amount / occurrence','Start','End','Selected allocation','Full allocation','Notes'], recurringRowsHtml, 'Recurring costs are prorated across their active cycle.') + bizReportTableHtml('Daily ledger', 'daily-ledger', ['Date','Cash','EFTPOS','Revenue','Staff cost','Spendings','Utilities','Ongoing','Total costs','Net','Notes / spending summary'], dailyRowsHtml, 'Full day-by-day ledger across the export coverage.') + bizReportTableHtml('Spending items', 'spending-items', ['Date','Description','Amount','Day notes'], spendingRowsHtml, 'Each recorded spending line item.') + bizReportTableHtml('Cost centres', 'cost-centres', ['Cost centre','Amount'], costCentreRowsHtml, 'All exported cost centres by total value.') + '</div><script>window.addEventListener("load",function(){setTimeout(function(){try{window.focus();window.print();}catch(e){}},350);});<\/script></body></html>';
 }
 function bizOpenReportWindow(html){
   var win = window.open('', '_blank');
@@ -22258,6 +22376,7 @@ function bindBusinessAnalyticsUI(){
   }
   bizClearRecurringForm();
 }
+
 
 // ---------- Print View (multi-week) ----------
 function buildPrintView(){
@@ -23082,6 +23201,7 @@ try{
 }catch(e){}
 
 })();
+
 // === INFO helpers (dual RTDB paths + robust keys) ===
 (function(){
   var App = window.App || null;
@@ -23455,7 +23575,7 @@ try{
 (function(){
   'use strict';
   var APP_NAME = 'Aspire Workforce Command';
-  var APP_VERSION = 'V5.0.42';
+  var APP_VERSION = 'V5.0.45';
   var OLD_TITLE = 'M&C-ATRD-scheduler --=Aspire Group=--';
 
   var NAVS = [
@@ -23855,6 +23975,7 @@ try{
   if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
   else start();
 })();
+
 </script>
 
 <style id="v505MobilePlannerPatchStyle">
