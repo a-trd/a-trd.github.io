@@ -6817,6 +6817,11 @@
         <div class="muted small" style="margin-top:6px;">Tip: Use “Set withheld (shown week)” to correct a typo quickly. “Pay part of withheld” releases the oldest withheld weeks first and records each paid part in the log.</div>
       </div>
 
+      <div style="margin-top:14px;">
+        <label>Withheld balance log (all weeks)</label>
+        <div id="withholdManageAllList" style="margin-top:8px;"></div>
+      </div>
+
       <div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;margin-top:14px;">
         <button id="btnCloseWithholdManage" class="btn-outline">Close</button>
       </div>
@@ -10253,9 +10258,9 @@ function v413RenderPayRunPanel(){
   };
   var origAdjustment = setPayrollAdjustment;
   setPayrollAdjustment = function(weekIso, staffId, amount, comment){
-    if(v413IsPayRunLocked(weekIso)){ alert('This pay run is locked/paid. Reopen it before changing payroll adjustments.'); return; }
+    if(v413IsPayRunLocked(weekIso)){ alert('This pay run is locked/paid. Reopen it before changing payroll adjustments.'); return false; }
     var r = origAdjustment.apply(this, arguments);
-    v413AddAudit('Payroll adjustment', staffDisplayNameForId(staffId, staffId) + ' ' + String(weekIso) + ' ' + fmtMoney(amount||0), 'payroll');
+    if(r !== false) v413AddAudit('Payroll adjustment', staffDisplayNameForId(staffId, staffId) + ' ' + String(weekIso) + ' ' + v5041SignedMoney(parseMoneyInput(amount)||0), 'payroll');
     return r;
   };
   var origPaid = setPayrollPaid;
@@ -17161,9 +17166,11 @@ function ensureWithheldStores(){
 }
 function getWithheldBalance(staffId){
   ensureWithheldStores();
-  var v = App.payWithheld[String(staffId)];
-  v = numFromAnyWithheld(v);
-  return (isFinite(v) ? v : 0);
+  staffId = String(staffId||'');
+  var cached = numFromAnyWithheld(App.payWithheld[staffId]);
+  if(!isFinite(cached) || cached < 0) cached = 0;
+  var wk = getWithheldWeekBalanceInfo(staffId);
+  return wk.hasEntries ? wk.total : cached;
 }
 function getWithheldForWeek(weekIso, staffId){
   ensureWithheldStores();
@@ -17172,17 +17179,47 @@ function getWithheldForWeek(weekIso, staffId){
   v = numFromAnyWithheld(v);
   return (isFinite(v) ? v : 0);
 }
+function getWithheldWeekBalanceInfo(staffId){
+  ensureWithheldStores();
+  staffId = String(staffId||'');
+  var out = {total:0, hasEntries:false};
+  if(!staffId) return out;
+  Object.keys(App.payWithheldByWeek||{}).forEach(function(weekIso){
+    var bucket = App.payWithheldByWeek[weekIso];
+    if(!bucket || typeof bucket !== 'object') return;
+    if(bucket[staffId] == null) return;
+    out.hasEntries = true;
+    var amount = numFromAnyWithheld(bucket[staffId]);
+    if(isFinite(amount)) out.total += amount;
+  });
+  if(!isFinite(out.total) || out.total < 0) out.total = 0;
+  out.total = round2(out.total);
+  return out;
+}
+function syncWithheldBalanceFromWeeks(staffId, fallbackBalance){
+  ensureWithheldStores();
+  staffId = String(staffId||'');
+  if(!staffId) return 0;
+  var wk = getWithheldWeekBalanceInfo(staffId);
+  var next = wk.hasEntries ? wk.total : numFromAnyWithheld(fallbackBalance);
+  if(!isFinite(next) || next < 0) next = 0;
+  next = round2(next);
+  App.payWithheld[staffId] = next;
+  return next;
+}
 function addWithheld(weekIso, staffId, amount, note){
   if(!isAdmin()) return alert('Admin only.');
   ensureWithheldStores();
   weekIso = String(weekIso||'');
   staffId = String(staffId||'');
-  amount = parseFloat(amount||0);
+  var parsedAmount = parseMoneyInput(amount);
+  if(!isFinite(parsedAmount)) return;
+  amount = round2(parsedAmount);
   if(!weekIso || !staffId) return;
   if(!isFinite(amount) || amount<=0) return;
   if(!App.payWithheldByWeek[weekIso]) App.payWithheldByWeek[weekIso] = {};
   App.payWithheldByWeek[weekIso][staffId] = (numFromAnyWithheld(App.payWithheldByWeek[weekIso][staffId])||0) + amount;
-  App.payWithheld[staffId] = (numFromAnyWithheld(App.payWithheld[staffId])||0) + amount;
+  App.payWithheld[staffId] = syncWithheldBalanceFromWeeks(staffId, (numFromAnyWithheld(App.payWithheld[staffId])||0) + amount);
   App.payWithheldLog.push({ts:new Date().toISOString(), type:'withhold', weekIso:weekIso, staffId:staffId, amount:amount, note:note||''});
   saveLocal();
 // Push withheld to Firebase (best-effort)
@@ -17258,7 +17295,7 @@ function payPartialWithheld(staffId, amount, note){
   var paidTotal = round2(amount - remaining);
   if(paidTotal<=0.0001) return [];
 
-  App.payWithheld[staffId] = round2(Math.max(0, getWithheldBalance(staffId) - paidTotal));
+  App.payWithheld[staffId] = syncWithheldBalanceFromWeeks(staffId, Math.max(0, balance - paidTotal));
   var ts = new Date().toISOString();
   allocations.forEach(function(rec){
     App.payWithheldLog.push({ts:ts, type:'partialPaid', weekIso:rec.weekIso, staffId:staffId, amount:rec.amount, note:note||''});
@@ -17285,7 +17322,9 @@ function openPartialWithheldPaymentPrompt(staffId){
   if(bal<=0.0001) return alert('No withheld balance to pay.');
   var amtStr = prompt('Amount of withheld pay to release to '+staffDisplayNameForId(staffId, 'staff '+staffId)+' now:', String(bal));
   if(amtStr===null) return;
-  var amt = round2(parseFloat(amtStr));
+  var parsedAmt = parseMoneyInput(amtStr);
+  if(!isFinite(parsedAmt)){ alert('Enter a valid amount. You can use 2000, 2,000, or $2,000.'); return; }
+  var amt = round2(parsedAmt);
   if(!isFinite(amt) || amt<=0){ alert('Enter a positive amount.'); return; }
   if(amt > bal) amt = bal;
   var note = prompt('Note for this partial payment (optional):', 'Partial withheld payment') || '';
@@ -17308,7 +17347,9 @@ function openPayrollWithholdPrompt(staffId){
   var currentWeekW = getWithheldForWeek(weekIso, staffId);
   var amtStr = prompt("Amount to withhold from this week's pay for "+staffDisplayNameForId(staffId, "staff "+staffId)+" (adds to withheld balance):", currentWeekW>0?String(currentWeekW):"");
   if(amtStr===null) return;
-  var amt = parseFloat(amtStr);
+  var parsedAmt = parseMoneyInput(amtStr);
+  if(!isFinite(parsedAmt)){ alert('Enter a valid amount. You can use 2000, 2,000, or $2,000.'); return; }
+  var amt = round2(parsedAmt);
   if(!isFinite(amt) || amt<=0){ alert('Enter a positive amount.'); return; }
   var note = prompt('Note (optional):', '') || '';
   addWithheld(weekIso, staffId, amt, note);
@@ -17338,7 +17379,9 @@ function adjustWithheldDelta(weekIso, staffId, delta, note){
   ensureWithheldStores();
   weekIso = String(weekIso||'');
   staffId = String(staffId||'');
-  delta = parseFloat(delta||0);
+  var parsedDelta = parseMoneyInput(delta);
+  if(!isFinite(parsedDelta)) return;
+  delta = round2(parsedDelta);
   if(!weekIso || !staffId) return;
   if(!isFinite(delta) || Math.abs(delta) < 0.0001) return;
 
@@ -17361,9 +17404,7 @@ function adjustWithheldDelta(weekIso, staffId, delta, note){
     App.payWithheldByWeek[weekIso][staffId] = newWeek;
   }
 
-  var newBal = (numFromAnyWithheld(App.payWithheld[staffId])||0) + delta;
-  if(newBal < 0) newBal = 0;
-  App.payWithheld[staffId] = newBal;
+  App.payWithheld[staffId] = syncWithheldBalanceFromWeeks(staffId, curBal + delta);
 
   App.payWithheldLog.push({ts:new Date().toISOString(), type:'adjust', weekIso:weekIso, staffId:staffId, amount:delta, note:note||''});
   saveLocal();
@@ -17392,6 +17433,8 @@ function removeWithheldLogEntry(idx){
   var weekIso = String(entry.weekIso||'');
   var amt = round2(parseFloat(entry.amount||0));
   if(!isFinite(amt)) amt = 0;
+  var startingBal = staffId ? getWithheldBalance(staffId) : 0;
+  var fallbackBal = startingBal;
 
   if(type !== 'partialPaid' && weekIso && staffId){
     var hasLaterPartPaid = (App.payWithheldLog||[]).some(function(it, i){
@@ -17416,14 +17459,13 @@ function removeWithheldLogEntry(idx){
   }
 
   if(type === 'partialPaid'){
+    fallbackBal = startingBal + Math.abs(amt);
     if(weekIso){
       if(!App.payWithheldByWeek[weekIso]) App.payWithheldByWeek[weekIso] = {};
       App.payWithheldByWeek[weekIso][staffId] = round2((numFromAnyWithheld(App.payWithheldByWeek[weekIso][staffId])||0) + Math.abs(amt));
     }
-    if(staffId){
-      App.payWithheld[staffId] = round2(getWithheldBalance(staffId) + Math.abs(amt));
-    }
   }else{
+    fallbackBal = startingBal - amt;
     if(weekIso && App.payWithheldByWeek[weekIso] && App.payWithheldByWeek[weekIso][staffId]!=null){
       var curW = numFromAnyWithheld(App.payWithheldByWeek[weekIso][staffId])||0;
       var nextW = round2(curW - amt);
@@ -17434,13 +17476,8 @@ function removeWithheldLogEntry(idx){
         App.payWithheldByWeek[weekIso][staffId] = nextW;
       }
     }
-    if(staffId){
-      var curB = getWithheldBalance(staffId);
-      var nextB = round2(curB - amt);
-      if(nextB < 0) nextB = 0;
-      App.payWithheld[staffId] = nextB;
-    }
   }
+  if(staffId) App.payWithheld[staffId] = syncWithheldBalanceFromWeeks(staffId, Math.max(0, fallbackBal));
 
   App.payWithheldLog.splice(idx, 1);
   saveLocal();
@@ -17459,6 +17496,27 @@ function removeWithheldLogEntry(idx){
   renderPayroll();
   renderMyShifts();
   try{ if(byId('withholdManageModal') && byId('withholdManageModal').style.display==='flex') openWithholdManageModal(_withholdManageCtx.staffId); }catch(e){}
+}
+
+function withholdLogTypeLabel(tp){
+  tp = String(tp||'');
+  if(tp === 'withhold') return 'Withheld';
+  if(tp === 'adjust') return 'Adjustment';
+  if(tp === 'partialPaid') return 'Payout / release';
+  if(tp === 'paid') return 'Paid in full';
+  return tp || 'Entry';
+}
+function withholdLogAmountText(tp, amount){
+  var amt = parseMoneyInput(amount);
+  if(!isFinite(amt)) amt = 0;
+  if(tp === 'partialPaid' || tp === 'paid') return '-' + fmtMoney(Math.abs(amt));
+  return amt < 0 ? ('-' + fmtMoney(Math.abs(amt))) : fmtMoney(amt);
+}
+function withholdLogWeekText(weekIso){
+  weekIso = String(weekIso||'');
+  if(!weekIso) return 'All weeks';
+  try{ return weekIso + ' (' + fmtDMY(fromISO(weekIso)) + ')'; }catch(e){}
+  return weekIso;
 }
 
 function openWithholdManageModal(staffId){
@@ -17510,9 +17568,8 @@ function openWithholdManageModal(staffId){
       var when='';
       try{ when = new Date(it.ts||'').toLocaleString(); }catch(e){ when = String(it.ts||''); }
       var tp = String(it.type||'');
-      var typeLabel = tp==='withhold' ? 'Withheld' : (tp==='adjust' ? 'Adjustment' : 'Part-paid');
-      var amt = parseFloat(it.amount||0); if(!isFinite(amt)) amt=0;
-      var amtTxt = tp==='partialPaid' ? ('-'+fmtMoney(Math.abs(amt))) : (amt<0?('-'+fmtMoney(Math.abs(amt))):fmtMoney(amt));
+      var typeLabel = withholdLogTypeLabel(tp);
+      var amtTxt = withholdLogAmountText(tp, it.amount);
       html += '<tr>'
         + '<td>'+escapeHtml(when)+'</td>'
         + '<td>'+escapeHtml(typeLabel)+'</td>'
@@ -17524,6 +17581,43 @@ function openWithholdManageModal(staffId){
     html += '</tbody></table></div>';
   }
   byId('withholdManageList').innerHTML = html;
+
+  var allEl = byId('withholdManageAllList');
+  if(allEl){
+    var allRows = [];
+    for(var ai=(App.payWithheldLog||[]).length-1; ai>=0; ai--){
+      var entry = App.payWithheldLog[ai];
+      if(!entry) continue;
+      if(String(entry.staffId||'') !== staffId) continue;
+      var et = String(entry.type||'');
+      if(et !== 'withhold' && et !== 'adjust' && et !== 'partialPaid' && et !== 'paid') continue;
+      allRows.push({idx:ai, it:entry});
+      if(allRows.length>=60) break;
+    }
+    var allHtml = '';
+    if(!allRows.length){
+      allHtml = '<div class="muted small">No withheld balance history has been recorded for this staff member.</div>';
+    }else{
+      allHtml += '<div class="table-wrap" style="overflow-x:auto;">'
+        + '<table class="table" style="min-width:760px;">'
+        + '<thead><tr><th style="width:160px;">When</th><th style="width:170px;">Week</th><th>Type</th><th style="width:120px;">Amount</th><th>Note</th></tr></thead><tbody>';
+      allRows.forEach(function(r){
+        var it = r.it;
+        var when = '';
+        try{ when = new Date(it.ts||'').toLocaleString(); }catch(e){ when = String(it.ts||''); }
+        var tp = String(it.type||'');
+        allHtml += '<tr>'
+          + '<td>'+escapeHtml(when)+'</td>'
+          + '<td>'+escapeHtml(withholdLogWeekText(it.weekIso))+'</td>'
+          + '<td>'+escapeHtml(withholdLogTypeLabel(tp))+'</td>'
+          + '<td style="white-space:nowrap;font-weight:800;">'+escapeHtml(withholdLogAmountText(tp, it.amount))+'</td>'
+          + '<td>'+escapeHtml(String(it.note||''))+'</td>'
+          + '</tr>';
+      });
+      allHtml += '</tbody></table></div>';
+    }
+    allEl.innerHTML = allHtml;
+  }
 
   modal.style.display = 'flex';
 }
@@ -17547,7 +17641,9 @@ function closeWithholdManageModal(){
     var cur = getWithheldForWeek(weekIso, sid);
     var valStr = prompt('Set withheld amount for this week for '+staffDisplayNameForId(sid, 'staff '+sid)+' (replaces current week withheld):', String(cur||0));
     if(valStr===null) return;
-    var val = parseFloat(valStr);
+    var parsedVal = parseMoneyInput(valStr);
+    if(!isFinite(parsedVal)){ alert('Enter a valid amount. You can use 2000, 2,000, or $2,000.'); return; }
+    var val = round2(parsedVal);
     if(!isFinite(val) || val<0){ alert('Enter 0 or a positive amount.'); return; }
     var delta = val - cur;
     if(Math.abs(delta) < 0.0001) return;
@@ -17603,6 +17699,18 @@ function round2(n){
 function numOr0(v){
   var n = parseFloat(v||0);
   return isFinite(n) ? n : 0;
+}
+function parseMoneyInput(v){
+  if(typeof v === 'number') return isFinite(v) ? v : NaN;
+  var s = String(v == null ? '' : v).trim();
+  if(!s) return 0;
+  var bracketNegative = /^\(.*\)$/.test(s);
+  s = s.replace(/[,\s$]/g, '').replace(/[^0-9.+-]/g, '');
+  if(!/[0-9]/.test(s)) return NaN;
+  var n = Number(s);
+  if(!isFinite(n)) n = parseFloat(s);
+  if(!isFinite(n)) return NaN;
+  return bracketNegative ? -Math.abs(n) : n;
 }
 function setInputValueIfIdle(id, value){
   var el = byId(id);
@@ -18227,6 +18335,7 @@ function weekHasAnyData(weekIso, staffId){
   if(found) return true;
   var adj = ((App.payrollAdjustments||{})[weekIso]||{})[staffId];
   if(adj) return true;
+  if(typeof getWithheldForWeek === 'function' && getWithheldForWeek(weekIso, staffId) > 0.0001) return true;
   var rec = ((App.payrollWeekData||{})[weekIso]||{})[staffId];
   if(rec) return true;
   return false;
@@ -18446,6 +18555,7 @@ function buildPaymentSummaryDocument(startYear, staffId, statementDate, quickNot
   Object.keys(App.weeks||{}).forEach(function(w){ weekSet[w] = true; });
   Object.keys(App.payrollWeekData||{}).forEach(function(w){ weekSet[w] = true; });
   Object.keys(App.payrollAdjustments||{}).forEach(function(w){ weekSet[w] = true; });
+  Object.keys(App.payWithheldByWeek||{}).forEach(function(w){ weekSet[w] = true; });
   var weeks = Object.keys(weekSet).sort();
   var rows = [];
   var totals = {grossPay:0, paygWithheld:0, otherDeductions:0, withheldThisWeek:0, netPay:0, superAmount:0};
@@ -18460,6 +18570,7 @@ function buildPaymentSummaryDocument(startYear, staffId, statementDate, quickNot
       payDate:doc.payDate,
       grossPay:doc.summary.grossPay,
       paygWithheld:doc.summary.paygWithheld,
+      withheldThisWeek:doc.summary.withheldThisWeek,
       netPay:doc.summary.netPay,
       superAmount:doc.summary.superAmount
     });
@@ -18621,12 +18732,13 @@ function renderPayrollDocumentHtml(doc){
           '<td>', escapeHtml(payrollDocDisplayDate(r.payDate || '')), '</td>',
           '<td>', escapeHtml(fmtMoney(r.grossPay || 0)), '</td>',
           '<td>', escapeHtml(fmtMoney(r.paygWithheld || 0)), '</td>',
+          '<td>', escapeHtml(fmtMoney(r.withheldThisWeek || 0)), '</td>',
           '<td>', escapeHtml(fmtMoney(r.netPay || 0)), '</td>',
           '<td>', escapeHtml(fmtMoney(r.superAmount || 0)), '</td>',
         '</tr>'
       ].join('');
     }).join('');
-    if(!weekRows) weekRows = '<tr><td colspan="6" class="doc-bad">No weeks matched this financial year.</td></tr>';
+    if(!weekRows) weekRows = '<tr><td colspan="7" class="doc-bad">No weeks matched this financial year.</td></tr>';
     return [
       '<div class="doc-sheet">',
         '<div class="doc-header">',
@@ -18676,12 +18788,13 @@ function renderPayrollDocumentHtml(doc){
         '</div>',
         '<div class="doc-section-label">Weekly totals included</div>',
         '<table class="doc-lines">',
-          '<thead><tr><th>Week</th><th>Pay date</th><th>Gross</th><th>PAYG withheld</th><th>Net</th><th>Super</th></tr></thead>',
+          '<thead><tr><th>Week</th><th>Pay date</th><th>Gross</th><th>PAYG withheld</th><th>Held back</th><th>Net</th><th>Super</th></tr></thead>',
           '<tbody>', weekRows, '</tbody>',
         '</table>',
         '<table class="doc-summary">',
           '<tr><td>Gross payments</td><td>', escapeHtml(fmtMoney((doc.summary && doc.summary.grossPay) || 0)), '</td></tr>',
           '<tr><td>PAYG withheld</td><td>-', escapeHtml(fmtMoney((doc.summary && doc.summary.paygWithheld) || 0)), '</td></tr>',
+          '<tr><td>Held back from pay</td><td>-', escapeHtml(fmtMoney((doc.summary && doc.summary.withheldThisWeek) || 0)), '</td></tr>',
           '<tr><td>Net payments</td><td>', escapeHtml(fmtMoney((doc.summary && doc.summary.netPay) || 0)), '</td></tr>',
           '<tr class="total"><td>Total super</td><td>', escapeHtml(fmtMoney((doc.summary && doc.summary.superAmount) || 0)), '</td></tr>',
         '</table>',
@@ -19015,6 +19128,11 @@ function renderPayroll(){
         adjHtml = '<div class="muted small">Adj: '+sign+fmtMoney(adjAmt)+(adjComment?(' — '+escapeHtml(adjComment)):'')+'</div>';
       }
 
+      if(Math.abs(adjAmt) > 0.0001){
+        adjHtml = '<div class="muted small">Roster pay: '+fmtMoney(M)+'</div>'
+          + '<div class="muted small">Pay adjustment: '+v5041SignedMoney(adjAmt)+(adjComment?(' â€” '+escapeHtml(adjComment)):'')+'</div>';
+      }
+
       var withheldHtml = '';
       if(withheldThisWeek>0.0001){
         withheldHtml += '<div class="muted small">Withheld (this week): -'+fmtMoney(withheldThisWeek)+'</div>';
@@ -19030,7 +19148,7 @@ function renderPayroll(){
         + adjHtml
         + withheldHtml
         + paidDeltaHtml
-        + '<button type="button" class="btn-outline payroll-adjust-btn" data-staff="'+escapeHtml(String(id))+'" style="margin-top:4px;">Adjust</button>'
+        + '<button type="button" class="btn-outline payroll-adjust-btn" data-staff="'+escapeHtml(String(id))+'" title="Add or deduct pay for this staff member this week. This does not change withheld balance." style="margin-top:4px;">Pay adjustment</button>'
         + '<button type="button" class="btn-outline payroll-withhold-btn" data-staff="'+escapeHtml(String(id))+'" style="margin-top:4px;">Withhold</button>'
         + '<button type=\"button\" class=\"btn-outline payroll-managewithheld-btn\" data-staff=\"'+escapeHtml(String(id))+'\" style=\"margin-top:4px;\">Fix / Undo withhold</button>'
         + (withheldBal>0.0001 ? ('<button type="button" class="btn-outline payroll-paypartwithheld-btn" data-staff="'+escapeHtml(String(id))+'" style="margin-top:4px;">Pay some withheld</button>') : '')
@@ -19750,10 +19868,19 @@ function setPayrollAdjustment(weekIso, staffId, amount, comment){
   ensurePayrollStores();
   weekIso = String(weekIso||'');
   staffId = String(staffId||'');
-  if(!weekIso || !staffId) return;
+  var parsedAmount = parseMoneyInput(amount);
+  if(!isFinite(parsedAmount)) return false;
+  amount = round2(parsedAmount);
+  if(!weekIso || !staffId) return false;
   if(!App.payrollAdjustments[weekIso]) App.payrollAdjustments[weekIso] = {};
   App.payrollAdjustments[weekIso][staffId] = {amount:amount, comment:comment||''};
   saveLocal();
+  try{
+    var p = {};
+    p[weekIso] = App.payrollAdjustments[weekIso];
+    dbPatch('/payrollAdjustments', p).catch(function(){});
+  }catch(e){}
+  return true;
 }
 function setPayrollPaid(weekIso, staffId, paid){
   ensurePayrollStores();
@@ -19777,13 +19904,16 @@ function openPayrollAdjustmentPrompt(staffId){
   var rec = bucket[staffId] || {amount:0, comment:''};
   var staff = App.staff[staffId] || {};
   var currentAmt = parseFloat(rec.amount||0); if(!isFinite(currentAmt)) currentAmt = 0;
-  var amtStr = prompt('Adjustment amount for '+staffDisplayNameForId(staffId, 'staff '+staffId)+' this week (use negative for deductions):', currentAmt||0);
+  var amtStr = prompt('Pay adjustment for '+staffDisplayNameForId(staffId, 'staff '+staffId)+' this week. This changes Total Pay, not withheld balance. Use positive to add pay or negative to deduct:', currentAmt||0);
   if(amtStr===null) return;
-  var amt = parseFloat(amtStr);
-  if(!isFinite(amt)) amt = 0;
+  var parsedAmt = parseMoneyInput(amtStr);
+  if(!isFinite(parsedAmt)){ alert('Enter a valid amount. You can use 2000, 2,000, $2,000, or -2,000.'); return; }
+  var amt = round2(parsedAmt);
   var comment = prompt('Comment / note for this adjustment:', rec.comment||'') || '';
-  setPayrollAdjustment(weekIso, staffId, amt, comment);
+  var ok = setPayrollAdjustment(weekIso, staffId, amt, comment);
+  if(ok === false) return;
   renderPayroll();
+  try{ showToast('Payroll adjustment saved', staffDisplayNameForId(staffId, 'staff '+staffId)+' '+v5041SignedMoney(amt), 'success', 3000); }catch(e){}
 }
 // Global delegation for payroll controls
 document.addEventListener('click', function(ev){
