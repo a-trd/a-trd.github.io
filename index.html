@@ -5635,9 +5635,26 @@
               <div id="payrollDocWeekResolved" class="muted" style="margin-top:4px;"></div>
             </div>
             <div id="payrollDocFyWrap">
-              <label>Financial year</label>
-              <select id="payrollDocFySelect"></select>
-              <div class="muted" style="margin-top:4px;">Year-end summary aggregates by stored pay date. If no pay date is saved for a week, the app defaults to the week end date.</div>
+              <label>Summary period</label>
+              <select id="payrollDocSummaryPeriod">
+                <option value="fy">Financial year</option>
+                <option value="custom">Custom date range</option>
+              </select>
+              <div id="payrollDocFyPickerWrap" style="margin-top:8px;">
+                <label>Financial year</label>
+                <select id="payrollDocFySelect"></select>
+              </div>
+              <div id="payrollDocCustomRangeWrap" class="grid-2" style="margin-top:8px;display:none;">
+                <div>
+                  <label>Range start</label>
+                  <input id="payrollDocRangeStart" type="date">
+                </div>
+                <div>
+                  <label>Range end</label>
+                  <input id="payrollDocRangeEnd" type="date">
+                </div>
+              </div>
+              <div class="muted" style="margin-top:4px;">Summary totals aggregate by stored pay date. If no pay date is saved for a week, the app defaults to the week end date.</div>
             </div>
           </div>
           <div class="grid-2">
@@ -18093,6 +18110,54 @@ function payrollFYBounds(startYear){
     label:String(startYear) + '-' + String(startYear+1).slice(-2)
   };
 }
+function payrollLooksLikeIsoDate(value){
+  return /^\d{4}-\d{2}-\d{2}$/.test(String(value || '').trim());
+}
+function payrollSelectedFYBounds(){
+  var raw = (byId('payrollDocFySelect') && byId('payrollDocFySelect').value) || payrollCurrentFYStartYear();
+  return payrollFYBounds(parseInt(raw, 10));
+}
+function payrollSummaryRangeLabel(startIso, endIso){
+  return payrollDocDisplayDate(startIso) + ' to ' + payrollDocDisplayDate(endIso);
+}
+function syncPayrollSummaryRangeInputs(forceFromFY){
+  var start = byId('payrollDocRangeStart');
+  var end = byId('payrollDocRangeEnd');
+  if(!start || !end) return;
+  var fy = payrollSelectedFYBounds();
+  if(forceFromFY || !start.value) setInputValueIfIdle('payrollDocRangeStart', fy.startIso);
+  if(forceFromFY || !end.value) setInputValueIfIdle('payrollDocRangeEnd', fy.endIso);
+}
+function readPayrollSummaryRangeInputs(){
+  var mode = (byId('payrollDocSummaryPeriod') && byId('payrollDocSummaryPeriod').value) || 'fy';
+  var fy = payrollSelectedFYBounds();
+  if(mode !== 'custom'){
+    return {
+      mode:'fy',
+      startIso:fy.startIso,
+      endIso:fy.endIso,
+      label:'Financial year ' + fy.label,
+      chipLabel:'FY ' + fy.label,
+      financialYear:fy.label,
+      financialYearStartYear:fy.startYear
+    };
+  }
+  var startIso = (byId('payrollDocRangeStart') && byId('payrollDocRangeStart').value || '').trim();
+  var endIso = (byId('payrollDocRangeEnd') && byId('payrollDocRangeEnd').value || '').trim();
+  if(!startIso) startIso = fy.startIso;
+  if(!endIso) endIso = fy.endIso;
+  if(!payrollLooksLikeIsoDate(startIso) || !payrollLooksLikeIsoDate(endIso)) throw new Error('Choose a valid start and end date for the payment summary range.');
+  if(endIso < startIso) throw new Error('Summary range end must be on or after the start date.');
+  return {
+    mode:'custom',
+    startIso:startIso,
+    endIso:endIso,
+    label:'Date range ' + payrollSummaryRangeLabel(startIso, endIso),
+    chipLabel:payrollSummaryRangeLabel(startIso, endIso),
+    financialYear:'',
+    financialYearStartYear:null
+  };
+}
 function payrollAllFYStartYears(){
   var years = {};
   years[payrollCurrentFYStartYear()] = true;
@@ -18553,10 +18618,15 @@ function togglePayrollDocMode(){
   var type = (byId('payrollDocType') && byId('payrollDocType').value) || 'payslip';
   var weekWrap = byId('payrollDocWeekWrap');
   var fyWrap = byId('payrollDocFyWrap');
+  var fyPickerWrap = byId('payrollDocFyPickerWrap');
+  var customRangeWrap = byId('payrollDocCustomRangeWrap');
   var weekFields = byId('payrollWeekDataFields');
   var payDateLabel = byId('payrollDocPayDateLabel');
+  var summaryMode = (byId('payrollDocSummaryPeriod') && byId('payrollDocSummaryPeriod').value) || 'fy';
   if(weekWrap) weekWrap.style.display = (type === 'payslip' ? '' : 'none');
   if(fyWrap) fyWrap.style.display = (type === 'paymentSummary' ? '' : 'none');
+  if(fyPickerWrap) fyPickerWrap.style.display = (type === 'paymentSummary' && summaryMode !== 'custom' ? '' : 'none');
+  if(customRangeWrap) customRangeWrap.style.display = (type === 'paymentSummary' && summaryMode === 'custom' ? '' : 'none');
   if(weekFields) weekFields.style.display = (type === 'payslip' ? '' : 'none');
   if(payDateLabel) payDateLabel.textContent = (type === 'payslip' ? 'Payment date' : 'Statement date');
 }
@@ -18573,6 +18643,7 @@ function syncPayrollFormsFromApp(){
     syncPayrollSelectedStaff(currentStaff);
   }
   syncPayrollFYSelect();
+  syncPayrollSummaryRangeInputs(false);
   if(byId('payrollDocWeekInput') && !byId('payrollDocWeekInput').value) byId('payrollDocWeekInput').value = Planner.weekStartISO;
   togglePayrollDocMode();
   syncPayrollStaffInputsFromApp();
@@ -18587,6 +18658,10 @@ function bindPayrollDocUI(){
   var sel2 = byId('payrollDocStaffSelect'); if(sel2 && !sel2._bound){ sel2._bound = true; sel2.onchange = function(){ syncPayrollSelectedStaff(sel2.value||''); syncPayrollStaffInputsFromApp(); syncPayrollWeekInputsFromApp(); }; }
   var wk = byId('payrollDocWeekInput'); if(wk && !wk._bound){ wk._bound = true; wk.onchange = function(){ try{ wk.value = payrollSelectedWeekIso(); }catch(e){} syncPayrollWeekInputsFromApp(); }; }
   var typ = byId('payrollDocType'); if(typ && !typ._bound){ typ._bound = true; typ.onchange = function(){ togglePayrollDocMode(); renderPayslipHistory(); }; }
+  var period = byId('payrollDocSummaryPeriod'); if(period && !period._bound){ period._bound = true; period.onchange = function(){ if(period.value === 'custom') syncPayrollSummaryRangeInputs(false); togglePayrollDocMode(); }; }
+  var fySel = byId('payrollDocFySelect'); if(fySel && !fySel._bound){ fySel._bound = true; fySel.onchange = function(){ syncPayrollSummaryRangeInputs(true); togglePayrollDocMode(); }; }
+  var rangeStart = byId('payrollDocRangeStart'); if(rangeStart && !rangeStart._bound){ rangeStart._bound = true; rangeStart.onchange = function(){ var periodEl = byId('payrollDocSummaryPeriod'); if(periodEl) periodEl.value = 'custom'; togglePayrollDocMode(); }; }
+  var rangeEnd = byId('payrollDocRangeEnd'); if(rangeEnd && !rangeEnd._bound){ rangeEnd._bound = true; rangeEnd.onchange = function(){ var periodEl = byId('payrollDocSummaryPeriod'); if(periodEl) periodEl.value = 'custom'; togglePayrollDocMode(); }; }
   var hf = byId('payslipHistoryStaffFilter'); if(hf && !hf._bound){ hf._bound = true; hf.onchange = function(){ renderPayslipHistory(); }; }
   var ht = byId('payslipHistoryTypeFilter'); if(ht && !ht._bound){ ht._bound = true; ht.onchange = function(){ renderPayslipHistory(); }; }
   var prev = byId('btnPreviewPayslip'); if(prev && !prev._bound){ prev._bound = true; prev.onclick = function(){ try{ openPayrollDocModal(buildSelectedPayrollDocument(), true); }catch(e){ alert(e && e.message ? e.message : e); } }; }
@@ -18826,11 +18901,37 @@ function buildPayslipDocument(weekIso, staffId, payDate, quickNote, useCurrentIn
     }
   };
 }
-function buildPaymentSummaryDocument(startYear, staffId, statementDate, quickNote){
+function buildPaymentSummaryDocument(rangeOrStartYear, staffId, statementDate, quickNote){
   ensurePayrollDocStores();
   staffId = String(staffId||'');
   if(!staffId) throw new Error('Choose a staff member first.');
-  var fy = payrollFYBounds(startYear);
+  var range;
+  if(rangeOrStartYear && typeof rangeOrStartYear === 'object'){
+    range = {
+      mode:rangeOrStartYear.mode || 'custom',
+      startIso:rangeOrStartYear.startIso || '',
+      endIso:rangeOrStartYear.endIso || '',
+      label:rangeOrStartYear.label || '',
+      chipLabel:rangeOrStartYear.chipLabel || '',
+      financialYear:rangeOrStartYear.financialYear || '',
+      financialYearStartYear:rangeOrStartYear.financialYearStartYear
+    };
+  }else{
+    var fy = payrollFYBounds(rangeOrStartYear);
+    range = {
+      mode:'fy',
+      startIso:fy.startIso,
+      endIso:fy.endIso,
+      label:'Financial year ' + fy.label,
+      chipLabel:'FY ' + fy.label,
+      financialYear:fy.label,
+      financialYearStartYear:fy.startYear
+    };
+  }
+  if(!payrollLooksLikeIsoDate(range.startIso) || !payrollLooksLikeIsoDate(range.endIso)) throw new Error('Choose a valid summary period.');
+  if(range.endIso < range.startIso) throw new Error('Summary range end must be on or after the start date.');
+  if(!range.label) range.label = (range.mode === 'fy' && range.financialYear) ? ('Financial year ' + range.financialYear) : ('Date range ' + payrollSummaryRangeLabel(range.startIso, range.endIso));
+  if(!range.chipLabel) range.chipLabel = (range.mode === 'fy' && range.financialYear) ? ('FY ' + range.financialYear) : payrollSummaryRangeLabel(range.startIso, range.endIso);
   var business = readPayrollBusinessInputs();
   if(!business.businessName) business = getPayrollBusinessProfile();
   if(!business.businessName) business.businessName = App.settings.appTitle || 'Employer';
@@ -18861,7 +18962,7 @@ function buildPaymentSummaryDocument(startYear, staffId, statementDate, quickNot
   weeks.forEach(function(w){
     if(!weekHasAnyData(w, staffId)) return;
     var payDate = getPayrollStoredPayDate(w, staffId);
-    if(payDate < fy.startIso || payDate > fy.endIso) return;
+    if(payDate < range.startIso || payDate > range.endIso) return;
     var doc = buildPayslipDocument(w, staffId, payDate, '', false);
     rows.push({
       weekIso:w,
@@ -18887,15 +18988,26 @@ function buildPaymentSummaryDocument(startYear, staffId, statementDate, quickNot
   totals.netPay = round2(totals.netPay);
   totals.superAmount = round2(totals.superAmount);
   var staff = App.staff[staffId] || {};
+  var safeStaffId = String(staffId).replace(/[^A-Za-z0-9]/g,'').slice(-6).toUpperCase();
+  var periodKey = (range.mode === 'fy' && range.financialYearStartYear != null)
+    ? String(range.financialYearStartYear)
+    : ('range|' + String(range.startIso) + '|' + String(range.endIso));
+  var periodCode = (range.mode === 'fy' && range.financialYearStartYear != null)
+    ? (String(range.financialYearStartYear) + String(Number(range.financialYearStartYear)+1).slice(-2))
+    : (String(range.startIso).replace(/-/g,'') + '-' + String(range.endIso).replace(/-/g,''));
   return {
     type:'paymentSummary',
-    key:'g|' + staffId + '|' + String(fy.startYear),
-    documentNo:'GC-' + String(fy.startYear) + String(fy.startYear+1).slice(-2) + '-' + String(staffId).replace(/[^A-Za-z0-9]/g,'').slice(-6).toUpperCase(),
+    key:'g|' + staffId + '|' + periodKey,
+    documentNo:'GC-' + periodCode + '-' + safeStaffId,
     generatedAt:new Date().toISOString(),
     statementDate:String(statementDate || toISO(new Date())),
-    financialYear:fy.label,
-    financialYearStartYear:fy.startYear,
-    periodLabel:'Financial year ' + fy.label,
+    financialYear:range.financialYear || '',
+    financialYearStartYear:range.financialYearStartYear,
+    summaryPeriod:range.mode,
+    periodStart:range.startIso,
+    periodEnd:range.endIso,
+    periodLabel:range.label,
+    periodChip:range.chipLabel,
     staffId:staffId,
     staffName:staff.name || payrollStaffName(staffId),
     business:business,
@@ -18933,8 +19045,7 @@ function buildSelectedPayrollDocument(){
   if(type === 'payslip'){
     return buildPayslipDocument(payrollSelectedWeekIso(), staffId, payDate, quickNote, true);
   }
-  var fyStart = parseInt((byId('payrollDocFySelect') && byId('payrollDocFySelect').value) || payrollCurrentFYStartYear(), 10);
-  return buildPaymentSummaryDocument(fyStart, staffId, payDate, quickNote);
+  return buildPaymentSummaryDocument(readPayrollSummaryRangeInputs(), staffId, payDate, quickNote);
 }
 function payrollDocDisplayDate(value){
   var s = String(value || '').trim();
@@ -19037,17 +19148,19 @@ function renderPayrollDocumentHtml(doc){
         '</tr>'
       ].join('');
     }).join('');
-    if(!weekRows) weekRows = '<tr><td colspan="7" class="doc-bad">No weeks matched this financial year.</td></tr>';
+    if(!weekRows) weekRows = '<tr><td colspan="7" class="doc-bad">No weeks matched this summary period.</td></tr>';
+    var periodChip = doc.periodChip || (doc.financialYear ? ('FY ' + doc.financialYear) : (doc.periodLabel || 'Summary'));
+    var periodSubtitle = doc.summaryPeriod === 'custom' ? 'Group certificate style date-range summary' : 'Group certificate style year-end summary';
     return [
       '<div class="doc-sheet">',
         '<div class="doc-header">',
           '<div>',
             '<div class="doc-title">Payment Summary</div>',
-            '<div class="doc-subtitle">Group certificate style year-end summary</div>',
+            '<div class="doc-subtitle">', escapeHtml(periodSubtitle), '</div>',
           '</div>',
           '<div style="text-align:right;display:flex;flex-direction:column;gap:8px;align-items:flex-end;">',
             '<div class="doc-chip">Document ', escapeHtml(doc.documentNo || ''), '</div>',
-            '<div class="doc-chip">FY ', escapeHtml(doc.financialYear || ''), '</div>',
+            '<div class="doc-chip">', escapeHtml(periodChip), '</div>',
           '</div>',
         '</div>',
         '<div class="doc-grid">',
@@ -19074,7 +19187,10 @@ function renderPayrollDocumentHtml(doc){
         '</div>',
         '<div class="doc-grid">',
           '<div class="doc-card"><h4>Statement details</h4><table class="doc-kv">',
+            payrollDocInfoLine('Summary period', doc.periodLabel || ''),
             payrollDocInfoLine('Financial year', doc.financialYear || ''),
+            payrollDocInfoLine('Period start', payrollDocDisplayDate(doc.periodStart || '')),
+            payrollDocInfoLine('Period end', payrollDocDisplayDate(doc.periodEnd || '')),
             payrollDocInfoLine('Statement date', payrollDocDisplayDate(doc.statementDate || '')),
             payrollDocInfoLine('Generated', payrollDocDisplayTimestamp(doc.generatedAt || '')),
           '</table></div>',
@@ -20281,8 +20397,6 @@ document.addEventListener('change', function(ev){
     try{ renderPayroll(); }catch(e){}
   }
 });
-
-
 
 
 // ---------- Business analytics ----------
