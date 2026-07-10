@@ -8198,7 +8198,14 @@ function appendCoveredSourcePlannerChip(wrap, sh, shiftId, st, dayIndex){
   var awayChip=document.createElement('div'); awayChip.className='away-chip'; awayChip.textContent='AWAY';
   awayChip.title = coveredSourceReasonText(sh);
   ghost.appendChild(awayBand); ghost.appendChild(awayChip);
-  if(canEdit()) ghost.onclick=function(e){ e.stopPropagation(); openShiftModal({shiftId:shiftId, dayIndex:dayIndex}); };
+  ghost.onclick=function(e){
+    e.stopPropagation();
+    if(typeof openDayToolsFor === 'function'){
+      openDayToolsFor(sh.staffId, dayIndex, {shiftKey:shiftId, allowFocusModes:true});
+    }else if(canEdit()){
+      openShiftModal({shiftId:shiftId, dayIndex:dayIndex});
+    }
+  };
   wrap.appendChild(ghost);
 }
 
@@ -13563,7 +13570,14 @@ sc.appendChild(mini);
       }
       chip.appendChild(bpill);
 
-      if(canEdit()) chip.onclick=function(e){ e.stopPropagation(); openShiftModal({shiftId:sid, dayIndex:Planner.activeDayIndex}); };
+      chip.onclick=function(e){
+        e.stopPropagation();
+        if(typeof openDayToolsFor === 'function'){
+          openDayToolsFor(id, Planner.activeDayIndex, {shiftKey:sid, allowFocusModes:true});
+        }else if(canEdit()){
+          openShiftModal({shiftId:sid, dayIndex:Planner.activeDayIndex});
+        }
+      };
       wrap.appendChild(chip);
     });
 
@@ -14450,9 +14464,10 @@ function updateWeekOverviewHours(){
 }
 
 // ---------- Week Overview Day Tools ----------
-var DayToolsCtx = {staffId:null, dayIndex:null, iso:null, weekStartISO:null};
+var DayToolsCtx = {staffId:null, dayIndex:null, iso:null, weekStartISO:null, shiftKey:null};
 
-function openDayToolsFor(staffId, dayIndex){
+function openDayToolsFor(staffId, dayIndex, opts){
+  opts = opts || {};
   staffId = String(staffId);
   dayIndex = parseInt(dayIndex||0, 10);
   if(!App.currentUser){
@@ -14464,7 +14479,7 @@ function openDayToolsFor(staffId, dayIndex){
       document.body.classList.contains('planner-focus-mode') ||
       document.body.classList.contains('week-overview-focus-mode') ||
       document.body.classList.contains('v5030-native-fullscreen')
-    )){
+    ) && !opts.allowFocusModes){
       return;
     }
   }catch(e){}
@@ -14472,6 +14487,7 @@ function openDayToolsFor(staffId, dayIndex){
   if(!modal) return;
   DayToolsCtx.staffId = staffId;
   DayToolsCtx.dayIndex = dayIndex;
+  DayToolsCtx.shiftKey = opts.shiftKey != null ? String(opts.shiftKey) : null;
   var d0 = fromISO(Planner.weekStartISO);
   d0.setDate(d0.getDate()+dayIndex);
   DayToolsCtx.iso = toISO(d0);
@@ -14493,6 +14509,8 @@ function openDayToolsFor(staffId, dayIndex){
   var btnPartialAway = byId('dtPartialAway'); if(btnPartialAway) btnPartialAway.style.display = canAwayActions ? '' : 'none';
   var btnRecurringUnavail = byId('dtRecurringUnavail'); if(btnRecurringUnavail) btnRecurringUnavail.style.display = canAwayActions ? '' : 'none';
   var btnClearAway = byId('dtClearAway'); if(btnClearAway) btnClearAway.style.display = canModerateAbsences() ? '' : 'none';
+  var btnEditShift = byId('dtEditShift');
+  if(btnEditShift) btnEditShift.style.display = canEdit() ? '' : 'none';
   var btnDeleteShift = byId('dtDeleteShift');
   if(btnDeleteShift) btnDeleteShift.style.display = (canEdit() && !!dayToolsResolveShiftKey(staffId, dayIndex)) ? '' : 'none';
   modal.style.display = 'flex';
@@ -14519,6 +14537,7 @@ function openDayToolsForDate(staffId, iso){
     Planner.weekStartISO = oldWeek;
     DayToolsCtx.weekStartISO = weekIso;
     DayToolsCtx.iso = toISO(dt);
+    DayToolsCtx.shiftKey = null;
   }catch(e){
     console.error('openDayToolsForDate error', e);
   }
@@ -14532,6 +14551,13 @@ function dayToolsResolveShiftKey(staffId, dayIndex){
     var weekIso = (DayToolsCtx && DayToolsCtx.weekStartISO) ? String(DayToolsCtx.weekStartISO) : Planner.weekStartISO;
     var week = App.weeks[weekIso] || {};
     var dayBucket = week[String(dayIndex)] || {};
+    var ctxShiftKey = (DayToolsCtx && DayToolsCtx.shiftKey != null) ? String(DayToolsCtx.shiftKey) : '';
+    if(ctxShiftKey && dayBucket[ctxShiftKey]){
+      var ctxShift = dayBucket[ctxShiftKey];
+      if(ctxShift && (String(ctxShift.staffId)===staffId || (shiftIsCover(ctxShift) && String(shiftBaseStaffId(ctxShift) || '')===staffId))){
+        return ctxShiftKey;
+      }
+    }
     var directKey = null;
     Object.keys(dayBucket).some(function(k){
       var sh = dayBucket[k];
@@ -14558,6 +14584,7 @@ function dayToolsResolveShiftKey(staffId, dayIndex){
 }
 
 function dayToolsEditShift(){
+  if(!canEdit()) return alert('Manager/Admin only.');
   if(!DayToolsCtx || DayToolsCtx.staffId==null) return;
   var staffId = DayToolsCtx.staffId;
   var dayIndex = DayToolsCtx.dayIndex || 0;
@@ -15366,7 +15393,6 @@ try{ dbPatch('/absenceRequests/'+iso, (function(){ var o={}; o[String(u.id)]=nul
     el.appendChild(item);
   }
 }
-
 
 
 // ---------- Absences: overlays + calendar + requests ----------
