@@ -264,7 +264,7 @@
   
 </style>
 
-<title>Aspire Workforce Command (V5.0.45 Modular Build)</title>
+<title>Aspire Workforce Command (V5.0.47 Modular Build)</title>
   <meta name="theme-color" content="#22c55e"/>
 
   <style>
@@ -2694,6 +2694,23 @@
     .payroll-actions-menu .payroll-actions-body { display:flex; gap:6px; flex-wrap:wrap; margin-top:6px; }
     .payroll-actions-menu .payroll-actions-body button { margin-top:0 !important; }
     .payroll-locked-note { margin-top:6px; color:var(--warn); font-size:12px; font-weight:800; }
+    .payroll-log-box { margin-top:14px; }
+    .payroll-log-head { display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; }
+    .payroll-log-head h3 { margin:0; }
+    .payroll-log-actions { display:flex; gap:8px; flex-wrap:wrap; }
+    .payroll-log-filters { display:grid; grid-template-columns:minmax(160px,1fr) minmax(150px,220px) minmax(130px,180px); gap:10px; margin-top:10px; align-items:end; }
+    .payroll-log-filters label { font-size:11px; color:var(--muted); margin:0; }
+    .payroll-log-filters select { margin-top:4px; }
+    .payroll-log-summary { margin-top:8px; }
+    .payroll-log-table-wrap { max-height:340px; overflow:auto; margin-top:8px; border:1px solid var(--border); border-radius:14px; }
+    .payroll-log-table { min-width:860px; }
+    .payroll-log-table td, .payroll-log-table th { vertical-align:top; }
+    .payroll-log-amount { font-weight:900; white-space:nowrap; }
+    .payroll-log-amount.pos { color:var(--good); }
+    .payroll-log-amount.neg { color:var(--bad); }
+    .payroll-log-note { max-width:280px; white-space:normal; }
+    .payroll-log-action { font-weight:800; }
+    .payroll-log-muted { color:var(--muted); font-size:11px; }
     .audit-card .audit-table-wrap { max-height:320px; overflow:auto; margin-top:8px; border:1px solid var(--border); border-radius:14px; }
     .audit-card table { min-width:760px; }
     .import-preview-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin:10px 0; }
@@ -2716,8 +2733,9 @@
     .myreq-month-body { padding:0 8px 8px; }
     .staff-requests-shortcut-card { border-style:dashed; }
     #staffRequestsQuickHost > #adminRequestsLogCard, #staffRequestsStatsHost > #adminRequestsLogCard { margin-top:12px; }
-    @media (max-width:700px){ .payrun-panel,.request-filter-bar,.import-preview-grid{ grid-template-columns:1fr; } .top-tools-dropdown{ right:auto; left:0; } }
+    @media (max-width:700px){ .payrun-panel,.request-filter-bar,.import-preview-grid,.payroll-log-filters{ grid-template-columns:1fr; } .top-tools-dropdown{ right:auto; left:0; } }
   
+
 </style>
 
   <style id="dailyOpsCss">
@@ -5001,7 +5019,7 @@
       <div id="appLogoBox"></div>
       <div class="titlewrap">
         <div class="title" id="appTitle">Aspire Workforce Command</div>
-        <div class="version-pill" id="appVersion">V5.0.45</div>
+        <div class="version-pill" id="appVersion">V5.0.47</div>
         <div class="sync-pill syncing" id="syncStatusChip" title="Sync status">Starting…</div>
       </div>
     </div>
@@ -5473,6 +5491,45 @@
         </div>
         <div class="muted" style="margin-top:8px;">
           Payslip export includes employer and employee details, pay period, payment date, hourly-rate lines, deductions, net pay and super contribution details. Use Print / Save PDF to export a PDF from your browser.
+        </div>
+
+        <div class="payroll-box payroll-log-box">
+          <div class="payroll-log-head">
+            <h3>Payroll log</h3>
+            <div class="payroll-log-actions">
+              <button id="btnPayrollLogExport" class="btn-outline" type="button">Export log CSV</button>
+            </div>
+          </div>
+          <div class="payroll-log-filters">
+            <label>Staff<select id="payrollLogStaffFilter"></select></label>
+            <label>Type
+              <select id="payrollLogTypeFilter">
+                <option value="">All pay activity</option>
+                <option value="withheld">Withheld</option>
+                <option value="savings">Savings</option>
+                <option value="adjustment">Pay adjustments</option>
+                <option value="paid">Paid status</option>
+                <option value="document">Payslip fields</option>
+              </select>
+            </label>
+            <label>Range
+              <select id="payrollLogRangeFilter">
+                <option value="week">Current week</option>
+                <option value="30d">Last 30 days</option>
+                <option value="all">All time</option>
+              </select>
+            </label>
+          </div>
+          <div id="payrollLogSummary" class="muted small payroll-log-summary"></div>
+          <div class="payroll-log-table-wrap">
+            <table class="table payroll-log-table" id="payrollLogTable">
+              <thead>
+                <tr><th>Date</th><th>Staff</th><th>Week</th><th>Action</th><th>Amount</th><th>Balance</th><th>Note</th><th>User</th></tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <div id="payrollLogEmpty" class="muted" style="display:none;margin-top:8px;">No payroll log entries for this filter.</div>
         </div>
 
         <div class="payroll-doc-grid">
@@ -7178,8 +7235,8 @@ var DAY = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 var App = {
   // IMPORTANT: Increment App.version *and* App.buildId whenever making functional changes to this file.
   // SAFETY NET: This build performs an automatic runtime check against the file name; if mismatched, it shows a blocking warning so it can't be overlooked.
-  version: 'V5.0.45',
-    buildId: '2026-07-07.03',
+  version: 'V5.0.47',
+    buildId: '2026-07-14.02',
 settings: {
     dbUrl:'https://mnc-atrd-default-rtdb.asia-southeast1.firebasedatabase.app/', workspace:'mnc-atrd', authToken:'',
     theme:'light', themeName:'light-pastel-sky', recentColors:[], appTitle:'Aspire Workforce Command', logoUrl:'',
@@ -7220,6 +7277,7 @@ publishedWeeks: {}
   },
   staff:{}, availability:{}, weeks:{}, absenceRequests:{}, absenceHistory:{}, shiftChangeRequests:{}, shiftChangeHistory:{}, payrollAdjustments:{}, payrollPaid:{}, payrollPaidSnapshots:{},
   payWithheld:{}, payWithheldByWeek:{}, payWithheldLog:[], paySavings:{}, paySavingsLog:[],
+  payrollLog:[], payrollLogBackfilled:false, payrollAuditLogBackfilled:false,
   payrollProfiles:{business:{}, staff:{}},
   payrollWeekData:{},
   payslipRecords:[],
@@ -7357,6 +7415,9 @@ function normalizeCoreState(){
     if(!Array.isArray(App.payWithheldLog)) App.payWithheldLog = [];
     if(!App.paySavings || typeof App.paySavings !== 'object') App.paySavings = {};
     if(!Array.isArray(App.paySavingsLog)) App.paySavingsLog = [];
+    if(!Array.isArray(App.payrollLog)) App.payrollLog = [];
+    App.payrollLogBackfilled = (App.payrollLogBackfilled === true);
+    App.payrollAuditLogBackfilled = (App.payrollAuditLogBackfilled === true);
     if(!App.payrollProfiles || typeof App.payrollProfiles !== 'object') App.payrollProfiles = {business:{}, staff:{}};
     if(!App.payrollProfiles.business || typeof App.payrollProfiles.business !== 'object') App.payrollProfiles.business = {};
     if(!App.payrollProfiles.staff || typeof App.payrollProfiles.staff !== 'object') App.payrollProfiles.staff = {};
@@ -7393,6 +7454,9 @@ function buildAppExportData(){
     payWithheldLog:App.payWithheldLog||[],
     paySavings:App.paySavings||{},
     paySavingsLog:App.paySavingsLog||[],
+    payrollLog:App.payrollLog||[],
+    payrollLogBackfilled:App.payrollLogBackfilled===true,
+    payrollAuditLogBackfilled:App.payrollAuditLogBackfilled===true,
     payrollProfiles:App.payrollProfiles||{business:{},staff:{}},
     payrollWeekData:App.payrollWeekData||{},
     payslipRecords:App.payslipRecords||[],
@@ -7425,6 +7489,9 @@ function applyExportDataToApp(d){
   App.payWithheldLog = d.payWithheldLog || App.payWithheldLog || [];
   App.paySavings = d.paySavings || App.paySavings || {};
   App.paySavingsLog = d.paySavingsLog || App.paySavingsLog || [];
+  App.payrollLog = d.payrollLog || App.payrollLog || [];
+  App.payrollLogBackfilled = (d.payrollLogBackfilled === true || App.payrollLogBackfilled === true);
+  App.payrollAuditLogBackfilled = (d.payrollAuditLogBackfilled === true || App.payrollAuditLogBackfilled === true);
   App.payrollProfiles = d.payrollProfiles || App.payrollProfiles || {business:{},staff:{}};
   App.payrollWeekData = d.payrollWeekData || App.payrollWeekData || {};
   App.payslipRecords = d.payslipRecords || App.payslipRecords || [];
@@ -8862,6 +8929,9 @@ function historySnapshotObj(){
     payWithheldLog: App.payWithheldLog,
     paySavings: App.paySavings,
     paySavingsLog: App.paySavingsLog,
+    payrollLog: App.payrollLog,
+    payrollLogBackfilled: App.payrollLogBackfilled,
+    payrollAuditLogBackfilled: App.payrollAuditLogBackfilled,
     payrollProfiles: App.payrollProfiles,
     payrollWeekData: App.payrollWeekData,
     payslipRecords: App.payslipRecords,
@@ -9023,6 +9093,9 @@ function historyApplySnapshotString(s){
     if(d.payWithheldLog) App.payWithheldLog = d.payWithheldLog;
     if(d.paySavings) App.paySavings = d.paySavings;
     if(d.paySavingsLog) App.paySavingsLog = d.paySavingsLog;
+    if(d.payrollLog) App.payrollLog = d.payrollLog;
+    if(d.payrollLogBackfilled != null) App.payrollLogBackfilled = (d.payrollLogBackfilled === true);
+    if(d.payrollAuditLogBackfilled != null) App.payrollAuditLogBackfilled = (d.payrollAuditLogBackfilled === true);
     if(d.payrollProfiles) App.payrollProfiles = d.payrollProfiles;
     if(d.payrollWeekData) App.payrollWeekData = d.payrollWeekData;
     if(d.payslipRecords) App.payslipRecords = d.payslipRecords;
@@ -9192,7 +9265,7 @@ async function dbPatch(p,data){ setSyncStatus('syncing', 'Syncing…'); try{ var
 
 // ---------- User preferences (per-user; stored in Firebase) ----------
 
-// V5.0.45: clearer sync diagnostics, keeping the public dbGet/dbPatch API unchanged.
+// Clearer sync diagnostics, keeping the public dbGet/dbPatch API unchanged.
 dbGet = async function(p){
   var path = String(p || '');
   setSyncStatus('syncing', 'Syncing...');
@@ -10096,6 +10169,9 @@ function v413EnsureStores(){
     if(!Array.isArray(App.auditLog)) App.auditLog = [];
     if(!App.payRunStatus || typeof App.payRunStatus !== 'object') App.payRunStatus = {};
     if(!App.payrollPaidSnapshots || typeof App.payrollPaidSnapshots !== 'object') App.payrollPaidSnapshots = {};
+    if(!Array.isArray(App.payrollLog)) App.payrollLog = [];
+    App.payrollLogBackfilled = (App.payrollLogBackfilled === true);
+    App.payrollAuditLogBackfilled = (App.payrollAuditLogBackfilled === true);
     if(!App.syncMeta || typeof App.syncMeta !== 'object') App.syncMeta = {};
     if(!App.syncMeta.clientId){
       try{
@@ -10143,6 +10219,9 @@ function v413AddAudit(action, detail, entity){
     d.auditLog = App.auditLog || [];
     d.payRunStatus = App.payRunStatus || {};
     d.payrollPaidSnapshots = App.payrollPaidSnapshots || {};
+    d.payrollLog = App.payrollLog || [];
+    d.payrollLogBackfilled = App.payrollLogBackfilled === true;
+    d.payrollAuditLogBackfilled = App.payrollAuditLogBackfilled === true;
     d.syncMeta = App.syncMeta || {};
     d.version = App.version;
     d.buildId = App.buildId;
@@ -10157,6 +10236,9 @@ function v413AddAudit(action, detail, entity){
       if(payload && Array.isArray(payload.auditLog)) App.auditLog = payload.auditLog;
       if(payload && payload.payRunStatus && typeof payload.payRunStatus==='object') App.payRunStatus = payload.payRunStatus;
       if(payload && payload.payrollPaidSnapshots && typeof payload.payrollPaidSnapshots==='object') App.payrollPaidSnapshots = payload.payrollPaidSnapshots;
+      if(payload && Array.isArray(payload.payrollLog)) App.payrollLog = payload.payrollLog;
+      if(payload && payload.payrollLogBackfilled != null) App.payrollLogBackfilled = (payload.payrollLogBackfilled === true);
+      if(payload && payload.payrollAuditLogBackfilled != null) App.payrollAuditLogBackfilled = (payload.payrollAuditLogBackfilled === true);
       if(payload && payload.syncMeta && typeof payload.syncMeta==='object') App.syncMeta = payload.syncMeta;
       v413EnsureStores();
     }catch(e){}
@@ -10466,7 +10548,7 @@ function v413ExportAuditCsv(){
 // Import validation and preview.
 function v413ValidateImportPayload(d){
   var payload = v413FindExportPayload(d);
-  var known = ['settings','staff','availability','weeks','absenceRequests','absenceHistory','shiftChangeRequests','shiftChangeHistory','payrollAdjustments','payrollPaid','payrollPaidSnapshots','payWithheld','payWithheldByWeek','payWithheldLog','paySavings','paySavingsLog','payrollProfiles','payrollWeekData','payslipRecords','businessAnalytics','dailyOps','recurringUnavailability','editRequests','rosterTemplates','auditLog','payRunStatus','syncMeta','version','buildId'];
+  var known = ['settings','staff','availability','weeks','absenceRequests','absenceHistory','shiftChangeRequests','shiftChangeHistory','payrollAdjustments','payrollPaid','payrollPaidSnapshots','payWithheld','payWithheldByWeek','payWithheldLog','paySavings','paySavingsLog','payrollLog','payrollLogBackfilled','payrollAuditLogBackfilled','payrollProfiles','payrollWeekData','payslipRecords','businessAnalytics','dailyOps','recurringUnavailability','editRequests','rosterTemplates','auditLog','payRunStatus','syncMeta','version','buildId'];
   var stats = [];
   var warnings = [];
   function cntObj(k){ return payload && payload[k] && typeof payload[k]==='object' ? Object.keys(payload[k]).length : 0; }
@@ -17387,6 +17469,7 @@ function getSavingsBalance(staffId){
 function adjustSavings(staffId, amount, note){
   if(!isAdmin()) return alert('Admin only.');
   ensureSavingsStores();
+  try{ ensurePayrollStores(); }catch(e){}
   staffId = String(staffId||'');
   var parsedAmount = parseMoneyInput(amount);
   if(!staffId || !isFinite(parsedAmount)) return false;
@@ -17408,6 +17491,18 @@ function adjustSavings(staffId, amount, note){
     balance:next,
     note:note||''
   });
+  try{
+    recordPayrollTransaction({
+      category:'savings',
+      type:amount >= 0 ? 'deposit' : 'payout',
+      action:amount >= 0 ? 'Savings deposit' : 'Savings payout',
+      staffId:staffId,
+      weekIso:Planner.weekStartISO || '',
+      amount:amount,
+      balance:next,
+      note:note||''
+    });
+  }catch(e){}
   saveLocal();
   try{
     var p1={}; p1[staffId]=App.paySavings[staffId];
@@ -17495,6 +17590,7 @@ function syncWithheldBalanceFromWeeks(staffId, fallbackBalance){
 function addWithheld(weekIso, staffId, amount, note){
   if(!isAdmin()) return alert('Admin only.');
   ensureWithheldStores();
+  try{ ensurePayrollStores(); }catch(e){}
   weekIso = String(weekIso||'');
   staffId = String(staffId||'');
   var parsedAmount = parseMoneyInput(amount);
@@ -17506,6 +17602,18 @@ function addWithheld(weekIso, staffId, amount, note){
   App.payWithheldByWeek[weekIso][staffId] = (numFromAnyWithheld(App.payWithheldByWeek[weekIso][staffId])||0) + amount;
   App.payWithheld[staffId] = syncWithheldBalanceFromWeeks(staffId, (numFromAnyWithheld(App.payWithheld[staffId])||0) + amount);
   App.payWithheldLog.push({ts:new Date().toISOString(), type:'withhold', weekIso:weekIso, staffId:staffId, amount:amount, note:note||''});
+  try{
+    recordPayrollTransaction({
+      category:'withheld',
+      type:'withhold',
+      action:'Withheld added',
+      weekIso:weekIso,
+      staffId:staffId,
+      amount:amount,
+      balance:App.payWithheld[staffId],
+      note:note||''
+    });
+  }catch(e){}
   saveLocal();
 // Push withheld to Firebase (best-effort)
   try{
@@ -17519,6 +17627,7 @@ function addWithheld(weekIso, staffId, amount, note){
 function clearWithheld(staffId, note){
   if(!isAdmin()) return alert('Admin only.');
   ensureWithheldStores();
+  try{ ensurePayrollStores(); }catch(e){}
   staffId = String(staffId||'');
   if(!staffId) return;
   var bal = getWithheldBalance(staffId);
@@ -17532,6 +17641,18 @@ function clearWithheld(staffId, note){
   });
   App.payWithheld[staffId] = 0;
   App.payWithheldLog.push({ts:new Date().toISOString(), type:'paid', staffId:staffId, amount:bal, note:note||''});
+  try{
+    recordPayrollTransaction({
+      category:'withheld',
+      type:'paid',
+      action:'Withheld paid in full',
+      weekIso:Planner.weekStartISO || '',
+      staffId:staffId,
+      amount:-Math.abs(bal),
+      balance:0,
+      note:note||''
+    });
+  }catch(e){}
   saveLocal();
 // Push withheld to Firebase (best-effort)
   try{
@@ -17544,6 +17665,7 @@ function clearWithheld(staffId, note){
 function payPartialWithheld(staffId, amount, note){
   if(!isAdmin()) return alert('Admin only.');
   ensureWithheldStores();
+  try{ ensurePayrollStores(); }catch(e){}
   staffId = String(staffId||'');
   amount = round2(amount);
   if(!staffId) return [];
@@ -17585,6 +17707,18 @@ function payPartialWithheld(staffId, amount, note){
   allocations.forEach(function(rec){
     App.payWithheldLog.push({ts:ts, type:'partialPaid', weekIso:rec.weekIso, staffId:staffId, amount:rec.amount, note:note||''});
   });
+  try{
+    recordPayrollTransaction({
+      category:'withheld',
+      type:'partialPaid',
+      action:'Withheld partial payout',
+      weekIso:allocations.length === 1 ? allocations[0].weekIso : (Planner.weekStartISO || ''),
+      staffId:staffId,
+      amount:-Math.abs(paidTotal),
+      balance:App.payWithheld[staffId],
+      note:(note||'') + (allocations.length>1 ? (' | Weeks: ' + allocations.map(function(a){ return a.weekIso; }).join(', ')) : '')
+    });
+  }catch(e){}
   saveLocal();
 
   try{
@@ -17662,6 +17796,7 @@ var _withholdManageCtx = {staffId:null, weekIso:null};
 function adjustWithheldDelta(weekIso, staffId, delta, note){
   if(!isAdmin()) return alert('Admin only.');
   ensureWithheldStores();
+  try{ ensurePayrollStores(); }catch(e){}
   weekIso = String(weekIso||'');
   staffId = String(staffId||'');
   var parsedDelta = parseMoneyInput(delta);
@@ -17692,6 +17827,18 @@ function adjustWithheldDelta(weekIso, staffId, delta, note){
   App.payWithheld[staffId] = syncWithheldBalanceFromWeeks(staffId, curBal + delta);
 
   App.payWithheldLog.push({ts:new Date().toISOString(), type:'adjust', weekIso:weekIso, staffId:staffId, amount:delta, note:note||''});
+  try{
+    recordPayrollTransaction({
+      category:'withheld',
+      type:'adjust',
+      action:'Withheld adjusted',
+      weekIso:weekIso,
+      staffId:staffId,
+      amount:delta,
+      balance:App.payWithheld[staffId],
+      note:note||''
+    });
+  }catch(e){}
   saveLocal();
 // Push withheld to Firebase (best-effort)
   try{
@@ -17706,6 +17853,7 @@ function adjustWithheldDelta(weekIso, staffId, delta, note){
 function removeWithheldLogEntry(idx){
   if(!isAdmin()) return alert('Admin only.');
   ensureWithheldStores();
+  try{ ensurePayrollStores(); }catch(e){}
   idx = parseInt(idx, 10);
   if(!isFinite(idx) || idx<0 || idx>= (App.payWithheldLog||[]).length) return;
   var entry = App.payWithheldLog[idx];
@@ -17765,6 +17913,19 @@ function removeWithheldLogEntry(idx){
   if(staffId) App.payWithheld[staffId] = syncWithheldBalanceFromWeeks(staffId, Math.max(0, fallbackBal));
 
   App.payWithheldLog.splice(idx, 1);
+  try{
+    var reversalAmount = (type === 'partialPaid') ? Math.abs(amt) : -amt;
+    recordPayrollTransaction({
+      category:'withheld',
+      type:'reversal',
+      action:'Withheld entry reversed',
+      weekIso:weekIso || Planner.weekStartISO || '',
+      staffId:staffId,
+      amount:reversalAmount,
+      balance:staffId ? App.payWithheld[staffId] : null,
+      note:'Removed '+typeLabel+(entry.note ? (': '+String(entry.note||'')) : '')
+    });
+  }catch(e){}
   saveLocal();
   try{
     if(staffId){
@@ -18027,7 +18188,6 @@ document.addEventListener('click', function(ev){
     removeWithheldLogEntry(idx);
   }
 });
-
 
 
 // ---------- Payroll documents ----------
@@ -18357,6 +18517,20 @@ function savePayrollWeekData(quiet){
   if(validationError) return alert(validationError);
   if(!App.payrollWeekData[weekIso]) App.payrollWeekData[weekIso] = {};
   App.payrollWeekData[weekIso][staffId] = rec;
+  try{
+    var payg = payrollLogNumber(rec.paygWithheld, 0) || 0;
+    var other = payrollLogNumber(rec.otherDeductions, 0) || 0;
+    recordPayrollTransaction({
+      category:'document',
+      type:'payslipFields',
+      action:'Payslip fields saved',
+      weekIso:weekIso,
+      staffId:staffId,
+      amount:-(payg + other),
+      balance:null,
+      note:'PAYG '+fmtMoney(payg)+' | Other deductions '+fmtMoney(other)+(rec.otherDeductionDetails ? (' | '+rec.otherDeductionDetails) : '')
+    });
+  }catch(e){}
   saveLocal();
   syncPayrollDocStoresBestEffort();
   if(!quiet) showToast('Saved', 'Weekly payslip fields saved for ' + payrollWeekRangeLabel(weekIso) + '.', 'success', 2500);
@@ -19630,6 +19804,7 @@ function renderPayroll(){
   var aps = byId('allPaidStatus'); if(aps) aps.textContent = String(aPaid) + '/' + String(aPaidEligible) + ' paid';
   try{ syncPayrollFormsFromApp(); }catch(e){}
   try{ renderPayslipHistory(); }catch(e){}
+  try{ renderPayrollLog(); }catch(e){}
   try{ if(isAdmin && isAdmin()){ var sec=byId('statsSection'); if(sec && sec.classList.contains('show')) renderStats(); } }catch(e){}
 }
 
@@ -20167,6 +20342,406 @@ function ensurePayrollStores(){
   if(!App.payrollAdjustments) App.payrollAdjustments = {};
   if(!App.payrollPaid) App.payrollPaid = {};
   if(!App.payrollPaidSnapshots) App.payrollPaidSnapshots = {};
+  if(!Array.isArray(App.payrollLog)) App.payrollLog = [];
+  if(App.payrollLogBackfilled !== true) backfillPayrollLogFromLegacy();
+  if(App.payrollAuditLogBackfilled !== true) backfillPayrollLogFromAudit();
+  if(App.payrollLog.length > 2000) App.payrollLog.length = 2000;
+}
+function payrollLogNumber(v, fallback){
+  var n = parseMoneyInput(v);
+  if(!isFinite(n)) n = parseFloat(v);
+  if(!isFinite(n)){
+    if(fallback == null) return fallback;
+    var f = parseFloat(fallback);
+    return isFinite(f) ? round2(f) : fallback;
+  }
+  return round2(n);
+}
+function payrollLogId(prefix){
+  return String(prefix||'pay') + '_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,8);
+}
+function payrollLogLegacyId(prefix, idx, rec){
+  return 'legacy_' + String(prefix||'pay') + '_' + String(idx) + '_' + String((rec && rec.ts) || '').replace(/[^0-9A-Za-z]/g,'').slice(0,18);
+}
+function payrollLogUserLabel(){
+  try{ if(typeof v413UserLabel === 'function') return v413UserLabel(); }catch(e){}
+  try{ return App.currentUser ? staffDisplayNameForId(App.currentUser.id, App.currentUser.name || App.currentUser.id) : ''; }catch(e){ return ''; }
+}
+function payrollLogWeekFromTs(ts){
+  try{
+    var d = ts ? new Date(ts) : new Date();
+    if(isNaN(d.getTime())) return '';
+    return toISO(weekStart(d));
+  }catch(e){ return ''; }
+}
+function payrollLogLegacyWithheldAction(type){
+  type = String(type||'');
+  if(type === 'withhold') return 'Withheld added';
+  if(type === 'adjust') return 'Withheld adjusted';
+  if(type === 'partialPaid') return 'Withheld partial payout';
+  if(type === 'paid') return 'Withheld paid in full';
+  return 'Withheld entry';
+}
+function payrollLogLegacySavingsAction(type){
+  type = String(type||'');
+  if(type === 'deposit') return 'Savings deposit';
+  if(type === 'payout') return 'Savings payout';
+  return 'Savings entry';
+}
+function payrollLogAuditCleanDetail(detail){
+  return String(detail||'').replace(/\b\d{4}-\d{2}-\d{2}\b/g, ' ').replace(/[+-]?\s*\$?\s*\d[\d,]*(?:\.\d{1,2})?/g, ' ').replace(/->/g, ' ').replace(/\s+/g, ' ').trim();
+}
+function payrollLogAuditAmount(detail){
+  var cleaned = String(detail||'').replace(/\b\d{4}-\d{2}-\d{2}\b/g, ' ');
+  var matches = cleaned.match(/[+-]?\s*\$?\s*\d[\d,]*(?:\.\d{1,2})?/g);
+  if(!matches || !matches.length) return null;
+  for(var i=matches.length-1; i>=0; i--){
+    var raw = String(matches[i]||'').trim();
+    if(!raw) continue;
+    var n = payrollLogNumber(raw, null);
+    if(n != null && isFinite(parseFloat(n))) return round2(n);
+  }
+  return null;
+}
+function payrollLogAuditWeeks(detail){
+  return String(detail||'').match(/\b\d{4}-\d{2}-\d{2}\b/g) || [];
+}
+function payrollLogStaffNameCandidates(staffId){
+  var st = (App.staff && App.staff[staffId]) || {};
+  var out = [];
+  function add(v){ v = String(v||'').trim(); if(v && out.indexOf(v) === -1) out.push(v); }
+  try{ add(staffDisplayNameForId(staffId, staffId)); }catch(e){}
+  try{ add(staffFullNameForId(staffId, '')); }catch(e){}
+  add(st.name); add(st.fullName); add(st.displayName); add(st.shortName); add(st.nickName); add(st.nickname);
+  if(st.firstName || st.lastName) add(String(st.firstName||'') + ' ' + String(st.lastName||''));
+  return out;
+}
+function payrollLogResolveAuditStaff(detail){
+  var s = String(detail||'').trim();
+  var lower = s.toLowerCase();
+  var best = {staffId:'', staffName:''};
+  Object.keys(App.staff||{}).forEach(function(id){
+    payrollLogStaffNameCandidates(id).forEach(function(name){
+      var n = String(name||'').trim();
+      if(!n) return;
+      var nl = n.toLowerCase();
+      if(lower === nl || lower.indexOf(nl + ' ') === 0 || lower.indexOf(nl + '$') === 0 || lower.indexOf(nl + '+') === 0 || lower.indexOf(nl + '-') === 0){
+        if(n.length > String(best.staffName||'').length) best = {staffId:String(id), staffName:n};
+      }
+    });
+  });
+  if(!best.staffName){
+    var fallback = payrollLogAuditCleanDetail(s);
+    if(fallback && !/^(paid|payroll|staff|weekly|withheld|pay)$/i.test(fallback)) best.staffName = fallback;
+  }
+  return best;
+}
+function payrollLogAuditExistingMatch(candidate){
+  if(!candidate) return false;
+  var auditId = String(candidate.auditId||'');
+  var ts = String(candidate.ts||'');
+  var staffId = String(candidate.staffId||'');
+  var action = String(candidate.action||'');
+  var amount = candidate.amount == null ? null : round2(candidate.amount);
+  return (App.payrollLog||[]).some(function(r){
+    if(!r) return false;
+    if(auditId && String(r.auditId||'') === auditId) return true;
+    if(String(r.ts||'') !== ts) return false;
+    if(staffId && String(r.staffId||'') !== staffId) return false;
+    if(action && String(r.action||'') !== action) return false;
+    var ra = r.amount == null ? null : round2(r.amount);
+    return String(r.category||'') === String(candidate.category||'') && ra === amount;
+  });
+}
+function payrollLogFromAuditRecord(r, idx){
+  if(!r || String(r.entity||'') !== 'payroll') return null;
+  var auditAction = String(r.action||'');
+  var detail = String(r.detail||'');
+  var weeks = payrollLogAuditWeeks(detail);
+  var amount = payrollLogAuditAmount(detail);
+  var staff = payrollLogResolveAuditStaff(detail);
+  var rec = {
+    id:payrollLogLegacyId('audit', idx, r),
+    ts:r.ts || new Date().toISOString(),
+    category:'',
+    action:auditAction,
+    type:'',
+    weekIso:weeks[0] || payrollLogWeekFromTs(r.ts),
+    staffId:staff.staffId,
+    staffName:staff.staffName,
+    amount:null,
+    balance:null,
+    note:'Backfilled from audit: ' + auditAction,
+    user:r.user || '',
+    userId:r.userId || '',
+    sourceWeek:'',
+    auditId:r.id || '',
+    source:'auditLog',
+    legacy:true,
+    version:String(r.version || App.version || '')
+  };
+
+  if(auditAction === 'Pay withheld added'){
+    rec.category = 'withheld'; rec.type = 'withhold'; rec.action = 'Withheld added';
+    rec.amount = amount == null ? null : Math.abs(amount);
+  }else if(auditAction === 'Withheld balance cleared'){
+    rec.category = 'withheld'; rec.type = 'paid'; rec.action = 'Withheld balance cleared';
+  }else if(auditAction === 'Partial withheld paid'){
+    rec.category = 'withheld'; rec.type = 'partialPaid'; rec.action = 'Withheld partial payout';
+    rec.amount = amount == null ? null : -Math.abs(amount);
+  }else if(auditAction === 'Staff savings changed'){
+    rec.category = 'savings';
+    rec.type = amount != null && amount < 0 ? 'payout' : 'deposit';
+    rec.action = amount != null && amount < 0 ? 'Savings payout' : 'Savings deposit';
+    rec.amount = amount;
+  }else if(auditAction === 'Payroll adjustment'){
+    rec.category = 'adjustment'; rec.type = 'payAdjustment'; rec.action = 'Pay adjustment updated';
+    rec.amount = amount;
+  }else if(auditAction === 'Paid delta carried forward'){
+    rec.category = 'adjustment'; rec.type = 'paidDeltaCarry'; rec.action = 'Paid delta carried forward';
+    rec.sourceWeek = weeks[0] || '';
+    rec.weekIso = weeks[1] || rec.weekIso;
+    rec.amount = amount;
+  }else if(auditAction === 'Staff marked paid' || auditAction === 'Marked paid'){
+    rec.category = 'paid'; rec.type = 'paid'; rec.action = 'Marked paid';
+  }else if(auditAction === 'Staff marked unpaid' || auditAction === 'Marked unpaid'){
+    rec.category = 'paid'; rec.type = 'unpaid'; rec.action = 'Marked unpaid';
+  }else if(auditAction === 'Weekly payslip fields saved'){
+    rec.category = 'document'; rec.type = 'payslipFields'; rec.action = 'Weekly payslip fields saved';
+    rec.staffId = ''; rec.staffName = ''; rec.amount = null;
+  }else{
+    return null;
+  }
+  if(rec.amount != null) rec.amount = round2(rec.amount);
+  return rec;
+}
+function backfillPayrollLogFromLegacy(){
+  try{
+    if(!Array.isArray(App.payrollLog)) App.payrollLog = [];
+    var seen = {};
+    App.payrollLog.forEach(function(r){ if(r && r.id) seen[String(r.id)] = true; });
+    var added = [];
+    (App.payWithheldLog||[]).forEach(function(r, idx){
+      if(!r) return;
+      var id = payrollLogLegacyId('withheld', idx, r);
+      if(seen[id]) return;
+      var tp = String(r.type||'');
+      var rawAmt = payrollLogNumber(r.amount, 0) || 0;
+      var amt = (tp === 'partialPaid' || tp === 'paid') ? -Math.abs(rawAmt) : rawAmt;
+      added.push({
+        id:id,
+        ts:r.ts || new Date().toISOString(),
+        category:'withheld',
+        action:payrollLogLegacyWithheldAction(tp),
+        type:tp,
+        weekIso:r.weekIso || '',
+        staffId:String(r.staffId||''),
+        amount:round2(amt),
+        balance:null,
+        note:r.note || '',
+        user:'',
+        userId:'',
+        legacy:true,
+        version:String(App.version||'')
+      });
+      seen[id] = true;
+    });
+    (App.paySavingsLog||[]).forEach(function(r, idx){
+      if(!r) return;
+      var id = payrollLogLegacyId('savings', idx, r);
+      if(seen[id]) return;
+      var tp = String(r.type||'');
+      var rawAmt = payrollLogNumber(r.amount, 0) || 0;
+      var amt = tp === 'payout' ? -Math.abs(rawAmt) : rawAmt;
+      added.push({
+        id:id,
+        ts:r.ts || new Date().toISOString(),
+        category:'savings',
+        action:payrollLogLegacySavingsAction(tp),
+        type:tp,
+        weekIso:r.weekIso || payrollLogWeekFromTs(r.ts),
+        staffId:String(r.staffId||''),
+        amount:round2(amt),
+        balance:(r.balance==null ? null : payrollLogNumber(r.balance, null)),
+        note:r.note || '',
+        user:'',
+        userId:'',
+        legacy:true,
+        version:String(App.version||'')
+      });
+      seen[id] = true;
+    });
+    if(added.length){
+      App.payrollLog = (App.payrollLog||[]).concat(added);
+      App.payrollLog.sort(function(a,b){ return String(b.ts||'').localeCompare(String(a.ts||'')); });
+      if(App.payrollLog.length > 2000) App.payrollLog.length = 2000;
+    }
+    App.payrollLogBackfilled = true;
+  }catch(e){
+    if(!Array.isArray(App.payrollLog)) App.payrollLog = [];
+    App.payrollLogBackfilled = true;
+  }
+}
+function backfillPayrollLogFromAudit(){
+  try{
+    if(!Array.isArray(App.payrollLog)) App.payrollLog = [];
+    var seen = {};
+    App.payrollLog.forEach(function(r){ if(r && r.id) seen[String(r.id)] = true; });
+    var added = [];
+    (App.auditLog||[]).forEach(function(r, idx){
+      var rec = payrollLogFromAuditRecord(r, idx);
+      if(!rec) return;
+      if(seen[rec.id] || payrollLogAuditExistingMatch(rec)) return;
+      added.push(rec);
+      seen[rec.id] = true;
+    });
+    if(added.length){
+      App.payrollLog = (App.payrollLog||[]).concat(added);
+      App.payrollLog.sort(function(a,b){ return String(b.ts||'').localeCompare(String(a.ts||'')); });
+      if(App.payrollLog.length > 2000) App.payrollLog.length = 2000;
+    }
+    App.payrollAuditLogBackfilled = true;
+  }catch(e){
+    if(!Array.isArray(App.payrollLog)) App.payrollLog = [];
+    App.payrollAuditLogBackfilled = true;
+  }
+}
+function syncPayrollLog(){
+  try{
+    dbPatch('', {payrollLog:App.payrollLog||[], payrollLogBackfilled:App.payrollLogBackfilled===true, payrollAuditLogBackfilled:App.payrollAuditLogBackfilled===true}).catch(function(){});
+  }catch(e){}
+}
+function recordPayrollTransaction(opts){
+  opts = opts || {};
+  ensurePayrollStores();
+  var staffId = String(opts.staffId||'');
+  var amount = (opts.amount == null) ? null : payrollLogNumber(opts.amount, 0);
+  var balance = (opts.balance == null) ? null : payrollLogNumber(opts.balance, null);
+  var rec = {
+    id: opts.id || payrollLogId('payroll'),
+    ts: opts.ts || new Date().toISOString(),
+    category: String(opts.category || 'payroll'),
+    action: String(opts.action || 'Payroll update'),
+    type: String(opts.type || ''),
+    weekIso: String(opts.weekIso || ''),
+    staffId: staffId,
+    staffName: staffId ? staffDisplayNameForId(staffId, staffId) : '',
+    amount: amount,
+    balance: balance,
+    note: String(opts.note || ''),
+    userId: (App.currentUser && App.currentUser.id!=null) ? String(App.currentUser.id) : '',
+    user: payrollLogUserLabel(),
+    sourceWeek: String(opts.sourceWeek || ''),
+    version: String(App.version||'')
+  };
+  App.payrollLog.unshift(rec);
+  if(App.payrollLog.length > 2000) App.payrollLog.length = 2000;
+  try{ syncPayrollLog(); }catch(e){}
+  return rec;
+}
+function payrollLogAmountHtml(n){
+  if(n == null || !isFinite(parseFloat(n))) return '';
+  var v = parseFloat(n);
+  var cls = v > 0 ? 'pos' : (v < 0 ? 'neg' : '');
+  var txt = (v > 0 ? '+' : (v < 0 ? '-' : '')) + fmtMoney(Math.abs(v));
+  return '<span class="payroll-log-amount '+cls+'">'+escapeHtml(txt)+'</span>';
+}
+function payrollLogDateText(ts){
+  try{
+    var d = new Date(ts);
+    if(isNaN(d.getTime())) return String(ts||'');
+    return d.toLocaleString();
+  }catch(e){ return String(ts||''); }
+}
+function payrollLogFilteredRows(){
+  ensurePayrollStores();
+  var staffFilter = byId('payrollLogStaffFilter') ? String(byId('payrollLogStaffFilter').value||'') : '';
+  var typeFilter = byId('payrollLogTypeFilter') ? String(byId('payrollLogTypeFilter').value||'') : '';
+  var rangeFilter = byId('payrollLogRangeFilter') ? String(byId('payrollLogRangeFilter').value||'week') : 'week';
+  var now = Date.now();
+  var weekIso = Planner.weekStartISO;
+  return (App.payrollLog||[]).filter(function(r){
+    if(!r) return false;
+    if(staffFilter && String(r.staffId||'') !== staffFilter) return false;
+    if(typeFilter && String(r.category||'') !== typeFilter) return false;
+    if(rangeFilter === 'week'){
+      var rw = String(r.weekIso || payrollLogWeekFromTs(r.ts) || '');
+      if(rw !== weekIso) return false;
+    }else if(rangeFilter === '30d'){
+      var t = Date.parse(r.ts||'');
+      if(!isFinite(t) || (now - t) > 30*24*60*60*1000) return false;
+    }
+    return true;
+  }).sort(function(a,b){ return String(b.ts||'').localeCompare(String(a.ts||'')); });
+}
+function renderPayrollLog(){
+  var table = byId('payrollLogTable');
+  if(!table) return;
+  ensurePayrollStores();
+  var staffSel = byId('payrollLogStaffFilter');
+  if(staffSel){
+    var keep = staffSel.value || '';
+    var opts = ['<option value="">All staff</option>'];
+    Object.keys(App.staff||{}).sort(function(a,b){ return staffSortNameForId(a).localeCompare(staffSortNameForId(b)); }).forEach(function(id){
+      var st = App.staff[id] || {};
+      if((st.role||'staff')==='admin' || st.hidden) return;
+      opts.push('<option value="'+escapeHtml(String(id))+'">'+escapeHtml(staffDisplayNameForId(id, st.name||id))+'</option>');
+    });
+    staffSel.innerHTML = opts.join('');
+    staffSel.value = keep;
+    staffSel.onchange = renderPayrollLog;
+  }
+  var typeSel = byId('payrollLogTypeFilter'); if(typeSel) typeSel.onchange = renderPayrollLog;
+  var rangeSel = byId('payrollLogRangeFilter'); if(rangeSel) rangeSel.onchange = renderPayrollLog;
+  var btn = byId('btnPayrollLogExport'); if(btn) btn.onclick = exportPayrollLogCsv;
+  var rows = payrollLogFilteredRows();
+  var tbody = table.querySelector('tbody');
+  if(!tbody) return;
+  var shown = rows.slice(0, 250);
+  tbody.innerHTML = shown.map(function(r){
+    var staff = r.staffName || (r.staffId ? staffDisplayNameForId(r.staffId, r.staffId) : '');
+    var note = r.note || '';
+    if(r.sourceWeek) note += (note ? ' | ' : '') + 'Source week: ' + r.sourceWeek;
+    return '<tr>'
+      + '<td>'+escapeHtml(payrollLogDateText(r.ts))+'</td>'
+      + '<td>'+escapeHtml(staff || '- ')+'</td>'
+      + '<td>'+escapeHtml(r.weekIso || payrollLogWeekFromTs(r.ts) || '-')+'</td>'
+      + '<td><div class="payroll-log-action">'+escapeHtml(r.action||'Payroll update')+'</div><div class="payroll-log-muted">'+escapeHtml(r.category||'')+'</div></td>'
+      + '<td>'+payrollLogAmountHtml(r.amount)+'</td>'
+      + '<td>'+((r.balance==null || !isFinite(parseFloat(r.balance))) ? '' : escapeHtml(fmtMoney(r.balance)))+'</td>'
+      + '<td class="payroll-log-note">'+escapeHtml(note)+'</td>'
+      + '<td>'+escapeHtml(r.user || '')+'</td>'
+      + '</tr>';
+  }).join('');
+  var totalAmt = rows.reduce(function(sum,r){ var n=parseFloat(r.amount); return sum + (isFinite(n)?n:0); }, 0);
+  var summary = byId('payrollLogSummary');
+  if(summary) summary.textContent = 'Showing ' + String(shown.length) + ' of ' + String(rows.length) + ' entries | Net movement ' + (totalAmt>=0?'+':'-') + fmtMoney(Math.abs(totalAmt));
+  var empty = byId('payrollLogEmpty');
+  if(empty) empty.style.display = rows.length ? 'none' : 'block';
+}
+function exportPayrollLogCsv(){
+  var rows = payrollLogFilteredRows();
+  if(!rows.length) return alert('No payroll log entries to export for this filter.');
+  var csvRows = [['Date','Staff','Week','Category','Action','Amount','Balance','Note','User','Version']];
+  rows.forEach(function(r){
+    csvRows.push([
+      payrollLogDateText(r.ts),
+      r.staffName || (r.staffId ? staffDisplayNameForId(r.staffId, r.staffId) : ''),
+      r.weekIso || payrollLogWeekFromTs(r.ts) || '',
+      r.category || '',
+      r.action || '',
+      r.amount == null ? '' : String(r.amount),
+      r.balance == null ? '' : String(r.balance),
+      r.note || '',
+      r.user || '',
+      r.version || ''
+    ]);
+  });
+  var csv = csvRows.map(function(row){ return row.map(function(v){ return '"' + String(v).replace(/"/g,'""') + '"'; }).join(','); }).join('\n');
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+  a.download='payroll_log_'+(Planner.weekStartISO||toISO(new Date()))+'.csv';
+  a.click();
 }
 function v5041PayrollSnapshotForStaff(weekIso, staffId){
   ensurePayrollStores();
@@ -20319,7 +20894,12 @@ function v5041CarryPaidDeltaToNextWeek(weekIso, staffId){
   if(!isFinite(existingAmt)) existingAmt = 0;
   var note = 'Carry-forward from paid week ' + weekIso + ': ' + v5041SignedMoney(payDelta) + ' (' + v5041SignedHours(hrsDelta) + ' payable hrs)';
   var nextComment = existing.comment ? (String(existing.comment) + ' | ' + note) : note;
-  setPayrollAdjustment(targetWeek, staffId, existingAmt + payDelta, nextComment);
+  setPayrollAdjustment(targetWeek, staffId, existingAmt + payDelta, nextComment, {
+    action:'Paid delta carried forward',
+    amount:payDelta,
+    sourceWeek:weekIso,
+    note:note
+  });
   v5041StorePaidSnapshot(weekIso, staffId);
   v5041SyncPayrollPaidState(weekIso);
   try{ v413AddAudit('Paid delta carried forward', staffDisplayNameForId(staffId, staffId) + ' ' + weekIso + ' -> ' + targetWeek + ' ' + v5041SignedMoney(payDelta), 'payroll'); }catch(e){}
@@ -20327,7 +20907,7 @@ function v5041CarryPaidDeltaToNextWeek(weekIso, staffId){
   renderPayroll();
   alert('Added ' + v5041SignedMoney(payDelta) + ' to ' + staffDisplayNameForId(staffId, 'staff ' + staffId) + ' in the next pay cycle (' + targetWeek + ').');
 }
-function setPayrollAdjustment(weekIso, staffId, amount, comment){
+function setPayrollAdjustment(weekIso, staffId, amount, comment, logOptions){
   ensurePayrollStores();
   weekIso = String(weekIso||'');
   staffId = String(staffId||'');
@@ -20336,7 +20916,27 @@ function setPayrollAdjustment(weekIso, staffId, amount, comment){
   amount = round2(parsedAmount);
   if(!weekIso || !staffId) return false;
   if(!App.payrollAdjustments[weekIso]) App.payrollAdjustments[weekIso] = {};
+  var prev = App.payrollAdjustments[weekIso][staffId] || {amount:0, comment:''};
+  var prevAmt = payrollLogNumber(prev.amount, 0) || 0;
+  var prevComment = String(prev.comment||'');
   App.payrollAdjustments[weekIso][staffId] = {amount:amount, comment:comment||''};
+  try{
+    logOptions = logOptions || {};
+    var logAmount = (logOptions.amount == null) ? round2(amount - prevAmt) : payrollLogNumber(logOptions.amount, 0);
+    if(Math.abs(logAmount) > 0.0001 || prevComment !== String(comment||'')){
+      recordPayrollTransaction({
+        category:'adjustment',
+        type:logOptions.type || 'payAdjustment',
+        action:logOptions.action || 'Pay adjustment updated',
+        weekIso:weekIso,
+        staffId:staffId,
+        amount:logAmount,
+        balance:amount,
+        note:logOptions.note || comment || '',
+        sourceWeek:logOptions.sourceWeek || ''
+      });
+    }
+  }catch(e){}
   saveLocal();
   try{
     var p = {};
@@ -20351,11 +20951,24 @@ function setPayrollPaid(weekIso, staffId, paid){
   staffId = String(staffId||'');
   if(!weekIso || !staffId) return;
   if(!App.payrollPaid[weekIso]) App.payrollPaid[weekIso] = {};
-  if(paid){ App.payrollPaid[weekIso][staffId] = true; v5041StorePaidSnapshot(weekIso, staffId); }
+  var snap = null;
+  if(paid){ App.payrollPaid[weekIso][staffId] = true; snap = v5041StorePaidSnapshot(weekIso, staffId); }
   else {
     delete App.payrollPaid[weekIso][staffId];
     try{ if(App.payrollPaidSnapshots && App.payrollPaidSnapshots[weekIso]) delete App.payrollPaidSnapshots[weekIso][staffId]; }catch(e){}
   }
+  try{
+    recordPayrollTransaction({
+      category:'paid',
+      type:paid ? 'paid' : 'unpaid',
+      action:paid ? 'Marked paid' : 'Marked unpaid',
+      weekIso:weekIso,
+      staffId:staffId,
+      amount:paid && snap ? snap.net : null,
+      balance:null,
+      note:paid ? 'Paid baseline captured' : 'Paid flag removed'
+    });
+  }catch(e){}
   saveLocal();
   v5041SyncPayrollPaidState(weekIso);
 }
@@ -22685,7 +23298,8 @@ try{
     App.payrollPaidSnapshots=data.payrollPaidSnapshots||App.payrollPaidSnapshots||{};
     App.payWithheld=data.payWithheld||App.payWithheld||{};
     App.payWithheldByWeek=data.payWithheldByWeek||App.payWithheldByWeek||{};
-    App.payWithheldLog=data.payWithheldLog||App.payWithheldLog||[]; App.paySavings=data.paySavings||App.paySavings||{}; App.paySavingsLog=data.paySavingsLog||App.paySavingsLog||[]; App.payrollProfiles=data.payrollProfiles||App.payrollProfiles||{business:{},staff:{}}; App.payrollWeekData=data.payrollWeekData||App.payrollWeekData||{}; App.payslipRecords=data.payslipRecords||App.payslipRecords||[]; App.businessAnalytics=data.businessAnalytics||App.businessAnalytics||{daily:{}, recurringCosts:{}}; App.dailyOps=data.dailyOps||App.dailyOps||{};
+    App.payWithheldLog=data.payWithheldLog||App.payWithheldLog||[]; App.paySavings=data.paySavings||App.paySavings||{}; App.paySavingsLog=data.paySavingsLog||App.paySavingsLog||[]; App.payrollLog=data.payrollLog||App.payrollLog||[]; App.payrollLogBackfilled=(data.payrollLogBackfilled===true || App.payrollLogBackfilled===true); App.payrollProfiles=data.payrollProfiles||App.payrollProfiles||{business:{},staff:{}}; App.payrollWeekData=data.payrollWeekData||App.payrollWeekData||{}; App.payslipRecords=data.payslipRecords||App.payslipRecords||[]; App.businessAnalytics=data.businessAnalytics||App.businessAnalytics||{daily:{}, recurringCosts:{}}; App.dailyOps=data.dailyOps||App.dailyOps||{};
+    App.payrollAuditLogBackfilled=(data.payrollAuditLogBackfilled===true || App.payrollAuditLogBackfilled===true);
     if(data.settings){
       for(var k in data.settings){
         App.settings[k]=data.settings[k];
@@ -23025,6 +23639,9 @@ async function pushPlannerData(){
     payWithheldLog:App.payWithheldLog||[],
     paySavings:App.paySavings||{},
     paySavingsLog:App.paySavingsLog||[],
+    payrollLog:App.payrollLog||[],
+    payrollLogBackfilled:App.payrollLogBackfilled===true,
+    payrollAuditLogBackfilled:App.payrollAuditLogBackfilled===true,
     payrollProfiles:App.payrollProfiles||{business:{},staff:{}},
     payrollWeekData:App.payrollWeekData||{},
     payslipRecords:App.payslipRecords||[],
@@ -23059,6 +23676,9 @@ async function pushPlannerAndSettingsAdmin(){
     payWithheldLog:App.payWithheldLog||[],
     paySavings:App.paySavings||{},
     paySavingsLog:App.paySavingsLog||[],
+    payrollLog:App.payrollLog||[],
+    payrollLogBackfilled:App.payrollLogBackfilled===true,
+    payrollAuditLogBackfilled:App.payrollAuditLogBackfilled===true,
     payrollProfiles:App.payrollProfiles||{business:{},staff:{}},
     payrollWeekData:App.payrollWeekData||{},
     payslipRecords:App.payslipRecords||[],
@@ -23341,6 +23961,7 @@ try{
 }catch(e){}
 
 })();
+
 
 // === INFO helpers (dual RTDB paths + robust keys) ===
 (function(){
@@ -23715,7 +24336,7 @@ try{
 (function(){
   'use strict';
   var APP_NAME = 'Aspire Workforce Command';
-  var APP_VERSION = 'V5.0.45';
+  var APP_VERSION = 'V5.0.47';
   var OLD_TITLE = 'M&C-ATRD-scheduler --=Aspire Group=--';
 
   var NAVS = [
