@@ -264,7 +264,7 @@
   
 </style>
 
-<title>Aspire Workforce Command (V5.0.47 Modular Build)</title>
+<title>Aspire Workforce Command (V5.0.49 Modular Build)</title>
   <meta name="theme-color" content="#22c55e"/>
 
   <style>
@@ -5019,7 +5019,7 @@
       <div id="appLogoBox"></div>
       <div class="titlewrap">
         <div class="title" id="appTitle">Aspire Workforce Command</div>
-        <div class="version-pill" id="appVersion">V5.0.47</div>
+        <div class="version-pill" id="appVersion">V5.0.49</div>
         <div class="sync-pill syncing" id="syncStatusChip" title="Sync status">Starting…</div>
       </div>
     </div>
@@ -5060,9 +5060,16 @@
         <h3>Login</h3>
         <div class="grid-2">
           <div>
+            <label>Shop</label>
+            <select id="shopSelect"></select>
+            <div class="muted small" id="shopWorkspaceHint"></div>
+          </div>
+          <div>
             <label>Workspace ID</label>
             <input id="wsIdInput" type="text" value="mnc-atrd">
           </div>
+        </div>
+        <div class="grid-2" style="margin-top:8px">
           <div>
             <label>Staff</label>
             <select id="loginStaffSelect"></select>
@@ -6342,6 +6349,7 @@
               <th>Requested</th>
               <th>Resolved</th>
               <th>Day</th>
+              <th>Shop</th>
               <th>Staff</th>
               <th>Status</th>
               <th>Type</th>
@@ -6369,6 +6377,28 @@
           <input id="dbUrlInput" type="text" value="https://mnc-atrd-default-rtdb.asia-southeast1.firebasedatabase.app/">
           <label>Workspace ID</label>
           <input id="workspaceInput" type="text" value="mnc-atrd">
+          <div class="shop-settings-panel" style="margin-top:10px;">
+            <h4 style="margin:0 0 8px;">Shop workspaces</h4>
+            <div class="grid-2">
+              <div>
+                <label>Shop 1 name</label>
+                <input id="shop1NameInput" type="text" value="Shop 1">
+              </div>
+              <div>
+                <label>Shop 1 workspace</label>
+                <input id="shop1WorkspaceInput" type="text" value="mnc-atrd">
+              </div>
+              <div>
+                <label>Shop 2 name</label>
+                <input id="shop2NameInput" type="text" value="Shop 2">
+              </div>
+              <div>
+                <label>Shop 2 workspace</label>
+                <input id="shop2WorkspaceInput" type="text" value="mnc-atrd-shop-2">
+              </div>
+            </div>
+            <div class="muted small" style="margin-top:6px;">Each shop uses a separate workspace. Switch shop from the login screen.</div>
+          </div>
           <label>Auth token (optional)</label>
           <input id="authTokenInput" type="text" placeholder="Firebase auth token if rules require it">
           <div class="grid-2">
@@ -6746,7 +6776,7 @@
           <table class="table compact" id="adminHistoryTable">
             <thead>
               <tr>
-                <th>Date</th><th>Staff</th><th>Status</th><th>Type</th><th>Details</th>
+                <th>Date</th><th>Shop</th><th>Staff</th><th>Status</th><th>Type</th><th>Details</th>
               </tr>
             </thead>
             <tbody id="adminHistoryTbody"></tbody>
@@ -7235,8 +7265,8 @@ var DAY = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 var App = {
   // IMPORTANT: Increment App.version *and* App.buildId whenever making functional changes to this file.
   // SAFETY NET: This build performs an automatic runtime check against the file name; if mismatched, it shows a blocking warning so it can't be overlooked.
-  version: 'V5.0.47',
-    buildId: '2026-07-14.02',
+  version: 'V5.0.49',
+    buildId: '2026-07-14.04',
 settings: {
     dbUrl:'https://mnc-atrd-default-rtdb.asia-southeast1.firebasedatabase.app/', workspace:'mnc-atrd', authToken:'',
     theme:'light', themeName:'light-pastel-sky', recentColors:[], appTitle:'Aspire Workforce Command', logoUrl:'',
@@ -7273,6 +7303,11 @@ settings: {
     emailjsPublicKey: '',
     emailjsServiceId: '',
     emailjsTemplateId: '',
+    activeShopId: 'shop1',
+    shops: [
+      {id:'shop1', name:'Shop 1', workspace:'mnc-atrd'},
+      {id:'shop2', name:'Shop 2', workspace:'mnc-atrd-shop-2'}
+    ],
 publishedWeeks: {}
   },
   staff:{}, availability:{}, weeks:{}, absenceRequests:{}, absenceHistory:{}, shiftChangeRequests:{}, shiftChangeHistory:{}, payrollAdjustments:{}, payrollPaid:{}, payrollPaidSnapshots:{},
@@ -7373,12 +7408,118 @@ function clampFloat(v, min, max, fallback){
   if(n > max) n = max;
   return n;
 }
+function shopSafeId(v, fallback){
+  var s = String(v||'').toLowerCase().replace(/[^a-z0-9_-]+/g, '-').replace(/^-+|-+$/g, '');
+  return s || fallback || ('shop-' + Date.now().toString(36));
+}
+function defaultShopProfiles(baseWorkspace){
+  var ws = String(baseWorkspace || 'mnc-atrd').trim() || 'mnc-atrd';
+  return [
+    {id:'shop1', name:'Shop 1', workspace:ws},
+    {id:'shop2', name:'Shop 2', workspace:(ws === 'mnc-atrd' ? 'mnc-atrd-shop-2' : (ws + '-shop-2'))}
+  ];
+}
+function normalizeShopSettings(){
+  try{
+    if(!App.settings || typeof App.settings !== 'object') App.settings = {};
+    var baseWs = String(App.settings.workspace || 'mnc-atrd').trim() || 'mnc-atrd';
+    var incoming = Array.isArray(App.settings.shops) ? App.settings.shops : [];
+    if(!incoming.length) incoming = defaultShopProfiles(baseWs);
+    var out = [];
+    incoming.slice(0, 2).forEach(function(shop, idx){
+      shop = shop || {};
+      var id = shopSafeId(shop.id || ('shop' + (idx+1)), 'shop' + (idx+1));
+      var name = String(shop.name || ('Shop ' + (idx+1))).trim() || ('Shop ' + (idx+1));
+      var workspace = String(shop.workspace || (idx === 0 ? baseWs : (baseWs + '-shop-' + (idx+1)))).trim() || baseWs;
+      out.push({id:id, name:name, workspace:workspace});
+    });
+    while(out.length < 2){
+      var next = out.length + 1;
+      out.push({id:'shop' + next, name:'Shop ' + next, workspace:(baseWs + '-shop-' + next)});
+    }
+    App.settings.shops = out;
+    var active = String(App.settings.activeShopId || '').trim();
+    var found = out.filter(function(shop){ return shop.id === active; })[0];
+    if(!found){
+      found = out.filter(function(shop){ return String(shop.workspace||'') === baseWs; })[0] || out[0];
+      App.settings.activeShopId = found.id;
+    }
+    if(found && found.workspace) App.settings.workspace = String(found.workspace).trim() || baseWs;
+  }catch(e){}
+}
+function activeShopProfile(){
+  try{
+    normalizeShopSettings();
+    var id = String(App.settings.activeShopId || '');
+    for(var i=0;i<(App.settings.shops||[]).length;i++){
+      if(String(App.settings.shops[i].id||'') === id) return App.settings.shops[i];
+    }
+    return (App.settings.shops||[])[0] || null;
+  }catch(e){ return null; }
+}
+function setActiveShopId(shopId){
+  try{
+    normalizeShopSettings();
+    var id = String(shopId||'');
+    var found = null;
+    (App.settings.shops||[]).forEach(function(shop){ if(String(shop.id||'') === id) found = shop; });
+    if(!found) found = (App.settings.shops||[])[0] || null;
+    if(found){
+      App.settings.activeShopId = String(found.id||'');
+      App.settings.workspace = String(found.workspace||App.settings.workspace||'mnc-atrd').trim() || 'mnc-atrd';
+    }
+    return found;
+  }catch(e){ return null; }
+}
+function updateActiveShopWorkspace(workspace){
+  try{
+    normalizeShopSettings();
+    var ws = String(workspace || '').trim();
+    if(!ws) return;
+    var id = String(App.settings.activeShopId || '');
+    (App.settings.shops||[]).forEach(function(shop){ if(String(shop.id||'') === id) shop.workspace = ws; });
+    App.settings.workspace = ws;
+  }catch(e){}
+}
+function currentShopMeta(){
+  var shop = null;
+  try{ shop = activeShopProfile(); }catch(e){}
+  var workspace = String((App.settings && App.settings.workspace) || (shop && shop.workspace) || '').trim();
+  return {
+    shopId: String((shop && shop.id) || (App.settings && App.settings.activeShopId) || '').trim(),
+    shopName: String((shop && shop.name) || '').trim(),
+    workspace: workspace
+  };
+}
+function applyCurrentShopMeta(target){
+  target = target || {};
+  var meta = currentShopMeta();
+  target.shopId = meta.shopId || '';
+  target.shopName = meta.shopName || '';
+  target.workspace = meta.workspace || '';
+  return target;
+}
+function shopMetaLabel(rec){
+  rec = rec || {};
+  var name = String(rec.shopName || '').trim();
+  var workspace = String(rec.workspace || rec.workspaceId || '').trim();
+  if(name && workspace) return name + ' (' + workspace + ')';
+  if(name) return name;
+  if(workspace) return workspace;
+  return 'Legacy / shop not recorded';
+}
+function localWorkspaceCacheKey(workspace){
+  var ws = String(workspace || (App.settings && App.settings.workspace) || 'mnc-atrd').trim() || 'mnc-atrd';
+  var slug = ws.replace(/[^0-9A-Za-z_-]+/g, '_').slice(0, 80) || 'workspace';
+  return String(App.cacheKey || 'mc_scheduler_cache') + '_' + slug;
+}
 function normalizeCoreState(){
   try{
     if(!App.settings || typeof App.settings !== 'object') App.settings = {};
     ensureSettingsDefaults();
     App.settings.dbUrl = String(App.settings.dbUrl || 'https://mnc-atrd-default-rtdb.asia-southeast1.firebasedatabase.app/').trim() || 'https://mnc-atrd-default-rtdb.asia-southeast1.firebasedatabase.app/';
     App.settings.workspace = String(App.settings.workspace || 'mnc-atrd').trim() || 'mnc-atrd';
+    normalizeShopSettings();
     App.settings.appTitle = String(App.settings.appTitle || 'Aspire Workforce Command');
     App.settings.gridStartHour = clampInt(App.settings.gridStartHour, 0, 23, 8);
     App.settings.gridHours = clampInt(App.settings.gridHours, 1, 24, 16);
@@ -9010,6 +9151,7 @@ function syncSettingsUIFromApp(){
     if(__auth) __auth.value = App.settings.authToken || '';
     var __wsLogin=document.getElementById('wsIdInput');
     if(__wsLogin) __wsLogin.value = App.settings.workspace || '';
+    try{ if(typeof renderShopSelectors === 'function') renderShopSelectors(); }catch(e){}
     var __titleInput=document.getElementById('appTitleInput');
     if(__titleInput) __titleInput.value = App.settings.appTitle || 'Aspire Workforce Command';
     var __logoInput=document.getElementById('logoUrlInput');
@@ -9191,11 +9333,12 @@ function recordSyncDiagnostic(kind, path, err){
 function saveLocal(skipHistory, opts){
   var savedOk = false;
   try{
-    localStorage.setItem(App.cacheKey, JSON.stringify(buildAppExportData()));
+    var cacheKey = (typeof localWorkspaceCacheKey === 'function') ? localWorkspaceCacheKey() : App.cacheKey;
+    localStorage.setItem(cacheKey, JSON.stringify(buildAppExportData()));
     savedOk = true;
-    recordSyncDiagnostic('local-save-ok', App.cacheKey);
+    recordSyncDiagnostic('local-save-ok', cacheKey);
   }catch(e){
-    recordSyncDiagnostic('local-save-error', App.cacheKey, e);
+    recordSyncDiagnostic('local-save-error', (typeof localWorkspaceCacheKey === 'function') ? localWorkspaceCacheKey() : App.cacheKey, e);
     try{ setSyncStatus('offline', 'Local save failed'); }catch(e2){}
   }
   try{ if(savedOk && !(opts && opts.silentSyncState)) setSyncStatus('local', 'Local changes'); }catch(e){}
@@ -9204,19 +9347,36 @@ function saveLocal(skipHistory, opts){
 }
 
 function loadLocal(){ try{
+    var connSettings = null;
     try{
       var cRaw = localStorage.getItem(App.connKey);
       if(cRaw){
         var c = JSON.parse(cRaw)||{};
+        connSettings = c;
         if(c.dbUrl) App.settings.dbUrl = c.dbUrl;
+        if(Array.isArray(c.shops)) App.settings.shops = c.shops;
+        if(c.activeShopId) App.settings.activeShopId = c.activeShopId;
         if(c.workspace) App.settings.workspace = c.workspace;
         if(c.authToken!=null) App.settings.authToken = c.authToken;
       }
     }catch(e){}
-    var raw = localStorage.getItem(App.cacheKey);
+    try{ normalizeShopSettings(); }catch(e){}
+    var cacheKey = (typeof localWorkspaceCacheKey === 'function') ? localWorkspaceCacheKey() : App.cacheKey;
+    var raw = localStorage.getItem(cacheKey);
+    if(!raw && String(App.settings.workspace||'') === 'mnc-atrd'){
+      try{ raw = localStorage.getItem(App.cacheKey); }catch(e){}
+    }
     if(!raw){ normalizeCoreState(); return; }
     var d = JSON.parse(raw)||{};
     applyExportDataToApp(d);
+    if(connSettings){
+      if(connSettings.dbUrl) App.settings.dbUrl = connSettings.dbUrl;
+      if(Array.isArray(connSettings.shops)) App.settings.shops = connSettings.shops;
+      if(connSettings.activeShopId) App.settings.activeShopId = connSettings.activeShopId;
+      if(connSettings.workspace) App.settings.workspace = connSettings.workspace;
+      if(connSettings.authToken!=null) App.settings.authToken = connSettings.authToken;
+    }
+    try{ normalizeShopSettings(); }catch(e){}
   }catch(e){
     try{ normalizeCoreState(); }catch(e2){}
   } }
@@ -9226,7 +9386,8 @@ function resetLocalCache(allowAll){
   if(!allowAll && !isAdmin()) return alert('Admin only.');
   if(confirm('Reset local cache?')){
     try{ createSafetyBackup('Before local cache reset'); }catch(e){}
-    try{ localStorage.removeItem(App.cacheKey); }catch(e){}
+    try{ localStorage.removeItem((typeof localWorkspaceCacheKey === 'function') ? localWorkspaceCacheKey() : App.cacheKey); }catch(e){}
+    try{ if(String(App.settings.workspace||'') === 'mnc-atrd') localStorage.removeItem(App.cacheKey); }catch(e){}
     try{
       for(var i=localStorage.length-1;i>=0;i--){
         var k = localStorage.key(i);
@@ -9244,12 +9405,12 @@ function resetLocalCache(allowAll){
 function startupSanitizeLocalCache(){
   try{
     var raw = null;
-    try{ raw = localStorage.getItem(App.cacheKey); }catch(e){}
+    try{ raw = localStorage.getItem((typeof localWorkspaceCacheKey === 'function') ? localWorkspaceCacheKey() : App.cacheKey); }catch(e){}
     if(!raw) return;
     var d = null;
     try{ d = JSON.parse(raw) || {}; }catch(e){ d = null; }
     if(!d || typeof d !== 'object'){
-      try{ localStorage.removeItem(App.cacheKey); }catch(e){}
+      try{ localStorage.removeItem((typeof localWorkspaceCacheKey === 'function') ? localWorkspaceCacheKey() : App.cacheKey); }catch(e){}
       return;
     }
   }catch(e){}
@@ -9404,7 +9565,9 @@ function saveConnLocal(){
     localStorage.setItem(App.connKey, JSON.stringify({
       dbUrl: (App.settings && App.settings.dbUrl) ? App.settings.dbUrl : '',
       workspace: (App.settings && App.settings.workspace) ? App.settings.workspace : '',
-      authToken: (App.settings && (App.settings.authToken!=null)) ? App.settings.authToken : ''
+      authToken: (App.settings && (App.settings.authToken!=null)) ? App.settings.authToken : '',
+      activeShopId: (App.settings && App.settings.activeShopId) ? App.settings.activeShopId : '',
+      shops: (App.settings && Array.isArray(App.settings.shops)) ? App.settings.shops : []
     }));
   }catch(e){}
 }
@@ -9777,8 +9940,9 @@ function init(){
 
   initPlanner();
   populateLoginSelects();
+  try{ renderShopSelectors(); }catch(e){}
   // Fresh sync on app load to reduce stale cached data
-  try{ pullData(false).then(function(){ try{ populateLoginSelects(); }catch(e){} try{ syncSettingsUIFromSettings(); }catch(e){} try{ var __appTitleEl2=byId('appTitle'); if(__appTitleEl2) __appTitleEl2.textContent = App.settings.appTitle || __appTitleEl2.textContent; }catch(e){} try{ var __titleEl2=document.querySelector('.appbar .title'); if(__titleEl2) __titleEl2.textContent = App.settings.appTitle || __titleEl2.textContent; }catch(e){} try{ document.title = (App.settings.appTitle||'App')+' ('+App.version+')'; }catch(e){} try{ if(App.settings && App.settings.themeName){ App.__globalThemeName = App.settings.themeName || App.__globalThemeName || 'dark-classic'; applyTheme(App.settings.themeName); if(typeof renderThemePicker==='function') renderThemePicker(); } }catch(e){} }).catch(function(){}); }catch(e){}
+  try{ pullData(false).then(function(){ try{ populateLoginSelects(); renderShopSelectors(); }catch(e){} try{ syncSettingsUIFromSettings(); }catch(e){} try{ var __appTitleEl2=byId('appTitle'); if(__appTitleEl2) __appTitleEl2.textContent = App.settings.appTitle || __appTitleEl2.textContent; }catch(e){} try{ var __titleEl2=document.querySelector('.appbar .title'); if(__titleEl2) __titleEl2.textContent = App.settings.appTitle || __titleEl2.textContent; }catch(e){} try{ document.title = (App.settings.appTitle||'App')+' ('+App.version+')'; }catch(e){} try{ if(App.settings && App.settings.themeName){ App.__globalThemeName = App.settings.themeName || App.__globalThemeName || 'dark-classic'; applyTheme(App.settings.themeName); if(typeof renderThemePicker==='function') renderThemePicker(); } }catch(e){} }).catch(function(){}); }catch(e){}
   App.__globalThemeName = App.settings.themeName||App.__globalThemeName||'dark-classic'; applyTheme(App.settings.themeName||'dark-classic');
   renderThemePicker();
 
@@ -9787,6 +9951,7 @@ function init(){
   // Seed settings UI
   byId('dbUrlInput').value=App.settings.dbUrl;
   byId('workspaceInput').value=App.settings.workspace;
+  try{ renderShopSelectors(); }catch(e){}
   byId('authTokenInput').value=App.settings.authToken||'';
   byId('appTitleInput').value=App.settings.appTitle || 'Aspire Workforce Command';
   if(byId('logoUrlInput')) byId('logoUrlInput').value = App.settings.logoUrl || '';
@@ -9807,7 +9972,7 @@ function init(){
   // Initial pull with splash
   splashShow('Syncing…'); byId('splashSync').style.display='flex';
   pullData(true).then(function(){
-    populateLoginSelects(); populateExistingStaff();
+    populateLoginSelects(); populateExistingStaff(); try{ renderShopSelectors(); }catch(e){}
     splashHide('Sync successful');
   }).catch(function(e){
     var m=byId('loginMsg'); if(m) m.textContent='Startup sync failed: '+(e&&e.message?e.message:''); splashHide('Sync failed — offline mode available');
@@ -9817,9 +9982,9 @@ function init(){
       App.staff[a]={name:'Alex',rate:30,rateWeekend:0,ratePenalty:0,otMult:1.5,otWeekly:38,otDaily:8,breakDefault:30,role:'admin',color:'#5A31F4',passHash:''};
       App.staff[b]={name:'Casey',rate:25,rateWeekend:0,ratePenalty:0,otMult:1.5,otWeekly:38,otDaily:8,breakDefault:30,role:'manager',color:'#22b8cf',passHash:''};
       App.staff[c]={name:'Sam',rate:28,rateWeekend:0,ratePenalty:0,otMult:1.5,otWeekly:38,otDaily:8,breakDefault:30,role:'staff',color:'#ff922b',passHash:''};
-      saveLocal(); populateLoginSelects(); populateExistingStaff();
-    } else { populateExistingStaff(); populateLoginSelects(); }
-    setTimeout(function(){ pullData(false).then(function(){ populateLoginSelects(); populateExistingStaff(); }); }, 2000);
+      saveLocal(); populateLoginSelects(); populateExistingStaff(); try{ renderShopSelectors(); }catch(e){}
+    } else { populateExistingStaff(); populateLoginSelects(); try{ renderShopSelectors(); }catch(e){} }
+    setTimeout(function(){ pullData(false).then(function(){ populateLoginSelects(); populateExistingStaff(); try{ renderShopSelectors(); }catch(e){} }); }, 2000);
     try{ historyResetToCurrent(); }catch(e){}
   });
 
@@ -9831,6 +9996,7 @@ function init(){
     }
     App.settings.dbUrl=byId('dbUrlInput').value.trim();
     App.settings.workspace=byId('workspaceInput').value.trim();
+    try{ syncShopProfilesFromSettingsInputs(); }catch(e){}
     App.settings.authToken=(byId('authTokenInput').value||'').trim();
     App.settings.appTitle=(byId('appTitleInput').value||'Aspire Workforce Command');
     App.settings.logoUrl=(byId('logoUrlInput') && byId('logoUrlInput').value||'').trim();
@@ -9972,10 +10138,11 @@ function init(){
   byId('btnExportSettings').onclick=function(){ var data=buildAppExportData(); var a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'})); a.download='munchandcrun_export.json'; a.click(); };
   byId('btnImportSettings').onclick=function(){ byId('importSettingsInput').click(); };
   var restoreBackupBtn = byId('btnRestoreSafetyBackup'); if(restoreBackupBtn) restoreBackupBtn.onclick=function(){ restoreSafetyBackup(); };
-  byId('importSettingsInput').onchange=async function(e){ var f=e.target.files[0]; if(!f) return; try{ createSafetyBackup('Before data import'); var d=JSON.parse(await f.text()); applyExportDataToApp(d); normalizeCoreState(); saveLocal(); setSyncStatus('local', 'Imported locally'); populateLoginSelects(); populateExistingStaff(); renderAfterLogin(); startAutoSyncTimers(); alert('Imported. Use Push to sync.'); }catch(err){ alert('Invalid JSON'); } };
+  byId('importSettingsInput').onchange=async function(e){ var f=e.target.files[0]; if(!f) return; try{ createSafetyBackup('Before data import'); var d=JSON.parse(await f.text()); applyExportDataToApp(d); normalizeCoreState(); saveLocal(); setSyncStatus('local', 'Imported locally'); populateLoginSelects(); populateExistingStaff(); try{ renderShopSelectors(); }catch(e){} renderAfterLogin(); startAutoSyncTimers(); alert('Imported. Use Push to sync.'); }catch(err){ alert('Invalid JSON'); } };
 
   byId('btnLogin').onclick = function(){ login(); };
   var pwd=byId('loginPass'); if(pwd){ pwd.addEventListener('keydown',function(e){ if(e.key==='Enter'){ login(); } }); }
+  var wsLogin=byId('wsIdInput'); if(wsLogin){ wsLogin.addEventListener('change',function(){ syncShopFromLoginInputs(true); }); }
   byId('btnContinueOffline').onclick = function(){ login({offline:true}); };
   var resetLoginBtn = byId('btnResetLocalLogin');
   if(resetLoginBtn){
@@ -10067,7 +10234,7 @@ function init(){
   byId('btnExportJSON').onclick=function(){ if(!isAdmin()) return alert('Admin only.'); var data=buildAppExportData(); var a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'})); a.download='munchandcrun_export.json'; a.click(); };
   byId('btnExportCSV').onclick=function(){ if(!isAdmin()) return alert('Admin only.'); exportPayrollCSV(); };
   byId('btnImportJSON').onclick=function(){ if(!isAdmin()) return alert('Admin only.'); byId('importJSONInput').click(); };
-  byId('importJSONInput').onchange=async function(e){ if(!isAdmin()) return; var f=e.target.files[0]; if(!f) return; try{ createSafetyBackup('Before admin JSON import'); var d=JSON.parse(await f.text()); applyExportDataToApp(d); normalizeCoreState(); saveLocal(); setSyncStatus('local', 'Imported locally'); populateLoginSelects(); populateExistingStaff(); renderAfterLogin(); startAutoSyncTimers(); alert('Imported. Use Push to sync.'); }catch(err){ alert('Invalid JSON'); } };
+  byId('importJSONInput').onchange=async function(e){ if(!isAdmin()) return; var f=e.target.files[0]; if(!f) return; try{ createSafetyBackup('Before admin JSON import'); var d=JSON.parse(await f.text()); applyExportDataToApp(d); normalizeCoreState(); saveLocal(); setSyncStatus('local', 'Imported locally'); populateLoginSelects(); populateExistingStaff(); try{ renderShopSelectors(); }catch(e){} renderAfterLogin(); startAutoSyncTimers(); alert('Imported. Use Push to sync.'); }catch(err){ alert('Invalid JSON'); } };
 
   byId('btnPrevWeek').onclick=function(){ shiftWeek(-1); };
   byId('btnNextWeek').onclick=function(){ shiftWeek(1); };
@@ -10186,6 +10353,7 @@ function v413EnsureStores(){
 function v413AddAudit(action, detail, entity){
   try{
     v413EnsureStores();
+    var shopMeta = (typeof currentShopMeta === 'function') ? currentShopMeta() : {shopId:'', shopName:'', workspace:''};
     var rec = {
       id:'aud_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,7),
       ts:v413Now(),
@@ -10194,6 +10362,9 @@ function v413AddAudit(action, detail, entity){
       entity:String(entity||''),
       userId:(App.currentUser && App.currentUser.id!=null) ? String(App.currentUser.id) : '',
       user:v413UserLabel(),
+      shopId:String(shopMeta.shopId||''),
+      shopName:String(shopMeta.shopName||''),
+      workspace:String(shopMeta.workspace||''),
       version:String(App.version||'')
     };
     App.auditLog.unshift(rec);
@@ -10517,7 +10688,7 @@ function v413EnsureAuditPanel(){
   card.className = 'card audit-card';
   card.id = 'auditLogCard';
   card.setAttribute('data-settings-panel','admin');
-  card.innerHTML = '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;"><h3 style="margin:0;">Audit log</h3><div style="display:flex;gap:8px;flex-wrap:wrap;"><button id="btnAuditExport" class="btn-outline">Export audit CSV</button><button id="btnAuditClear" class="btn-outline">Clear audit log</button></div></div><div class="muted" style="margin-top:6px;">Records key staff, payroll, pay-run, import and sync actions on this device/workspace.</div><div class="audit-table-wrap"><table class="table"><thead><tr><th>Time</th><th>User</th><th>Action</th><th>Entity</th><th>Details</th></tr></thead><tbody id="auditLogTbody"></tbody></table></div><div id="auditLogEmpty" class="muted" style="margin-top:8px;display:none;">No audit entries yet.</div>';
+  card.innerHTML = '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;"><h3 style="margin:0;">Audit log</h3><div style="display:flex;gap:8px;flex-wrap:wrap;"><button id="btnAuditExport" class="btn-outline">Export audit CSV</button><button id="btnAuditClear" class="btn-outline">Clear audit log</button></div></div><div class="muted" style="margin-top:6px;">Records key staff, payroll, pay-run, import and sync actions with shop/workspace markers where available.</div><div class="audit-table-wrap"><table class="table"><thead><tr><th>Time</th><th>Shop</th><th>User</th><th>Action</th><th>Entity</th><th>Details</th></tr></thead><tbody id="auditLogTbody"></tbody></table></div><div id="auditLogEmpty" class="muted" style="margin-top:8px;display:none;">No audit entries yet.</div>';
   sec.appendChild(card);
   var exp = byId('btnAuditExport'); if(exp) exp.onclick=function(){ v413ExportAuditCsv(); };
   var clr = byId('btnAuditClear'); if(clr) clr.onclick=function(){ if(!isAdmin()) return alert('Admin only.'); if(!confirm('Clear the audit log?')) return; App.auditLog=[]; v413AddAudit('Audit log cleared','','audit'); saveLocal(); v413RenderAuditPanel(); };
@@ -10532,15 +10703,19 @@ function v413RenderAuditPanel(){
     if(empty) empty.style.display='none';
     rows.forEach(function(r){
       var tr = document.createElement('tr');
-      tr.innerHTML = '<td>'+escapeHtml(String(r.ts||'').replace('T',' ').slice(0,19))+'</td><td>'+escapeHtml(r.user||'')+'</td><td>'+escapeHtml(r.action||'')+'</td><td>'+escapeHtml(r.entity||'')+'</td><td>'+escapeHtml(r.detail||'')+'</td>';
+      var shopLabel = (typeof shopMetaLabel === 'function') ? shopMetaLabel(r) : (r.workspace || 'Legacy / shop not recorded');
+      tr.innerHTML = '<td>'+escapeHtml(String(r.ts||'').replace('T',' ').slice(0,19))+'</td><td>'+escapeHtml(shopLabel)+'</td><td>'+escapeHtml(r.user||'')+'</td><td>'+escapeHtml(r.action||'')+'</td><td>'+escapeHtml(r.entity||'')+'</td><td>'+escapeHtml(r.detail||'')+'</td>';
       body.appendChild(tr);
     });
   }catch(e){}
 }
 function v413ExportAuditCsv(){
   v413EnsureStores();
-  var rows = [['Time','User','Action','Entity','Details']];
-  (App.auditLog||[]).forEach(function(r){ rows.push([r.ts||'', r.user||'', r.action||'', r.entity||'', r.detail||'']); });
+  var rows = [['Time','Shop','Workspace','User','Action','Entity','Details']];
+  (App.auditLog||[]).forEach(function(r){
+    var shopLabel = (typeof shopMetaLabel === 'function') ? shopMetaLabel(r) : (r.workspace || 'Legacy / shop not recorded');
+    rows.push([r.ts||'', shopLabel, r.workspace||'', r.user||'', r.action||'', r.entity||'', r.detail||'']);
+  });
   var csv = rows.map(function(row){ return row.map(function(v){ return '"' + String(v).replace(/"/g,'""') + '"'; }).join(','); }).join('\n');
   var a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'})); a.download='scheduler_audit_log.csv'; a.click();
 }
@@ -10975,10 +11150,13 @@ function completeLoginAsStaff(id, staff, opts){
 }
 async function login(opts){
   opts = opts || {};
+  try{ syncShopFromLoginInputs(false); }catch(e){}
   var id=byId('loginStaffSelect').value;
   var pass=byId('loginPass').value||'';
   var ws=byId('wsIdInput').value.trim()||'mnc-atrd';
+  updateActiveShopWorkspace(ws);
   App.settings.workspace=ws; byId('workspaceInput').value=ws;
+  try{ if(typeof saveConnLocal === 'function') saveConnLocal(); }catch(e){}
   if(!id || !App.staff[id]){ alert('Select a staff'); return; }
   var s=App.staff[id];
   var ok = await verifyPasscodeForStaff(s, pass);
@@ -11025,6 +11203,83 @@ function populateExistingStaff(){
     var s=App.staff[id]; var o=document.createElement('option'); o.value=id; o.textContent=staffFullNameFromRecord(s, id) + (staffDisplayNameFromRecord(s, '') && staffDisplayNameFromRecord(s, '') !== staffFullNameFromRecord(s, id) ? ' ('+staffDisplayNameFromRecord(s, '')+')' : ''); sel.appendChild(o);
   });
 }
+function shopDisplayLabel(shop){
+  shop = shop || {};
+  var name = String(shop.name || 'Shop').trim() || 'Shop';
+  var ws = String(shop.workspace || '').trim();
+  return ws ? (name + ' - ' + ws) : name;
+}
+function renderShopSelectors(){
+  try{
+    normalizeShopSettings();
+    var shops = App.settings.shops || [];
+    var active = String(App.settings.activeShopId || (shops[0] && shops[0].id) || '');
+    var shopSel = byId('shopSelect');
+    if(shopSel){
+      var keep = shopSel.value || active;
+      shopSel.innerHTML = '';
+      shops.forEach(function(shop){
+        var o = document.createElement('option');
+        o.value = String(shop.id||'');
+        o.textContent = shopDisplayLabel(shop);
+        shopSel.appendChild(o);
+      });
+      shopSel.value = shops.some(function(shop){ return String(shop.id||'') === keep; }) ? keep : active;
+      if(!shopSel.__shopBound){
+        shopSel.__shopBound = true;
+        shopSel.onchange = function(){ syncShopFromLoginInputs(true); };
+      }
+    }
+    var activeShop = activeShopProfile();
+    var hint = byId('shopWorkspaceHint');
+    if(hint) hint.textContent = activeShop ? ('Using workspace ' + String(activeShop.workspace||'')) : '';
+    var wsLogin = byId('wsIdInput'); if(wsLogin) wsLogin.value = App.settings.workspace || '';
+    var wsSettings = byId('workspaceInput'); if(wsSettings) wsSettings.value = App.settings.workspace || '';
+    for(var i=0;i<2;i++){
+      var shop = shops[i] || {name:'Shop ' + (i+1), workspace:''};
+      var n = byId('shop' + (i+1) + 'NameInput'); if(n) n.value = String(shop.name||'');
+      var w = byId('shop' + (i+1) + 'WorkspaceInput'); if(w) w.value = String(shop.workspace||'');
+    }
+  }catch(e){}
+}
+function syncShopFromLoginInputs(reloadAfterChange){
+  try{
+    normalizeShopSettings();
+    var before = String(App.settings.workspace || '');
+    var beforeShop = String(App.settings.activeShopId || '');
+    var shopSel = byId('shopSelect');
+    if(shopSel && shopSel.value) setActiveShopId(shopSel.value);
+    var shopChanged = beforeShop !== String(App.settings.activeShopId || '');
+    var wsInput = byId('wsIdInput');
+    if(!shopChanged && wsInput && wsInput.value.trim()) updateActiveShopWorkspace(wsInput.value.trim());
+    renderShopSelectors();
+    if(typeof saveConnLocal === 'function') saveConnLocal();
+    var after = String(App.settings.workspace || '');
+    if(reloadAfterChange && before !== after){
+      setLoginMessage('Switching shop workspace to ' + after + '...');
+      setTimeout(function(){ location.reload(); }, 150);
+    }
+  }catch(e){}
+}
+function syncShopProfilesFromSettingsInputs(){
+  try{
+    normalizeShopSettings();
+    var shops = App.settings.shops || [];
+    for(var i=0;i<2;i++){
+      if(!shops[i]) shops[i] = {id:'shop' + (i+1), name:'Shop ' + (i+1), workspace:'mnc-atrd-shop-' + (i+1)};
+      var n = byId('shop' + (i+1) + 'NameInput');
+      var w = byId('shop' + (i+1) + 'WorkspaceInput');
+      if(n && n.value.trim()) shops[i].name = n.value.trim();
+      if(w && w.value.trim()) shops[i].workspace = w.value.trim();
+    }
+    App.settings.shops = shops;
+    var wsInput = byId('workspaceInput');
+    if(wsInput && wsInput.value.trim()) updateActiveShopWorkspace(wsInput.value.trim());
+    else setActiveShopId(App.settings.activeShopId);
+    renderShopSelectors();
+    if(typeof saveConnLocal === 'function') saveConnLocal();
+  }catch(e){}
+}
 
 function populateAdminHistoryStaffFilter(){
   var sel = byId('adminHistoryStaffFilter');
@@ -11044,6 +11299,21 @@ function populateAdminHistoryStaffFilter(){
     var opt = sel.querySelector('option[value="' + current + '"]');
     if(opt) sel.value = current;
   }
+}
+function adminRecordShopLabel(rec, useCurrentFallback){
+  rec = rec || {};
+  try{
+    var hasMeta = !!(rec.shopName || rec.shopId || rec.workspace || rec.workspaceId);
+    if(hasMeta && typeof shopMetaLabel === 'function') return shopMetaLabel(rec);
+    if(useCurrentFallback && typeof currentShopMeta === 'function'){
+      var meta = currentShopMeta();
+      if(meta && (meta.shopName || meta.workspace)){
+        return (typeof shopMetaLabel === 'function') ? shopMetaLabel(meta) : String(meta.workspace || meta.shopName || '');
+      }
+    }
+    if(typeof shopMetaLabel === 'function') return shopMetaLabel(rec);
+  }catch(e){}
+  return 'Legacy / shop not recorded';
 }
 function renderAdminHistory(){
   var wrap = byId('adminHistoryTableWrap');
@@ -11094,7 +11364,7 @@ function renderAdminHistory(){
         }
         var details = parts.join(' | ');
         var when = rec.resolvedAt || (iso + ' (no timestamp)');
-        rows.push({when:when, iso:iso, name:name, staffId:String(sid), status:status, type:type, details:details});
+        rows.push({when:when, iso:iso, shopLabel:adminRecordShopLabel(rec, false), name:name, staffId:String(sid), status:status, type:type, details:details});
       });
     });
   }catch(e){}
@@ -11128,7 +11398,7 @@ function renderAdminHistory(){
         var shiftSummary = shiftRequestDetails(rec);
         if(shiftSummary) detailsParts.push(shiftSummary);
 
-        rows.push({when:when, iso:iso, name:name, staffId:sid, status:status, type:shiftRequestTypeLabel(rec), details:detailsParts.join(' | ')});
+        rows.push({when:when, iso:iso, shopLabel:adminRecordShopLabel(rec, false), name:name, staffId:sid, status:status, type:shiftRequestTypeLabel(rec), details:detailsParts.join(' | ')});
       });
     });
   }catch(e){}
@@ -11150,6 +11420,7 @@ function renderAdminHistory(){
     var tr = document.createElement('tr');
     tr.innerHTML =
       '<td>'+escapeHtml(r.when)+'</td>'+
+      '<td>'+escapeHtml(r.shopLabel || 'Legacy / shop not recorded')+'</td>'+
       '<td>'+escapeHtml(r.name)+'</td>'+
       '<td>'+escapeHtml(r.status)+'</td>'+
       '<td>'+escapeHtml(r.type)+'</td>'+
@@ -11294,6 +11565,7 @@ function renderAdminRequestsLog(){
           resolvedAt: '',
           dayLabel: formatIsoForHuman(iso),
           dayISO: String(iso),
+          shopLabel: adminRecordShopLabel(req, true),
           staffId: String(sid),
           staffName: name,
           status: 'pending',
@@ -11340,6 +11612,7 @@ function renderAdminRequestsLog(){
           resolvedAt: rec.resolvedAt || rec.resolvedAt || '',
           dayLabel: formatIsoForHuman(iso),
           dayISO: String(iso),
+          shopLabel: adminRecordShopLabel(rec, false),
           staffId: String(sid),
           staffName: name,
           status: st,
@@ -11373,6 +11646,7 @@ function renderAdminRequestsLog(){
           resolvedAt: '',
           dayLabel: _shiftReqDayLabel(req, iso),
           dayISO: String(iso),
+          shopLabel: adminRecordShopLabel(req, true),
           staffId: sid,
           staffName: name,
           status: 'pending',
@@ -11403,6 +11677,7 @@ function renderAdminRequestsLog(){
           resolvedAt: rec.resolvedAt || '',
           dayLabel: _shiftReqDayLabel(rec, iso),
           dayISO: String(iso),
+          shopLabel: adminRecordShopLabel(rec, false),
           staffId: sid,
           staffName: name,
           status: st,
@@ -11487,7 +11762,7 @@ function renderAdminRequestsLog(){
     tr.setAttribute('data-kind', kind);
     tr.setAttribute('data-key', key);
     if(monthKey) tr.setAttribute('data-month', monthKey);
-    tr.innerHTML = '<td colspan="7"><span class="reqlog-caret">'+(open?'▼':'▶')+'</span> '
+    tr.innerHTML = '<td colspan="8"><span class="reqlog-caret">'+(open?'▼':'▶')+'</span> '
       + escapeHtml(label) + ' <span class="muted-small">(' + n + ')</span></td>';
     return tr;
   }
@@ -11503,6 +11778,7 @@ function renderAdminRequestsLog(){
       '<td>'+escapeHtml(_fmtTS(r.requestedAt))+'</td>'+
       '<td>'+escapeHtml(_fmtTS(r.resolvedAt))+'</td>'+
       '<td>'+escapeHtml(String(r.dayLabel||''))+'</td>'+
+      '<td>'+escapeHtml(String(r.shopLabel||'Legacy / shop not recorded'))+'</td>'+
       '<td>'+escapeHtml(String(r.staffName||''))+'</td>'+
       '<td>'+statusBadgeHtml(r.status||'')+'</td>'+
       '<td>'+requestTypeBadgeHtml(r.kindKey||'neutral', String(r.type||''))+'</td>'+
@@ -12764,7 +13040,11 @@ function renderAfterLogin(){
   if(lb) lb.style.display='inline-block';
 
   var uc=byId('userChip');
-  if(uc) uc.textContent = App.currentUser ? (App.currentUser.name + ' ('+ (App.currentUser.role||'') +')') : '';
+  if(uc){
+    var shopName = '';
+    try{ var shop = activeShopProfile(); shopName = shop && shop.name ? String(shop.name) : ''; }catch(e){}
+    uc.textContent = App.currentUser ? (App.currentUser.name + ' ('+ (App.currentUser.role||'') +')' + (shopName ? (' @ ' + shopName) : '')) : '';
+  }
 
   // bottom-nav visibility + role-based items
   var nav = byId('bottomNav');
@@ -16220,6 +16500,7 @@ function submitEditRequest(req){
       createdBy:(App.currentUser && App.currentUser.id!=null)?String(App.currentUser.id):'',
       status:'pending'
     };
+    if(typeof applyCurrentShopMeta === 'function') applyCurrentShopMeta(rec);
     App.editRequests[id]=rec;
     saveLocal();
     try{ dbPatch('/editRequests', (function(){ var p={}; p[id]=rec; return p; })()).catch(function(e){ console.error('Push editRequests failed', e); }); }catch(e){}
@@ -16263,6 +16544,7 @@ function approveEditRequest(editId){
       r.status='approved';
       r.resolvedAt=new Date().toISOString();
       r.resolvedBy=(App.currentUser && App.currentUser.id!=null)?String(App.currentUser.id):'';
+      if(typeof applyCurrentShopMeta === 'function') applyCurrentShopMeta(r);
       saveLocal();
       try{ dbPatch('/availability/' + encodeURIComponent(iso), day).catch(function(e){ console.error('Push availability approve failed', e); }); }catch(e){}
       try{ dbPatch('/editRequests/' + encodeURIComponent(editId), r).catch(function(e){ console.error('Push editRequest approve failed', e); }); }catch(e){}
@@ -16276,6 +16558,7 @@ function approveEditRequest(editId){
     r.status='approved';
     r.resolvedAt=new Date().toISOString();
     r.resolvedBy=(App.currentUser && App.currentUser.id!=null)?String(App.currentUser.id):'';
+    if(typeof applyCurrentShopMeta === 'function') applyCurrentShopMeta(r);
     saveLocal();
     try{ dbPatch('/editRequests/' + encodeURIComponent(editId), r).catch(function(e){ console.error('Push editRequest approve failed', e); }); }catch(e){}
     if(typeof updateRequestsBadge==='function') updateRequestsBadge();
@@ -16291,6 +16574,7 @@ function rejectEditRequest(editId){
     r.status='rejected';
     r.resolvedAt=new Date().toISOString();
     r.resolvedBy=(App.currentUser && App.currentUser.id!=null)?String(App.currentUser.id):'';
+    if(typeof applyCurrentShopMeta === 'function') applyCurrentShopMeta(r);
     saveLocal();
     try{ dbPatch('/editRequests/' + encodeURIComponent(editId), r).catch(function(e){ console.error('Push editRequest reject failed', e); }); }catch(e){}
     if(typeof updateRequestsBadge==='function') updateRequestsBadge();
@@ -16522,6 +16806,7 @@ function approveRequest(iso,sid,req){
     status: 'approved',
     resolvedAt: new Date().toISOString()
   });
+  if(typeof applyCurrentShopMeta === 'function') applyCurrentShopMeta(entry);
   histDay[sid] = entry;
   if(App.absenceRequests && App.absenceRequests[iso]){
     delete App.absenceRequests[iso][sid];
@@ -16566,6 +16851,7 @@ function rejectRequest(iso,sid){
         status: 'rejected',
         resolvedAt: new Date().toISOString()
       });
+      if(typeof applyCurrentShopMeta === 'function') applyCurrentShopMeta(entry);
       histDay[sid] = entry;
     }
     delete App.absenceRequests[iso][sid];
@@ -16645,7 +16931,7 @@ function approveShiftChange(iso,key,req){
       try{
         appliedShift = isShiftProposalRequest(req) ? dayBucket[createdShiftId] : dayBucket[req.shiftId || key];
       }catch(e){}
-      App.shiftChangeHistory[iso][key] = Object.assign({}, req || {}, {
+      var histEntry = Object.assign({}, req || {}, {
         status:'approved',
         resolvedAt:new Date().toISOString(),
         appliedShiftId:(createdShiftId || req.shiftId || key || null),
@@ -16653,6 +16939,8 @@ function approveShiftChange(iso,key,req){
         appliedEnd:(appliedShift && appliedShift.end) ? appliedShift.end : (req && req.newEnd ? to12hStr(req.newEnd) : ''),
         appliedBreakMins:(appliedShift && appliedShift.breakMins!=null) ? appliedShift.breakMins : (req ? req.newBreakMins : null)
       });
+      if(typeof applyCurrentShopMeta === 'function') applyCurrentShopMeta(histEntry);
+      App.shiftChangeHistory[iso][key] = histEntry;
     }catch(e){}
 
     if(App.shiftChangeRequests && App.shiftChangeRequests[iso]){
@@ -16711,7 +16999,9 @@ function rejectShiftChange(iso,key){
     if(__req){
       if(!App.shiftChangeHistory) App.shiftChangeHistory = {};
       if(!App.shiftChangeHistory[iso]) App.shiftChangeHistory[iso] = {};
-      App.shiftChangeHistory[iso][key] = Object.assign({}, __req, {status:'rejected', resolvedAt:new Date().toISOString()});
+      var histEntry = Object.assign({}, __req, {status:'rejected', resolvedAt:new Date().toISOString()});
+      if(typeof applyCurrentShopMeta === 'function') applyCurrentShopMeta(histEntry);
+      App.shiftChangeHistory[iso][key] = histEntry;
     }
   }catch(e){}
   if(App.shiftChangeRequests && App.shiftChangeRequests[iso]){
@@ -17285,6 +17575,7 @@ renderPlanner();
   cur.reason = reason;
   cur.createdAt = new Date().toISOString();
   cur.status = 'pending';
+  if(typeof applyCurrentShopMeta === 'function') applyCurrentShopMeta(cur);
   App.absenceRequests[iso][staffId] = cur;
   saveLocal();
 try{
@@ -17358,6 +17649,7 @@ renderPlanner();
   cur.reason = reason;
   cur.createdAt = new Date().toISOString();
   cur.status = 'pending';
+  if(typeof applyCurrentShopMeta === 'function') applyCurrentShopMeta(cur);
   App.absenceRequests[iso][staffId] = cur;
   saveLocal();
 try{
@@ -23209,6 +23501,8 @@ alert(next?'Marked week as Published (staff cannot add new shifts)':'Unpublished
 
 // ---------- Absences Sync ----------
 async function pullData(silent){
+  var __selectedShopId = String((App.settings && App.settings.activeShopId) || '');
+  var __selectedWorkspace = String((App.settings && App.settings.workspace) || '');
   var data = await dbGet('');
   // Fallback: if workspace node is empty/misaligned, attempt to read from DB root and/or nested workspace key.
   try{
@@ -23306,6 +23600,17 @@ try{
       }
     }
   }
+  if(__selectedShopId || __selectedWorkspace){
+    try{
+      if(__selectedShopId) App.settings.activeShopId = __selectedShopId;
+      if(__selectedWorkspace){
+        App.settings.workspace = __selectedWorkspace;
+        (App.settings.shops||[]).forEach(function(shop){
+          if(__selectedShopId && String(shop.id||'') === __selectedShopId) shop.workspace = __selectedWorkspace;
+        });
+      }
+    }catch(e){}
+  }
   normalizeCoreState();
   saveLocal(true, {silentSyncState:true});
   if(typeof updateRequestsBadge==='function') updateRequestsBadge();
@@ -23335,6 +23640,7 @@ try{
   if(__auth) __auth.value = App.settings.authToken || '';
   var __wsLogin=document.getElementById('wsIdInput');
   if(__wsLogin) __wsLogin.value = App.settings.workspace || '';
+  try{ if(typeof renderShopSelectors === 'function') renderShopSelectors(); }catch(e){}
   var __titleInput=document.getElementById('appTitleInput');
   if(__titleInput) __titleInput.value = App.settings.appTitle || 'Aspire Workforce Command';
   var __logoInput=document.getElementById('logoUrlInput');
@@ -23776,7 +24082,7 @@ window.proposeShiftRequest = async function(iso, staffId){
     }
 
     var reqKey = 'new_' + uid();
-    App.shiftChangeRequests[iso][reqKey] = {
+    var newReq = {
       requestType: 'newShift',
       proposedShift: true,
       staffId: staffId,
@@ -23792,6 +24098,8 @@ window.proposeShiftRequest = async function(iso, staffId){
       createdAt: new Date().toISOString(),
       status: 'pending'
     };
+    if(typeof applyCurrentShopMeta === 'function') applyCurrentShopMeta(newReq);
+    App.shiftChangeRequests[iso][reqKey] = newReq;
     saveLocal();
 
     var pushedOk = true;
@@ -23909,7 +24217,7 @@ window.proposeShiftEdit = async function(iso, staffId){
       return;
     }
 
-    App.shiftChangeRequests[iso][selected.key] = {
+    var editReq = {
       requestType: 'shiftEdit',
       staffId: staffId,
       shiftId: selected.key,
@@ -23921,6 +24229,8 @@ window.proposeShiftEdit = async function(iso, staffId){
       createdAt: new Date().toISOString(),
       status: 'pending'
     };
+    if(typeof applyCurrentShopMeta === 'function') applyCurrentShopMeta(editReq);
+    App.shiftChangeRequests[iso][selected.key] = editReq;
     saveLocal();
 var pushedOk = true;
 
@@ -24336,7 +24646,7 @@ try{
 (function(){
   'use strict';
   var APP_NAME = 'Aspire Workforce Command';
-  var APP_VERSION = 'V5.0.47';
+  var APP_VERSION = 'V5.0.49';
   var OLD_TITLE = 'M&C-ATRD-scheduler --=Aspire Group=--';
 
   var NAVS = [
