@@ -264,7 +264,7 @@
   
 </style>
 
-<title>Aspire Workforce Command (V5.0.49 Modular Build)</title>
+<title>Aspire Workforce Command (V5.0.51 Modular Build)</title>
   <meta name="theme-color" content="#22c55e"/>
 
   <style>
@@ -5019,7 +5019,7 @@
       <div id="appLogoBox"></div>
       <div class="titlewrap">
         <div class="title" id="appTitle">Aspire Workforce Command</div>
-        <div class="version-pill" id="appVersion">V5.0.49</div>
+        <div class="version-pill" id="appVersion">V5.0.51</div>
         <div class="sync-pill syncing" id="syncStatusChip" title="Sync status">Starting…</div>
       </div>
     </div>
@@ -5968,6 +5968,8 @@
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
         <div class="muted-small">Admin only</div>
         <button id="btnBizExportPdf" class="btn-outline">Export PDF</button>
+        <button id="btnBizExportStaffWages" class="btn-outline">Export staff wages</button>
+        <button id="btnBizExportAccountantWages" class="btn-outline">Export accountant report</button>
         <button id="btnBizExportExcel" class="btn-primary">Export Excel</button>
       </div>
     </div>
@@ -7265,8 +7267,8 @@ var DAY = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 var App = {
   // IMPORTANT: Increment App.version *and* App.buildId whenever making functional changes to this file.
   // SAFETY NET: This build performs an automatic runtime check against the file name; if mismatched, it shows a blocking warning so it can't be overlooked.
-  version: 'V5.0.49',
-    buildId: '2026-07-14.04',
+  version: 'V5.0.51',
+    buildId: '2026-07-24.02',
 settings: {
     dbUrl:'https://mnc-atrd-default-rtdb.asia-southeast1.firebasedatabase.app/', workspace:'mnc-atrd', authToken:'',
     theme:'light', themeName:'light-pastel-sky', recentColors:[], appTitle:'Aspire Workforce Command', logoUrl:'',
@@ -21345,7 +21347,8 @@ var BusinessView = {
   historyOpenMonths:{},
   historyOpenWeeks:{},
   historyUserCollapsedAll:false,
-  lastRows:null
+  lastRows:null,
+  lastRangeKey:''
 };
 
 function ensureBusinessAnalyticsStore(){
@@ -21362,6 +21365,10 @@ function bizFormatLongDate(iso){ try{ return fromISO(iso).toLocaleDateString(und
 function bizFormatRangeLabel(startIso, endIso){
   try{ return fmtDMY(fromISO(startIso)) + ' to ' + fmtDMY(fromISO(endIso)); }
   catch(e){ return String(startIso||'') + ' to ' + String(endIso||''); }
+}
+function bizRangeKey(startIso, endIso){
+  var range = bizClampRange(startIso, endIso);
+  return String(range.startISO||'') + '|' + String(range.endISO||'');
 }
 function bizCompactMoney(v){
   var n = numOr0(v), sign = n < 0 ? '-' : '', abs = Math.abs(n);
@@ -21572,9 +21579,24 @@ function bizApplyRangePreset(preset){
 function bizReadRangeInputs(){
   var start = (byId('bizRangeStart') && byId('bizRangeStart').value) ? String(byId('bizRangeStart').value) : (BusinessView.startISO || bizShiftIso(bizTodayIso(), -29));
   var end = (byId('bizRangeEnd') && byId('bizRangeEnd').value) ? String(byId('bizRangeEnd').value) : (BusinessView.endISO || bizTodayIso());
+  var previousKey = bizRangeKey(BusinessView.startISO || start, BusinessView.endISO || end);
   var range = bizClampRange(start, end);
   BusinessView.startISO = range.startISO;
   BusinessView.endISO = range.endISO;
+  if(previousKey !== bizRangeKey(range.startISO, range.endISO)){
+    BusinessView.lastRows = null;
+    BusinessView.lastRangeKey = '';
+  }
+  return range;
+}
+function bizUseCustomRangeFromInputs(updateDom){
+  BusinessView.rangePreset = 'custom';
+  var presetEl = byId('bizRangePreset'); if(presetEl) presetEl.value = 'custom';
+  var range = bizReadRangeInputs();
+  if(updateDom){
+    setInputValueIfIdle('bizRangeStart', range.startISO);
+    setInputValueIfIdle('bizRangeEnd', range.endISO);
+  }
   return range;
 }
 function bizDaysInRange(startIso, endIso){
@@ -22603,7 +22625,14 @@ function renderBusinessAnalytics(){
   ensureBusinessAnalyticsStore();
   bindBusinessAnalyticsUI();
   if(!BusinessView.rangePreset) BusinessView.rangePreset = '30d';
-  if(!BusinessView.startISO || !BusinessView.endISO) bizApplyRangePreset(BusinessView.rangePreset);
+  var presetEl = byId('bizRangePreset');
+  if(presetEl && presetEl.value === 'custom') BusinessView.rangePreset = 'custom';
+  if(BusinessView.rangePreset === 'custom'){
+    var customRange = bizReadRangeInputs();
+    if(presetEl) presetEl.value = 'custom';
+    setInputValueIfIdle('bizRangeStart', customRange.startISO);
+    setInputValueIfIdle('bizRangeEnd', customRange.endISO);
+  }else if(!BusinessView.startISO || !BusinessView.endISO) bizApplyRangePreset(BusinessView.rangePreset);
   else {
     var presetEl = byId('bizRangePreset'); if(presetEl && !presetEl.value) presetEl.value = BusinessView.rangePreset || '30d';
     setInputValueIfIdle('bizRangeStart', BusinessView.startISO);
@@ -22617,6 +22646,7 @@ function renderBusinessAnalytics(){
   var range = bizReadRangeInputs();
   var rows = bizCollectRows(range.startISO, range.endISO);
   BusinessView.lastRows = rows;
+  BusinessView.lastRangeKey = bizRangeKey(range.startISO, range.endISO);
   var activeCount = rows.filter(bizHasAnyTrackedValue).length;
   setTextIfExists('bizRangeSummary', bizFormatRangeLabel(range.startISO, range.endISO) + ' | ' + activeCount + ' active day(s)');
 
@@ -22630,7 +22660,12 @@ function renderBusinessAnalytics(){
 }
 function bizRefreshChartsOnly(){
   var rows = BusinessView.lastRows;
-  if(!rows){ var range = bizReadRangeInputs(); rows = bizCollectRows(range.startISO, range.endISO); BusinessView.lastRows = rows; }
+  var currentRange = bizReadRangeInputs();
+  if(!rows || BusinessView.lastRangeKey !== bizRangeKey(currentRange.startISO, currentRange.endISO)){
+    rows = bizCollectRows(currentRange.startISO, currentRange.endISO);
+    BusinessView.lastRows = rows;
+    BusinessView.lastRangeKey = bizRangeKey(currentRange.startISO, currentRange.endISO);
+  }
   bizRenderTrendChart(rows);
   bizRenderPies(rows);
   bizRenderCostBars(rows);
@@ -22716,6 +22751,436 @@ function bizExportSpendItemsRows(rows){
   });
   return out.sort(function(a, b){ return String(a.iso||'').localeCompare(String(b.iso||'')); });
 }
+function bizStaffWageStaffIds(){
+  return Object.keys(App.staff||{}).filter(function(id){
+    var st = App.staff[id] || {};
+    return !st.hidden && (st.role || 'staff') !== 'admin';
+  }).sort(function(a,b){
+    return staffSortNameForId(a).localeCompare(staffSortNameForId(b));
+  });
+}
+function bizWeeksForRange(startIso, endIso){
+  var out = [];
+  try{
+    var range = bizClampRange(startIso, endIso);
+    var startWeek = weekStart(fromISO(range.startISO));
+    var endWeek = weekStart(fromISO(range.endISO));
+    for(var d = new Date(startWeek); d <= endWeek; d.setDate(d.getDate() + 7)){
+      out.push(toISO(weekStart(d)));
+      if(out.length > 540) break;
+    }
+  }catch(e){}
+  return out;
+}
+function bizIsoMax(a, b){ return String(a||'') > String(b||'') ? String(a||'') : String(b||''); }
+function bizIsoMin(a, b){ return String(a||'') < String(b||'') ? String(a||'') : String(b||''); }
+function bizStaffWageEmptySummary(staffId){
+  var profile = (typeof getPayrollStaffProfile === 'function') ? (getPayrollStaffProfile(staffId) || {}) : {};
+  var st = (App.staff && App.staff[staffId]) || {};
+  return {
+    staffId:String(staffId||''),
+    staffName:(typeof payrollStaffName === 'function') ? payrollStaffName(staffId) : staffDisplayNameForId(staffId, staffId),
+    payrollId:profile.employeeId || '',
+    employmentType:profile.employmentType || '',
+    classification:profile.classification || '',
+    bankMasked:profile.bankMasked || '',
+    baseRate:round2(st.rate || 0),
+    weeksWithWages:0,
+    paidWeeks:0,
+    shifts:0,
+    workHours:0,
+    breakHours:0,
+    payableHours:0,
+    ordinaryHours:0,
+    otHours:0,
+    rosterGross:0,
+    adjustments:0,
+    grossWageCost:0,
+    paygWithheld:0,
+    otherDeductions:0,
+    withheldFromPay:0,
+    netPayable:0,
+    estimatedSuper:0,
+    recordedSuper:0
+  };
+}
+function bizAddStaffWageSummary(summary, row){
+  summary.weeksWithWages += 1;
+  if(row.paid) summary.paidWeeks += 1;
+  summary.shifts += numOr0(row.shifts);
+  summary.workHours += numOr0(row.workHours);
+  summary.breakHours += numOr0(row.breakHours);
+  summary.payableHours += numOr0(row.payableHours);
+  summary.ordinaryHours += numOr0(row.ordinaryHours);
+  summary.otHours += numOr0(row.otHours);
+  summary.rosterGross += numOr0(row.rosterGross);
+  summary.adjustments += numOr0(row.adjustment);
+  summary.grossWageCost += numOr0(row.grossWageCost);
+  summary.paygWithheld += numOr0(row.paygWithheld);
+  summary.otherDeductions += numOr0(row.otherDeductions);
+  summary.withheldFromPay += numOr0(row.withheldFromPay);
+  summary.netPayable += numOr0(row.netPayable);
+  summary.estimatedSuper += numOr0(row.estimatedSuper);
+  summary.recordedSuper += numOr0(row.recordedSuper);
+}
+function bizRoundStaffWageSummary(summary){
+  ['workHours','breakHours','payableHours','ordinaryHours','otHours','rosterGross','adjustments','grossWageCost','paygWithheld','otherDeductions','withheldFromPay','netPayable','estimatedSuper','recordedSuper'].forEach(function(key){
+    summary[key] = round2(summary[key]);
+  });
+  return summary;
+}
+function bizBuildStaffWageDataset(startIso, endIso){
+  ensureBusinessAnalyticsStore();
+  var range = bizClampRange(startIso, endIso);
+  var business = (typeof getPayrollBusinessProfile === 'function') ? (getPayrollBusinessProfile() || {}) : {};
+  var superRate = numOr0(business.superRatePct || 12) || 12;
+  var staffIds = bizStaffWageStaffIds();
+  var summaryMap = {};
+  var weeklyRows = [];
+  var shiftRows = [];
+  var adjustmentRows = [];
+  staffIds.forEach(function(staffId){ summaryMap[staffId] = bizStaffWageEmptySummary(staffId); });
+
+  bizWeeksForRange(range.startISO, range.endISO).forEach(function(weekIso){
+    var weekEnd = (typeof payrollWeekEndIso === 'function') ? payrollWeekEndIso(weekIso) : bizWeekEndIso(weekIso);
+    var weekStartIso = weekIso;
+    var rangePortion = bizIsoMax(range.startISO, weekStartIso) + ' to ' + bizIsoMin(range.endISO, weekEnd);
+    var includeWeekPostings = weekEnd >= range.startISO && weekEnd <= range.endISO;
+    staffIds.forEach(function(staffId){
+      var staffName = summaryMap[staffId] ? summaryMap[staffId].staffName : staffDisplayNameForId(staffId, staffId);
+      var breakdown = (typeof computeWeekPayrollBreakdown === 'function') ? computeWeekPayrollBreakdown(weekIso, staffId) : {lines:[], totals:{}};
+      var selectedLines = (breakdown.lines||[]).filter(function(line){ return line && line.iso >= range.startISO && line.iso <= range.endISO; });
+      var totals = {workHours:0, breakHours:0, payableHours:0, ordinaryHours:0, otHours:0, rosterGross:0, superBase:0, shifts:0};
+      selectedLines.forEach(function(line){
+        totals.shifts += 1;
+        totals.workHours += numOr0(line.workHours);
+        totals.breakHours += numOr0(line.breakHours);
+        totals.payableHours += numOr0(line.payableHours);
+        totals.ordinaryHours += numOr0(line.ordinaryHours);
+        totals.otHours += numOr0(line.otHours);
+        totals.rosterGross += numOr0(line.linePay);
+        totals.superBase += numOr0(line.ordinaryHours) * numOr0(line.rate);
+        shiftRows.push({
+          iso:line.iso,
+          weekIso:weekIso,
+          staffId:staffId,
+          staffName:staffName,
+          shiftLabel:line.shiftLabel || '',
+          rateLabel:line.rateLabel || '',
+          rate:round2(line.rate || 0),
+          workHours:round2(line.workHours || 0),
+          breakHours:round2(line.breakHours || 0),
+          payableHours:round2(line.payableHours || 0),
+          ordinaryHours:round2(line.ordinaryHours || 0),
+          otHours:round2(line.otHours || 0),
+          linePay:round2(line.linePay || 0),
+          notes:String(line.notes || '')
+        });
+      });
+      Object.keys(totals).forEach(function(key){ totals[key] = round2(totals[key]); });
+
+      var adjRec = (((App.payrollAdjustments||{})[weekIso]||{})[staffId]) || {amount:0, comment:''};
+      var adjustment = includeWeekPostings ? round2(numOr0(adjRec.amount)) : 0;
+      var weekData = (typeof getPayrollWeekDataRec === 'function') ? (getPayrollWeekDataRec(weekIso, staffId, false) || {}) : {};
+      var paygWithheld = includeWeekPostings ? round2(numOr0(weekData.paygWithheld)) : 0;
+      var otherDeductions = includeWeekPostings ? round2(numOr0(weekData.otherDeductions)) : 0;
+      var withheldFromPay = (includeWeekPostings && typeof getWithheldForWeek === 'function') ? round2(getWithheldForWeek(weekIso, staffId)) : 0;
+      var recordedSuper = includeWeekPostings && weekData.superAmount !== '' && weekData.superAmount != null ? round2(numOr0(weekData.superAmount)) : 0;
+      var estimatedSuper = round2(totals.superBase * superRate / 100);
+      var grossWageCost = round2(totals.rosterGross + adjustment);
+      var netPayable = round2(grossWageCost - paygWithheld - otherDeductions - withheldFromPay);
+      if(netPayable < 0) netPayable = 0;
+      var paid = !!(((App.payrollPaid||{})[weekIso]||{})[staffId]);
+      var hasWeekRow = totals.shifts || Math.abs(grossWageCost) > 0.0001 || Math.abs(paygWithheld) > 0.0001 || Math.abs(otherDeductions) > 0.0001 || Math.abs(withheldFromPay) > 0.0001;
+      if(!hasWeekRow) return;
+
+      var weekly = {
+        weekIso:weekIso,
+        weekEnd:weekEnd,
+        rangePortion:rangePortion,
+        staffId:staffId,
+        staffName:staffName,
+        paid:paid,
+        shifts:totals.shifts,
+        workHours:totals.workHours,
+        breakHours:totals.breakHours,
+        payableHours:totals.payableHours,
+        ordinaryHours:totals.ordinaryHours,
+        otHours:totals.otHours,
+        rosterGross:round2(totals.rosterGross),
+        adjustment:adjustment,
+        grossWageCost:grossWageCost,
+        paygWithheld:paygWithheld,
+        otherDeductions:otherDeductions,
+        withheldFromPay:withheldFromPay,
+        netPayable:netPayable,
+        estimatedSuper:estimatedSuper,
+        recordedSuper:recordedSuper,
+        adjustmentComment:includeWeekPostings ? String(adjRec.comment || '') : '',
+        payrollNote:includeWeekPostings ? String(weekData.note || '') : '',
+        postingIncluded:includeWeekPostings
+      };
+      weeklyRows.push(weekly);
+      bizAddStaffWageSummary(summaryMap[staffId], weekly);
+      if(includeWeekPostings && Math.abs(adjustment) > 0.0001){
+        adjustmentRows.push({
+          postingDate:weekEnd,
+          weekIso:weekIso,
+          staffId:staffId,
+          staffName:staffName,
+          amount:adjustment,
+          comment:String(adjRec.comment || '')
+        });
+      }
+    });
+  });
+
+  var summaries = Object.keys(summaryMap).map(function(staffId){ return bizRoundStaffWageSummary(summaryMap[staffId]); })
+    .filter(function(s){ return s.weeksWithWages || Math.abs(numOr0(s.grossWageCost)) > 0.0001; })
+    .sort(function(a,b){ return String(a.staffName||'').localeCompare(String(b.staffName||'')); });
+  var totals = bizStaffWageEmptySummary('TOTAL');
+  totals.staffName = 'TOTAL';
+  summaries.forEach(function(s){ bizAddStaffWageSummary(totals, Object.assign({}, s, {paid:false, shifts:s.shifts})); });
+  totals.weeksWithWages = weeklyRows.length;
+  totals.paidWeeks = weeklyRows.filter(function(row){ return row.paid; }).length;
+  totals = bizRoundStaffWageSummary(totals);
+  return {
+    generatedAt:new Date().toISOString(),
+    appTitle:String((App.settings && App.settings.appTitle) || 'Business Analytics'),
+    workspace:String((App.settings && App.settings.workspace) || ''),
+    shop:(typeof currentShopMeta === 'function' && typeof shopMetaLabel === 'function') ? shopMetaLabel(currentShopMeta()) : '',
+    version:String(App.version || ''),
+    range:range,
+    superRate:superRate,
+    summaries:summaries,
+    totals:totals,
+    weeklyRows:weeklyRows.sort(function(a,b){ return String(a.weekIso||'').localeCompare(String(b.weekIso||'')) || String(a.staffName||'').localeCompare(String(b.staffName||'')); }),
+    shiftRows:shiftRows.sort(function(a,b){ return String(a.iso||'').localeCompare(String(b.iso||'')) || String(a.staffName||'').localeCompare(String(b.staffName||'')); }),
+    adjustmentRows:adjustmentRows.sort(function(a,b){ return String(a.postingDate||'').localeCompare(String(b.postingDate||'')) || String(a.staffName||'').localeCompare(String(b.staffName||'')); })
+  };
+}
+function bizStaffWageSummaryExcelRows(summaries, totals){
+  var rows = [[
+    {v:'Staff ID', s:'sHeader'}, {v:'Staff name', s:'sHeader'}, {v:'Payroll ID', s:'sHeader'}, {v:'Employment type', s:'sHeader'}, {v:'Classification', s:'sHeader'}, {v:'Bank/profile note', s:'sHeader'},
+    {v:'Base rate', s:'sHeader'}, {v:'Weeks with wages', s:'sHeader'}, {v:'Paid weeks', s:'sHeader'}, {v:'Shifts', s:'sHeader'}, {v:'Work hours', s:'sHeader'}, {v:'Break hours', s:'sHeader'},
+    {v:'Payable hours', s:'sHeader'}, {v:'Ordinary hours', s:'sHeader'}, {v:'OT hours', s:'sHeader'}, {v:'Roster gross', s:'sHeader'}, {v:'Adjustments', s:'sHeader'},
+    {v:'Gross wage cost', s:'sHeader'}, {v:'PAYG withheld', s:'sHeader'}, {v:'Other deductions', s:'sHeader'}, {v:'Withheld from pay', s:'sHeader'}, {v:'Net payable', s:'sHeader'},
+    {v:'Estimated super', s:'sHeader'}, {v:'Recorded super', s:'sHeader'}
+  ]];
+  function addSummary(s){
+    rows.push([
+      {v:s.staffId}, {v:s.staffName, s:'sSection'}, {v:s.payrollId}, {v:s.employmentType}, {v:s.classification}, {v:s.bankMasked},
+      {v:numOr0(s.baseRate), t:'Number', s:'sMoney'}, {v:numOr0(s.weeksWithWages), t:'Number', s:'sNumber'}, {v:numOr0(s.paidWeeks), t:'Number', s:'sNumber'}, {v:numOr0(s.shifts), t:'Number', s:'sNumber'},
+      {v:numOr0(s.workHours), t:'Number', s:'sNumber'}, {v:numOr0(s.breakHours), t:'Number', s:'sNumber'}, {v:numOr0(s.payableHours), t:'Number', s:'sNumber'},
+      {v:numOr0(s.ordinaryHours), t:'Number', s:'sNumber'}, {v:numOr0(s.otHours), t:'Number', s:'sNumber'}, {v:numOr0(s.rosterGross), t:'Number', s:'sMoney'},
+      {v:numOr0(s.adjustments), t:'Number', s:'sMoney'}, {v:numOr0(s.grossWageCost), t:'Number', s:'sMoney'}, {v:numOr0(s.paygWithheld), t:'Number', s:'sMoney'},
+      {v:numOr0(s.otherDeductions), t:'Number', s:'sMoney'}, {v:numOr0(s.withheldFromPay), t:'Number', s:'sMoney'}, {v:numOr0(s.netPayable), t:'Number', s:'sMoney'},
+      {v:numOr0(s.estimatedSuper), t:'Number', s:'sMoney'}, {v:numOr0(s.recordedSuper), t:'Number', s:'sMoney'}
+    ]);
+  }
+  (summaries||[]).forEach(addSummary);
+  if(totals) addSummary(totals);
+  if(!(summaries||[]).length) rows.push([{v:'No staff wage rows found in this range.'}]);
+  return rows;
+}
+function bizBuildStaffWagesWorkbookXml(dataset){
+  dataset = dataset || bizBuildStaffWageDataset(bizReadRangeInputs().startISO, bizReadRangeInputs().endISO);
+  var rangeLabel = bizFormatRangeLabel(dataset.range.startISO, dataset.range.endISO);
+  var overviewRows = [
+    [{v:'Staff Wage Cost Report', s:'sTitle', mergeAcross:2}],
+    [{v:'Generated', s:'sSection'}, {v:new Date(dataset.generatedAt).toLocaleString()}],
+    [{v:'App', s:'sSection'}, {v:dataset.appTitle}],
+    [{v:'Shop', s:'sSection'}, {v:dataset.shop || ''}],
+    [{v:'Workspace', s:'sSection'}, {v:dataset.workspace}],
+    [{v:'Version', s:'sSection'}, {v:dataset.version}],
+    [{v:'Selected range', s:'sSection'}, {v:rangeLabel}],
+    [{v:'Super rate used for estimate', s:'sSection'}, {v:numOr0(dataset.superRate), t:'Number', s:'sPercent'}],
+    [{v:''}],
+    [{v:'Metric', s:'sHeader'}, {v:'Amount / count', s:'sHeader'}],
+    [{v:'Staff with wages', s:'sSection'}, {v:(dataset.summaries||[]).length, t:'Number', s:'sNumber'}],
+    [{v:'Weekly staff rows', s:'sSection'}, {v:(dataset.weeklyRows||[]).length, t:'Number', s:'sNumber'}],
+    [{v:'Shift wage lines', s:'sSection'}, {v:(dataset.shiftRows||[]).length, t:'Number', s:'sNumber'}],
+    [{v:'Gross wage cost', s:'sSection'}, {v:numOr0(dataset.totals && dataset.totals.grossWageCost), t:'Number', s:'sMoney'}],
+    [{v:'Net payable after deductions/withheld', s:'sSection'}, {v:numOr0(dataset.totals && dataset.totals.netPayable), t:'Number', s:'sMoney'}],
+    [{v:'Estimated super', s:'sSection'}, {v:numOr0(dataset.totals && dataset.totals.estimatedSuper), t:'Number', s:'sMoney'}],
+    [{v:''}],
+    [{v:'Basis note', s:'sHeader'}, {v:'Shift wage lines are filtered by worked date. Weekly payroll adjustments, PAYG, other deductions, recorded super, withheld-from-pay and paid markers are included when the week-ending date is inside the selected range.', mergeAcross:1}]
+  ];
+
+  var summaryRows = bizStaffWageSummaryExcelRows(dataset.summaries, dataset.totals);
+  var weeklyRows = [[
+    {v:'Week start', s:'sHeader'}, {v:'Week end', s:'sHeader'}, {v:'Range portion', s:'sHeader'}, {v:'Staff ID', s:'sHeader'}, {v:'Staff name', s:'sHeader'}, {v:'Paid', s:'sHeader'},
+    {v:'Shifts', s:'sHeader'}, {v:'Work hours', s:'sHeader'}, {v:'Break hours', s:'sHeader'}, {v:'Payable hours', s:'sHeader'}, {v:'Ordinary hours', s:'sHeader'}, {v:'OT hours', s:'sHeader'},
+    {v:'Roster gross', s:'sHeader'}, {v:'Adjustment', s:'sHeader'}, {v:'Gross wage cost', s:'sHeader'}, {v:'PAYG withheld', s:'sHeader'}, {v:'Other deductions', s:'sHeader'},
+    {v:'Withheld from pay', s:'sHeader'}, {v:'Net payable', s:'sHeader'}, {v:'Estimated super', s:'sHeader'}, {v:'Recorded super', s:'sHeader'}, {v:'Adjustment note', s:'sHeader'}, {v:'Payroll note', s:'sHeader'}
+  ]];
+  (dataset.weeklyRows||[]).forEach(function(row){
+    weeklyRows.push([
+      {v:row.weekIso, s:'sSection'}, {v:row.weekEnd}, {v:row.rangePortion}, {v:row.staffId}, {v:row.staffName, s:'sSection'}, {v:row.paid ? 'Paid' : 'Unpaid'},
+      {v:numOr0(row.shifts), t:'Number', s:'sNumber'}, {v:numOr0(row.workHours), t:'Number', s:'sNumber'}, {v:numOr0(row.breakHours), t:'Number', s:'sNumber'}, {v:numOr0(row.payableHours), t:'Number', s:'sNumber'},
+      {v:numOr0(row.ordinaryHours), t:'Number', s:'sNumber'}, {v:numOr0(row.otHours), t:'Number', s:'sNumber'}, {v:numOr0(row.rosterGross), t:'Number', s:'sMoney'},
+      {v:numOr0(row.adjustment), t:'Number', s:'sMoney'}, {v:numOr0(row.grossWageCost), t:'Number', s:'sMoney'}, {v:numOr0(row.paygWithheld), t:'Number', s:'sMoney'},
+      {v:numOr0(row.otherDeductions), t:'Number', s:'sMoney'}, {v:numOr0(row.withheldFromPay), t:'Number', s:'sMoney'}, {v:numOr0(row.netPayable), t:'Number', s:'sMoney'},
+      {v:numOr0(row.estimatedSuper), t:'Number', s:'sMoney'}, {v:numOr0(row.recordedSuper), t:'Number', s:'sMoney'}, {v:row.adjustmentComment || ''}, {v:row.payrollNote || ''}
+    ]);
+  });
+  if(!(dataset.weeklyRows||[]).length) weeklyRows.push([{v:'No weekly staff wage rows found in this range.'}]);
+
+  var shiftRows = [[
+    {v:'Date', s:'sHeader'}, {v:'Week start', s:'sHeader'}, {v:'Staff ID', s:'sHeader'}, {v:'Staff name', s:'sHeader'}, {v:'Shift', s:'sHeader'}, {v:'Rate type', s:'sHeader'}, {v:'Rate', s:'sHeader'},
+    {v:'Work hours', s:'sHeader'}, {v:'Break hours', s:'sHeader'}, {v:'Payable hours', s:'sHeader'}, {v:'Ordinary hours', s:'sHeader'}, {v:'OT hours', s:'sHeader'}, {v:'Line pay', s:'sHeader'}, {v:'Notes', s:'sHeader'}
+  ]];
+  (dataset.shiftRows||[]).forEach(function(row){
+    shiftRows.push([
+      {v:row.iso, s:'sSection'}, {v:row.weekIso}, {v:row.staffId}, {v:row.staffName, s:'sSection'}, {v:row.shiftLabel}, {v:row.rateLabel}, {v:numOr0(row.rate), t:'Number', s:'sMoney'},
+      {v:numOr0(row.workHours), t:'Number', s:'sNumber'}, {v:numOr0(row.breakHours), t:'Number', s:'sNumber'}, {v:numOr0(row.payableHours), t:'Number', s:'sNumber'},
+      {v:numOr0(row.ordinaryHours), t:'Number', s:'sNumber'}, {v:numOr0(row.otHours), t:'Number', s:'sNumber'}, {v:numOr0(row.linePay), t:'Number', s:'sMoney'}, {v:row.notes || ''}
+    ]);
+  });
+  if(!(dataset.shiftRows||[]).length) shiftRows.push([{v:'No shift wage lines found in this range.'}]);
+
+  var adjustmentRows = [[
+    {v:'Posting date', s:'sHeader'}, {v:'Week start', s:'sHeader'}, {v:'Staff ID', s:'sHeader'}, {v:'Staff name', s:'sHeader'}, {v:'Amount', s:'sHeader'}, {v:'Comment', s:'sHeader'}
+  ]];
+  (dataset.adjustmentRows||[]).forEach(function(row){
+    adjustmentRows.push([
+      {v:row.postingDate, s:'sSection'}, {v:row.weekIso}, {v:row.staffId}, {v:row.staffName, s:'sSection'}, {v:numOr0(row.amount), t:'Number', s:'sMoney'}, {v:row.comment || ''}
+    ]);
+  });
+  if(!(dataset.adjustmentRows||[]).length) adjustmentRows.push([{v:'No payroll adjustments posted inside this range.'}]);
+
+  return '<?xml version="1.0"?>' +
+    '<?mso-application progid="Excel.Sheet"?>' +
+    '<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet" xmlns:html="http://www.w3.org/TR/REC-html40">' +
+      '<DocumentProperties xmlns="urn:schemas-microsoft-com:office:office"><Author>OpenAI</Author><Created>' + bizXmlEsc(dataset.generatedAt) + '</Created><Company>' + bizXmlEsc(dataset.appTitle) + '</Company></DocumentProperties>' +
+      '<Styles>' +
+        '<!-- MODULE_STYLE:styles/17-Default.css -->' +
+        '<!-- MODULE_STYLE:styles/18-sTitle.css -->' +
+        '<!-- MODULE_STYLE:styles/19-sHeader.css -->' +
+        '<!-- MODULE_STYLE:styles/20-sSection.css -->' +
+        '<!-- MODULE_STYLE:styles/21-sMoney.css -->' +
+        '<!-- MODULE_STYLE:styles/22-sNumber.css -->' +
+        '<!-- MODULE_STYLE:styles/23-sPercent.css -->' +
+      '</Styles>' +
+      bizExcelWorksheetXml('Overview', overviewRows, [200,180,180]) +
+      bizExcelWorksheetXml('Staff Summary', summaryRows, [110,180,110,120,160,180,90,90,80,70,85,85,95,95,75,100,100,115,100,110,110,110,110,110]) +
+      bizExcelWorksheetXml('Weekly Staff Totals', weeklyRows, [95,95,170,110,180,70,65,85,85,95,95,75,100,100,115,100,110,110,110,110,110,220,220]) +
+      bizExcelWorksheetXml('Shift Wage Lines', shiftRows, [95,95,110,180,120,90,80,85,85,95,95,75,95,220]) +
+      bizExcelWorksheetXml('Adjustments', adjustmentRows, [95,95,110,180,90,260]) +
+    '</Workbook>';
+}
+function bizExportStaffWagesExcel(){
+  if(!isAdmin()) return alert('Admin only.');
+  var range = bizUseCustomRangeFromInputs(true);
+  renderBusinessAnalytics();
+  range = bizReadRangeInputs();
+  var dataset = bizBuildStaffWageDataset(range.startISO, range.endISO);
+  var xml = bizBuildStaffWagesWorkbookXml(dataset);
+  var fileRange = String(range.startISO||'start') + '_to_' + String(range.endISO||'end');
+  bizExportDownloadBlob('staff_wages_' + fileRange + '_' + bizExportFileStamp() + '.xls', new Blob([xml], {type:'application/vnd.ms-excel'}));
+  try{ showToast('Staff wages exported', 'Excel export has started.', 'success', 3000); }catch(e){}
+}
+function bizAccountantReportSuperAmount(row){
+  var recorded = numOr0(row && row.recordedSuper);
+  if(Math.abs(recorded) > 0.0001) return round2(recorded);
+  return round2(numOr0(row && row.estimatedSuper));
+}
+function bizAccountantReportRows(dataset){
+  dataset = dataset || {};
+  var totals = {grossWages:0, superAmount:0, totalEmploymentCost:0};
+  var rows = (dataset.summaries || []).map(function(summary){
+    var gross = round2(numOr0(summary.grossWageCost));
+    var superAmount = bizAccountantReportSuperAmount(summary);
+    var total = round2(gross + superAmount);
+    totals.grossWages += gross;
+    totals.superAmount += superAmount;
+    totals.totalEmploymentCost += total;
+    return {
+      staffName:summary.staffName || '',
+      grossWages:gross,
+      superAmount:superAmount,
+      totalEmploymentCost:total
+    };
+  });
+  totals.grossWages = round2(totals.grossWages);
+  totals.superAmount = round2(totals.superAmount);
+  totals.totalEmploymentCost = round2(totals.totalEmploymentCost);
+  return {rows:rows, totals:totals};
+}
+function bizAccountantReportBusinessProfile(){
+  var business = (typeof getPayrollBusinessProfile === 'function') ? (getPayrollBusinessProfile() || {}) : {};
+  var settings = App.settings || {};
+  var logoUrl = String(settings.logoUrl || business.logoUrl || '').trim();
+  if(logoUrl && typeof resolveLogoUrl === 'function') logoUrl = resolveLogoUrl(logoUrl);
+  if(logoUrl && !(/^(https?:|data:image\/)/i.test(logoUrl))) logoUrl = '';
+  return {
+    businessName:business.businessName || settings.appTitle || 'Business',
+    legalName:business.legalName || '',
+    abn:business.abn || '',
+    acn:business.acn || '',
+    address:business.address || '',
+    email:business.email || '',
+    phone:business.phone || '',
+    logoUrl:logoUrl
+  };
+}
+function bizAccountantReportLetterheadHtml(profile){
+  profile = profile || bizAccountantReportBusinessProfile();
+  var contact = [];
+  if(profile.email) contact.push(profile.email);
+  if(profile.phone) contact.push(profile.phone);
+  var identifiers = [];
+  if(profile.abn) identifiers.push('ABN ' + profile.abn);
+  if(profile.acn) identifiers.push('ACN ' + profile.acn);
+  var details = [];
+  if(profile.legalName) details.push('<div>' + escapeHtml(profile.legalName) + '</div>');
+  if(identifiers.length) details.push('<div>' + escapeHtml(identifiers.join(' | ')) + '</div>');
+  if(profile.address) details.push('<div>' + escapeHtml(profile.address) + '</div>');
+  if(contact.length) details.push('<div>' + escapeHtml(contact.join(' | ')) + '</div>');
+  return '<header class="letterhead">' +
+    (profile.logoUrl ? '<img class="letterhead-logo" alt="Company logo" src="' + escapeHtml(profile.logoUrl) + '">' : '<div class="letterhead-mark">' + escapeHtml(String(profile.businessName || 'A').charAt(0).toUpperCase()) + '</div>') +
+    '<div class="letterhead-text"><div class="company-name">' + escapeHtml(profile.businessName || 'Business') + '</div><div class="company-details">' + details.join('') + '</div></div>' +
+  '</header>';
+}
+function bizBuildAccountantWageReportHtml(dataset){
+  dataset = dataset || bizBuildStaffWageDataset(bizReadRangeInputs().startISO, bizReadRangeInputs().endISO);
+  var profile = bizAccountantReportBusinessProfile();
+  var report = bizAccountantReportRows(dataset);
+  var rowsHtml = (report.rows || []).map(function(row){
+    return '<tr>' +
+      '<td>' + escapeHtml(row.staffName || '') + '</td>' +
+      '<td class="num">' + escapeHtml(fmtMoney(row.grossWages || 0)) + '</td>' +
+      '<td class="num">' + escapeHtml(fmtMoney(row.superAmount || 0)) + '</td>' +
+      '<td class="num strong">' + escapeHtml(fmtMoney(row.totalEmploymentCost || 0)) + '</td>' +
+    '</tr>';
+  }).join('');
+  if(!rowsHtml) rowsHtml = '<tr><td colspan="4" class="empty">No staff wage rows found in this range.</td></tr>';
+  var rangeLabel = bizFormatRangeLabel(dataset.range.startISO, dataset.range.endISO);
+  var generated = new Date(dataset.generatedAt).toLocaleString();
+  var shopMeta = dataset.shop ? '<div><span>Shop</span><strong>' + escapeHtml(dataset.shop) + '</strong></div>' : '';
+  var workspaceMeta = dataset.workspace ? '<div><span>Workspace</span><strong>' + escapeHtml(dataset.workspace) + '</strong></div>' : '';
+  return '<!doctype html><html><head><meta charset="utf-8"><title>' + escapeHtml((profile.businessName || dataset.appTitle || 'Business') + ' - accountant wage report - ' + bizExportFileStamp()) + '</title>' +
+    '<style>' +
+      '*{box-sizing:border-box;}body{margin:0;background:#f5f7fb;color:#101828;font-family:Inter,Segoe UI,Arial,sans-serif;}button{font:inherit;}.screen-bar{position:sticky;top:0;z-index:5;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 18px;background:#101828;color:#fff;box-shadow:0 2px 10px rgba(16,24,40,.18);}.screen-actions{display:flex;gap:8px;flex-wrap:wrap;}.screen-actions button{border:0;border-radius:8px;padding:9px 12px;font-weight:800;cursor:pointer;}.screen-actions .primary{background:#12b76a;color:#062b17;}.screen-actions .secondary{background:#344054;color:#fff;}.report{max-width:980px;margin:24px auto;padding:34px;background:#fff;border:1px solid #eaecf0;box-shadow:0 18px 45px rgba(16,24,40,.08);}.letterhead{display:flex;align-items:center;gap:18px;padding-bottom:18px;border-bottom:4px solid #101828;}.letterhead-logo{width:96px;height:96px;object-fit:contain;}.letterhead-mark{width:84px;height:84px;border-radius:12px;display:grid;place-items:center;background:#101828;color:#fff;font-size:34px;font-weight:900;}.company-name{font-size:28px;font-weight:900;letter-spacing:0;}.company-details{margin-top:6px;color:#475467;line-height:1.45;font-size:13px;}.report-title{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;margin:28px 0 18px;}.report-title h1{margin:0;font-size:28px;letter-spacing:0;}.report-title p{margin:7px 0 0;color:#475467;}.meta-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:18px 0 24px;}.meta-grid div,.summary-card{border:1px solid #eaecf0;background:#f9fafb;border-radius:8px;padding:12px;}.meta-grid span,.summary-card span{display:block;color:#667085;font-size:11px;font-weight:800;text-transform:uppercase;}.meta-grid strong,.summary-card strong{display:block;margin-top:5px;font-size:14px;}.summary-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:20px;}.summary-card strong{font-size:24px;}.summary-card.total{background:#ecfdf3;border-color:#abefc6;}table{width:100%;border-collapse:collapse;margin-top:8px;}th,td{padding:11px 10px;border-bottom:1px solid #eaecf0;text-align:left;vertical-align:top;}th{background:#101828;color:#fff;font-size:12px;text-transform:uppercase;letter-spacing:0;}td{font-size:13px;}tfoot td{font-weight:900;background:#f9fafb;border-top:2px solid #101828;}.num{text-align:right;white-space:nowrap;}.strong{font-weight:900;}.empty{text-align:center;color:#667085;padding:24px;}.basis{margin-top:18px;border:1px solid #d0d5dd;border-left:5px solid #101828;background:#f9fafb;padding:13px 14px;color:#344054;font-size:12px;line-height:1.5;}.signature{display:flex;justify-content:space-between;gap:20px;margin-top:28px;color:#667085;font-size:12px;}@media(max-width:760px){.report{margin:0;border:0;padding:20px;}.letterhead,.report-title{display:block;}.letterhead-logo,.letterhead-mark{margin-bottom:12px;}.meta-grid,.summary-grid{grid-template-columns:1fr;}.screen-bar{position:static;display:block;}.screen-actions{margin-top:10px;}table{font-size:12px;}}@media print{@page{margin:14mm;}body{background:#fff;}.screen-bar{display:none;}.report{max-width:none;margin:0;padding:0;border:0;box-shadow:none;}.meta-grid{grid-template-columns:repeat(4,minmax(0,1fr));}.summary-grid{grid-template-columns:repeat(3,minmax(0,1fr));}tr{page-break-inside:avoid;}.basis{break-inside:avoid;}}' +
+    '</style></head><body><div class="screen-bar"><div><strong>Accountant wage report</strong></div><div class="screen-actions"><button class="primary" onclick="window.print()">Print / Save PDF</button><button class="secondary" onclick="window.close()">Close</button></div></div>' +
+    '<main class="report">' + bizAccountantReportLetterheadHtml(profile) +
+      '<section class="report-title"><div><h1>Staff wage cost and super report</h1><p>Prepared for accounting records.</p></div><div class="num"><strong>' + escapeHtml(rangeLabel) + '</strong><p>Generated ' + escapeHtml(generated) + '</p></div></section>' +
+      '<section class="meta-grid"><div><span>Range</span><strong>' + escapeHtml(rangeLabel) + '</strong></div>' + shopMeta + workspaceMeta + '<div><span>App version</span><strong>' + escapeHtml(dataset.version || '-') + '</strong></div></section>' +
+      '<section class="summary-grid"><div class="summary-card"><span>Gross wages</span><strong>' + escapeHtml(fmtMoney(report.totals.grossWages || 0)) + '</strong></div><div class="summary-card"><span>Super contributions</span><strong>' + escapeHtml(fmtMoney(report.totals.superAmount || 0)) + '</strong></div><div class="summary-card total"><span>Total incl. super</span><strong>' + escapeHtml(fmtMoney(report.totals.totalEmploymentCost || 0)) + '</strong></div></section>' +
+      '<table><thead><tr><th>Staff member</th><th class="num">Gross wages</th><th class="num">Super</th><th class="num">Total incl. super</th></tr></thead><tbody>' + rowsHtml + '</tbody><tfoot><tr><td>Total</td><td class="num">' + escapeHtml(fmtMoney(report.totals.grossWages || 0)) + '</td><td class="num">' + escapeHtml(fmtMoney(report.totals.superAmount || 0)) + '</td><td class="num">' + escapeHtml(fmtMoney(report.totals.totalEmploymentCost || 0)) + '</td></tr></tfoot></table>' +
+      '<div class="basis"><strong>Basis:</strong> Gross wages are roster/payroll gross wage cost and do not include super. Super uses recorded super where available; otherwise it is estimated at ' + escapeHtml(String(numOr0(dataset.superRate || 0))) + '% from ordinary earnings. PAYG withheld, withheld balances, savings, deductions and net payable are excluded from this accountant summary.</div>' +
+      '<div class="signature"><div>Prepared from Aspire Workforce Command payroll data.</div><div>' + escapeHtml(profile.businessName || dataset.appTitle || '') + '</div></div>' +
+    '</main><script>window.addEventListener("load",function(){setTimeout(function(){try{window.focus();window.print();}catch(e){}},350);});<\/script></body></html>';
+}
+function bizExportAccountantWageReport(){
+  if(!isAdmin()) return alert('Admin only.');
+  var range = bizUseCustomRangeFromInputs(true);
+  renderBusinessAnalytics();
+  range = bizReadRangeInputs();
+  var dataset = bizBuildStaffWageDataset(range.startISO, range.endISO);
+  bizOpenReportWindow(bizBuildAccountantWageReportHtml(dataset));
+  try{ showToast('Accountant report opened', 'Use Print / Save PDF to send it to your accountant.', 'success', 3500); }catch(e){}
+}
 function bizFindBestWorstRows(rows){
   var best = null, worst = null;
   (rows||[]).filter(bizHasAnyTrackedValue).forEach(function(row){
@@ -22740,7 +23205,8 @@ function bizSummaryInsights(summary){
 function bizBuildExportDataset(){
   ensureBusinessAnalyticsStore();
   var selectedRange = bizReadRangeInputs();
-  var selectedRowsRaw = (BusinessView.lastRows && BusinessView.lastRows.length) ? BusinessView.lastRows.slice() : bizCollectRows(selectedRange.startISO, selectedRange.endISO);
+  var selectedKey = bizRangeKey(selectedRange.startISO, selectedRange.endISO);
+  var selectedRowsRaw = (Array.isArray(BusinessView.lastRows) && BusinessView.lastRangeKey === selectedKey) ? BusinessView.lastRows.slice() : bizCollectRows(selectedRange.startISO, selectedRange.endISO);
   var selectedRows = selectedRowsRaw.filter(bizHasAnyTrackedValue);
   var allRange = {startISO:bizEarliestRelevantIso(), endISO:bizLatestRelevantIso()};
   if(allRange.endISO < allRange.startISO) allRange.endISO = allRange.startISO;
@@ -23219,20 +23685,31 @@ function bindBusinessAnalyticsUI(){
     renderBusinessAnalytics();
   };
   var start = byId('bizRangeStart');
-  if(start) start.onchange = function(){ var p = byId('bizRangePreset'); if(p) p.value = 'custom'; BusinessView.rangePreset = 'custom'; };
+  if(start){
+    start.oninput = function(){ var p = byId('bizRangePreset'); if(p) p.value = 'custom'; BusinessView.rangePreset = 'custom'; };
+    start.onchange = function(){ bizUseCustomRangeFromInputs(true); renderBusinessAnalytics(); };
+  }
   var end = byId('bizRangeEnd');
-  if(end) end.onchange = function(){ var p = byId('bizRangePreset'); if(p) p.value = 'custom'; BusinessView.rangePreset = 'custom'; };
+  if(end){
+    end.oninput = function(){ var p = byId('bizRangePreset'); if(p) p.value = 'custom'; BusinessView.rangePreset = 'custom'; };
+    end.onchange = function(){ bizUseCustomRangeFromInputs(true); renderBusinessAnalytics(); };
+  }
   var apply = byId('btnBizApplyRange');
   if(apply) apply.onclick = function(){
     var p = byId('bizRangePreset');
     BusinessView.rangePreset = (p && p.value) ? p.value : 'custom';
     if(BusinessView.rangePreset !== 'custom') bizApplyRangePreset(BusinessView.rangePreset);
+    else bizUseCustomRangeFromInputs(true);
     renderBusinessAnalytics();
   };
   var reset = byId('btnBizResetRange');
   if(reset) reset.onclick = function(){ bizApplyRangePreset('30d'); renderBusinessAnalytics(); };
   var exportPdf = byId('btnBizExportPdf');
   if(exportPdf) exportPdf.onclick = function(){ bizExportAnalyticsPdf(); };
+  var exportStaffWages = byId('btnBizExportStaffWages');
+  if(exportStaffWages) exportStaffWages.onclick = function(){ bizExportStaffWagesExcel(); };
+  var exportAccountantWages = byId('btnBizExportAccountantWages');
+  if(exportAccountantWages) exportAccountantWages.onclick = function(){ bizExportAccountantWageReport(); };
   var exportExcel = byId('btnBizExportExcel');
   if(exportExcel) exportExcel.onclick = function(){ bizExportAnalyticsExcel(); };
 
@@ -24646,7 +25123,7 @@ try{
 (function(){
   'use strict';
   var APP_NAME = 'Aspire Workforce Command';
-  var APP_VERSION = 'V5.0.49';
+  var APP_VERSION = 'V5.0.51';
   var OLD_TITLE = 'M&C-ATRD-scheduler --=Aspire Group=--';
 
   var NAVS = [
