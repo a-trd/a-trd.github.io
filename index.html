@@ -264,7 +264,7 @@
   
 </style>
 
-<title>Aspire Workforce Command (V5.0.51 Modular Build)</title>
+<title>Aspire Workforce Command (V5.0.52 Modular Build)</title>
   <meta name="theme-color" content="#22c55e"/>
 
   <style>
@@ -5019,7 +5019,7 @@
       <div id="appLogoBox"></div>
       <div class="titlewrap">
         <div class="title" id="appTitle">Aspire Workforce Command</div>
-        <div class="version-pill" id="appVersion">V5.0.51</div>
+        <div class="version-pill" id="appVersion">V5.0.52</div>
         <div class="sync-pill syncing" id="syncStatusChip" title="Sync status">Starting…</div>
       </div>
     </div>
@@ -5477,7 +5477,7 @@
           <table class="table" id="payrollTable">
             <thead>
               <tr>
-                <th>Staff</th><th>Rate</th><th>Work (hrs)</th><th>Break (hrs)</th>
+                <th>Staff</th><th>Rates</th><th>Work (hrs)</th><th>Break (hrs)</th>
                 <th>Payable (hrs)</th><th>OT (hrs)</th><th>Total Pay</th><th>Paid</th>
               </tr>
             </thead>
@@ -6619,7 +6619,17 @@
               <input id="staffRateInput" type="number" min="0" step="0.01" value="25">
             </div>
             <div>
-              <label>Weekend Rate</label>
+              <label>Saturday Rate</label>
+              <input id="staffSaturdayRateInput" type="number" min="0" step="0.01" placeholder="(optional)">
+            </div>
+          </div>
+          <div class="grid-2">
+            <div>
+              <label>Sunday Rate</label>
+              <input id="staffSundayRateInput" type="number" min="0" step="0.01" placeholder="(optional)">
+            </div>
+            <div>
+              <label>Weekend Fallback Rate</label>
               <input id="staffWeekendRateInput" type="number" min="0" step="0.01" placeholder="(optional)">
             </div>
           </div>
@@ -7267,8 +7277,8 @@ var DAY = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 var App = {
   // IMPORTANT: Increment App.version *and* App.buildId whenever making functional changes to this file.
   // SAFETY NET: This build performs an automatic runtime check against the file name; if mismatched, it shows a blocking warning so it can't be overlooked.
-  version: 'V5.0.51',
-    buildId: '2026-07-24.02',
+  version: 'V5.0.52',
+    buildId: '2026-08-09.01',
 settings: {
     dbUrl:'https://mnc-atrd-default-rtdb.asia-southeast1.firebasedatabase.app/', workspace:'mnc-atrd', authToken:'',
     theme:'light', themeName:'light-pastel-sky', recentColors:[], appTitle:'Aspire Workforce Command', logoUrl:'',
@@ -9981,9 +9991,9 @@ function init(){
   }).finally(function(){
     if(!App.staff || Object.keys(App.staff).length===0){
       var a=uid(), b=uid(), c=uid();
-      App.staff[a]={name:'Alex',rate:30,rateWeekend:0,ratePenalty:0,otMult:1.5,otWeekly:38,otDaily:8,breakDefault:30,role:'admin',color:'#5A31F4',passHash:''};
-      App.staff[b]={name:'Casey',rate:25,rateWeekend:0,ratePenalty:0,otMult:1.5,otWeekly:38,otDaily:8,breakDefault:30,role:'manager',color:'#22b8cf',passHash:''};
-      App.staff[c]={name:'Sam',rate:28,rateWeekend:0,ratePenalty:0,otMult:1.5,otWeekly:38,otDaily:8,breakDefault:30,role:'staff',color:'#ff922b',passHash:''};
+      App.staff[a]={name:'Alex',rate:30,rateSaturday:0,rateSunday:0,rateWeekend:0,ratePenalty:0,otMult:1.5,otWeekly:38,otDaily:8,breakDefault:30,role:'admin',color:'#5A31F4',passHash:''};
+      App.staff[b]={name:'Casey',rate:25,rateSaturday:0,rateSunday:0,rateWeekend:0,ratePenalty:0,otMult:1.5,otWeekly:38,otDaily:8,breakDefault:30,role:'manager',color:'#22b8cf',passHash:''};
+      App.staff[c]={name:'Sam',rate:28,rateSaturday:0,rateSunday:0,rateWeekend:0,ratePenalty:0,otMult:1.5,otWeekly:38,otDaily:8,breakDefault:30,role:'staff',color:'#ff922b',passHash:''};
       saveLocal(); populateLoginSelects(); populateExistingStaff(); try{ renderShopSelectors(); }catch(e){}
     } else { populateExistingStaff(); populateLoginSelects(); try{ renderShopSelectors(); }catch(e){} }
     setTimeout(function(){ pullData(false).then(function(){ populateLoginSelects(); populateExistingStaff(); try{ renderShopSelectors(); }catch(e){} }); }, 2000);
@@ -13111,12 +13121,45 @@ function renderAfterLogin(){
 }
 
 // ---------- Rates & OT helpers ----------
+function staffRateNumber(value){
+  var n = parseFloat(value);
+  return isFinite(n) ? n : 0;
+}
+function staffDaySpecialRate(st, dayIndex){
+  st = st || {};
+  if(dayIndex === 5) return staffRateNumber(st.rateSaturday != null ? st.rateSaturday : st.saturdayRate);
+  if(dayIndex === 6) return staffRateNumber(st.rateSunday != null ? st.rateSunday : st.sundayRate);
+  return 0;
+}
 function effectiveRate(staffId, dayIndex, shift){
   var st=App.staff[staffId]||{};
   var isWeekend = (dayIndex===5 || dayIndex===6);
-  if(shift && shift.penalty && st.ratePenalty>0) return st.ratePenalty;
-  if(isWeekend && st.rateWeekend>0) return st.rateWeekend;
-  return st.rate||0;
+  var penaltyRate = staffRateNumber(st.ratePenalty);
+  var dayRate = staffDaySpecialRate(st, dayIndex);
+  var weekendRate = staffRateNumber(st.rateWeekend);
+  if(shift && shift.penalty && penaltyRate>0) return penaltyRate;
+  if(dayRate>0) return dayRate;
+  if(isWeekend && weekendRate>0) return weekendRate;
+  return staffRateNumber(st.rate);
+}
+function effectiveRateLabel(staffId, dayIndex, shift){
+  var st=App.staff[staffId]||{};
+  if(shift && shift.penalty && staffRateNumber(st.ratePenalty)>0) return 'Penalty';
+  if(dayIndex === 5 && staffDaySpecialRate(st, dayIndex)>0) return 'Saturday';
+  if(dayIndex === 6 && staffDaySpecialRate(st, dayIndex)>0) return 'Sunday';
+  if((dayIndex===5 || dayIndex===6) && staffRateNumber(st.rateWeekend)>0) return 'Weekend';
+  return 'Ordinary';
+}
+function staffRateSummaryHtml(st){
+  st = st || {};
+  var sat = staffRateNumber(st.rateSaturday != null ? st.rateSaturday : st.saturdayRate);
+  var sun = staffRateNumber(st.rateSunday != null ? st.rateSunday : st.sundayRate);
+  var weekend = staffRateNumber(st.rateWeekend);
+  var html = '<div>' + escapeHtml(fmtMoney(staffRateNumber(st.rate))) + '</div>';
+  if(sat > 0) html += '<div class="muted small">Sat ' + escapeHtml(fmtMoney(sat)) + '</div>';
+  if(sun > 0) html += '<div class="muted small">Sun ' + escapeHtml(fmtMoney(sun)) + '</div>';
+  if(weekend > 0 && (!sat || !sun)) html += '<div class="muted small">Weekend ' + escapeHtml(fmtMoney(weekend)) + '</div>';
+  return html;
 }
 function splitOvertime(staffId, dayIndex, hours, state){
   var st=App.staff[staffId]||{};
@@ -14494,6 +14537,8 @@ async function onSaveStaff(){
   var nickEl=byId('staffNickNameInput');
   var nickName=nickEl ? nickEl.value.trim() : '';
   var rate=parseFloat(byId('staffRateInput').value||'0');
+  var rateSaturday=parseFloat((byId('staffSaturdayRateInput') && byId('staffSaturdayRateInput').value)||'0');
+  var rateSunday=parseFloat((byId('staffSundayRateInput') && byId('staffSundayRateInput').value)||'0');
   var rateWeekend=parseFloat(byId('staffWeekendRateInput').value||'0');
   var ratePenalty=parseFloat(byId('staffPenaltyRateInput').value||'0');
   var otMult=parseFloat(byId('staffOTMultInput').value||'1.5');
@@ -14518,7 +14563,7 @@ async function onSaveStaff(){
     return;
   }
   var id = selectedId || uid();
-  App.staff[id]={name:name,nickName:nickName,rate:rate,rateWeekend:rateWeekend,ratePenalty:ratePenalty,otMult:otMult,otWeekly:otWeekly,otDaily:otDaily,breakDefault:br,role:role,color:color,hidden:hidden,passHash:passHash};
+  App.staff[id]={name:name,nickName:nickName,rate:rate,rateSaturday:rateSaturday,rateSunday:rateSunday,rateWeekend:rateWeekend,ratePenalty:ratePenalty,otMult:otMult,otWeekly:otWeekly,otDaily:otDaily,breakDefault:br,role:role,color:color,hidden:hidden,passHash:passHash};
   App.settings.recentColors=[color].concat((App.settings.recentColors||[]).filter(function(c){return c!==color;})).slice(0,12);
   saveLocal(); populateLoginSelects(); populateExistingStaff(); try{ syncPayrollFormsFromApp(); }catch(e){} alert('Saved staff.');
 }
@@ -14533,7 +14578,10 @@ function loadStaffIntoForm(){
   var s=App.staff[id]; if(!s) return;
   byId('staffNameInput').value=s.name||'';
   var nickEl=byId('staffNickNameInput'); if(nickEl) nickEl.value=s.nickName||s.nickname||s.shortName||s.displayName||'';
+  var legacyWeekend = parseFloat(s.rateWeekend||0)||0;
   byId('staffRateInput').value=s.rate||0;
+  if(byId('staffSaturdayRateInput')) byId('staffSaturdayRateInput').value=(s.rateSaturday != null ? s.rateSaturday : (s.saturdayRate != null ? s.saturdayRate : legacyWeekend)) || 0;
+  if(byId('staffSundayRateInput')) byId('staffSundayRateInput').value=(s.rateSunday != null ? s.rateSunday : (s.sundayRate != null ? s.sundayRate : legacyWeekend)) || 0;
   byId('staffWeekendRateInput').value=s.rateWeekend||0;
   byId('staffPenaltyRateInput').value=s.ratePenalty||0;
   byId('staffOTMultInput').value=s.otMult||1.5;
@@ -14550,6 +14598,8 @@ function clearStaffForm(){
   byId('staffNameInput').value='';
   var nickEl=byId('staffNickNameInput'); if(nickEl) nickEl.value='';
   byId('staffRateInput').value='25';
+  if(byId('staffSaturdayRateInput')) byId('staffSaturdayRateInput').value='0';
+  if(byId('staffSundayRateInput')) byId('staffSundayRateInput').value='0';
   byId('staffWeekendRateInput').value='0';
   byId('staffPenaltyRateInput').value='0';
   byId('staffOTMultInput').value='1.5';
@@ -19270,7 +19320,7 @@ function computeWeekPayrollBreakdown(weekIso, staffId){
         otHours:round2(split.ot),
         rate:round2(rate),
         linePay:round2(linePay),
-        rateLabel:(sh.penalty ? 'Penalty' : ((j===5 || j===6) && (parseFloat(st.rateWeekend||0)||0) > 0 ? 'Weekend' : 'Ordinary')),
+        rateLabel:(typeof effectiveRateLabel === 'function' ? effectiveRateLabel(staffId, j, sh) : (sh.penalty ? 'Penalty' : ((j===5 || j===6) && (parseFloat(st.rateWeekend||0)||0) > 0 ? 'Weekend' : 'Ordinary'))),
         notes:(sh.notes || '')
       });
       weekCum += (split.normal + split.ot);
@@ -20076,7 +20126,7 @@ function renderPayroll(){
 
       tr.innerHTML =
         '<td>'+escapeHtml(staffDisplayNameForId(id, st.name||id))+'</td>'+
-        '<td>'+fmtMoney(st.rate||0)+'</td>'+
+        '<td>'+(typeof staffRateSummaryHtml === 'function' ? staffRateSummaryHtml(st) : fmtMoney(st.rate||0))+'</td>'+
         '<td>'+W.toFixed(2)+'</td>'+
         '<td>'+B.toFixed(2)+'</td>'+
         '<td>'+P.toFixed(2)+'</td>'+
@@ -25123,7 +25173,7 @@ try{
 (function(){
   'use strict';
   var APP_NAME = 'Aspire Workforce Command';
-  var APP_VERSION = 'V5.0.51';
+  var APP_VERSION = 'V5.0.52';
   var OLD_TITLE = 'M&C-ATRD-scheduler --=Aspire Group=--';
 
   var NAVS = [
