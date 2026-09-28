@@ -264,7 +264,7 @@
   
 </style>
 
-<title>Aspire Workforce Command (V5.0.57 Modular Build)</title>
+<title>Aspire Workforce Command (V5.0.58 Modular Build)</title>
   <meta name="theme-color" content="#22c55e"/>
 
   <style>
@@ -5019,7 +5019,7 @@
       <div id="appLogoBox"></div>
       <div class="titlewrap">
         <div class="title" id="appTitle">Aspire Workforce Command</div>
-        <div class="version-pill" id="appVersion">V5.0.57</div>
+        <div class="version-pill" id="appVersion">V5.0.58</div>
         <div class="sync-pill syncing" id="syncStatusChip" title="Sync status">Starting…</div>
       </div>
     </div>
@@ -5060,7 +5060,7 @@
         <header class="login-brand">
           <div class="login-brand-row">
             <span class="login-eyebrow">Workforce operations</span>
-            <span class="login-version" aria-label="Application version V5.0.57">V5.0.57</span>
+            <span class="login-version" aria-label="Application version V5.0.58">V5.0.58</span>
           </div>
           <h1>Aspire Workforce Command</h1>
           <p>Open your roster, requests and workforce tools from one secure workspace.</p>
@@ -7296,8 +7296,8 @@ var DAY = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 var App = {
   // IMPORTANT: Increment App.version *and* App.buildId whenever making functional changes to this file.
   // SAFETY NET: This build performs an automatic runtime check against the file name; if mismatched, it shows a blocking warning so it can't be overlooked.
-  version: 'V5.0.57',
-    buildId: '2026-09-28.01',
+  version: 'V5.0.58',
+    buildId: '2026-09-28.02',
 settings: {
     dbUrl:'https://mnc-atrd-default-rtdb.asia-southeast1.firebasedatabase.app/', workspace:'mnc-atrd', authToken:'',
     theme:'light', themeName:'light-pastel-sky', recentColors:[], appTitle:'Aspire Workforce Command', logoUrl:'',
@@ -15171,6 +15171,9 @@ function bindModalChrome(){
     var m = byId(id);
     if(!m || m._modalChromeBound) return;
     m._modalChromeBound = true;
+    // Shift editing is precision input: an accidental backdrop click must not discard it.
+    // Save, Delete, Cancel, and Escape remain the intentional ways to close this modal.
+    if(id === 'shiftModal') return;
     m.addEventListener('click', function(ev){
       try{ if(ev && ev.target === m) closeModalById(id); }catch(e){}
     });
@@ -25532,7 +25535,7 @@ try{
 (function(){
   'use strict';
   var APP_NAME = 'Aspire Workforce Command';
-  var APP_VERSION = 'V5.0.57';
+  var APP_VERSION = 'V5.0.58';
   var OLD_TITLE = 'M&C-ATRD-scheduler --=Aspire Group=--';
 
   var NAVS = [
