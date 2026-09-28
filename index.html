@@ -264,7 +264,7 @@
   
 </style>
 
-<title>Aspire Workforce Command (V5.0.58 Modular Build)</title>
+<title>Aspire Workforce Command (V5.0.62 Modular Build)</title>
   <meta name="theme-color" content="#22c55e"/>
 
   <style>
@@ -4284,6 +4284,7 @@
     body.week-overview-focus-mode #plannerSection .toolbar #weekLabel,
     body.week-overview-focus-mode #plannerSection .toolbar #btnNextWeek,
     body.week-overview-focus-mode #plannerSection .toolbar #btnThisWeek,
+    body.week-overview-focus-mode #plannerSection .toolbar #btnWeekOverviewRefresh,
     body.week-overview-focus-mode #plannerSection .toolbar #btnWeekOverviewFullView {
       display: inline-flex !important;
       align-items: center !important;
@@ -4299,8 +4300,62 @@
       font-weight: 1000 !important;
     }
 
-    body.week-overview-focus-mode #plannerSection .toolbar #btnWeekOverviewFullView {
+    #btnWeekOverviewRefresh {
+      display: none;
+    }
+
+    body.week-overview-focus-mode #plannerSection .toolbar #btnWeekOverviewRefresh {
+      width: 40px !important;
+      min-width: 40px !important;
+      padding: 0 !important;
       margin-left: auto !important;
+      color: var(--fg) !important;
+      background: rgba(148,163,184,.12) !important;
+      border-color: rgba(148,163,184,.30) !important;
+      box-shadow: none !important;
+    }
+
+    body.week-overview-focus-mode #plannerSection .toolbar #btnWeekOverviewRefresh:hover {
+      background: rgba(148,163,184,.22) !important;
+      border-color: rgba(148,163,184,.48) !important;
+    }
+
+    body.week-overview-focus-mode #plannerSection .toolbar #btnWeekOverviewRefresh:disabled {
+      opacity: .65 !important;
+      cursor: wait !important;
+    }
+
+    #btnWeekOverviewRefresh .week-overview-refresh-icon,
+    #btnWeekOverviewRefresh .week-overview-refresh-icon svg {
+      display: block;
+      width: 18px;
+      height: 18px;
+    }
+
+    #btnWeekOverviewRefresh .week-overview-refresh-icon svg {
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    body.week-overview-focus-mode #plannerSection .toolbar #btnWeekOverviewRefresh.is-refreshing svg {
+      animation: week-overview-refresh-spin .8s linear infinite;
+    }
+
+    @keyframes week-overview-refresh-spin {
+      to { transform: rotate(360deg); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      body.week-overview-focus-mode #plannerSection .toolbar #btnWeekOverviewRefresh.is-refreshing svg {
+        animation: none;
+      }
+    }
+
+    body.week-overview-focus-mode #plannerSection .toolbar #btnWeekOverviewFullView {
+      margin-left: 0 !important;
       background: linear-gradient(135deg, #fb7185, #ef4444) !important;
       border-color: transparent !important;
       color: #fff !important;
@@ -4402,6 +4457,7 @@
       }
     }
   
+
 </style>
 
 
@@ -5019,7 +5075,7 @@
       <div id="appLogoBox"></div>
       <div class="titlewrap">
         <div class="title" id="appTitle">Aspire Workforce Command</div>
-        <div class="version-pill" id="appVersion">V5.0.58</div>
+        <div class="version-pill" id="appVersion">V5.0.62</div>
         <div class="sync-pill syncing" id="syncStatusChip" title="Sync status">Starting…</div>
       </div>
     </div>
@@ -5028,6 +5084,7 @@
       <button id="tabEasy">Easy View</button>
       <button id="tabMy" class="active">My Shifts</button>
       <button id="tabMyRequests">My Requests</button>
+      <button id="tabMessages" class="message-nav-button">Messages <span id="messagesTopBadge" class="message-unread-badge" style="display:none;">0</span></button>
       <button id="tabDailyOps">Daily Tasks</button>
       <button id="tabPlanner">Planner</button>
       <button id="tabPayroll">Payroll</button>
@@ -5060,7 +5117,7 @@
         <header class="login-brand">
           <div class="login-brand-row">
             <span class="login-eyebrow">Workforce operations</span>
-            <span class="login-version" aria-label="Application version V5.0.58">V5.0.58</span>
+            <span class="login-version" aria-label="Application version V5.0.62">V5.0.62</span>
           </div>
           <h1>Aspire Workforce Command</h1>
           <p>Open your roster, requests and workforce tools from one secure workspace.</p>
@@ -5258,6 +5315,34 @@
       </div>
     </section>
 
+    <!-- Internal messages -->
+    <section id="messagesSection" class="section" aria-labelledby="messagesHeading">
+      <div class="messaging-shell">
+        <header class="messages-page-header">
+          <div>
+            <h2 id="messagesHeading">Messages</h2>
+            <div class="muted" id="messagesUnreadSummary">All caught up</div>
+          </div>
+          <div class="messages-page-actions">
+            <button id="btnMessagesRefresh" class="btn-outline messages-icon-button" type="button" title="Refresh messages" aria-label="Refresh messages">&#8635;</button>
+            <button id="btnComposeMessage" class="btn-primary" type="button">New message</button>
+          </div>
+        </header>
+
+        <div class="messages-view-tabs" role="tablist" aria-label="Message folders">
+          <button id="messagesViewInbox" class="active" type="button" role="tab" aria-controls="messagesList">Inbox <span id="messagesInboxBadge" class="message-unread-badge" style="display:none;">0</span></button>
+          <button id="messagesViewSent" type="button" role="tab" aria-controls="messagesList">Sent</button>
+        </div>
+
+        <div class="messages-layout">
+          <div id="messagesList" class="messages-list" aria-label="Message list"></div>
+          <article id="messageDetail" class="message-detail" aria-live="polite">
+            <div class="message-detail-empty"><strong>Select a message</strong><span>Choose an item from the list to read it here.</span></div>
+          </article>
+        </div>
+      </div>
+    </section>
+
     <!-- Daily Tasks / Stock mediator -->
     <section id="dailyOpsSection" class="section">
       <div class="card">
@@ -5401,6 +5486,10 @@
           <button id="btnPublish" class="btn-outline">Toggle Publish</button>
           <button id="btnPrint" class="btn-outline">Print (current)</button>
           <button id="btnPrintView" class="btn-outline">Print View…</button>
+          <button id="btnWeekOverviewRefresh" class="btn-outline" type="button" title="Refresh week overview" aria-label="Refresh week overview">
+            <span class="week-overview-refresh-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0 2 5"></path><path d="M20 4v7h-7"></path></svg></span>
+            <span class="sr-only">Refresh week overview</span>
+          </button>
           <button id="btnWeekOverviewFullView" class="btn-outline">Week overview full screen</button>
           <button id="btnPlannerFullView" class="btn-primary">Planner full screen</button>
         </div>
@@ -6903,7 +6992,8 @@
         <label>Notes</label>
         <textarea id="shiftNotes"></textarea>
       </div>
-      <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">
+      <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;align-items:center;">
+        <span id="shiftDraftStatus" class="muted" role="status" aria-live="polite" hidden style="margin-right:auto;font-weight:800;color:#b45309;"></span>
         <button id="btnSaveShift" class="btn-primary">Save</button>
         <button id="btnDeleteShift" class="btn-outline">Delete</button>
         <button id="btnCloseShift" class="btn-outline">Cancel</button>
@@ -6922,6 +7012,7 @@
         <button id="dtProposeAway" class="btn-outline dt-danger">Propose Away (full day)</button>
         <button id="dtPartialAway" class="btn-outline dt-warn">Partial Away</button>
         <button id="dtRecurringUnavail" class="btn-outline dt-mute">Recurring Unavailability</button>
+        <button id="dtRecurringException" class="btn-outline dt-success">Allow work this date</button>
         <button id="dtClearAway" class="btn-outline dt-mute">Clear Away (manager)</button>
         <button id="dtProposeEdit" class="btn-outline dt-success">Propose Edit</button>
         <button id="dtProposeShift" class="btn-outline dt-proposal">Propose Shift</button>
@@ -7214,6 +7305,95 @@
     </div>
   </div>
 
+  <!-- Compose internal message -->
+  <div id="messageComposeModal" class="modal" style="z-index:2280;" role="dialog" aria-modal="true" aria-labelledby="messageComposeTitle">
+    <div class="panel message-compose-panel">
+      <div class="message-modal-title-row">
+        <div>
+          <h3 id="messageComposeTitle">New message</h3>
+          <div class="muted small">Messages are delivered inside the current shop workspace.</div>
+        </div>
+        <button id="btnMessageComposeClose" class="btn-outline messages-icon-button" type="button" title="Close" aria-label="Close message composer">&#10005;</button>
+      </div>
+      <div class="message-compose-fields">
+        <div class="message-recipient-picker">
+          <div class="message-group-heading">
+            <div>
+              <label for="messageGroupSelect">Saved recipient group</label>
+              <div class="message-group-select-row">
+                <select id="messageGroupSelect">
+                  <option value="">-- choose saved group --</option>
+                </select>
+                <button id="btnMessageGroupNew" class="btn-outline" type="button">New group</button>
+                <button id="btnMessageGroupDelete" class="btn-outline messages-icon-button" type="button" title="Delete selected group" aria-label="Delete selected recipient group" disabled>&#128465;</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="message-recipient-heading">
+            <label id="messageRecipientsLabel">Recipients</label>
+            <span id="messageRecipientSummary" class="muted small">0 selected</span>
+          </div>
+          <input id="messageRecipientSearch" type="search" autocomplete="off" placeholder="Search staff">
+          <label id="messageAllUsersWrap" class="message-all-users-option">
+            <input id="messageAllUsers" type="checkbox">
+            <span><strong>All users</strong><small>Admin broadcast to everyone in this shop</small></span>
+          </label>
+          <div id="messageRecipientList" class="message-recipient-list" role="group" aria-labelledby="messageRecipientsLabel"></div>
+          <div class="message-recipient-footer">
+            <button id="btnMessageRecipientsClear" class="btn-outline" type="button" disabled>Clear selection</button>
+          </div>
+
+          <div class="message-group-editor">
+            <input id="messageGroupName" type="text" maxlength="80" autocomplete="off" placeholder="Group name, e.g. Weekend team">
+            <button id="btnMessageGroupSave" class="btn-outline" type="button">Save selected as group</button>
+          </div>
+        </div>
+        <div>
+          <label for="messageSubject">Subject</label>
+          <input id="messageSubject" type="text" maxlength="120" autocomplete="off" placeholder="Message subject">
+        </div>
+        <div>
+          <label for="messageBody">Message</label>
+          <textarea id="messageBody" maxlength="2000" placeholder="Write your message"></textarea>
+        </div>
+        <label id="messageImportanceWrap" class="message-importance-option">
+          <input id="messageImportant" type="checkbox">
+          <span><strong>Mark as important</strong><small>Recipients will see a red priority header.</small></span>
+        </label>
+      </div>
+      <div class="message-modal-actions">
+        <button id="btnMessageComposeCancel" class="btn-outline" type="button">Cancel</button>
+        <button id="btnMessageSend" class="btn-primary" type="button">Send message</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Unread message popup -->
+  <div id="messagePopupModal" class="modal message-popup-modal" style="z-index:2290;" role="dialog" aria-modal="true" aria-labelledby="messagePopupSubject">
+    <div id="messagePopupPanel" class="panel message-popup-panel">
+      <header id="messagePopupHeader" class="message-popup-header">
+        <div>
+          <div id="messagePopupImportance" class="message-popup-flag">NEW MESSAGE</div>
+          <h3 id="messagePopupSubject">Message</h3>
+        </div>
+        <button id="btnMessagePopupClose" class="message-popup-close" type="button" title="Close popup and keep unread" aria-label="Close popup and keep message unread">&#10005;</button>
+      </header>
+      <div class="message-popup-content">
+        <div class="message-popup-status-row">
+          <span id="messagePopupCount" class="pill">Unread 1 of 1</span>
+          <span id="messagePopupMeta" class="muted"></span>
+        </div>
+        <div id="messagePopupBody" class="message-popup-body"></div>
+      </div>
+      <div class="message-popup-actions">
+        <button id="btnMessagePopupPrev" class="btn-outline" type="button" title="Mark this message read and show the previous unread message"><span aria-hidden="true">&#8592;</span><span>Previous unread</span></button>
+        <button id="btnMessagePopupOpen" class="btn-primary" type="button">Open Messages</button>
+        <button id="btnMessagePopupNext" class="btn-outline" type="button" title="Mark this message read and show the next unread message"><span aria-hidden="true">&#8594;</span><span>Next unread</span></button>
+      </div>
+    </div>
+  </div>
+
     <nav id="bottomNav" class="bottom-nav" aria-label="Primary navigation">
     <button id="bottomEasy">
       <span class="emoji-icon">&#128241;</span>
@@ -7226,6 +7406,11 @@
     <button id="bottomRequests">
       <span class="emoji-icon">&#128232;</span>
       <span class="label">Req</span>
+    </button>
+    <button id="bottomMessages" class="message-bottom-button">
+      <span class="emoji-icon">&#9993;</span>
+      <span class="label">Messages</span>
+      <span id="messagesBottomBadge" class="message-unread-badge" style="display:none;">0</span>
     </button>
     <button id="bottomDailyOps">
       <span class="emoji-icon">&#9989;</span>
@@ -7296,8 +7481,8 @@ var DAY = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 var App = {
   // IMPORTANT: Increment App.version *and* App.buildId whenever making functional changes to this file.
   // SAFETY NET: This build performs an automatic runtime check against the file name; if mismatched, it shows a blocking warning so it can't be overlooked.
-  version: 'V5.0.58',
-    buildId: '2026-09-28.02',
+  version: 'V5.0.62',
+    buildId: '2026-09-29.04',
 settings: {
     dbUrl:'https://mnc-atrd-default-rtdb.asia-southeast1.firebasedatabase.app/', workspace:'mnc-atrd', authToken:'',
     theme:'light', themeName:'light-pastel-sky', recentColors:[], appTitle:'Aspire Workforce Command', logoUrl:'',
@@ -7351,8 +7536,11 @@ publishedWeeks: {}
   businessAnalytics:{daily:{}, recurringCosts:{}},
   dailyOps:{},
   recurringUnavailability:{},
+  recurringUnavailabilityExceptions:{},
   editRequests:{},
   rosterTemplates:{},
+  messages:{},
+  messageRecipientGroups:{},
   currentUser:null,
   cacheKey:'mc_scheduler_cache_v14_23_4',
   connKey:'mc_scheduler_conn_v1'
@@ -7575,8 +7763,11 @@ function normalizeCoreState(){
     if(!App.weeks || typeof App.weeks !== 'object') App.weeks = {};
     if(!App.availability || typeof App.availability !== 'object') App.availability = {};
     if(!App.recurringUnavailability || typeof App.recurringUnavailability !== 'object') App.recurringUnavailability = {};
+    if(!App.recurringUnavailabilityExceptions || typeof App.recurringUnavailabilityExceptions !== 'object') App.recurringUnavailabilityExceptions = {};
     if(!App.editRequests || typeof App.editRequests !== 'object') App.editRequests = {};
     if(!App.rosterTemplates || typeof App.rosterTemplates !== 'object') App.rosterTemplates = {};
+    if(!App.messages || typeof App.messages !== 'object' || Array.isArray(App.messages)) App.messages = {};
+    if(!App.messageRecipientGroups || typeof App.messageRecipientGroups !== 'object' || Array.isArray(App.messageRecipientGroups)) App.messageRecipientGroups = {};
     if(!App.absenceRequests || typeof App.absenceRequests !== 'object') App.absenceRequests = {};
     if(!App.absenceHistory || typeof App.absenceHistory !== 'object') App.absenceHistory = {};
     if(!App.shiftChangeRequests || typeof App.shiftChangeRequests !== 'object') App.shiftChangeRequests = {};
@@ -7644,8 +7835,11 @@ function buildAppExportData(){
     businessAnalytics:App.businessAnalytics||{daily:{}, recurringCosts:{}},
     dailyOps:App.dailyOps||{},
     recurringUnavailability:App.recurringUnavailability||{},
+    recurringUnavailabilityExceptions:App.recurringUnavailabilityExceptions||{},
     editRequests:App.editRequests||{},
     rosterTemplates:App.rosterTemplates||{},
+    messages:App.messages||{},
+    messageRecipientGroups:App.messageRecipientGroups||{},
     version:App.version
   };
 }
@@ -7655,8 +7849,11 @@ function applyExportDataToApp(d){
   App.staff = d.staff || App.staff || {};
   App.availability = d.availability || App.availability || {};
   App.recurringUnavailability = d.recurringUnavailability || App.recurringUnavailability || {};
+  App.recurringUnavailabilityExceptions = d.recurringUnavailabilityExceptions || App.recurringUnavailabilityExceptions || {};
   App.editRequests = d.editRequests || App.editRequests || {};
   App.rosterTemplates = d.rosterTemplates || App.rosterTemplates || {};
+  App.messages = d.messages || App.messages || {};
+  App.messageRecipientGroups = d.messageRecipientGroups || App.messageRecipientGroups || {};
   App.absenceRequests = d.absenceRequests || App.absenceRequests || {};
   App.absenceHistory = d.absenceHistory || App.absenceHistory || {};
   App.weeks = d.weeks || App.weeks || {};
@@ -9102,6 +9299,7 @@ function historySnapshotObj(){
     weeks: App.weeks,
     availability: App.availability,
     recurringUnavailability: App.recurringUnavailability,
+    recurringUnavailabilityExceptions: App.recurringUnavailabilityExceptions,
     absenceRequests: App.absenceRequests,
     absenceHistory: App.absenceHistory,
     shiftChangeRequests: App.shiftChangeRequests,
@@ -9271,6 +9469,7 @@ function historyApplySnapshotString(s){
     if(d.weeks) App.weeks = d.weeks;
     if(d.availability) App.availability = d.availability;
     if(d.recurringUnavailability) App.recurringUnavailability = d.recurringUnavailability;
+    if(d.recurringUnavailabilityExceptions) App.recurringUnavailabilityExceptions = d.recurringUnavailabilityExceptions;
     if(d.absenceRequests) App.absenceRequests = d.absenceRequests;
     if(d.absenceHistory) App.absenceHistory = d.absenceHistory;
     if(d.shiftChangeRequests) App.shiftChangeRequests = d.shiftChangeRequests;
@@ -9771,6 +9970,37 @@ function toggleWeekOverviewFocusMode(){
   if(isWeekOverviewFocusActive()) exitWeekOverviewFocusMode();
   else enterWeekOverviewFocusMode();
 }
+function refreshWeekOverviewFocusView(){
+  var btn = byId('btnWeekOverviewRefresh');
+  if(btn && btn.getAttribute('aria-busy') === 'true') return;
+  if(btn){
+    btn.disabled = true;
+    btn.classList.add('is-refreshing');
+    btn.setAttribute('aria-busy', 'true');
+  }
+  function finish(ok, err){
+    try{ renderWeekOverview(); }catch(e){}
+    try{ updateWeekOverviewHours(); }catch(e){}
+    if(btn){
+      btn.disabled = false;
+      btn.classList.remove('is-refreshing');
+      btn.removeAttribute('aria-busy');
+    }
+    try{
+      if(ok) showToast('Week overview refreshed', 'Latest shop data loaded.', 'good', 2600);
+      else showToast('Refresh failed', (err && err.message) ? err.message : 'Showing the saved local copy.', 'warn', 4200);
+    }catch(e){}
+  }
+  try{
+    if(typeof pullData !== 'function'){
+      finish(true);
+      return;
+    }
+    Promise.resolve(pullData(false)).then(function(){ finish(true); }).catch(function(err){ finish(false, err); });
+  }catch(err){
+    finish(false, err);
+  }
+}
 function togglePlannerFocusMode(){
   if(isPlannerFocusActive()) exitPlannerFocusMode();
   else enterPlannerFocusMode();
@@ -9966,6 +10196,7 @@ function init(){
   var __logoBoxInit = byId('appLogoBox'); if(__logoBoxInit){ var __lu=App.settings.logoUrl||''; if(__lu){ __logoBoxInit.style.display='inline-block'; __logoBoxInit.style.backgroundImage='url("'+resolveLogoUrl(__lu)+'")'; } else { __logoBoxInit.style.display='none'; __logoBoxInit.style.backgroundImage='none'; } }
   initColorRecents();
   initTabs();
+  try{ bindMessagingUI(); }catch(e){}
   try{ bindSyncStatusEvents(); }catch(e){}
   try{ bindUnsyncedLeaveWarning(); }catch(e){}
   try{ bindModalChrome(); }catch(e){}
@@ -10256,6 +10487,8 @@ function init(){
   if(plannerFullView) plannerFullView.onclick=function(){ togglePlannerFocusMode(); };
   var weekOverviewFullView=byId('btnWeekOverviewFullView');
   if(weekOverviewFullView) weekOverviewFullView.onclick=function(){ toggleWeekOverviewFocusMode(); };
+  var weekOverviewRefresh=byId('btnWeekOverviewRefresh');
+  if(weekOverviewRefresh) weekOverviewRefresh.onclick=function(){ refreshWeekOverviewFocusView(); };
   var idlePreview=byId('btnIdleFullscreenPreview');
   if(idlePreview) idlePreview.onclick=function(){
     try{
@@ -10281,7 +10514,7 @@ function init(){
   if(bottomLogout) bottomLogout.onclick=function(){ var lb=byId('btnLogout'); if(lb && lb.onclick) lb.onclick(); };
 
 
-  var logout=byId('btnLogout'); if(logout) logout.onclick=function(){ if(!confirmUnsyncedNavigation('logout')) return; try{ stopLiveRequestListener(); }catch(e){} App.currentUser=null; App.userPrefs=null; try{ applyTheme(App.__globalThemeName||'dark-classic'); if(typeof renderThemePicker==='function') renderThemePicker(); }catch(e){} showLogin(); byId('userChip').textContent=''; var nav=byId('bottomNav'); if(nav) nav.style.display='none'; setSyncStatus(navigator.onLine===false ? 'offline' : 'synced', navigator.onLine===false ? 'Offline' : 'Ready'); startAutoSyncTimers(); };
+  var logout=byId('btnLogout'); if(logout) logout.onclick=function(){ if(!confirmUnsyncedNavigation('logout')) return; try{ stopLiveRequestListener(); }catch(e){} try{ stopMessagingSession(); }catch(e){} App.currentUser=null; App.userPrefs=null; try{ applyTheme(App.__globalThemeName||'dark-classic'); if(typeof renderThemePicker==='function') renderThemePicker(); }catch(e){} showLogin(); byId('userChip').textContent=''; var nav=byId('bottomNav'); if(nav) nav.style.display='none'; setSyncStatus(navigator.onLine===false ? 'offline' : 'synced', navigator.onLine===false ? 'Offline' : 'Ready'); startAutoSyncTimers(); };
 
   byId('btnExportJSON').onclick=function(){ if(!isAdmin()) return alert('Admin only.'); var data=buildAppExportData(); var a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'})); a.download='munchandcrun_export.json'; a.click(); };
   byId('btnExportCSV').onclick=function(){ if(!isAdmin()) return alert('Admin only.'); exportPayrollCSV(); };
@@ -10322,6 +10555,7 @@ function init(){
     _b = byId('dtProposeAway'); if(_b) _b.onclick = dayToolsProposeAway;
     _b = byId('dtPartialAway'); if(_b) _b.onclick = dayToolsPartialAway;
     _b = byId('dtRecurringUnavail'); if(_b) _b.onclick = dayToolsRecurringUnavail;
+    _b = byId('dtRecurringException'); if(_b) _b.onclick = dayToolsToggleRecurringException;
     _b = byId('dtClearAway'); if(_b) _b.onclick = dayToolsClearAway;
     _b = byId('dtProposeEdit'); if(_b) _b.onclick = dayToolsProposeEdit;
     _b = byId('dtProposeShift'); if(_b) _b.onclick = dayToolsProposeShift;
@@ -10775,7 +11009,7 @@ function v413ExportAuditCsv(){
 // Import validation and preview.
 function v413ValidateImportPayload(d){
   var payload = v413FindExportPayload(d);
-  var known = ['settings','staff','availability','weeks','absenceRequests','absenceHistory','shiftChangeRequests','shiftChangeHistory','payrollAdjustments','payrollPaid','payrollPaidSnapshots','payWithheld','payWithheldByWeek','payWithheldLog','paySavings','paySavingsLog','payAdvanceBalances','payAdvanceRecoveries','payAdvanceIssues','payAdvanceLog','payrollLog','payrollLogBackfilled','payrollAuditLogBackfilled','payrollProfiles','payrollWeekData','payslipRecords','businessAnalytics','dailyOps','recurringUnavailability','editRequests','rosterTemplates','auditLog','payRunStatus','syncMeta','version','buildId'];
+  var known = ['settings','staff','availability','weeks','absenceRequests','absenceHistory','shiftChangeRequests','shiftChangeHistory','payrollAdjustments','payrollPaid','payrollPaidSnapshots','payWithheld','payWithheldByWeek','payWithheldLog','paySavings','paySavingsLog','payAdvanceBalances','payAdvanceRecoveries','payAdvanceIssues','payAdvanceLog','payrollLog','payrollLogBackfilled','payrollAuditLogBackfilled','payrollProfiles','payrollWeekData','payslipRecords','businessAnalytics','dailyOps','recurringUnavailability','recurringUnavailabilityExceptions','editRequests','rosterTemplates','messages','messageRecipientGroups','auditLog','payRunStatus','syncMeta','version','buildId'];
   var stats = [];
   var warnings = [];
   function cntObj(k){ return payload && payload[k] && typeof payload[k]==='object' ? Object.keys(payload[k]).length : 0; }
@@ -11225,6 +11459,7 @@ function enterApp(){
   renderAfterLogin();
   // Load per-user notification/popup preferences
   try{ pullUserPrefs(); }catch(e){}
+  try{ startMessagingSession(); }catch(e){}
   try{ if(typeof notifyMyRequestStatus==='function') notifyMyRequestStatus(); }catch(e){}
   try{ noteIdleFullscreenActivity(); }catch(e){}
 
@@ -11242,7 +11477,7 @@ function enterApp(){
     }
   }catch(e){}
 }
-function showLogin(){ var nodes=$$('.section'); for(var i=0;i<nodes.length;i++){ nodes[i].classList.remove('show'); } byId('loginSection').classList.add('show'); var nav=byId('bottomNav'); if(nav) nav.style.display='none'; try{ clearIdleFullscreenTimer(); }catch(e){} }
+function showLogin(){ var nodes=$$('.section'); for(var i=0;i<nodes.length;i++){ nodes[i].classList.remove('show'); } byId('loginSection').classList.add('show'); var nav=byId('bottomNav'); if(nav) nav.style.display='none'; try{ stopMessagingSession(); }catch(e){} try{ clearIdleFullscreenTimer(); }catch(e){} }
 function populateLoginSelects(){
   var sel=byId('loginStaffSelect'); sel.innerHTML='<option value="">-- select --</option>';
   Object.keys(App.staff).sort(function(a,b){ return (App.staff[a].name||'').localeCompare(App.staff[b].name||''); }).forEach(function(id){
@@ -12940,6 +13175,7 @@ function initTabs(){
   var tEasy = byId('tabEasy'); if(tEasy) tEasy.onclick=function(){ showTab('Easy'); };
   byId('tabMy').onclick=function(){ showTab('My'); };
   var tMyReq = byId('tabMyRequests'); if(tMyReq) tMyReq.onclick=function(){ showTab('MyRequests'); };
+  var tMessages = byId('tabMessages'); if(tMessages) tMessages.onclick=function(){ showTab('Messages'); };
   var tDailyOps = byId('tabDailyOps'); if(tDailyOps) tDailyOps.onclick=function(){ showTab('DailyOps'); };
   byId('tabPlanner').onclick=function(){ showTab('Planner'); };
   byId('tabPayroll').onclick=function(){ showTab('Payroll'); };
@@ -12955,6 +13191,8 @@ function initTabs(){
   if(bMy) bMy.onclick=function(){ showTab('My'); };
   var bReq = byId('bottomRequests');
   if(bReq) bReq.onclick=function(){ showTab('MyRequests'); };
+  var bMessages = byId('bottomMessages');
+  if(bMessages) bMessages.onclick=function(){ showTab('Messages'); };
   var bDailyOps = byId('bottomDailyOps');
   if(bDailyOps) bDailyOps.onclick=function(){ showTab('DailyOps'); };
   var bPlanner = byId('bottomPlanner');
@@ -12991,6 +13229,7 @@ function showTab(name){
     Easy:'bottomEasy',
     My:'bottomMy',
     MyRequests:'bottomRequests',
+    Messages:'bottomMessages',
     DailyOps:'bottomDailyOps',
     Planner:'bottomPlanner',
     Payroll:'bottomPayroll',
@@ -13020,6 +13259,10 @@ function showTab(name){
       byId('myRequestsSection').classList.add('show');
       try{ renderMyRequests(); }catch(e){}
     }
+  }
+  if(name==='Messages'){
+    byId('messagesSection').classList.add('show');
+    try{ renderMessagingCenter(); }catch(e){}
   }
   if(name==='Planner') byId('plannerSection').classList.add('show');
   if(name==='Payroll'){ byId('payrollSection').classList.add('show'); try{ renderPayroll(); }catch(e){} try{ syncPayrollFormsFromApp(); }catch(e){} try{ renderPayslipHistory(); }catch(e){} }
@@ -13104,6 +13347,7 @@ function renderAfterLogin(){
 
   var bMy = byId('bottomMy'),
       bRequests = byId('bottomRequests'),
+      bMessages = byId('bottomMessages'),
       bDailyOps = byId('bottomDailyOps'),
       bPlanner = byId('bottomPlanner'),
       bPayroll = byId('bottomPayroll'),
@@ -13113,6 +13357,7 @@ function renderAfterLogin(){
 
   if(bMy) bMy.style.display='';
   if(bRequests) bRequests.style.display='none';
+  if(bMessages) bMessages.style.display='';
   if(bDailyOps) bDailyOps.style.display='';
   if(bPlanner) bPlanner.style.display='none';
   if(bPayroll) bPayroll.style.display='none';
@@ -13148,6 +13393,7 @@ function renderAfterLogin(){
   }
 
   try{ byId('tabMyRequests').style.display='inline-block'; }catch(e){}
+  try{ byId('tabMessages').style.display='inline-block'; }catch(e){}
   try{ byId('tabDailyOps').style.display='inline-block'; }catch(e){}
   try{ applySettingsRoleVisibility(); }catch(e){}
   try{ renderDailyOps(); }catch(e){}
@@ -13155,6 +13401,7 @@ function renderAfterLogin(){
   renderPlanner();
   renderPayroll();
   if(typeof updateRequestsBadge==='function') updateRequestsBadge();
+  try{ updateMessageBadges(); }catch(e){}
   try{ if(window.v5022UpdateBottomNavPin) setTimeout(window.v5022UpdateBottomNavPin, 0); }catch(e){}
 
     if(bRequests) bRequests.style.display='';
@@ -14104,6 +14351,53 @@ function renderCoverageBar(){
 }
 
 // ---------- Shift modal ----------
+function shiftModalDraftSnapshot(){
+  function value(id){ var el=byId(id); return el ? String(el.value||'') : ''; }
+  function checked(id){ var el=byId(id); return !!(el && el.checked); }
+  var days=[];
+  var dayChecks=$$('#daysThisWeek input[type=checkbox]');
+  for(var i=0;i<dayChecks.length;i++){
+    if(dayChecks[i].checked) days.push(String(dayChecks[i].value||''));
+  }
+  return JSON.stringify({
+    staffId:value('shiftStaff'),
+    day:value('shiftDay'),
+    start:value('shiftStart'),
+    end:value('shiftEnd'),
+    breakMins:value('shiftBreak'),
+    penalty:checked('shiftPenalty'),
+    repeat:value('shiftRepeat'),
+    isCover:checked('shiftIsCover'),
+    coverFor:value('shiftCoverFor'),
+    days:days,
+    notes:value('shiftNotes')
+  });
+}
+function updateShiftModalDraftState(){
+  var state=getShiftModalState();
+  var dirty=(typeof state.draftSnapshot==='string' && state.draftSnapshot!==shiftModalDraftSnapshot());
+  state.dirty=dirty;
+  var status=byId('shiftDraftStatus');
+  if(status){
+    status.hidden=!dirty;
+    status.textContent=dirty ? 'Unsaved changes' : '';
+  }
+  return dirty;
+}
+function setShiftModalCleanState(){
+  var state=getShiftModalState();
+  state.draftSnapshot=shiftModalDraftSnapshot();
+  state.dirty=false;
+  var status=byId('shiftDraftStatus');
+  if(status){ status.hidden=true; status.textContent=''; }
+}
+function bindShiftModalDraftTracking(){
+  var modal=byId('shiftModal');
+  if(!modal || modal._draftTrackingBound) return;
+  modal._draftTrackingBound=true;
+  modal.addEventListener('input', updateShiftModalDraftState);
+  modal.addEventListener('change', updateShiftModalDraftState);
+}
 function openShiftModal(opts){
   var m=byId('shiftModal'); m.style.display='flex';
   try{ if(window.v5033KeepVisibleModal) window.v5033KeepVisibleModal(m); }catch(e){}
@@ -14135,6 +14429,7 @@ function openShiftModal(opts){
   // reset day checkboxes every time
   var chks=$$('#daysThisWeek input[type=checkbox]');
   for(var ci=0;ci<chks.length;ci++){ chks[ci].checked=false; }
+  byId('shiftRepeat').value='0';
 
   var selS=byId('shiftStaff'); selS.innerHTML='';
   var selCover=byId('shiftCoverFor'); if(selCover) selCover.innerHTML='';
@@ -14260,10 +14555,10 @@ function openShiftModal(opts){
   }
 
   var sEl=byId('shiftStart'), eEl=byId('shiftEnd');
-  sEl.addEventListener('change', function(){ normalizeField(sEl); recalcAutoBreak(); });
-  eEl.addEventListener('change', function(){ normalizeField(eEl); recalcAutoBreak(); });
-  sEl.addEventListener('blur', function(){ normalizeField(sEl); recalcAutoBreak(); });
-  eEl.addEventListener('blur', function(){ normalizeField(eEl); recalcAutoBreak(); });
+  sEl.onchange=function(){ normalizeField(sEl); recalcAutoBreak(); };
+  eEl.onchange=function(){ normalizeField(eEl); recalcAutoBreak(); };
+  sEl.onblur=function(){ normalizeField(sEl); recalcAutoBreak(); updateShiftModalDraftState(); };
+  eEl.onblur=function(){ normalizeField(eEl); recalcAutoBreak(); updateShiftModalDraftState(); };
 
   if(coverChk){ coverChk.onchange = function(){ syncShiftCoverUi(true); }; }
   if(selS){
@@ -14286,7 +14581,7 @@ function openShiftModal(opts){
     var wk=App.weeks[Planner.weekStartISO]||{};
     var sh = (wk[dk]&&wk[dk][opts.shiftId]) ? wk[dk][opts.shiftId] : null;
     if(!sh && wk[dk]){ var keys=Object.keys(wk[dk]); for(var i=0;i<keys.length;i++){ var key=keys[i], val=wk[dk][key]; if(val && val.id===opts.shiftId){ sh=val; opts.shiftId=key; break; } } }
-    if(!sh){ alert('Shift not found'); closeShiftModal(); return; }
+    if(!sh){ alert('Shift not found'); closeShiftModal({force:true}); return; }
 
     var linkedSourceId = '';
     var sourceShiftId = String(opts.shiftId||'');
@@ -14357,8 +14652,24 @@ function openShiftModal(opts){
     if(selCover) selCover.value = firstStaffId || '';
     syncShiftCoverUi(false);
   }
+  bindShiftModalDraftTracking();
+  setShiftModalCleanState();
 }
-function closeShiftModal(){ byId('shiftModal').style.display='none'; }
+function closeShiftModal(options){
+  var modal=byId('shiftModal');
+  if(!modal) return true;
+  var force=!!(options && options.force===true);
+  if(!force && modal.style.display==='flex' && updateShiftModalDraftState()){
+    if(!confirm('Discard unsaved shift changes?')) return false;
+  }
+  modal.style.display='none';
+  var state=getShiftModalState();
+  state.draftSnapshot=null;
+  state.dirty=false;
+  var status=byId('shiftDraftStatus');
+  if(status){ status.hidden=true; status.textContent=''; }
+  return true;
+}
 
 function saveShiftFromModal(){
   if(!canEdit()) return alert('Only manager or admin can modify shifts.');
@@ -14556,13 +14867,13 @@ function saveShiftFromModal(){
 
   saveLocal();
   try{ v413AddAudit('Shift saved', staffDisplayNameForId(staffId, staffId)+' '+Planner.weekStartISO+' '+(DAY[dayIndex]||'')+' '+start12+'-'+end12, 'planner'); }catch(e){}
-  closeShiftModal(); renderPlanner(); renderPayroll(); try{ byId('tabMyRequests').style.display='inline-block'; }catch(e){}
+  closeShiftModal({force:true}); renderPlanner(); renderPayroll(); try{ byId('tabMyRequests').style.display='inline-block'; }catch(e){}
   try{ showToast('Shift saved', staffDisplayNameForId(staffId, staffId)+' '+(DAY[dayIndex]||'')+' '+start12+'-'+end12, 'success', 2500); }catch(e){}
   renderMyShifts();
 }
 function deleteShiftFromModal(){
   if(!canEdit()) return alert('Only manager or admin can modify shifts.');
-  if(!Planner.editingShift){ closeShiftModal(); return; }
+  if(!Planner.editingShift){ closeShiftModal({force:true}); return; }
   if(!confirm('Delete this shift? This only affects the current roster until you push changes.')) return;
   var dk=String(Planner.editingShift.dayIndex);
   var day = (App.weeks[Planner.weekStartISO] && App.weeks[Planner.weekStartISO][dk]) ? App.weeks[Planner.weekStartISO][dk] : null;
@@ -14579,7 +14890,7 @@ function deleteShiftFromModal(){
   }
   saveLocal();
   try{ v413AddAudit('Shift deleted', (deletedStaffId ? staffDisplayNameForId(deletedStaffId, deletedStaffId)+' ' : '')+Planner.weekStartISO+' '+(DAY[parseInt(dk,10)]||''), 'planner'); }catch(e){}
-  closeShiftModal(); renderPlanner(); renderPayroll(); try{ byId('tabMyRequests').style.display='inline-block'; }catch(e){}
+  closeShiftModal({force:true}); renderPlanner(); renderPayroll(); try{ byId('tabMyRequests').style.display='inline-block'; }catch(e){}
   try{ showToast('Shift deleted', (deletedStaffId ? staffDisplayNameForId(deletedStaffId, deletedStaffId) : 'Roster shift'), 'warn', 2500); }catch(e){}
   renderMyShifts();
 }
@@ -14980,6 +15291,17 @@ function openDayToolsFor(staffId, dayIndex, opts){
   var btnProposeAway = byId('dtProposeAway'); if(btnProposeAway) btnProposeAway.style.display = canAwayActions ? '' : 'none';
   var btnPartialAway = byId('dtPartialAway'); if(btnPartialAway) btnPartialAway.style.display = canAwayActions ? '' : 'none';
   var btnRecurringUnavail = byId('dtRecurringUnavail'); if(btnRecurringUnavail) btnRecurringUnavail.style.display = canAwayActions ? '' : 'none';
+  var btnRecurringException = byId('dtRecurringException');
+  if(btnRecurringException){
+    var hasRecurringRules = false;
+    var hasRecurringException = false;
+    try{
+      hasRecurringRules = getRecurringUnavailabilityRulesForDate(DayToolsCtx.iso, staffId).length > 0;
+      hasRecurringException = hasRecurringUnavailabilityException(DayToolsCtx.iso, staffId);
+    }catch(e){}
+    btnRecurringException.style.display = (canAwayActions && (hasRecurringRules || hasRecurringException)) ? '' : 'none';
+    btnRecurringException.textContent = hasRecurringException ? 'Restore recurring unavailable' : 'Allow work this date';
+  }
   var btnClearAway = byId('dtClearAway'); if(btnClearAway) btnClearAway.style.display = canModerateAbsences() ? '' : 'none';
   var btnEditShift = byId('dtEditShift');
   if(btnEditShift) btnEditShift.style.display = canEdit() ? '' : 'none';
@@ -15146,6 +15468,59 @@ function dayToolsRecurringUnavail(){
   openRecurringUnavailModal();
 }
 
+function dayToolsToggleRecurringException(){
+  try{
+    if(!DayToolsCtx || !DayToolsCtx.iso || DayToolsCtx.staffId==null) return;
+    var iso = String(DayToolsCtx.iso);
+    var staffId = String(DayToolsCtx.staffId);
+    if(!canManageAwayForStaff(staffId)) return alert(awayActionDeniedMessage());
+    ensureRecurringUnavailabilityStore();
+    var active = hasRecurringUnavailabilityException(iso, staffId);
+    var rules = getRecurringUnavailabilityRulesForDate(iso, staffId);
+    if(!active && !rules.length) return alert('There is no recurring unavailability on this date.');
+    var name = staffDisplayNameForId(staffId, 'Staff');
+    var dateLabel = fmtDMY(fromISO(iso));
+    var question = active
+      ? ('Restore recurring unavailability for ' + name + ' on ' + dateLabel + '?')
+      : ('Allow ' + name + ' to work on ' + dateLabel + '? This removes recurring unavailability for this date only. The weekly rule will continue.');
+    if(!confirm(question)) return;
+
+    if(!App.recurringUnavailabilityExceptions[iso]) App.recurringUnavailabilityExceptions[iso] = {};
+    if(active){
+      delete App.recurringUnavailabilityExceptions[iso][staffId];
+      if(!Object.keys(App.recurringUnavailabilityExceptions[iso]).length) delete App.recurringUnavailabilityExceptions[iso];
+    }else{
+      App.recurringUnavailabilityExceptions[iso][staffId] = {
+        excluded: true,
+        dateISO: iso,
+        staffId: staffId,
+        createdAt: Date.now(),
+        createdBy: (App.currentUser && App.currentUser.id!=null) ? String(App.currentUser.id) : ''
+      };
+    }
+
+    saveLocal();
+    try{
+      var payload = {};
+      payload[staffId] = active ? null : App.recurringUnavailabilityExceptions[iso][staffId];
+      dbPatch('/recurringUnavailabilityExceptions/' + encodeURIComponent(iso), payload).catch(function(err){
+        console.error('recurring unavailability exception push failed', err);
+        showToast('Saved locally', 'The date exception could not be synced yet.', 'warn', 4200);
+      });
+    }catch(e){}
+    try{ v413AddAudit(active ? 'Recurring unavailability restored' : 'Recurring unavailability date exception', name + ' · ' + iso, 'availability'); }catch(e){}
+    closeDayTools();
+    renderPlanner();
+    renderPayroll();
+    try{ renderMyShifts(); }catch(e){}
+    try{ renderWeekOverview(); }catch(e){}
+    showToast(active ? 'Recurring unavailability restored' : 'Work allowed for this date', active ? (name + ' is unavailable again on ' + dateLabel + '.') : ('Any rostered shift for ' + name + ' will count in payroll.'), 'good', 4400);
+  }catch(e){
+    console.error('dayToolsToggleRecurringException error', e);
+    alert('Could not update this date: ' + (e && e.message ? e.message : e));
+  }
+}
+
 
 
 function closeModalById(modalId){
@@ -15171,8 +15546,8 @@ function bindModalChrome(){
     var m = byId(id);
     if(!m || m._modalChromeBound) return;
     m._modalChromeBound = true;
-    // Shift editing is precision input: an accidental backdrop click must not discard it.
-    // Save, Delete, Cancel, and Escape remain the intentional ways to close this modal.
+    // Shift editing is precision input: an accidental backdrop click must not close it.
+    // Cancel and Escape pass through the shift editor's unsaved-change guard.
     if(id === 'shiftModal') return;
     m.addEventListener('click', function(ev){
       try{ if(ev && ev.target === m) closeModalById(id); }catch(e){}
@@ -15872,13 +16247,31 @@ try{ dbPatch('/absenceRequests/'+iso, (function(){ var o={}; o[String(u.id)]=nul
 
 // ---------- Absences: overlays + calendar + requests ----------
 function ensureRequestsStore(){ if(!App.absenceRequests) App.absenceRequests={}; if(!App.shiftChangeRequests) App.shiftChangeRequests={}; if(!App.editRequests) App.editRequests={}; }
-function ensureRecurringUnavailabilityStore(){ if(!App.recurringUnavailability) App.recurringUnavailability={}; }
+function ensureRecurringUnavailabilityStore(){
+  if(!App.recurringUnavailability) App.recurringUnavailability={};
+  if(!App.recurringUnavailabilityExceptions) App.recurringUnavailabilityExceptions={};
+}
 
 function isoDayIndexMon0(iso){
   try{ var d = fromISO(iso); return (d.getDay()+6)%7; }catch(e){ return 0; }
 }
 
-function getRecurringUnavailabilityForDate(iso, staffId){
+function recurringUnavailabilityExceptionForDate(iso, staffId){
+  try{
+    ensureRecurringUnavailabilityStore();
+    var day = App.recurringUnavailabilityExceptions[String(iso)] || {};
+    var rec = day[String(staffId)];
+    return (rec === true || (rec && rec.excluded === true)) ? rec : null;
+  }catch(e){
+    return null;
+  }
+}
+
+function hasRecurringUnavailabilityException(iso, staffId){
+  return !!recurringUnavailabilityExceptionForDate(iso, staffId);
+}
+
+function getRecurringUnavailabilityRulesForDate(iso, staffId){
   try{
     ensureRecurringUnavailabilityStore();
     staffId = String(staffId);
@@ -15904,6 +16297,15 @@ function getRecurringUnavailabilityForDate(iso, staffId){
       out.push(r);
     });
     return out;
+  }catch(e){
+    return [];
+  }
+}
+
+function getRecurringUnavailabilityForDate(iso, staffId){
+  try{
+    if(hasRecurringUnavailabilityException(iso, staffId)) return [];
+    return getRecurringUnavailabilityRulesForDate(iso, staffId);
   }catch(e){
     return [];
   }
@@ -17460,6 +17862,7 @@ function __pullRequestsNodesOnly(){
     dbGet('/absenceRequests').catch(function(){ return null; }),
     dbGet('/shiftChangeRequests').catch(function(){ return null; }),
     dbGet('/recurringUnavailability').catch(function(){ return null; }),
+    dbGet('/recurringUnavailabilityExceptions').catch(function(){ return null; }),
     dbGet('/editRequests').catch(function(){ return null; }),
     dbGet('/absenceHistory').catch(function(){ return null; }),
     dbGet('/shiftChangeHistory').catch(function(){ return null; })
@@ -17467,9 +17870,10 @@ function __pullRequestsNodesOnly(){
     App.absenceRequests = (res[0] || {}) || {};
     App.shiftChangeRequests = (res[1] || {}) || {};
     App.recurringUnavailability = (res[2] || {}) || {};
-    App.editRequests = (res[3] || {}) || {};
-    App.absenceHistory = (res[4] || {}) || {};
-    App.shiftChangeHistory = (res[5] || {}) || {};
+    App.recurringUnavailabilityExceptions = (res[3] || {}) || {};
+    App.editRequests = (res[4] || {}) || {};
+    App.absenceHistory = (res[5] || {}) || {};
+    App.shiftChangeHistory = (res[6] || {}) || {};
     try{ saveLocal(true, {silentSyncState:true}); }catch(e){}
   });
 }
@@ -24304,6 +24708,821 @@ function bindBusinessAnalyticsUI(){
 }
 
 
+// ---------- Internal messaging ----------
+var Messaging = {
+  view:'inbox',
+  selectedId:'',
+  popupId:'',
+  knownUnread:{},
+  eventSource:null,
+  pollTimer:null,
+  refreshTimer:null,
+  sessionKey:'',
+  sending:false,
+  bound:false,
+  appliedGroupId:'',
+  applyingRecipients:false
+};
+
+function ensureMessagingStore(){
+  if(!App.messages || typeof App.messages !== 'object' || Array.isArray(App.messages)) App.messages = {};
+}
+function ensureMessageRecipientGroupStore(){
+  if(!App.messageRecipientGroups || typeof App.messageRecipientGroups !== 'object' || Array.isArray(App.messageRecipientGroups)) App.messageRecipientGroups = {};
+  var ownerKey = messageRecipientGroupOwnerKey();
+  if(ownerKey && (!App.messageRecipientGroups[ownerKey] || typeof App.messageRecipientGroups[ownerKey] !== 'object')) App.messageRecipientGroups[ownerKey] = {};
+}
+function messageRecipientGroupOwnerKey(){
+  return App.currentUser ? messageReadKey(App.currentUser.id) : '';
+}
+function currentMessageRecipientGroups(){
+  ensureMessageRecipientGroupStore();
+  var ownerKey = messageRecipientGroupOwnerKey();
+  return ownerKey ? (App.messageRecipientGroups[ownerKey] || {}) : {};
+}
+function messageReadKey(userId){
+  return String(userId==null ? '' : userId).replace(/[.#$\[\]\/]/g, '_');
+}
+function messageRecipientIds(message){
+  var ids = message && message.recipientIds;
+  if(Array.isArray(ids)) return ids.map(function(v){ return String(v); });
+  if(ids && typeof ids === 'object'){
+    return Object.keys(ids).map(function(k){ return String(ids[k]); }).filter(Boolean);
+  }
+  return [];
+}
+function messageIsForUser(message, userId){
+  var id = String(userId==null ? '' : userId);
+  if(!message || !id) return false;
+  return messageRecipientIds(message).indexOf(id) >= 0;
+}
+function messageIsReadBy(message, userId){
+  if(!message || !message.readBy) return false;
+  return !!message.readBy[messageReadKey(userId)];
+}
+function messageCreatedMs(message){
+  var n = Date.parse(message && message.createdAt ? message.createdAt : '');
+  return isFinite(n) ? n : 0;
+}
+function messageSortNewest(a, b){ return messageCreatedMs(b) - messageCreatedMs(a); }
+function messageSortOldest(a, b){ return messageCreatedMs(a) - messageCreatedMs(b); }
+function messageInbox(){
+  ensureMessagingStore();
+  if(!App.currentUser) return [];
+  var userId = String(App.currentUser.id||'');
+  return Object.keys(App.messages).map(function(id){
+    var message = App.messages[id];
+    if(message && !message.id) message.id = id;
+    return message;
+  }).filter(function(message){ return messageIsForUser(message, userId); }).sort(messageSortNewest);
+}
+function messageSent(){
+  ensureMessagingStore();
+  if(!App.currentUser) return [];
+  var userId = String(App.currentUser.id||'');
+  return Object.keys(App.messages).map(function(id){
+    var message = App.messages[id];
+    if(message && !message.id) message.id = id;
+    return message;
+  }).filter(function(message){ return message && String(message.senderId||'') === userId; }).sort(messageSortNewest);
+}
+function unreadMessages(){
+  if(!App.currentUser) return [];
+  var userId = String(App.currentUser.id||'');
+  return messageInbox().filter(function(message){ return !messageIsReadBy(message, userId); }).sort(messageSortOldest);
+}
+function formatMessageTime(value){
+  try{
+    var d = new Date(value);
+    if(!isFinite(d.getTime())) return '';
+    return d.toLocaleString('en-AU', {day:'2-digit', month:'short', year:'numeric', hour:'numeric', minute:'2-digit'});
+  }catch(e){ return String(value||''); }
+}
+function messageSenderLabel(message){
+  if(message && message.senderName) return String(message.senderName);
+  return staffFullNameForId(message && message.senderId, 'Unknown user');
+}
+function messageTargetLabel(message){
+  if(!message) return '';
+  if(message.targetType === 'global') return 'All users';
+  if(message.targetLabel) return String(message.targetLabel);
+  var ids = messageRecipientIds(message);
+  return ids.map(function(id){ return staffFullNameForId(id, id); }).join(', ');
+}
+function messagePreviewText(message){
+  var body = String(message && message.body || '').replace(/\s+/g, ' ').trim();
+  if(body.length > 120) body = body.slice(0, 117) + '...';
+  return body;
+}
+
+function ensureRailMessageBadge(){
+  var button = byId('v5NavMessages');
+  if(!button) return null;
+  var badge = button.querySelector('.v5-message-nav-badge');
+  if(!badge){
+    badge = document.createElement('span');
+    badge.className = 'message-unread-badge v5-message-nav-badge';
+    badge.setAttribute('aria-label', 'Unread messages');
+    button.appendChild(badge);
+  }
+  return badge;
+}
+function updateMessageBadges(){
+  var count = unreadMessages().length;
+  var label = count > 99 ? '99+' : String(count);
+  ['messagesTopBadge','messagesBottomBadge','messagesInboxBadge'].forEach(function(id){
+    var badge = byId(id);
+    if(!badge) return;
+    badge.textContent = label;
+    badge.style.display = count ? '' : 'none';
+    badge.setAttribute('aria-label', count + ' unread message' + (count===1 ? '' : 's'));
+  });
+  var railBadge = ensureRailMessageBadge();
+  if(railBadge){ railBadge.textContent = label; railBadge.style.display = count ? '' : 'none'; }
+  var summary = byId('messagesUnreadSummary');
+  if(summary) summary.textContent = count ? (count + ' unread') : 'All caught up';
+  try{ document.body.classList.toggle('has-unread-messages', count > 0); }catch(e){}
+  return count;
+}
+
+function renderMessageDetail(message){
+  var host = byId('messageDetail');
+  if(!host) return;
+  host.className = 'message-detail';
+  host.innerHTML = '';
+  if(!message){
+    var empty = document.createElement('div');
+    empty.className = 'message-detail-empty';
+    empty.innerHTML = '<strong>Select a message</strong><span>Choose an item from the list to read it here.</span>';
+    host.appendChild(empty);
+    return;
+  }
+  var important = message.importance === 'important' || message.important === true;
+  host.className = 'message-detail' + (important ? ' is-important' : '');
+  var header = document.createElement('div');
+  header.className = 'message-detail-header';
+  if(important){
+    var banner = document.createElement('div');
+    banner.className = 'message-important-banner';
+    banner.textContent = 'IMPORTANT';
+    header.appendChild(banner);
+  }
+  var title = document.createElement('h3');
+  title.textContent = String(message.subject || 'No subject');
+  header.appendChild(title);
+  var meta = document.createElement('div');
+  meta.className = 'message-detail-meta';
+  var label = Messaging.view === 'sent' ? ('To: ' + messageTargetLabel(message)) : ('From: ' + messageSenderLabel(message));
+  meta.textContent = label + ' | ' + formatMessageTime(message.createdAt);
+  header.appendChild(meta);
+  host.appendChild(header);
+  var body = document.createElement('div');
+  body.className = 'message-detail-body';
+  body.textContent = String(message.body || '');
+  host.appendChild(body);
+  var footer = document.createElement('div');
+  footer.className = 'message-detail-footer';
+  if(Messaging.view === 'sent'){
+    var recipients = messageRecipientIds(message);
+    var readCount = recipients.filter(function(id){ return messageIsReadBy(message, id); }).length;
+    var receipt = document.createElement('span');
+    receipt.className = 'message-read-receipt';
+    receipt.textContent = readCount + ' of ' + recipients.length + ' read';
+    footer.appendChild(receipt);
+  }else if(String(message.senderId||'') !== String(App.currentUser && App.currentUser.id || '')){
+    var reply = document.createElement('button');
+    reply.type = 'button';
+    reply.className = 'btn-outline';
+    reply.textContent = 'Reply';
+    reply.onclick = function(){ openComposeMessage(String(message.senderId||''), 'Re: ' + String(message.subject||'')); };
+    footer.appendChild(reply);
+  }
+  host.appendChild(footer);
+}
+
+function renderMessageList(items){
+  var host = byId('messagesList');
+  if(!host) return;
+  host.innerHTML = '';
+  if(!items.length){
+    var empty = document.createElement('div');
+    empty.className = 'messages-empty';
+    empty.textContent = Messaging.view === 'sent' ? 'No sent messages yet.' : 'No messages in your inbox.';
+    host.appendChild(empty);
+    return;
+  }
+  var currentUserId = String(App.currentUser && App.currentUser.id || '');
+  items.forEach(function(message){
+    var id = String(message.id||'');
+    var unread = Messaging.view === 'inbox' && !messageIsReadBy(message, currentUserId);
+    var important = message.importance === 'important' || message.important === true;
+    var row = document.createElement('button');
+    row.type = 'button';
+    row.className = 'message-list-item' + (unread ? ' is-unread' : '') + (important ? ' is-important' : '') + (Messaging.selectedId === id ? ' is-selected' : '');
+    row.setAttribute('data-message-id', id);
+    row.setAttribute('aria-label', (unread ? 'Unread ' : '') + (important ? 'important ' : '') + 'message: ' + String(message.subject||'No subject'));
+    var top = document.createElement('span');
+    top.className = 'message-list-topline';
+    var party = document.createElement('span');
+    party.className = 'message-list-party';
+    party.textContent = Messaging.view === 'sent' ? messageTargetLabel(message) : messageSenderLabel(message);
+    top.appendChild(party);
+    var time = document.createElement('span');
+    time.className = 'message-list-time';
+    time.textContent = formatMessageTime(message.createdAt);
+    top.appendChild(time);
+    row.appendChild(top);
+    var subject = document.createElement('span');
+    subject.className = 'message-list-subject';
+    subject.textContent = String(message.subject||'No subject');
+    row.appendChild(subject);
+    var preview = document.createElement('span');
+    preview.className = 'message-list-preview';
+    preview.textContent = messagePreviewText(message);
+    row.appendChild(preview);
+    if(important){
+      var flag = document.createElement('span');
+      flag.className = 'message-list-important-label';
+      flag.textContent = 'IMPORTANT';
+      row.appendChild(flag);
+    }
+    row.onclick = function(){ selectMessage(id); };
+    host.appendChild(row);
+  });
+}
+
+function renderMessagingCenter(){
+  ensureMessagingStore();
+  updateMessageBadges();
+  var inboxTab = byId('messagesViewInbox');
+  var sentTab = byId('messagesViewSent');
+  if(inboxTab){
+    inboxTab.classList.toggle('active', Messaging.view === 'inbox');
+    inboxTab.setAttribute('aria-selected', Messaging.view === 'inbox' ? 'true' : 'false');
+  }
+  if(sentTab){
+    sentTab.classList.toggle('active', Messaging.view === 'sent');
+    sentTab.setAttribute('aria-selected', Messaging.view === 'sent' ? 'true' : 'false');
+  }
+  var items = Messaging.view === 'sent' ? messageSent() : messageInbox();
+  renderMessageList(items);
+  var selected = Messaging.selectedId ? App.messages[Messaging.selectedId] : null;
+  if(selected){
+    var inView = items.some(function(message){ return String(message.id||'') === String(Messaging.selectedId); });
+    if(!inView){ selected = null; Messaging.selectedId = ''; }
+  }
+  renderMessageDetail(selected);
+}
+
+function selectMessage(messageId){
+  var id = String(messageId||'');
+  if(!id || !App.messages[id]) return;
+  Messaging.selectedId = id;
+  if(Messaging.view === 'inbox') markMessageRead(id, {silentRender:true});
+  renderMessagingCenter();
+}
+
+function setMessagingView(view){
+  Messaging.view = view === 'sent' ? 'sent' : 'inbox';
+  Messaging.selectedId = '';
+  renderMessagingCenter();
+}
+
+function allMessageRecipientIds(){
+  var current = String(App.currentUser && App.currentUser.id || '');
+  return Object.keys(App.staff||{}).filter(function(id){ return String(id) !== current; }).sort(function(a,b){
+    return staffFullNameForId(a,a).localeCompare(staffFullNameForId(b,b));
+  });
+}
+function selectedMessageRecipientIds(){
+  return Array.prototype.slice.call(document.querySelectorAll('#messageRecipientList .message-recipient-check:checked')).map(function(input){ return String(input.value||''); }).filter(Boolean);
+}
+function sameRecipientSet(a, b){
+  a = (a||[]).map(String).sort();
+  b = (b||[]).map(String).sort();
+  return a.length === b.length && a.every(function(id, index){ return id === b[index]; });
+}
+function messageRecipientGroupById(groupId){
+  return currentMessageRecipientGroups()[String(groupId||'')] || null;
+}
+function updateMessageRecipientSummary(){
+  var selected = selectedMessageRecipientIds();
+  var total = allMessageRecipientIds().length;
+  var summary = byId('messageRecipientSummary');
+  if(summary) summary.textContent = selected.length + ' of ' + total + ' selected';
+  var clear = byId('btnMessageRecipientsClear');
+  if(clear) clear.disabled = selected.length === 0;
+  var select = byId('messageGroupSelect');
+  var selectedGroupId = select ? String(select.value||'') : '';
+  var remove = byId('btnMessageGroupDelete');
+  if(remove) remove.disabled = !selectedGroupId;
+  var save = byId('btnMessageGroupSave');
+  if(save) save.textContent = selectedGroupId ? 'Update group' : 'Save selected as group';
+}
+function setMessageRecipientSelection(ids, options){
+  options = options || {};
+  var wanted = {};
+  (ids||[]).forEach(function(id){ wanted[String(id)] = true; });
+  Messaging.applyingRecipients = true;
+  Array.prototype.forEach.call(document.querySelectorAll('#messageRecipientList .message-recipient-check'), function(input){ input.checked = !!wanted[String(input.value||'')]; });
+  var all = byId('messageAllUsers');
+  if(all) all.checked = !!options.global;
+  Messaging.appliedGroupId = String(options.groupId||'');
+  Messaging.applyingRecipients = false;
+  updateMessageRecipientSummary();
+}
+function renderMessageRecipientGroups(preferredId){
+  var select = byId('messageGroupSelect');
+  if(!select) return;
+  var keep = String(preferredId != null ? preferredId : (select.value||Messaging.appliedGroupId||''));
+  select.innerHTML = '<option value="">-- choose saved group --</option>';
+  var groups = currentMessageRecipientGroups();
+  Object.keys(groups).sort(function(a,b){ return String(groups[a].name||'').localeCompare(String(groups[b].name||'')); }).forEach(function(id){
+    var group = groups[id] || {};
+    var option = document.createElement('option');
+    option.value = String(id);
+    option.textContent = String(group.name||'Unnamed group') + ' (' + (Array.isArray(group.memberIds) ? group.memberIds.length : 0) + ')';
+    select.appendChild(option);
+  });
+  if(keep && groups[keep]) select.value = keep;
+  else select.value = '';
+  updateMessageRecipientSummary();
+}
+function applyMessageRecipientGroup(groupId){
+  var id = String(groupId||'');
+  var group = messageRecipientGroupById(id);
+  if(!group){
+    Messaging.appliedGroupId = '';
+    updateMessageRecipientSummary();
+    return;
+  }
+  var name = byId('messageGroupName');
+  if(name) name.value = String(group.name||'');
+  setMessageRecipientSelection(Array.isArray(group.memberIds) ? group.memberIds : [], {groupId:id});
+}
+function beginNewMessageRecipientGroup(){
+  var select = byId('messageGroupSelect');
+  if(select) select.value = '';
+  var name = byId('messageGroupName');
+  if(name){ name.value = ''; name.focus(); }
+  Messaging.appliedGroupId = '';
+  updateMessageRecipientSummary();
+}
+function handleMessageRecipientChange(){
+  if(Messaging.applyingRecipients) return;
+  Messaging.appliedGroupId = '';
+  var all = byId('messageAllUsers');
+  if(all) all.checked = false;
+  updateMessageRecipientSummary();
+}
+function toggleAllMessageRecipients(){
+  var all = byId('messageAllUsers');
+  if(!all) return;
+  if(!isAdmin()){ all.checked = false; return; }
+  setMessageRecipientSelection(all.checked ? allMessageRecipientIds() : [], {global:all.checked});
+  var select = byId('messageGroupSelect');
+  if(select) select.value = '';
+  var name = byId('messageGroupName');
+  if(name) name.value = '';
+}
+function clearMessageRecipients(){
+  setMessageRecipientSelection([], {});
+  var select = byId('messageGroupSelect');
+  if(select) select.value = '';
+  var name = byId('messageGroupName');
+  if(name) name.value = '';
+}
+function filterMessageRecipients(){
+  var query = String((byId('messageRecipientSearch') && byId('messageRecipientSearch').value)||'').trim().toLowerCase();
+  Array.prototype.forEach.call(document.querySelectorAll('#messageRecipientList .message-recipient-option'), function(row){
+    row.style.display = !query || String(row.getAttribute('data-search')||'').indexOf(query) >= 0 ? '' : 'none';
+  });
+}
+function populateMessageRecipients(preselect){
+  var host = byId('messageRecipientList');
+  if(!host) return;
+  host.innerHTML = '';
+  var allWrap = byId('messageAllUsersWrap');
+  if(allWrap) allWrap.style.display = isAdmin() ? '' : 'none';
+  var all = byId('messageAllUsers');
+  if(all) all.checked = false;
+  allMessageRecipientIds().forEach(function(id){
+    var staff = App.staff[id] || {};
+    var row = document.createElement('label');
+    row.className = 'message-recipient-option';
+    row.setAttribute('data-search', (staffFullNameForId(id,id) + ' ' + String(staff.role||'staff')).toLowerCase());
+    var checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.className = 'message-recipient-check';
+    checkbox.value = String(id);
+    checkbox.onchange = handleMessageRecipientChange;
+    var text = document.createElement('span');
+    var strong = document.createElement('strong');
+    strong.textContent = staffFullNameForId(id, id);
+    var small = document.createElement('small');
+    small.textContent = String(staff.role||'staff');
+    text.appendChild(strong); text.appendChild(small);
+    row.appendChild(checkbox); row.appendChild(text);
+    host.appendChild(row);
+  });
+  var search = byId('messageRecipientSearch');
+  if(search) search.value = '';
+  Messaging.appliedGroupId = '';
+  renderMessageRecipientGroups('');
+  setMessageRecipientSelection(preselect ? [String(preselect)] : [], {});
+}
+async function pullCurrentMessageRecipientGroups(){
+  if(!App.currentUser) return;
+  var ownerKey = messageRecipientGroupOwnerKey();
+  var data = await dbGet('/messageRecipientGroups/' + encodeURIComponent(ownerKey));
+  ensureMessageRecipientGroupStore();
+  App.messageRecipientGroups[ownerKey] = (data && typeof data === 'object' && !Array.isArray(data)) ? data : {};
+  saveLocal(true, {silentSyncState:true});
+  var modal = byId('messageComposeModal');
+  if(modal && modal.style.display === 'flex') renderMessageRecipientGroups();
+}
+async function saveMessageRecipientGroup(){
+  if(!App.currentUser) return;
+  var nameInput = byId('messageGroupName');
+  var name = String(nameInput && nameInput.value || '').trim();
+  var memberIds = selectedMessageRecipientIds();
+  if(!name) return alert('Enter a group name.');
+  if(!memberIds.length) return alert('Tick at least one recipient before saving the group.');
+  var groups = currentMessageRecipientGroups();
+  var select = byId('messageGroupSelect');
+  var groupId = String(select && select.value || '');
+  var existing = groupId ? groups[groupId] : null;
+  if(!existing){
+    var duplicate = Object.keys(groups).filter(function(id){ return String(groups[id].name||'').trim().toLowerCase() === name.toLowerCase(); })[0];
+    if(duplicate) return alert('A group with that name already exists. Select it to update its recipients.');
+    groupId = 'grp_' + Date.now().toString(36) + '_' + uid();
+  }
+  var now = new Date().toISOString();
+  var record = {
+    id:groupId,
+    name:name.slice(0,80),
+    memberIds:memberIds,
+    ownerId:String(App.currentUser.id||''),
+    createdAt:existing && existing.createdAt ? existing.createdAt : now,
+    updatedAt:now
+  };
+  var button = byId('btnMessageGroupSave');
+  if(button){ button.disabled = true; button.textContent = existing ? 'Updating...' : 'Saving...'; }
+  try{
+    var payload = {}; payload[groupId] = record;
+    await dbPatch('/messageRecipientGroups/' + encodeURIComponent(messageRecipientGroupOwnerKey()), payload);
+    ensureMessageRecipientGroupStore();
+    App.messageRecipientGroups[messageRecipientGroupOwnerKey()][groupId] = record;
+    saveLocal(true, {silentSyncState:true});
+    Messaging.appliedGroupId = groupId;
+    renderMessageRecipientGroups(groupId);
+    if(nameInput) nameInput.value = record.name;
+    try{ v413AddAudit(existing ? 'Recipient group updated' : 'Recipient group created', record.name + ' (' + memberIds.length + ' recipients)', 'messaging'); }catch(e){}
+    showToast(existing ? 'Group updated' : 'Group created', record.name + ' has ' + memberIds.length + ' recipients.', 'good', 5000);
+  }catch(error){
+    alert('Recipient group was not saved: ' + String(error && error.message || error));
+  }finally{
+    if(button) button.disabled = false;
+    updateMessageRecipientSummary();
+  }
+}
+async function deleteMessageRecipientGroup(){
+  var select = byId('messageGroupSelect');
+  var groupId = String(select && select.value || '');
+  var group = messageRecipientGroupById(groupId);
+  if(!group) return;
+  if(!confirm('Delete recipient group "' + String(group.name||'') + '"?')) return;
+  var button = byId('btnMessageGroupDelete');
+  if(button) button.disabled = true;
+  try{
+    var payload = {}; payload[groupId] = null;
+    await dbPatch('/messageRecipientGroups/' + encodeURIComponent(messageRecipientGroupOwnerKey()), payload);
+    delete App.messageRecipientGroups[messageRecipientGroupOwnerKey()][groupId];
+    saveLocal(true, {silentSyncState:true});
+    Messaging.appliedGroupId = '';
+    if(byId('messageGroupName')) byId('messageGroupName').value = '';
+    renderMessageRecipientGroups('');
+    try{ v413AddAudit('Recipient group deleted', String(group.name||''), 'messaging'); }catch(e){}
+    showToast('Group deleted', String(group.name||'') + ' was removed.', 'good', 4500);
+  }catch(error){
+    alert('Recipient group was not deleted: ' + String(error && error.message || error));
+  }finally{
+    if(button) button.disabled = false;
+  }
+}
+
+function openComposeMessage(recipientId, subject){
+  if(!App.currentUser) return;
+  populateMessageRecipients(String(recipientId||''));
+  var subjectInput = byId('messageSubject');
+  var bodyInput = byId('messageBody');
+  var important = byId('messageImportant');
+  if(subjectInput) subjectInput.value = String(subject||'').slice(0,120);
+  if(bodyInput) bodyInput.value = '';
+  if(important) important.checked = false;
+  var importanceWrap = byId('messageImportanceWrap');
+  if(importanceWrap) importanceWrap.style.display = isAdmin() ? '' : 'none';
+  var modal = byId('messageComposeModal');
+  if(modal) modal.style.display = 'flex';
+  pullCurrentMessageRecipientGroups().catch(function(){});
+  setTimeout(function(){ try{ if(subjectInput) subjectInput.focus(); }catch(e){} }, 20);
+}
+function closeComposeMessage(){
+  var modal = byId('messageComposeModal');
+  if(modal) modal.style.display = 'none';
+  Messaging.sending = false;
+  var send = byId('btnMessageSend');
+  if(send){ send.disabled = false; send.textContent = 'Send message'; }
+}
+
+async function sendInternalMessage(){
+  if(Messaging.sending || !App.currentUser) return;
+  var subject = String((byId('messageSubject') && byId('messageSubject').value) || '').trim();
+  var body = String((byId('messageBody') && byId('messageBody').value) || '').trim();
+  var isGlobal = isAdmin() && !!(byId('messageAllUsers') && byId('messageAllUsers').checked);
+  if(isGlobal && !isAdmin()) return alert('Only an admin can send a message to all users.');
+  if(!subject) return alert('Enter a subject.');
+  if(!body) return alert('Enter a message.');
+  var senderId = String(App.currentUser.id||'');
+  var recipientIds = isGlobal ? allMessageRecipientIds() : selectedMessageRecipientIds();
+  if(!recipientIds.length) return alert('Tick at least one recipient.');
+  var appliedGroup = Messaging.appliedGroupId ? messageRecipientGroupById(Messaging.appliedGroupId) : null;
+  var usesGroup = !!(appliedGroup && sameRecipientSet(recipientIds, appliedGroup.memberIds||[]));
+  var targetType = isGlobal ? 'global' : (usesGroup ? 'group' : (recipientIds.length === 1 ? 'direct' : 'multi'));
+  var targetLabel = isGlobal ? 'All users' : (usesGroup ? (String(appliedGroup.name||'Group') + ' (' + recipientIds.length + ')') : (recipientIds.length === 1 ? staffFullNameForId(recipientIds[0], recipientIds[0]) : (recipientIds.length + ' recipients')));
+  var recipientNames = recipientIds.map(function(id){ return staffFullNameForId(id, id); });
+  var now = new Date().toISOString();
+  var id = 'msg_' + Date.now().toString(36) + '_' + uid();
+  var important = isAdmin() && !!(byId('messageImportant') && byId('messageImportant').checked);
+  var shop = null;
+  try{ shop = activeShopProfile(); }catch(e){}
+  var message = {
+    id:id,
+    subject:subject.slice(0,120),
+    body:body.slice(0,2000),
+    importance:important ? 'important' : 'normal',
+    senderId:senderId,
+    senderName:staffFullNameForId(senderId, App.currentUser.fullName || App.currentUser.name || senderId),
+    targetType:targetType,
+    targetLabel:targetLabel,
+    recipientIds:recipientIds,
+    recipientNames:recipientNames,
+    recipientGroupId:usesGroup ? String(appliedGroup.id||Messaging.appliedGroupId) : '',
+    createdAt:now,
+    readBy:{},
+    shopId:shop ? String(shop.id||'') : '',
+    shopName:shop ? String(shop.name||'') : '',
+    workspace:String(App.settings && App.settings.workspace || '')
+  };
+  ensureMessagingStore();
+  App.messages[id] = message;
+  saveLocal(true, {silentSyncState:true});
+  Messaging.sending = true;
+  var send = byId('btnMessageSend');
+  if(send){ send.disabled = true; send.textContent = 'Sending...'; }
+  try{
+    var payload = {}; payload[id] = message;
+    await dbPatch('/messages', payload);
+    try{ v413AddAudit(isGlobal ? 'Global message sent' : (recipientIds.length > 1 ? 'Group message sent' : 'Message sent'), subject + ' to ' + message.targetLabel, 'messaging'); }catch(e){}
+    closeComposeMessage();
+    Messaging.view = 'sent';
+    Messaging.selectedId = id;
+    renderMessagingCenter();
+    showToast(isGlobal ? 'Broadcast sent' : 'Message sent', isGlobal ? ('Delivered to ' + recipientIds.length + ' users.') : ('Sent to ' + message.targetLabel + '.'), important ? 'warn' : 'good', 6000);
+  }catch(error){
+    delete App.messages[id];
+    saveLocal(true, {silentSyncState:true});
+    Messaging.sending = false;
+    if(send){ send.disabled = false; send.textContent = 'Send message'; }
+    renderMessagingCenter();
+    alert('Message was not sent: ' + String(error && error.message || error));
+  }
+}
+
+function markMessageRead(messageId, options){
+  options = options || {};
+  var id = String(messageId||'');
+  var message = App.messages && App.messages[id];
+  if(!message || !App.currentUser || !messageIsForUser(message, App.currentUser.id)) return false;
+  var key = messageReadKey(App.currentUser.id);
+  if(message.readBy && message.readBy[key]) return false;
+  var at = new Date().toISOString();
+  if(!message.readBy || typeof message.readBy !== 'object') message.readBy = {};
+  message.readBy[key] = at;
+  delete Messaging.knownUnread[id];
+  saveLocal(true, {silentSyncState:true});
+  updateMessageBadges();
+  if(!options.silentRender) renderMessagingCenter();
+  var patch = {}; patch[key] = at;
+  dbPatch('/messages/' + encodeURIComponent(id) + '/readBy', patch).catch(function(error){
+    showToast('Read receipt not synced', 'The message is read on this device, but the server could not be updated.', 'warn', 7000);
+    try{ console.error('Message read receipt failed', error); }catch(e){}
+  });
+  return true;
+}
+
+function closeMessagePopup(){
+  var modal = byId('messagePopupModal');
+  if(modal) modal.style.display = 'none';
+  Messaging.popupId = '';
+}
+function renderMessagePopup(){
+  if(!App.currentUser) return closeMessagePopup();
+  var unread = unreadMessages();
+  var message = App.messages && App.messages[Messaging.popupId];
+  if(!message || messageIsReadBy(message, App.currentUser.id)){
+    message = unread[0] || null;
+    Messaging.popupId = message ? String(message.id||'') : '';
+  }
+  if(!message) return closeMessagePopup();
+  var important = message.importance === 'important' || message.important === true;
+  var panel = byId('messagePopupPanel');
+  if(panel) panel.className = 'panel message-popup-panel' + (important ? ' is-important' : '');
+  var header = byId('messagePopupHeader');
+  if(header) header.className = 'message-popup-header' + (important ? ' is-important' : '');
+  var flag = byId('messagePopupImportance');
+  if(flag){ flag.textContent = important ? 'IMPORTANT MESSAGE' : 'NEW MESSAGE'; flag.className = 'message-popup-flag' + (important ? ' is-important' : ''); }
+  var index = unread.map(function(item){ return String(item.id||''); }).indexOf(String(message.id||''));
+  var count = byId('messagePopupCount');
+  if(count) count.textContent = 'Unread ' + (index + 1) + ' of ' + unread.length;
+  var subject = byId('messagePopupSubject');
+  if(subject) subject.textContent = String(message.subject||'No subject');
+  var meta = byId('messagePopupMeta');
+  if(meta) meta.textContent = 'From ' + messageSenderLabel(message) + ' | ' + formatMessageTime(message.createdAt);
+  var body = byId('messagePopupBody');
+  if(body) body.textContent = String(message.body||'');
+  var prev = byId('btnMessagePopupPrev');
+  if(prev) prev.style.display = unread.length > 1 ? '' : 'none';
+  var next = byId('btnMessagePopupNext');
+  if(next){
+    next.innerHTML = unread.length > 1 ? '<span aria-hidden="true">&#8594;</span><span>Next unread</span>' : '<span>Mark read</span>';
+    next.title = unread.length > 1 ? 'Mark this message read and show the next unread message' : 'Mark this message read';
+  }
+  var modal = byId('messagePopupModal');
+  if(modal) modal.style.display = 'flex';
+}
+function openUnreadMessagePopup(preferredId){
+  var unread = unreadMessages();
+  if(!unread.length) return closeMessagePopup();
+  var preferred = String(preferredId||'');
+  var found = unread.filter(function(message){ return String(message.id||'') === preferred; })[0];
+  Messaging.popupId = String((found || unread[0]).id||'');
+  renderMessagePopup();
+}
+function cycleUnreadMessage(direction){
+  var unread = unreadMessages();
+  if(!unread.length) return closeMessagePopup();
+  var currentId = String(Messaging.popupId||'');
+  var index = unread.map(function(message){ return String(message.id||''); }).indexOf(currentId);
+  if(index < 0) index = 0;
+  var nextId = '';
+  if(unread.length > 1){
+    var step = direction < 0 ? -1 : 1;
+    var nextIndex = (index + step + unread.length) % unread.length;
+    nextId = String(unread[nextIndex].id||'');
+  }
+  markMessageRead(currentId, {silentRender:true});
+  if(!nextId || !App.messages[nextId] || messageIsReadBy(App.messages[nextId], App.currentUser.id)){
+    var remaining = unreadMessages();
+    nextId = remaining.length ? String(remaining[0].id||'') : '';
+  }
+  if(!nextId) return closeMessagePopup();
+  Messaging.popupId = nextId;
+  renderMessagingCenter();
+  renderMessagePopup();
+}
+function openMessagesFromPopup(){
+  var id = String(Messaging.popupId||'');
+  if(id) markMessageRead(id, {silentRender:true});
+  closeMessagePopup();
+  Messaging.view = 'inbox';
+  Messaging.selectedId = id;
+  showTab('Messages');
+  renderMessagingCenter();
+}
+
+function syncKnownUnread(){
+  var map = {};
+  unreadMessages().forEach(function(message){ map[String(message.id||'')] = true; });
+  Messaging.knownUnread = map;
+  return map;
+}
+async function pullMessagesOnly(options){
+  options = options || {};
+  if(!App.currentUser) return;
+  var before = Messaging.knownUnread || {};
+  var data = await dbGet('/messages');
+  App.messages = (data && typeof data === 'object' && !Array.isArray(data)) ? data : {};
+  ensureMessagingStore();
+  saveLocal(true, {silentSyncState:true});
+  var unread = unreadMessages();
+  var newIds = unread.map(function(message){ return String(message.id||''); }).filter(function(id){ return !before[id]; });
+  syncKnownUnread();
+  updateMessageBadges();
+  if(byId('messagesSection') && byId('messagesSection').classList.contains('show')) renderMessagingCenter();
+  if(options.popupAny && unread.length) openUnreadMessagePopup();
+  else if(options.popupNew && newIds.length) openUnreadMessagePopup(newIds[0]);
+}
+function refreshMessagingAfterData(){
+  if(!App.currentUser) return;
+  var before = Messaging.knownUnread || {};
+  var unread = unreadMessages();
+  var newIds = unread.map(function(message){ return String(message.id||''); }).filter(function(id){ return !before[id]; });
+  syncKnownUnread();
+  updateMessageBadges();
+  if(byId('messagesSection') && byId('messagesSection').classList.contains('show')) renderMessagingCenter();
+  if(newIds.length) openUnreadMessagePopup(newIds[0]);
+}
+function scheduleMessagesRefresh(){
+  if(Messaging.refreshTimer) clearTimeout(Messaging.refreshTimer);
+  Messaging.refreshTimer = setTimeout(function(){
+    Messaging.refreshTimer = null;
+    pullMessagesOnly({popupNew:true}).catch(function(){});
+  }, 350);
+}
+function messageLiveUrl(){
+  var base = wsRoot().replace(/\/$/, '');
+  var url = withAuth(base + '/messages.json');
+  return url + (url.indexOf('?') >= 0 ? '&' : '?') + 'print=silent';
+}
+function stopMessagingSession(){
+  if(Messaging.eventSource){ try{ Messaging.eventSource.close(); }catch(e){} }
+  if(Messaging.pollTimer){ try{ clearInterval(Messaging.pollTimer); }catch(e){} }
+  if(Messaging.refreshTimer){ try{ clearTimeout(Messaging.refreshTimer); }catch(e){} }
+  Messaging.eventSource = null;
+  Messaging.pollTimer = null;
+  Messaging.refreshTimer = null;
+  Messaging.sessionKey = '';
+  Messaging.knownUnread = {};
+  closeMessagePopup();
+}
+function startMessagingSession(){
+  stopMessagingSession();
+  if(!App.currentUser) return;
+  Messaging.sessionKey = String(App.settings.workspace||'') + '|' + String(App.currentUser.id||'');
+  pullCurrentMessageRecipientGroups().catch(function(){});
+  pullMessagesOnly({popupAny:true}).catch(function(){
+    syncKnownUnread();
+    updateMessageBadges();
+    if(unreadMessages().length) openUnreadMessagePopup();
+  });
+  if('EventSource' in window){
+    try{
+      Messaging.eventSource = new EventSource(messageLiveUrl());
+      Messaging.eventSource.onmessage = function(){ scheduleMessagesRefresh(); };
+      Messaging.eventSource.onerror = function(){};
+    }catch(e){ Messaging.eventSource = null; }
+  }
+  Messaging.pollTimer = setInterval(function(){ scheduleMessagesRefresh(); }, 15000);
+}
+
+function bindMessagingUI(){
+  if(Messaging.bound) return;
+  Messaging.bound = true;
+  var inbox = byId('messagesViewInbox'); if(inbox) inbox.onclick = function(){ setMessagingView('inbox'); };
+  var sent = byId('messagesViewSent'); if(sent) sent.onclick = function(){ setMessagingView('sent'); };
+  var compose = byId('btnComposeMessage'); if(compose) compose.onclick = function(){ openComposeMessage(); };
+  var refresh = byId('btnMessagesRefresh'); if(refresh) refresh.onclick = function(){ pullMessagesOnly({popupNew:true}).catch(function(error){ alert('Messages could not be refreshed: ' + String(error && error.message || error)); }); };
+  var closeCompose = byId('btnMessageComposeClose'); if(closeCompose) closeCompose.onclick = closeComposeMessage;
+  var cancelCompose = byId('btnMessageComposeCancel'); if(cancelCompose) cancelCompose.onclick = closeComposeMessage;
+  var send = byId('btnMessageSend'); if(send) send.onclick = sendInternalMessage;
+  var allUsers = byId('messageAllUsers'); if(allUsers) allUsers.onchange = toggleAllMessageRecipients;
+  var clearRecipients = byId('btnMessageRecipientsClear'); if(clearRecipients) clearRecipients.onclick = clearMessageRecipients;
+  var recipientSearch = byId('messageRecipientSearch'); if(recipientSearch) recipientSearch.oninput = filterMessageRecipients;
+  var groupSelect = byId('messageGroupSelect'); if(groupSelect) groupSelect.onchange = function(){ applyMessageRecipientGroup(groupSelect.value); };
+  var groupNew = byId('btnMessageGroupNew'); if(groupNew) groupNew.onclick = beginNewMessageRecipientGroup;
+  var groupSave = byId('btnMessageGroupSave'); if(groupSave) groupSave.onclick = saveMessageRecipientGroup;
+  var groupDelete = byId('btnMessageGroupDelete'); if(groupDelete) groupDelete.onclick = deleteMessageRecipientGroup;
+  var popupClose = byId('btnMessagePopupClose'); if(popupClose) popupClose.onclick = closeMessagePopup;
+  var popupPrev = byId('btnMessagePopupPrev'); if(popupPrev) popupPrev.onclick = function(){ cycleUnreadMessage(-1); };
+  var popupNext = byId('btnMessagePopupNext'); if(popupNext) popupNext.onclick = function(){ cycleUnreadMessage(1); };
+  var popupOpen = byId('btnMessagePopupOpen'); if(popupOpen) popupOpen.onclick = openMessagesFromPopup;
+  var composeModal = byId('messageComposeModal');
+  if(composeModal) composeModal.addEventListener('click', function(event){ if(event.target === composeModal) closeComposeMessage(); });
+  var popupModal = byId('messagePopupModal');
+  if(popupModal) popupModal.addEventListener('click', function(event){ if(event.target === popupModal) closeMessagePopup(); });
+  document.addEventListener('keydown', function(event){
+    if(!event || event.key !== 'Escape') return;
+    if(composeModal && composeModal.style.display === 'flex') closeComposeMessage();
+    else if(popupModal && popupModal.style.display === 'flex') closeMessagePopup();
+  });
+}
+
+try{
+  window.AspireMessaging = {
+    render:renderMessagingCenter,
+    unread:unreadMessages,
+    markRead:markMessageRead,
+    openCompose:openComposeMessage,
+    openUnreadPopup:openUnreadMessagePopup,
+    cycleUnread:cycleUnreadMessage,
+    groups:currentMessageRecipientGroups,
+    applyGroup:applyMessageRecipientGroup,
+    refresh:pullMessagesOnly
+  };
+}catch(e){}
+
+
 // ---------- Print View (multi-week) ----------
 function buildPrintView(){
   var cont=byId('printContainer'); cont.innerHTML='';
@@ -24389,7 +25608,7 @@ async function pullData(silent){
   try{
     var looksEmpty = (!data) || (typeof data==='object' && !Array.isArray(data) &&
       data.staff===undefined && data.settings===undefined && data.weeks===undefined &&
-      data.availability===undefined && data.recurringUnavailability===undefined && data.dailyOps===undefined);
+      data.availability===undefined && data.recurringUnavailability===undefined && data.recurringUnavailabilityExceptions===undefined && data.dailyOps===undefined && data.messages===undefined && data.messageRecipientGroups===undefined);
     if(looksEmpty && App.settings && App.settings.dbUrl){
       var rootUrl = App.settings.dbUrl.replace(/\/$/,'') + '/.json';
       var rr = await fetch(withAuth(rootUrl));
@@ -24398,21 +25617,21 @@ async function pullData(silent){
         if(rootData){
           var ws = (App.settings.workspace||'').trim();
           // If root contains the workspace node, use it.
-          if(ws && rootData[ws] && (rootData[ws].staff || rootData[ws].settings || rootData[ws].weeks)){
+          if(ws && rootData[ws] && (rootData[ws].staff || rootData[ws].settings || rootData[ws].weeks || rootData[ws].messages || rootData[ws].messageRecipientGroups)){
             data = rootData[ws];
           }
           // If root itself is an exported payload, use it and (best-effort) migrate into workspace.
-          else if(rootData.staff || rootData.settings || rootData.weeks || rootData.dailyOps){
+          else if(rootData.staff || rootData.settings || rootData.weeks || rootData.dailyOps || rootData.messages || rootData.messageRecipientGroups){
             data = rootData;
 
 // If root isn't directly the export (common when imported under a single node), scan one level deep.
-if(!(rootData.staff||rootData.settings||rootData.weeks||rootData.availability||rootData.recurringUnavailability||rootData.dailyOps)){
+if(!(rootData.staff||rootData.settings||rootData.weeks||rootData.availability||rootData.recurringUnavailability||rootData.recurringUnavailabilityExceptions||rootData.dailyOps||rootData.messages||rootData.messageRecipientGroups)){
   try{
     var rk = Object.keys(rootData||{});
     for(var i=0;i<rk.length;i++){
       var kk = rk[i];
       var vv = rootData[kk];
-      if(vv && typeof vv==='object' && (vv.staff||vv.settings||vv.weeks||vv.availability||vv.recurringUnavailability||vv.dailyOps)){
+      if(vv && typeof vv==='object' && (vv.staff||vv.settings||vv.weeks||vv.availability||vv.recurringUnavailability||vv.recurringUnavailabilityExceptions||vv.dailyOps||vv.messages||vv.messageRecipientGroups)){
         data = vv;
         break;
       }
@@ -24437,9 +25656,9 @@ try{
   function __looksLikeExport(o){
     if(!o || typeof o!=='object') return false;
     return (o.staff!==undefined) || (o.settings!==undefined) || (o.weeks!==undefined) ||
-           (o.availability!==undefined) || (o.recurringUnavailability!==undefined) ||
+           (o.availability!==undefined) || (o.recurringUnavailability!==undefined) || (o.recurringUnavailabilityExceptions!==undefined) ||
            (o.absenceRequests!==undefined) || (o.shiftChangeRequests!==undefined) ||
-           (o.businessAnalytics!==undefined) || (o.dailyOps!==undefined);
+           (o.businessAnalytics!==undefined) || (o.dailyOps!==undefined) || (o.messages!==undefined) || (o.messageRecipientGroups!==undefined);
   }
   if(data && typeof data==='object' && !Array.isArray(data) && !__looksLikeExport(data)){
     // common wrapper keys
@@ -24461,8 +25680,11 @@ try{
     App.staff=data.staff||App.staff;
     App.availability=data.availability||App.availability;
     App.recurringUnavailability=data.recurringUnavailability||App.recurringUnavailability||{};
+    App.recurringUnavailabilityExceptions=data.recurringUnavailabilityExceptions||{};
     App.editRequests=data.editRequests||App.editRequests||{};
     App.rosterTemplates=data.rosterTemplates||App.rosterTemplates||{};
+    App.messages=data.messages||{};
+    App.messageRecipientGroups=data.messageRecipientGroups||{};
     App.absenceRequests=data.absenceRequests||App.absenceRequests||{};
     App.absenceHistory=data.absenceHistory||App.absenceHistory||{};
     App.weeks=data.weeks||App.weeks;
@@ -24496,6 +25718,7 @@ try{
   saveLocal(true, {silentSyncState:true});
   if(typeof updateRequestsBadge==='function') updateRequestsBadge();
   if(typeof maybeAutoOpenRequestsModal==='function') maybeAutoOpenRequestsModal(true);
+  try{ refreshMessagingAfterData(); }catch(e){}
   try{ if(App.currentUser && typeof notifyMyRequestStatus==='function') notifyMyRequestStatus(); }catch(e){}
   // Always rehydrate login UI when logged out, even for silent pulls.
   if(!silent || !App.currentUser){ try{ populateLoginSelects(); populateExistingStaff(); }catch(e){} }
@@ -24811,6 +26034,7 @@ async function pushPlannerData(){
   var payload = {
     availability:App.availability,
     recurringUnavailability:App.recurringUnavailability||{},
+    recurringUnavailabilityExceptions:App.recurringUnavailabilityExceptions||{},
     editRequests:App.editRequests||{},
     rosterTemplates:App.rosterTemplates||{},
     absenceRequests:App.absenceRequests||{},
@@ -24852,6 +26076,7 @@ async function pushPlannerAndSettingsAdmin(){
     settings:App.settings,
     availability:App.availability,
     recurringUnavailability:App.recurringUnavailability||{},
+    recurringUnavailabilityExceptions:App.recurringUnavailabilityExceptions||{},
     editRequests:App.editRequests||{},
     rosterTemplates:App.rosterTemplates||{},
     absenceRequests:App.absenceRequests||{},
@@ -25324,7 +26549,9 @@ try{
       var localPending = getDayRec(App.absenceRequests, iso, staffId);
       addLinesFromRec(localPending, 'Pending', '— requested');
       try{
-        var recs = getRecurringUnavailabilityForDate(iso, staffId) || [];
+        var recurringException = hasRecurringUnavailabilityException(iso, staffId);
+        if(recurringException) pushLine('Recurring availability override: available to work on this date.');
+        var recs = recurringException ? [] : (getRecurringUnavailabilityForDate(iso, staffId) || []);
         if(recs.length){
           recs.forEach(function(r){
             var rr = (r && r.reason!=null ? String(r.reason).trim() : '');
@@ -25382,8 +26609,11 @@ try{
         }
 
         try{
-          var recMap = await fetchJson('/recurringUnavailability/' + encodeURIComponent(staffId));
-          if(recMap){
+          var recException = await fetchJson('/recurringUnavailabilityExceptions/' + encodeURIComponent(iso) + '/' + encodeURIComponent(staffId));
+          var recurringSuppressed = (recException === true || (recException && recException.excluded === true));
+          if(recurringSuppressed) pushLine('Recurring availability override: available to work on this date.');
+          var recMap = recurringSuppressed ? null : await fetchJson('/recurringUnavailability/' + encodeURIComponent(staffId));
+          if(recMap && !recurringSuppressed){
             var idx = isoDayIndexMon0(iso);
             Object.keys(recMap).forEach(function(k){
               var r = recMap[k]; if(!r) return;
@@ -25526,6 +26756,7 @@ try{
   if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function(){ setTimeout(v413RenderSecurityChecklist, 0); });
   else setTimeout(v413RenderSecurityChecklist, 0);
 })();
+
 </script>
 
 
@@ -25535,13 +26766,14 @@ try{
 (function(){
   'use strict';
   var APP_NAME = 'Aspire Workforce Command';
-  var APP_VERSION = 'V5.0.58';
+  var APP_VERSION = 'V5.0.62';
   var OLD_TITLE = 'M&C-ATRD-scheduler --=Aspire Group=--';
 
   var NAVS = [
     {key:'Easy', tab:'tabEasy', section:'easyViewSection', label:'Easy View', adminLabel:'Easy View', sub:'Phone-friendly today hub', code:'EZ'},
     {key:'My', tab:'tabMy', section:'mySection', label:'My Shifts', adminLabel:'My Shifts', sub:'Personal roster and wage view', code:'MY'},
     {key:'MyRequests', tab:'tabMyRequests', section:'myRequestsSection', altSection:'staffRequestsSection', label:'My Requests', adminLabel:'Staff Requests', sub:'Leave, edits and approvals', code:'RQ'},
+    {key:'Messages', tab:'tabMessages', section:'messagesSection', label:'Messages', adminLabel:'Messages', sub:'Inbox, sent items and announcements', code:'MS'},
     {key:'DailyOps', tab:'tabDailyOps', section:'dailyOpsSection', label:'Daily Tasks', adminLabel:'Daily Tasks', sub:'Opening, closing, stock and owner actions', code:'DT'},
     {key:'Planner', tab:'tabPlanner', section:'plannerSection', label:'Planner', adminLabel:'Planner', sub:'Roster board and coverage', code:'PL'},
     {key:'Payroll', tab:'tabPayroll', section:'payrollSection', label:'Payroll', adminLabel:'Payroll', sub:'Pay runs, payslips and paid status', code:'PY'},
@@ -28492,35 +29724,33 @@ try{
   }
 
   body.v5041-public-forecast-mode.week-overview-focus-mode #plannerSection .toolbar #btnPublicForecastRefresh {
-    flex-direction: column !important;
-    gap: 3px !important;
-    padding: 6px 12px !important;
-    min-width: 74px !important;
-    min-height: 50px !important;
-    background: #22c55e !important;
-    border: 1px solid rgba(255,255,255,.28) !important;
-    color: #ffffff !important;
-    font-weight: 1000 !important;
-    box-shadow: 0 8px 22px rgba(34,197,94,.32) !important;
-    text-shadow: 0 1px 2px rgba(0,0,0,.30) !important;
+    width: 40px !important;
+    min-width: 40px !important;
+    min-height: 38px !important;
+    padding: 0 !important;
+    background: rgba(148,163,184,.12) !important;
+    border: 1px solid rgba(148,163,184,.30) !important;
+    color: var(--fg) !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
   }
 
   body.v5041-public-forecast-mode.week-overview-focus-mode[data-theme="light"] #plannerSection .toolbar #btnPublicForecastRefresh {
-    color: #ffffff !important;
+    color: var(--fg) !important;
   }
 
   body.v5041-public-forecast-mode.week-overview-focus-mode #plannerSection .toolbar #btnPublicForecastRefresh .forecast-refresh-icon {
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
-    width: 22px !important;
-    height: 22px !important;
+    width: 18px !important;
+    height: 18px !important;
     color: inherit !important;
   }
 
   body.v5041-public-forecast-mode.week-overview-focus-mode #plannerSection .toolbar #btnPublicForecastRefresh .forecast-refresh-icon svg {
-    width: 22px !important;
-    height: 22px !important;
+    width: 18px !important;
+    height: 18px !important;
     display: block !important;
     stroke: currentColor !important;
     stroke-width: 2.5 !important;
@@ -28537,17 +29767,9 @@ try{
     text-transform: uppercase !important;
   }
 
-  #btnPublicForecastRefresh,
-  #btnPublicForecastRefresh *,
-  #btnPublicForecastRefresh svg,
-  #btnPublicForecastRefresh path {
-    color: #ffffff !important;
-    stroke: #ffffff !important;
-  }
-
-  #btnPublicForecastRefresh {
-    background: #16a34a !important;
-    border-color: rgba(255,255,255,.35) !important;
+  body.v5041-public-forecast-mode #plannerSection .toolbar #btnPublicForecastRefresh:hover {
+    background: rgba(148,163,184,.22) !important;
+    border-color: rgba(148,163,184,.48) !important;
   }
 
   body.v5041-public-forecast-mode.week-overview-focus-mode #plannerSection .toolbar #btnPublicForecastLogin {
@@ -28567,6 +29789,10 @@ try{
     display: none !important;
   }
 
+  body.v5041-public-forecast-mode.week-overview-focus-mode #plannerSection .toolbar #btnWeekOverviewRefresh {
+    display: none !important;
+  }
+
   body.v5041-public-forecast-mode.week-overview-focus-mode #plannerSection #weekOverview .wo-cell {
     cursor: default !important;
   }
@@ -28581,6 +29807,7 @@ try{
     opacity: 0 !important;
     pointer-events: none !important;
   }
+
 </style>
 <style id="v5053AccessAndPublicViewCss">
   /* V5.0.53: clearer sign-in hierarchy and a strictly view-only public forecast. */
@@ -28703,6 +29930,7 @@ try{
   body.v5041-public-forecast-mode #plannerSection .toolbar #btnPrint,
   body.v5041-public-forecast-mode #plannerSection .toolbar #btnPrintView,
   body.v5041-public-forecast-mode #plannerSection .toolbar #btnWeekOverviewFullView,
+  body.v5041-public-forecast-mode #plannerSection .toolbar #btnWeekOverviewRefresh,
   body.v5041-public-forecast-mode #plannerSection .toolbar #plannerToggleWrap,
   body.v5041-public-forecast-mode #plannerSection .toolbar #btnPlannerFullView,
   body.v5041-public-forecast-mode #plannerSection .requests-strip {
@@ -28731,12 +29959,13 @@ try{
   }
 
   body.v5041-public-forecast-mode #plannerSection .toolbar #btnPublicForecastRefresh {
-    flex-direction: row !important;
-    gap: 7px !important;
-    min-width: 0 !important;
-    padding: 8px 12px !important;
-    background: #16a34a !important;
-    color: #fff !important;
+    width: 40px !important;
+    min-width: 40px !important;
+    padding: 0 !important;
+    background: rgba(148,163,184,.12) !important;
+    border-color: rgba(148,163,184,.30) !important;
+    color: var(--fg) !important;
+    box-shadow: none !important;
   }
 
   body.v5041-public-forecast-mode #plannerSection .toolbar #btnPublicForecastRefresh .forecast-refresh-icon,
@@ -28789,9 +30018,675 @@ try{
   }
 
 </style>
+<style id="v5061MessagingCss">
+/* V5.0.61 internal messaging */
+.message-nav-button,
+.message-bottom-button,
+#v5NavMessages {
+  position: relative;
+}
+
+.message-unread-badge {
+  display: inline-flex;
+  min-width: 19px;
+  height: 19px;
+  padding: 0 5px;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #fff;
+  border-radius: 999px;
+  background: #dc2626;
+  color: #fff;
+  font-size: 10px;
+  line-height: 1;
+  font-weight: 900;
+  vertical-align: middle;
+}
+
+#messagesTopBadge {
+  margin-left: 4px;
+}
+
+#messagesBottomBadge {
+  position: absolute;
+  top: 3px;
+  right: 8px;
+}
+
+.v5-message-nav-badge {
+  position: absolute;
+  top: 7px;
+  right: 8px;
+  z-index: 2;
+}
+
+.messaging-shell {
+  width: min(1180px, 100%);
+  max-width: calc(100vw - 24px);
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+.messages-page-header,
+.message-modal-title-row,
+.message-popup-status-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.messages-page-header {
+  margin-bottom: 14px;
+}
+
+.messages-page-header h2,
+.message-modal-title-row h3,
+.message-popup-header h3 {
+  margin: 0;
+  letter-spacing: 0;
+}
+
+.messages-page-actions,
+.message-modal-actions,
+.message-popup-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.messages-icon-button {
+  width: 42px;
+  min-width: 42px;
+  height: 42px;
+  padding: 0;
+  display: inline-grid;
+  place-items: center;
+  font-size: 20px;
+}
+
+.messages-view-tabs {
+  display: flex;
+  align-items: end;
+  gap: 4px;
+  border-bottom: 1px solid var(--border);
+}
+
+.messages-view-tabs button {
+  min-height: 42px;
+  padding: 9px 16px;
+  border: 0;
+  border-bottom: 3px solid transparent;
+  border-radius: 0;
+  background: transparent;
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.messages-view-tabs button.active {
+  border-bottom-color: var(--accent2);
+  color: var(--fg);
+}
+
+.messages-layout {
+  display: grid;
+  grid-template-columns: minmax(280px, .85fr) minmax(0, 1.45fr);
+  min-height: 520px;
+  max-height: calc(100vh - 250px);
+  border: 1px solid var(--border);
+  border-top: 0;
+  border-radius: 0 0 8px 8px;
+  overflow: hidden;
+  background: var(--card);
+}
+
+.messages-list {
+  min-width: 0;
+  overflow-y: auto;
+  border-right: 1px solid var(--border);
+  background: color-mix(in srgb, var(--card) 92%, var(--grid));
+}
+
+.message-list-item {
+  position: relative;
+  width: 100%;
+  min-height: 102px;
+  padding: 13px 15px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 5px;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  border-left: 4px solid transparent;
+  border-radius: 0;
+  background: transparent;
+  color: var(--fg);
+  text-align: left;
+}
+
+.message-list-item:hover,
+.message-list-item.is-selected {
+  background: rgba(56, 189, 248, .10);
+}
+
+.message-list-item.is-unread {
+  border-left-color: #0284c7;
+  background: rgba(14, 165, 233, .08);
+}
+
+.message-list-item.is-important {
+  border-left-color: #dc2626;
+}
+
+.message-list-item.is-important.is-unread {
+  background: rgba(220, 38, 38, .10);
+}
+
+.message-list-topline {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.message-list-party,
+.message-list-subject,
+.message-list-preview,
+.message-list-time {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.message-list-party,
+.message-list-subject {
+  font-weight: 800;
+}
+
+.message-list-time,
+.message-list-preview {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.message-list-time {
+  flex: 0 0 auto;
+}
+
+.message-list-important-label {
+  align-self: flex-start;
+  padding: 3px 6px;
+  border-radius: 4px;
+  background: #b91c1c;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.messages-empty {
+  padding: 28px 18px;
+  color: var(--muted);
+  text-align: center;
+}
+
+.message-detail {
+  min-width: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  background: var(--card);
+}
+
+.message-detail-empty {
+  min-height: 320px;
+  display: grid;
+  place-content: center;
+  gap: 7px;
+  padding: 28px;
+  color: var(--muted);
+  text-align: center;
+}
+
+.message-detail-header {
+  padding: 22px 24px 18px;
+  border-bottom: 1px solid var(--border);
+}
+
+.message-detail-header h3 {
+  margin: 8px 0 5px;
+  font-size: 22px;
+  letter-spacing: 0;
+  overflow-wrap: anywhere;
+}
+
+.message-detail-meta {
+  color: var(--muted);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.message-important-banner {
+  display: inline-block;
+  padding: 4px 7px;
+  border-radius: 4px;
+  background: #b91c1c;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.message-detail-body,
+.message-popup-body {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.message-detail-body {
+  flex: 1;
+  padding: 24px;
+  font-size: 15px;
+  line-height: 1.65;
+}
+
+.message-detail-footer {
+  min-height: 58px;
+  padding: 10px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  border-top: 1px solid var(--border);
+}
+
+.message-read-receipt {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.message-compose-panel,
+.message-popup-panel {
+  width: min(620px, calc(100vw - 28px));
+  max-height: min(760px, calc(100vh - 28px));
+  overflow-y: auto;
+}
+
+.message-compose-fields {
+  display: grid;
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.message-compose-fields textarea {
+  min-height: 190px;
+  resize: vertical;
+}
+
+.message-importance-option {
+  min-height: 54px;
+  padding: 10px 12px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  border: 1px solid rgba(220, 38, 38, .42);
+  border-radius: 7px;
+  background: rgba(220, 38, 38, .08);
+}
+
+.message-importance-option input {
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+}
+
+.message-importance-option span {
+  display: grid;
+  gap: 2px;
+}
+
+.message-importance-option small {
+  color: var(--muted);
+}
+
+.message-modal-actions {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+
+.message-popup-panel {
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.message-popup-panel.is-important {
+  border-color: #dc2626;
+  box-shadow: 0 24px 70px rgba(127, 29, 29, .34);
+}
+
+.message-popup-header {
+  min-height: 96px;
+  padding: 18px 20px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(14, 165, 233, .12);
+}
+
+.message-popup-header.is-important {
+  border-bottom-color: #991b1b;
+  background: #b91c1c;
+  color: #fff;
+}
+
+.message-popup-header h3 {
+  margin-top: 6px;
+  font-size: 21px;
+  overflow-wrap: anywhere;
+}
+
+.message-popup-flag {
+  color: #0369a1;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.message-popup-flag.is-important {
+  color: #fff;
+}
+
+.message-popup-close {
+  width: 38px;
+  min-width: 38px;
+  height: 38px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(255,255,255,.44);
+  border-radius: 6px;
+  background: rgba(0,0,0,.12);
+  color: inherit;
+  font-size: 18px;
+}
+
+.message-popup-content {
+  padding: 18px 20px 20px;
+}
+
+.message-popup-status-row {
+  justify-content: flex-start;
+  margin-bottom: 15px;
+}
+
+.message-popup-body {
+  max-height: 42vh;
+  overflow-y: auto;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.message-popup-actions {
+  padding: 13px 20px;
+  border-top: 1px solid var(--border);
+  background: color-mix(in srgb, var(--card) 92%, var(--grid));
+}
+
+.message-popup-actions button {
+  min-height: 42px;
+}
+
+@media (max-width: 760px) {
+  .messaging-shell {
+    max-width: calc(100vw - 36px);
+    margin-left: 0;
+    margin-right: 0;
+  }
+
+  .messages-layout {
+    display: block;
+    min-height: 0;
+    max-height: none;
+    overflow: visible;
+  }
+
+  .messages-list {
+    max-height: 42vh;
+    border-right: 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .message-detail {
+    min-height: 330px;
+    max-height: none;
+  }
+
+  .message-detail-header,
+  .message-detail-body,
+  .message-detail-footer {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .message-detail-header h3 {
+    font-size: 19px;
+  }
+
+  .message-popup-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  #btnMessagePopupOpen {
+    grid-column: 1 / -1;
+    grid-row: 1;
+  }
+
+  .message-popup-actions button {
+    width: 100%;
+  }
+
+  .message-popup-status-row {
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 430px) {
+  .messages-page-header {
+    align-items: flex-start;
+  }
+
+  .messages-page-actions {
+    width: 100%;
+  }
+
+  #btnComposeMessage {
+    flex: 1;
+  }
+
+  .message-list-time {
+    white-space: normal;
+    text-align: right;
+  }
+
+  .message-compose-panel,
+  .message-popup-panel {
+    width: calc(100vw - 16px);
+    max-height: calc(100dvh - 16px);
+  }
+}
+
+</style>
+<style id="v5062MessageRecipientsCss">
+/* V5.0.62 recipient checklist and named groups */
+.message-compose-panel {
+  width: min(760px, calc(100vw - 28px));
+}
+
+.message-recipient-picker {
+  display: grid;
+  gap: 10px;
+}
+
+.message-group-heading,
+.message-recipient-heading,
+.message-recipient-footer {
+  min-width: 0;
+}
+
+.message-group-select-row {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) auto 42px;
+  gap: 8px;
+  align-items: center;
+}
+
+.message-group-select-row select,
+.message-group-select-row button,
+.message-group-editor input,
+.message-group-editor button {
+  min-width: 0;
+}
+
+.message-recipient-heading,
+.message-recipient-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.message-recipient-heading label {
+  margin: 0;
+}
+
+.message-all-users-option,
+.message-recipient-option {
+  min-width: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  color: var(--fg);
+}
+
+.message-all-users-option {
+  padding: 10px 12px;
+  border: 1px solid rgba(14, 165, 233, .42);
+  border-radius: 7px;
+  background: rgba(14, 165, 233, .08);
+}
+
+.message-all-users-option input,
+.message-recipient-option input {
+  width: 18px;
+  min-width: 18px;
+  height: 18px;
+  margin: 2px 0 0;
+}
+
+.message-all-users-option span,
+.message-recipient-option span {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.message-all-users-option strong,
+.message-recipient-option strong,
+.message-all-users-option small,
+.message-recipient-option small {
+  overflow-wrap: anywhere;
+}
+
+.message-all-users-option small,
+.message-recipient-option small {
+  color: var(--muted);
+  font-size: 11px;
+  text-transform: capitalize;
+}
+
+.message-recipient-list {
+  max-height: 220px;
+  overflow-y: auto;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: color-mix(in srgb, var(--card) 94%, var(--grid));
+}
+
+.message-recipient-option {
+  min-height: 48px;
+  margin: 0;
+  padding: 9px 11px;
+  border-bottom: 1px solid var(--border);
+}
+
+.message-recipient-option:nth-child(odd) {
+  border-right: 1px solid var(--border);
+}
+
+.message-recipient-option:has(input:checked) {
+  background: rgba(14, 165, 233, .12);
+}
+
+.message-recipient-footer {
+  justify-content: flex-end;
+}
+
+.message-group-editor {
+  padding-top: 10px;
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) auto;
+  gap: 8px;
+  border-top: 1px solid var(--border);
+}
+
+@media (max-width: 760px) {
+  .message-compose-panel {
+    width: calc(100vw - 16px);
+  }
+
+  .message-group-select-row {
+    grid-template-columns: minmax(0, 1fr) 42px;
+  }
+
+  #messageGroupSelect {
+    grid-column: 1 / -1;
+  }
+
+  #btnMessageGroupNew {
+    width: 100%;
+  }
+
+  .message-recipient-list {
+    grid-template-columns: minmax(0, 1fr);
+    max-height: 190px;
+  }
+
+  .message-recipient-option:nth-child(odd) {
+    border-right: 0;
+  }
+
+  .message-group-editor {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .message-group-editor button {
+    width: 100%;
+  }
+}
+
+</style>
 <script id="v5041PublicForecastMode">
 (function(){
   'use strict';
+  var forecastForcedLowPower = false;
   function byId(id){ return document.getElementById(id); }
   function nowLabel(){
     try{ return new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}); }catch(e){ return ''; }
@@ -28815,10 +30710,10 @@ try{
       var refresh = document.createElement('button');
       refresh.id = 'btnPublicForecastRefresh';
       refresh.type = 'button';
-      refresh.className = 'btn-good';
-      refresh.innerHTML = '<span class="forecast-refresh-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 0 1-15.3 6.4"></path><path d="M3 12a9 9 0 0 1 15.3-6.4"></path><path d="M18 2v4h-4"></path><path d="M6 22v-4h4"></path></svg></span><span class="forecast-refresh-label">Refresh</span>';
+      refresh.className = 'btn-outline';
+      refresh.innerHTML = '<span class="forecast-refresh-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0 2 5"></path><path d="M20 4v7h-7"></path></svg></span><span class="sr-only">Refresh weekly forecast</span>';
       refresh.setAttribute('aria-label', 'Refresh weekly forecast');
-      refresh.onclick = function(){ refreshForecast(true); };
+      refresh.title = 'Refresh weekly forecast';
       var exitBtn = byId('btnWeekOverviewFullView');
       if(exitBtn && exitBtn.parentNode === toolbar) toolbar.insertBefore(refresh, exitBtn);
       else toolbar.appendChild(refresh);
@@ -28837,9 +30732,12 @@ try{
       login.type = 'button';
       login.className = 'btn-outline';
       login.textContent = 'Back to login';
-      login.onclick = exitForecast;
       toolbar.appendChild(login);
     }
+    var refreshBtn = byId('btnPublicForecastRefresh');
+    if(refreshBtn) refreshBtn.onclick = function(){ refreshForecast(true); };
+    var loginBtn = byId('btnPublicForecastLogin');
+    if(loginBtn) loginBtn.onclick = exitForecast;
   }
   function renderForecast(){
     try{ renderWeekOverview(); }catch(e){}
@@ -28887,7 +30785,13 @@ try{
   }
   function enterForecast(){
     try{ clearIdleFullscreenTimer(); }catch(e){}
-    try{ if(window.AspirePerf && AspirePerf.mode !== 'lite') document.documentElement.classList.add('low-power-mode'); }catch(e){}
+    try{
+      forecastForcedLowPower = !!(window.AspirePerf && AspirePerf.mode !== 'lite');
+      if(forecastForcedLowPower){
+        document.documentElement.classList.add('low-power-mode');
+        document.documentElement.classList.remove('full-power-mode');
+      }
+    }catch(e){}
     try{ if(document.body) document.body.classList.add('v5041-public-forecast-mode'); }catch(e){}
     ensureControls();
     try{ App.currentUser = null; App.userPrefs = null; }catch(e){}
@@ -28916,9 +30820,22 @@ try{
     setStatus('View only');
     setTimeout(function(){ refreshForecast(false); }, 120);
   }
+  function restorePerformanceMode(){
+    try{
+      if(!forecastForcedLowPower) return;
+      forecastForcedLowPower = false;
+      document.documentElement.classList.remove('low-power-mode');
+      document.documentElement.classList.add('full-power-mode');
+    }catch(e){}
+  }
   function exitForecast(){
     try{ if(document.body) document.body.classList.remove('v5041-public-forecast-mode'); }catch(e){}
     try{ exitWeekOverviewFocusMode(); }catch(e){}
+    try{
+      if(document.body) document.body.classList.remove('week-overview-focus-mode');
+      document.documentElement.classList.remove('week-overview-focus-view');
+    }catch(e){}
+    restorePerformanceMode();
     try{ showLogin(); }catch(e){}
     try{
       Array.prototype.forEach.call(document.querySelectorAll('.section'), function(el){ el.classList.remove('show'); });
@@ -28931,15 +30848,22 @@ try{
   }
   function bind(){
     var btn = byId('btnPublicWeeklyForecast');
-    if(btn && !btn.dataset.v5041ForecastBound){
-      btn.dataset.v5041ForecastBound = '1';
-      btn.onclick = enterForecast;
-    }
+    if(btn) btn.dataset.v5041ForecastBound = '1';
   }
   window.v5041EnterPublicForecast = enterForecast;
   window.v5041RefreshPublicForecast = refreshForecast;
   if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bind); else bind();
-  document.addEventListener('click', function(){ setTimeout(bind, 0); }, true);
+  document.addEventListener('click', function(ev){
+    try{
+      var target = ev && ev.target && ev.target.closest ? ev.target.closest('#btnPublicWeeklyForecast') : null;
+      if(target){
+        ev.preventDefault();
+        enterForecast();
+        return;
+      }
+    }catch(e){}
+    setTimeout(bind, 0);
+  }, true);
 })();
 
 </script>
