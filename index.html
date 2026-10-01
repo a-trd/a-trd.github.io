@@ -264,7 +264,7 @@
   
 </style>
 
-<title>Aspire Workforce Command (V5.0.62 Modular Build)</title>
+<title>Aspire Workforce Command (V5.0.63 Modular Build)</title>
   <meta name="theme-color" content="#22c55e"/>
 
   <style>
@@ -5075,7 +5075,7 @@
       <div id="appLogoBox"></div>
       <div class="titlewrap">
         <div class="title" id="appTitle">Aspire Workforce Command</div>
-        <div class="version-pill" id="appVersion">V5.0.62</div>
+        <div class="version-pill" id="appVersion">V5.0.63</div>
         <div class="sync-pill syncing" id="syncStatusChip" title="Sync status">Starting…</div>
       </div>
     </div>
@@ -5117,7 +5117,7 @@
         <header class="login-brand">
           <div class="login-brand-row">
             <span class="login-eyebrow">Workforce operations</span>
-            <span class="login-version" aria-label="Application version V5.0.62">V5.0.62</span>
+            <span class="login-version" aria-label="Application version V5.0.63">V5.0.63</span>
           </div>
           <h1>Aspire Workforce Command</h1>
           <p>Open your roster, requests and workforce tools from one secure workspace.</p>
@@ -7481,8 +7481,8 @@ var DAY = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 var App = {
   // IMPORTANT: Increment App.version *and* App.buildId whenever making functional changes to this file.
   // SAFETY NET: This build performs an automatic runtime check against the file name; if mismatched, it shows a blocking warning so it can't be overlooked.
-  version: 'V5.0.62',
-    buildId: '2026-09-29.04',
+  version: 'V5.0.63',
+    buildId: '2026-10-01.01',
 settings: {
     dbUrl:'https://mnc-atrd-default-rtdb.asia-southeast1.firebasedatabase.app/', workspace:'mnc-atrd', authToken:'',
     theme:'light', themeName:'light-pastel-sky', recentColors:[], appTitle:'Aspire Workforce Command', logoUrl:'',
@@ -24721,7 +24721,9 @@ var Messaging = {
   sending:false,
   bound:false,
   appliedGroupId:'',
-  applyingRecipients:false
+  applyingRecipients:false,
+  sessionStartedAt:'',
+  pendingPresentations:{}
 };
 
 function ensureMessagingStore(){
@@ -24759,6 +24761,23 @@ function messageIsForUser(message, userId){
 function messageIsReadBy(message, userId){
   if(!message || !message.readBy) return false;
   return !!message.readBy[messageReadKey(userId)];
+}
+function messageReadTime(message, userId){
+  return message && message.readBy ? String(message.readBy[messageReadKey(userId)]||'') : '';
+}
+function messagePresentedTime(message, userId){
+  return message && message.presentedBy ? String(message.presentedBy[messageReadKey(userId)]||'') : '';
+}
+function messageRecipientName(message, userId, index){
+  var names = message && Array.isArray(message.recipientNames) ? message.recipientNames : [];
+  return String(names[index] || staffFullNameForId(userId, userId));
+}
+function messageDeliveryCounts(message){
+  var recipients = messageRecipientIds(message);
+  var accounted = recipients.filter(function(id){ return !!(messagePresentedTime(message,id) || messageReadTime(message,id)); }).length;
+  var presented = recipients.filter(function(id){ return !!messagePresentedTime(message,id); }).length;
+  var opened = recipients.filter(function(id){ return !!messageReadTime(message,id); }).length;
+  return {total:recipients.length, accounted:accounted, presented:presented, opened:opened};
 }
 function messageCreatedMs(message){
   var n = Date.parse(message && message.createdAt ? message.createdAt : '');
@@ -24880,14 +24899,14 @@ function renderMessageDetail(message){
   body.className = 'message-detail-body';
   body.textContent = String(message.body || '');
   host.appendChild(body);
+  if(Messaging.view === 'sent') host.appendChild(renderMessageDeliveryStats(message));
   var footer = document.createElement('div');
   footer.className = 'message-detail-footer';
   if(Messaging.view === 'sent'){
-    var recipients = messageRecipientIds(message);
-    var readCount = recipients.filter(function(id){ return messageIsReadBy(message, id); }).length;
+    var delivery = messageDeliveryCounts(message);
     var receipt = document.createElement('span');
     receipt.className = 'message-read-receipt';
-    receipt.textContent = readCount + ' of ' + recipients.length + ' read';
+    receipt.textContent = delivery.accounted + ' of ' + delivery.total + ' accounted for';
     footer.appendChild(receipt);
   }else if(String(message.senderId||'') !== String(App.currentUser && App.currentUser.id || '')){
     var reply = document.createElement('button');
@@ -24898,6 +24917,66 @@ function renderMessageDetail(message){
     footer.appendChild(reply);
   }
   host.appendChild(footer);
+}
+
+function renderMessageDeliveryStats(message){
+  var recipients = messageRecipientIds(message);
+  var counts = messageDeliveryCounts(message);
+  var section = document.createElement('section');
+  section.className = 'message-delivery-stats';
+  section.setAttribute('aria-label', 'Recipient activity');
+  var header = document.createElement('header');
+  header.className = 'message-delivery-stats-header';
+  var heading = document.createElement('div');
+  heading.className = 'message-delivery-stats-heading';
+  var title = document.createElement('h4');
+  title.textContent = 'Recipient activity';
+  var note = document.createElement('p');
+  note.textContent = 'Accounted for when this message is queued to the recipient popup after sign-in. Opening it later is recorded separately.';
+  heading.appendChild(title);
+  heading.appendChild(note);
+  var summary = document.createElement('span');
+  summary.className = 'message-delivery-summary';
+  summary.textContent = counts.accounted + ' of ' + counts.total + ' accounted for';
+  header.appendChild(heading);
+  header.appendChild(summary);
+  section.appendChild(header);
+  var list = document.createElement('div');
+  list.className = 'message-delivery-list';
+  recipients.forEach(function(id, index){
+    var presentedAt = messagePresentedTime(message, id);
+    var openedAt = messageReadTime(message, id);
+    var accountedAt = presentedAt || openedAt;
+    var row = document.createElement('div');
+    row.className = 'message-delivery-row ' + (accountedAt ? 'is-accounted' : 'is-pending');
+    row.setAttribute('data-recipient-id', String(id));
+    var person = document.createElement('div');
+    person.className = 'message-delivery-person';
+    var name = document.createElement('strong');
+    name.textContent = messageRecipientName(message, id, index);
+    person.appendChild(name);
+    var activity = document.createElement('div');
+    activity.className = 'message-delivery-activity';
+    var status = document.createElement('span');
+    status.className = 'message-delivery-status';
+    status.textContent = presentedAt ? 'Accounted for after sign-in' : (openedAt ? 'Opened before sign-in tracking' : 'Awaiting next sign-in');
+    activity.appendChild(status);
+    var time = document.createElement('span');
+    time.className = 'message-delivery-time';
+    time.textContent = accountedAt ? formatMessageTime(accountedAt) : 'No timestamp yet';
+    activity.appendChild(time);
+    if(openedAt){
+      var opened = document.createElement('span');
+      opened.className = 'message-delivery-opened';
+      opened.textContent = 'Opened message: ' + formatMessageTime(openedAt);
+      activity.appendChild(opened);
+    }
+    row.appendChild(person);
+    row.appendChild(activity);
+    list.appendChild(row);
+  });
+  section.appendChild(list);
+  return section;
 }
 
 function renderMessageList(items){
@@ -24940,6 +25019,13 @@ function renderMessageList(items){
     preview.className = 'message-list-preview';
     preview.textContent = messagePreviewText(message);
     row.appendChild(preview);
+    if(Messaging.view === 'sent'){
+      var delivery = messageDeliveryCounts(message);
+      var deliveryLabel = document.createElement('span');
+      deliveryLabel.className = 'message-list-delivery';
+      deliveryLabel.textContent = delivery.accounted + '/' + delivery.total + ' accounted for';
+      row.appendChild(deliveryLabel);
+    }
     if(important){
       var flag = document.createElement('span');
       flag.className = 'message-list-important-label';
@@ -25270,6 +25356,7 @@ async function sendInternalMessage(){
     recipientGroupId:usesGroup ? String(appliedGroup.id||Messaging.appliedGroupId) : '',
     createdAt:now,
     readBy:{},
+    presentedBy:{},
     shopId:shop ? String(shop.id||'') : '',
     shopName:shop ? String(shop.name||'') : '',
     workspace:String(App.settings && App.settings.workspace || '')
@@ -25297,6 +25384,64 @@ async function sendInternalMessage(){
     renderMessagingCenter();
     alert('Message was not sent: ' + String(error && error.message || error));
   }
+}
+
+function applyPendingMessagePresentations(){
+  Object.keys(Messaging.pendingPresentations||{}).forEach(function(id){
+    var pending = Messaging.pendingPresentations[id];
+    var message = App.messages && App.messages[id];
+    if(!pending || !message) return;
+    if(!message.presentedBy || typeof message.presentedBy !== 'object') message.presentedBy = {};
+    if(!message.presentedBy[pending.key]) message.presentedBy[pending.key] = pending.at;
+  });
+}
+function recoverLocalMessagePresentations(previousMessages){
+  if(!App.currentUser || !previousMessages || typeof previousMessages !== 'object') return 0;
+  var key = messageReadKey(App.currentUser.id);
+  var recovered = 0;
+  Object.keys(previousMessages).forEach(function(id){
+    var previous = previousMessages[id];
+    var message = App.messages && App.messages[id];
+    var at = previous && previous.presentedBy ? String(previous.presentedBy[key]||'') : '';
+    if(!at || !message || (message.presentedBy && message.presentedBy[key])) return;
+    if(!message.presentedBy || typeof message.presentedBy !== 'object') message.presentedBy = {};
+    message.presentedBy[key] = at;
+    Messaging.pendingPresentations[id] = {key:key, at:at};
+    recovered++;
+  });
+  return recovered;
+}
+function flushPendingMessagePresentations(){
+  Object.keys(Messaging.pendingPresentations||{}).forEach(function(id){
+    var pending = Messaging.pendingPresentations[id];
+    if(!pending) return;
+    var patch = {}; patch[pending.key] = pending.at;
+    dbPatch('/messages/' + encodeURIComponent(id) + '/presentedBy', patch).then(function(){
+      var current = Messaging.pendingPresentations[id];
+      if(current && current.key === pending.key && current.at === pending.at) delete Messaging.pendingPresentations[id];
+    }).catch(function(error){
+      try{ console.error('Message sign-in presentation receipt failed', error); }catch(e){}
+    });
+  });
+}
+function recordMessagePresentations(messages, at){
+  if(!App.currentUser) return 0;
+  var key = messageReadKey(App.currentUser.id);
+  var timestamp = String(at || new Date().toISOString());
+  var changed = 0;
+  (messages||[]).forEach(function(message){
+    var id = String(message && message.id || '');
+    if(!id || !messageIsForUser(message, App.currentUser.id) || messagePresentedTime(message, App.currentUser.id)) return;
+    if(!message.presentedBy || typeof message.presentedBy !== 'object') message.presentedBy = {};
+    message.presentedBy[key] = timestamp;
+    Messaging.pendingPresentations[id] = {key:key, at:timestamp};
+    changed++;
+  });
+  if(changed){
+    saveLocal(true, {silentSyncState:true});
+    flushPendingMessagePresentations();
+  }
+  return changed;
 }
 
 function markMessageRead(messageId, options){
@@ -25366,7 +25511,9 @@ function openUnreadMessagePopup(preferredId){
   if(!unread.length) return closeMessagePopup();
   var preferred = String(preferredId||'');
   var found = unread.filter(function(message){ return String(message.id||'') === preferred; })[0];
-  Messaging.popupId = String((found || unread[0]).id||'');
+  var selected = found || unread[0];
+  recordMessagePresentations([selected], new Date().toISOString());
+  Messaging.popupId = String(selected.id||'');
   renderMessagePopup();
 }
 function cycleUnreadMessage(direction){
@@ -25411,11 +25558,16 @@ async function pullMessagesOnly(options){
   options = options || {};
   if(!App.currentUser) return;
   var before = Messaging.knownUnread || {};
+  var previousMessages = App.messages || {};
   var data = await dbGet('/messages');
   App.messages = (data && typeof data === 'object' && !Array.isArray(data)) ? data : {};
   ensureMessagingStore();
-  saveLocal(true, {silentSyncState:true});
+  recoverLocalMessagePresentations(previousMessages);
+  applyPendingMessagePresentations();
   var unread = unreadMessages();
+  if(options.recordLoginPresentation && unread.length) recordMessagePresentations(unread, Messaging.sessionStartedAt || new Date().toISOString());
+  else saveLocal(true, {silentSyncState:true});
+  flushPendingMessagePresentations();
   var newIds = unread.map(function(message){ return String(message.id||''); }).filter(function(id){ return !before[id]; });
   syncKnownUnread();
   updateMessageBadges();
@@ -25453,6 +25605,8 @@ function stopMessagingSession(){
   Messaging.pollTimer = null;
   Messaging.refreshTimer = null;
   Messaging.sessionKey = '';
+  Messaging.sessionStartedAt = '';
+  Messaging.pendingPresentations = {};
   Messaging.knownUnread = {};
   closeMessagePopup();
 }
@@ -25460,11 +25614,14 @@ function startMessagingSession(){
   stopMessagingSession();
   if(!App.currentUser) return;
   Messaging.sessionKey = String(App.settings.workspace||'') + '|' + String(App.currentUser.id||'');
+  Messaging.sessionStartedAt = new Date().toISOString();
   pullCurrentMessageRecipientGroups().catch(function(){});
-  pullMessagesOnly({popupAny:true}).catch(function(){
+  pullMessagesOnly({popupAny:true, recordLoginPresentation:true}).catch(function(){
+    var unread = unreadMessages();
+    if(unread.length) recordMessagePresentations(unread, Messaging.sessionStartedAt);
     syncKnownUnread();
     updateMessageBadges();
-    if(unreadMessages().length) openUnreadMessagePopup();
+    if(unread.length) openUnreadMessagePopup();
   });
   if('EventSource' in window){
     try{
@@ -25516,8 +25673,12 @@ try{
     openCompose:openComposeMessage,
     openUnreadPopup:openUnreadMessagePopup,
     cycleUnread:cycleUnreadMessage,
+    setView:setMessagingView,
+    select:selectMessage,
     groups:currentMessageRecipientGroups,
     applyGroup:applyMessageRecipientGroup,
+    deliveryCounts:messageDeliveryCounts,
+    recordPresentations:recordMessagePresentations,
     refresh:pullMessagesOnly
   };
 }catch(e){}
@@ -26766,7 +26927,7 @@ try{
 (function(){
   'use strict';
   var APP_NAME = 'Aspire Workforce Command';
-  var APP_VERSION = 'V5.0.62';
+  var APP_VERSION = 'V5.0.63';
   var OLD_TITLE = 'M&C-ATRD-scheduler --=Aspire Group=--';
 
   var NAVS = [
@@ -30679,6 +30840,130 @@ try{
 
   .message-group-editor button {
     width: 100%;
+  }
+}
+
+</style>
+<style id="v5063MessageDeliveryStatsCss">
+/* V5.0.63 sent-message delivery accountability */
+.message-list-delivery {
+  align-self: flex-start;
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.message-delivery-stats {
+  border-top: 1px solid var(--border);
+  background: color-mix(in srgb, var(--card) 92%, var(--grid));
+}
+
+.message-delivery-stats-header {
+  padding: 16px 24px 13px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.message-delivery-stats-heading {
+  min-width: 0;
+}
+
+.message-delivery-stats-heading h4 {
+  margin: 0 0 5px;
+  font-size: 15px;
+  letter-spacing: 0;
+}
+
+.message-delivery-stats-heading p {
+  max-width: 620px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.message-delivery-summary {
+  flex: 0 0 auto;
+  padding: 5px 8px;
+  border: 1px solid rgba(14, 165, 233, .42);
+  border-radius: 6px;
+  background: rgba(14, 165, 233, .08);
+  color: var(--fg);
+  font-size: 11px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.message-delivery-list {
+  display: grid;
+}
+
+.message-delivery-row {
+  min-width: 0;
+  padding: 11px 24px;
+  display: grid;
+  grid-template-columns: minmax(140px, 1fr) minmax(210px, 1.4fr);
+  align-items: center;
+  gap: 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.message-delivery-row:last-child {
+  border-bottom: 0;
+}
+
+.message-delivery-person,
+.message-delivery-activity {
+  min-width: 0;
+}
+
+.message-delivery-person strong,
+.message-delivery-status,
+.message-delivery-time,
+.message-delivery-opened {
+  display: block;
+  overflow-wrap: anywhere;
+}
+
+.message-delivery-status {
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.message-delivery-row.is-accounted .message-delivery-status {
+  color: #16a34a;
+}
+
+.message-delivery-row.is-pending .message-delivery-status {
+  color: #d97706;
+}
+
+.message-delivery-time,
+.message-delivery-opened {
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+@media (max-width: 760px) {
+  .message-delivery-stats-header {
+    padding: 14px 16px 12px;
+    display: grid;
+  }
+
+  .message-delivery-summary {
+    justify-self: start;
+  }
+
+  .message-delivery-row {
+    padding: 11px 16px;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 5px;
   }
 }
 
