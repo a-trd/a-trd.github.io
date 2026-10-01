@@ -264,7 +264,7 @@
   
 </style>
 
-<title>Aspire Workforce Command (V5.0.63 Modular Build)</title>
+<title>Aspire Workforce Command (V5.0.64 Modular Build)</title>
   <meta name="theme-color" content="#22c55e"/>
 
   <style>
@@ -5075,7 +5075,7 @@
       <div id="appLogoBox"></div>
       <div class="titlewrap">
         <div class="title" id="appTitle">Aspire Workforce Command</div>
-        <div class="version-pill" id="appVersion">V5.0.63</div>
+        <div class="version-pill" id="appVersion">V5.0.64</div>
         <div class="sync-pill syncing" id="syncStatusChip" title="Sync status">Starting…</div>
       </div>
     </div>
@@ -5117,7 +5117,7 @@
         <header class="login-brand">
           <div class="login-brand-row">
             <span class="login-eyebrow">Workforce operations</span>
-            <span class="login-version" aria-label="Application version V5.0.63">V5.0.63</span>
+            <span class="login-version" aria-label="Application version V5.0.64">V5.0.64</span>
           </div>
           <h1>Aspire Workforce Command</h1>
           <p>Open your roster, requests and workforce tools from one secure workspace.</p>
@@ -7369,6 +7369,25 @@
     </div>
   </div>
 
+  <!-- Sent message recipient statistics -->
+  <div id="messageStatsModal" class="modal message-stats-modal" style="z-index:2285;" role="dialog" aria-modal="true" aria-labelledby="messageStatsTitle">
+    <div class="panel message-stats-panel">
+      <header class="message-stats-header">
+        <div>
+          <div class="message-stats-eyebrow">SENT MESSAGE</div>
+          <h3 id="messageStatsTitle">Recipient information</h3>
+          <div id="messageStatsMeta" class="muted"></div>
+        </div>
+        <button id="btnMessageStatsClose" class="message-popup-close" type="button" title="Close recipient information" aria-label="Close recipient information">&#10005;</button>
+      </header>
+      <div id="messageStatsOverview" class="message-stats-overview" aria-label="Message statistics"></div>
+      <div id="messageStatsContent" class="message-stats-content"></div>
+      <footer class="message-stats-actions">
+        <button id="btnMessageStatsDone" class="btn-primary" type="button">Done</button>
+      </footer>
+    </div>
+  </div>
+
   <!-- Unread message popup -->
   <div id="messagePopupModal" class="modal message-popup-modal" style="z-index:2290;" role="dialog" aria-modal="true" aria-labelledby="messagePopupSubject">
     <div id="messagePopupPanel" class="panel message-popup-panel">
@@ -7481,8 +7500,8 @@ var DAY = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 var App = {
   // IMPORTANT: Increment App.version *and* App.buildId whenever making functional changes to this file.
   // SAFETY NET: This build performs an automatic runtime check against the file name; if mismatched, it shows a blocking warning so it can't be overlooked.
-  version: 'V5.0.63',
-    buildId: '2026-10-01.01',
+  version: 'V5.0.64',
+    buildId: '2026-10-01.02',
 settings: {
     dbUrl:'https://mnc-atrd-default-rtdb.asia-southeast1.firebasedatabase.app/', workspace:'mnc-atrd', authToken:'',
     theme:'light', themeName:'light-pastel-sky', recentColors:[], appTitle:'Aspire Workforce Command', logoUrl:'',
@@ -24899,7 +24918,6 @@ function renderMessageDetail(message){
   body.className = 'message-detail-body';
   body.textContent = String(message.body || '');
   host.appendChild(body);
-  if(Messaging.view === 'sent') host.appendChild(renderMessageDeliveryStats(message));
   var footer = document.createElement('div');
   footer.className = 'message-detail-footer';
   if(Messaging.view === 'sent'){
@@ -24908,6 +24926,12 @@ function renderMessageDetail(message){
     receipt.className = 'message-read-receipt';
     receipt.textContent = delivery.accounted + ' of ' + delivery.total + ' accounted for';
     footer.appendChild(receipt);
+    var more = document.createElement('button');
+    more.type = 'button';
+    more.className = 'btn-outline message-more-info-button';
+    more.innerHTML = '<span class="message-more-info-icon" aria-hidden="true">&#9432;</span><span>More info</span>';
+    more.onclick = function(){ openMessageStats(String(message.id||'')); };
+    footer.appendChild(more);
   }else if(String(message.senderId||'') !== String(App.currentUser && App.currentUser.id || '')){
     var reply = document.createElement('button');
     reply.type = 'button';
@@ -24965,18 +24989,62 @@ function renderMessageDeliveryStats(message){
     time.className = 'message-delivery-time';
     time.textContent = accountedAt ? formatMessageTime(accountedAt) : 'No timestamp yet';
     activity.appendChild(time);
-    if(openedAt){
-      var opened = document.createElement('span');
-      opened.className = 'message-delivery-opened';
-      opened.textContent = 'Opened message: ' + formatMessageTime(openedAt);
-      activity.appendChild(opened);
-    }
+    var opened = document.createElement('span');
+    opened.className = 'message-delivery-opened' + (openedAt ? '' : ' is-not-opened');
+    opened.textContent = openedAt ? ('Opened message: ' + formatMessageTime(openedAt)) : 'Not opened in Messages';
+    activity.appendChild(opened);
     row.appendChild(person);
     row.appendChild(activity);
     list.appendChild(row);
   });
   section.appendChild(list);
   return section;
+}
+
+function appendMessageStatsMetric(host, value, label){
+  var metric = document.createElement('div');
+  metric.className = 'message-stats-metric';
+  var number = document.createElement('strong');
+  number.textContent = String(value);
+  var text = document.createElement('span');
+  text.textContent = String(label);
+  metric.appendChild(number);
+  metric.appendChild(text);
+  host.appendChild(metric);
+}
+function renderMessageStats(message){
+  if(!message) return;
+  var counts = messageDeliveryCounts(message);
+  var title = byId('messageStatsTitle');
+  if(title) title.textContent = String(message.subject || 'No subject');
+  var meta = byId('messageStatsMeta');
+  if(meta) meta.textContent = 'To: ' + messageTargetLabel(message) + ' | Sent ' + formatMessageTime(message.createdAt);
+  var overview = byId('messageStatsOverview');
+  if(overview){
+    overview.innerHTML = '';
+    appendMessageStatsMetric(overview, counts.accounted + '/' + counts.total, 'Accounted for');
+    appendMessageStatsMetric(overview, counts.opened + '/' + counts.total, 'Opened message');
+    appendMessageStatsMetric(overview, Math.max(0, counts.total - counts.accounted), 'Awaiting sign-in');
+  }
+  var content = byId('messageStatsContent');
+  if(content){
+    content.innerHTML = '';
+    content.appendChild(renderMessageDeliveryStats(message));
+  }
+}
+function openMessageStats(messageId){
+  var id = String(messageId||'');
+  var message = App.messages && App.messages[id];
+  var current = String(App.currentUser && App.currentUser.id || '');
+  if(!message || String(message.senderId||'') !== current) return;
+  renderMessageStats(message);
+  var modal = byId('messageStatsModal');
+  if(modal) modal.style.display = 'flex';
+  setTimeout(function(){ try{ var close = byId('btnMessageStatsClose'); if(close) close.focus(); }catch(e){} }, 20);
+}
+function closeMessageStats(){
+  var modal = byId('messageStatsModal');
+  if(modal) modal.style.display = 'none';
 }
 
 function renderMessageList(items){
@@ -25058,6 +25126,11 @@ function renderMessagingCenter(){
     if(!inView){ selected = null; Messaging.selectedId = ''; }
   }
   renderMessageDetail(selected);
+  var statsModal = byId('messageStatsModal');
+  if(statsModal && statsModal.style.display === 'flex'){
+    if(selected && Messaging.view === 'sent') renderMessageStats(selected);
+    else closeMessageStats();
+  }
 }
 
 function selectMessage(messageId){
@@ -25608,6 +25681,7 @@ function stopMessagingSession(){
   Messaging.sessionStartedAt = '';
   Messaging.pendingPresentations = {};
   Messaging.knownUnread = {};
+  closeMessageStats();
   closeMessagePopup();
 }
 function startMessagingSession(){
@@ -25650,6 +25724,8 @@ function bindMessagingUI(){
   var groupNew = byId('btnMessageGroupNew'); if(groupNew) groupNew.onclick = beginNewMessageRecipientGroup;
   var groupSave = byId('btnMessageGroupSave'); if(groupSave) groupSave.onclick = saveMessageRecipientGroup;
   var groupDelete = byId('btnMessageGroupDelete'); if(groupDelete) groupDelete.onclick = deleteMessageRecipientGroup;
+  var statsClose = byId('btnMessageStatsClose'); if(statsClose) statsClose.onclick = closeMessageStats;
+  var statsDone = byId('btnMessageStatsDone'); if(statsDone) statsDone.onclick = closeMessageStats;
   var popupClose = byId('btnMessagePopupClose'); if(popupClose) popupClose.onclick = closeMessagePopup;
   var popupPrev = byId('btnMessagePopupPrev'); if(popupPrev) popupPrev.onclick = function(){ cycleUnreadMessage(-1); };
   var popupNext = byId('btnMessagePopupNext'); if(popupNext) popupNext.onclick = function(){ cycleUnreadMessage(1); };
@@ -25658,9 +25734,12 @@ function bindMessagingUI(){
   if(composeModal) composeModal.addEventListener('click', function(event){ if(event.target === composeModal) closeComposeMessage(); });
   var popupModal = byId('messagePopupModal');
   if(popupModal) popupModal.addEventListener('click', function(event){ if(event.target === popupModal) closeMessagePopup(); });
+  var statsModal = byId('messageStatsModal');
+  if(statsModal) statsModal.addEventListener('click', function(event){ if(event.target === statsModal) closeMessageStats(); });
   document.addEventListener('keydown', function(event){
     if(!event || event.key !== 'Escape') return;
-    if(composeModal && composeModal.style.display === 'flex') closeComposeMessage();
+    if(statsModal && statsModal.style.display === 'flex') closeMessageStats();
+    else if(composeModal && composeModal.style.display === 'flex') closeComposeMessage();
     else if(popupModal && popupModal.style.display === 'flex') closeMessagePopup();
   });
 }
@@ -25675,6 +25754,7 @@ try{
     cycleUnread:cycleUnreadMessage,
     setView:setMessagingView,
     select:selectMessage,
+    openStats:openMessageStats,
     groups:currentMessageRecipientGroups,
     applyGroup:applyMessageRecipientGroup,
     deliveryCounts:messageDeliveryCounts,
@@ -26927,7 +27007,7 @@ try{
 (function(){
   'use strict';
   var APP_NAME = 'Aspire Workforce Command';
-  var APP_VERSION = 'V5.0.63';
+  var APP_VERSION = 'V5.0.64';
   var OLD_TITLE = 'M&C-ATRD-scheduler --=Aspire Group=--';
 
   var NAVS = [
@@ -30964,6 +31044,158 @@ try{
     padding: 11px 16px;
     grid-template-columns: minmax(0, 1fr);
     gap: 5px;
+  }
+}
+
+</style>
+<style id="v5064MessageStatsModalCss">
+/* V5.0.64 detailed sent-message statistics */
+.message-detail-footer {
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.message-more-info-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.message-more-info-icon {
+  font-size: 15px;
+  line-height: 1;
+}
+
+.message-stats-modal {
+  padding: 14px;
+}
+
+.message-stats-panel {
+  width: min(860px, calc(100vw - 28px));
+  max-height: min(820px, calc(100vh - 28px));
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.message-stats-header {
+  padding: 18px 20px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.message-stats-header h3 {
+  margin: 3px 0 4px;
+  font-size: 20px;
+  letter-spacing: 0;
+  overflow-wrap: anywhere;
+}
+
+.message-stats-eyebrow {
+  color: #38bdf8;
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.message-stats-overview {
+  padding: 12px 20px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.message-stats-metric {
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: color-mix(in srgb, var(--card) 90%, var(--grid));
+}
+
+.message-stats-metric strong,
+.message-stats-metric span {
+  display: block;
+}
+
+.message-stats-metric strong {
+  font-size: 20px;
+}
+
+.message-stats-metric span {
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.message-stats-content {
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.message-stats-content .message-delivery-stats {
+  border-top: 0;
+}
+
+.message-stats-content .message-delivery-stats-header {
+  padding-top: 13px;
+}
+
+.message-delivery-opened.is-not-opened {
+  color: #d97706;
+  font-weight: 800;
+}
+
+.message-stats-actions {
+  padding: 10px 20px;
+  display: flex;
+  justify-content: flex-end;
+  border-top: 1px solid var(--border);
+}
+
+@media (max-width: 760px) {
+  .message-stats-modal {
+    padding: 6px;
+  }
+
+  .message-stats-panel {
+    width: calc(100vw - 12px);
+    max-height: calc(100vh - 12px);
+  }
+
+  .message-stats-header {
+    padding: 14px;
+  }
+
+  .message-stats-header h3 {
+    font-size: 18px;
+  }
+
+  .message-stats-overview {
+    padding: 10px 14px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .message-stats-metric {
+    padding: 8px;
+  }
+
+  .message-stats-metric strong {
+    font-size: 17px;
+  }
+
+  .message-stats-actions {
+    padding: 9px 14px;
+  }
+
+  .message-stats-actions button {
+    width: 100%;
   }
 }
 
