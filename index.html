@@ -10,6 +10,8 @@
       var MIN_INITIAL_SCALE = 0.20;
       var MAX_PINCH_SCALE = 5;
       var DEFAULT_DESKTOP_SCALE_PERCENT = 100;
+      var MIN_APP_SCALE_PERCENT = 60;
+      var MAX_APP_SCALE_PERCENT = 150;
       function clamp(v, min, max){
         v = parseFloat(v);
         if(!isFinite(v)) v = min;
@@ -26,7 +28,40 @@
             if(saved != null && saved !== '') value = saved;
           }
         }catch(e){}
-        return clamp(value, 80, 150);
+        return clamp(value, MIN_APP_SCALE_PERCENT, MAX_APP_SCALE_PERCENT);
+      }
+      function isPhoneOrTabletBrowser(){
+        var ua = String(navigator.userAgent||'');
+        var mobileUa = /Android|iPhone|iPad|iPod|Mobile/i.test(ua);
+        var iPadDesktopUa = /Macintosh/i.test(ua) && Number(navigator.maxTouchPoints||0) > 1;
+        return mobileUa || iPadDesktopUa;
+      }
+      function applyVisualPageScale(scale){
+        var root = document.documentElement;
+        var body = document.body;
+        var viewportOnly = isPhoneOrTabletBrowser();
+        var factor = viewportOnly ? 1 : (scale / 100);
+        root.style.setProperty('--app-ui-scale', (scale / 100).toFixed(3));
+        root.setAttribute('data-app-scale-percent', String(scale));
+        root.setAttribute('data-app-scale-mode', viewportOnly ? 'mobile-viewport' : 'desktop-zoom');
+        if(viewportOnly){
+          root.style.zoom = '';
+          root.classList.remove('app-scale-transform-fallback');
+          if(body){ body.style.transform=''; body.style.transformOrigin=''; body.style.width=''; body.style.minHeight=''; }
+          return;
+        }
+        if('zoom' in root.style){
+          root.style.zoom = Math.abs(factor - 1) < 0.001 ? '' : String(factor);
+          root.classList.remove('app-scale-transform-fallback');
+          if(body){ body.style.transform=''; body.style.transformOrigin=''; body.style.width=''; body.style.minHeight=''; }
+        }else if(body){
+          root.style.zoom = '';
+          root.classList.add('app-scale-transform-fallback');
+          body.style.transformOrigin = '0 0';
+          body.style.transform = Math.abs(factor - 1) < 0.001 ? '' : 'scale(' + factor + ')';
+          body.style.width = Math.abs(factor - 1) < 0.001 ? '' : (100 / factor).toFixed(3) + '%';
+          body.style.minHeight = Math.abs(factor - 1) < 0.001 ? '' : (100 / factor).toFixed(3) + 'vh';
+        }
       }
       function effectiveViewportWidth(){
         var scale = appScalePercent();
@@ -40,6 +75,7 @@
           ', user-scalable=yes, viewport-fit=cover';
       }
       function setViewport(){
+        var scale = appScalePercent();
         var meta = document.querySelector('meta[name="viewport"]');
         if(!meta){
           meta = document.createElement('meta');
@@ -52,10 +88,12 @@
         document.documentElement.classList.add('desktop-viewport-mobile');
         document.documentElement.classList.add('desktop-mode-lock');
         document.documentElement.style.setProperty('--desktop-mobile-width', effectiveViewportWidth() + 'px');
-        document.documentElement.style.setProperty('--desktop-phone-fit-scale', (appScalePercent() / 100).toFixed(3));
-        document.documentElement.style.setProperty('--app-scale-percent', String(appScalePercent()));
+        document.documentElement.style.setProperty('--desktop-phone-fit-scale', (scale / 100).toFixed(3));
+        document.documentElement.style.setProperty('--app-scale-percent', String(scale));
+        applyVisualPageScale(scale);
       }
       window.applyDesktopViewportScale = setViewport;
+      window.getAspireAppScalePercent = appScalePercent;
       setViewport();
       if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', setViewport);
       else setViewport();
@@ -63,6 +101,7 @@
       window.addEventListener('resize', function(){ setTimeout(setViewport, 80); });
     })();
   
+
 </script>
   <script id="v5041PerformanceGuard">
     (function(){
@@ -264,7 +303,7 @@
   
 </style>
 
-<title>Aspire Workforce Command (V5.0.64 Modular Build)</title>
+<title>Aspire Workforce Command (V5.0.66 Modular Build)</title>
   <meta name="theme-color" content="#22c55e"/>
 
   <style>
@@ -5075,7 +5114,7 @@
       <div id="appLogoBox"></div>
       <div class="titlewrap">
         <div class="title" id="appTitle">Aspire Workforce Command</div>
-        <div class="version-pill" id="appVersion">V5.0.64</div>
+        <div class="version-pill" id="appVersion">V5.0.66</div>
         <div class="sync-pill syncing" id="syncStatusChip" title="Sync status">Starting…</div>
       </div>
     </div>
@@ -5117,7 +5156,7 @@
         <header class="login-brand">
           <div class="login-brand-row">
             <span class="login-eyebrow">Workforce operations</span>
-            <span class="login-version" aria-label="Application version V5.0.64">V5.0.64</span>
+            <span class="login-version" aria-label="Application version V5.0.66">V5.0.66</span>
           </div>
           <h1>Aspire Workforce Command</h1>
           <p>Open your roster, requests and workforce tools from one secure workspace.</p>
@@ -6514,13 +6553,23 @@
               <input id="autoPushMinsInput" type="number" min="0" step="1" value="0">
             </div>
           </div>
-          <div class="grid-2" style="margin-top:10px;">
-            <div>
-              <label>Main page scale (%)</label>
-              <input id="appScalePercentInput" type="number" min="80" max="150" step="5" value="100">
+          <div class="app-scale-setting">
+            <div class="app-scale-heading">
+              <label for="appScaleRange">Interface scale</label>
+              <output id="appScaleValue" for="appScaleRange appScalePercentInput">100%</output>
             </div>
-            <div class="muted" style="display:flex;align-items:end;padding-bottom:10px;">
-              100 = original desktop size. 120 = 20% larger.
+            <input id="appScaleRange" class="app-scale-range" type="range" min="60" max="150" step="5" value="100" aria-label="Interface scale percentage">
+            <div class="app-scale-markers" aria-hidden="true">
+              <span>Smaller</span><span>100%</span><span>Larger</span>
+            </div>
+            <div class="app-scale-actions">
+              <div class="app-scale-number">
+                <input id="appScalePercentInput" type="number" min="60" max="150" step="5" value="100" aria-label="Interface scale percentage">
+                <span>%</span>
+              </div>
+              <button id="btnResetAppScale" class="btn-outline app-scale-icon-button" type="button" title="Reset interface scale to 100%" aria-label="Reset interface scale to 100%">&#8634;</button>
+              <button id="btnApplyAppScale" class="btn-outline" type="button">Apply scale</button>
+              <span id="appScaleStatus" class="muted" role="status" aria-live="polite">Original size</span>
             </div>
           </div>
           <div style="height:8px"></div>
@@ -6930,7 +6979,7 @@
   <!-- Shift modal -->
   <div id="shiftModal" class="modal">
     <div class="panel">
-      <h3>Edit / Add Shift <span id="shiftDateLabel" style="color:#ef4444;font-weight:900;margin-left:8px;"></span></h3>
+      <h3><span id="shiftModalTitleText">Edit / Add Shift</span> <span id="shiftDateLabel" style="color:#ef4444;font-weight:900;margin-left:8px;"></span></h3>
       <div class="grid-2">
         <div>
           <label id="shiftStaffLabel">Staff</label>
@@ -7006,8 +7055,10 @@
     <div class="panel">
       <h3 id="dayToolsTitle">Day tools</h3>
       <div id="dayToolsSubtitle" class="muted" style="margin:4px 0 12px;"></div>
+      <div id="dayToolsShiftSummary" class="daytools-shift-summary" aria-live="polite"></div>
       <div class="daytools-actions" style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px;">
         <button id="dtEditShift" class="btn-primary">Edit / Add shift</button>
+        <button id="dtAddSecondShift" class="btn-outline dt-additional-shift">Add second shift</button>
         <button id="dtDeleteShift" class="btn-outline dt-danger">Delete shift</button>
         <button id="dtProposeAway" class="btn-outline dt-danger">Propose Away (full day)</button>
         <button id="dtPartialAway" class="btn-outline dt-warn">Partial Away</button>
@@ -7500,8 +7551,8 @@ var DAY = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 var App = {
   // IMPORTANT: Increment App.version *and* App.buildId whenever making functional changes to this file.
   // SAFETY NET: This build performs an automatic runtime check against the file name; if mismatched, it shows a blocking warning so it can't be overlooked.
-  version: 'V5.0.64',
-    buildId: '2026-10-01.02',
+  version: 'V5.0.66',
+    buildId: '2026-10-20.02',
 settings: {
     dbUrl:'https://mnc-atrd-default-rtdb.asia-southeast1.firebasedatabase.app/', workspace:'mnc-atrd', authToken:'',
     theme:'light', themeName:'light-pastel-sky', recentColors:[], appTitle:'Aspire Workforce Command', logoUrl:'',
@@ -7771,7 +7822,7 @@ function normalizeCoreState(){
     App.settings.idleFullscreenEnabled = (App.settings.idleFullscreenEnabled === true || App.settings.idleFullscreenEnabled === 'true');
     App.settings.idleFullscreenMins = clampFloat(App.settings.idleFullscreenMins, 0.25, 1440, 10);
     App.settings.idleFullscreenTarget = (String(App.settings.idleFullscreenTarget||'planner') === 'weekOverview') ? 'weekOverview' : 'planner';
-    App.settings.appScalePercent = clampFloat(App.settings.appScalePercent, 80, 150, 100);
+    App.settings.appScalePercent = clampFloat(App.settings.appScalePercent, 60, 150, 100);
     App.settings.requestsPopupCooldownSecs = clampInt(App.settings.requestsPopupCooldownSecs, 5, 86400, 60);
     App.settings.requestsNotifySoundVolume = clampFloat(App.settings.requestsNotifySoundVolume, 0, 1, 0.7);
     App.settings.dayShiftStart = to24hhmm(App.settings.dayShiftStart, '09:00');
@@ -9425,10 +9476,21 @@ function syncSettingsUIFromApp(){
     if(__ap) __ap.value = App.settings.autoPullMins||0;
     var __aq=document.getElementById('autoPushMinsInput');
     if(__aq) __aq.value = App.settings.autoPushMins||0;
+    var __scaleValue=Math.max(60, Math.min(150, Math.round((parseFloat(App.settings.appScalePercent)||100)/5)*5));
+    App.settings.appScalePercent=__scaleValue;
     var __scale=document.getElementById('appScalePercentInput');
-    if(__scale) __scale.value = String(App.settings.appScalePercent || 100);
-    try{ localStorage.setItem('aspire_app_scale_percent', String(App.settings.appScalePercent || 100)); }catch(e){}
-    try{ if(typeof window.applyDesktopViewportScale === 'function') window.applyDesktopViewportScale(); }catch(e){}
+    if(__scale) __scale.value = String(__scaleValue);
+    var __scaleRange=document.getElementById('appScaleRange');
+    if(__scaleRange) __scaleRange.value = String(__scaleValue);
+    var __scaleOutput=document.getElementById('appScaleValue');
+    if(__scaleOutput) __scaleOutput.textContent = __scaleValue+'%';
+    var __scaleStatus=document.getElementById('appScaleStatus');
+    if(__scaleStatus) __scaleStatus.textContent = __scaleValue<100 ? 'Smaller interface' : (__scaleValue>100 ? 'Larger interface' : 'Original size');
+    try{ localStorage.setItem('aspire_app_scale_percent', String(__scaleValue)); }catch(e){}
+    try{
+      if(typeof window.applyAspireAppScale === 'function') window.applyAspireAppScale(__scaleValue);
+      else if(typeof window.applyDesktopViewportScale === 'function') window.applyDesktopViewportScale();
+    }catch(e){}
     try{ syncIdleFullscreenSettingsUI(); }catch(e){}
     var __oh=document.getElementById('optStartHour');
     if(__oh) __oh.value = App.settings.gridStartHour;
@@ -10304,7 +10366,7 @@ function init(){
     App.settings.logoUrl=(byId('logoUrlInput') && byId('logoUrlInput').value||'').trim();
     App.settings.autoPullMins=parseInt(byId('autoPullMinsInput').value||'0',10)||0;
     App.settings.autoPushMins=parseInt(byId('autoPushMinsInput').value||'0',10)||0;
-    App.settings.appScalePercent = Math.max(80, Math.min(150, parseFloat((byId('appScalePercentInput') && byId('appScalePercentInput').value) || '100') || 100));
+    App.settings.appScalePercent = Math.max(60, Math.min(150, Math.round((parseFloat((byId('appScalePercentInput') && byId('appScalePercentInput').value) || '100') || 100) / 5) * 5));
     try{ localStorage.setItem('aspire_app_scale_percent', String(App.settings.appScalePercent)); }catch(e){}
     try{ if(typeof window.applyDesktopViewportScale === 'function') window.applyDesktopViewportScale(); }catch(e){}
     App.settings.idleFullscreenEnabled = !!(byId('idleFullscreenEnabled') && byId('idleFullscreenEnabled').checked);
@@ -10365,6 +10427,43 @@ function init(){
       alert('Saved locally. Sync failed: '+(e&&e.message?e.message:e));
     });
   };
+  var __btnApplyAppScale = byId('btnApplyAppScale');
+  if(__btnApplyAppScale){
+    __btnApplyAppScale.onclick = function(){
+      var input = byId('appScalePercentInput');
+      var range = byId('appScaleRange');
+      var status = byId('appScaleStatus');
+      var output = byId('appScaleValue');
+      var scale = Math.max(60, Math.min(150, Math.round((parseFloat(input && input.value || '100') || 100) / 5) * 5));
+      App.settings.appScalePercent = scale;
+      if(input) input.value = String(scale);
+      if(range) range.value = String(scale);
+      if(output) output.textContent = scale+'%';
+      try{ localStorage.setItem('aspire_app_scale_percent', String(scale)); }catch(e){}
+      try{
+        if(typeof window.applyAspireAppScale === 'function') window.applyAspireAppScale(scale, 'Applying...');
+        else if(typeof window.applyDesktopViewportScale === 'function') window.applyDesktopViewportScale();
+      }catch(e){}
+      try{ saveLocal(true, {silentSyncState:true}); }catch(e){}
+      var admin = (typeof isAdmin==='function' && isAdmin());
+      var originalText = __btnApplyAppScale.textContent;
+      __btnApplyAppScale.disabled = true;
+      __btnApplyAppScale.textContent = admin ? 'Saving...' : 'Applying...';
+      var saveScale = admin ? dbPatch('/settings', {appScalePercent:scale}) : Promise.resolve(true);
+      saveScale.then(function(){
+        if(status) status.textContent = admin ? ('Saved and synced at '+scale+'%') : ('Applied on this device at '+scale+'%');
+        try{ setSyncStatus('synced', admin ? 'Scale synced' : 'Scale applied'); }catch(e){}
+        try{ showToast('Interface scale', admin ? ('Saved at '+scale+'% for this shop.') : ('Applied at '+scale+'% on this device.'), 'good', 4500); }catch(e){}
+      }).catch(function(error){
+        if(status) status.textContent = 'Applied locally; sync failed';
+        try{ showToast('Scale sync failed', 'The scale is active on this device but could not be saved to Firebase.', 'warn', 7000); }catch(e){}
+        try{ console.error('App scale sync failed', error); }catch(e){}
+      }).then(function(){
+        __btnApplyAppScale.disabled = false;
+        __btnApplyAppScale.textContent = originalText;
+      });
+    };
+  }
   // Request notifications — Settings helpers
   try{
     var _bn = byId('optReqNotifyBrowser');
@@ -10570,6 +10669,7 @@ function init(){
     var _b;
     _b = byId('btnCloseDayTools'); if(_b) _b.onclick = closeDayTools;
     _b = byId('dtEditShift'); if(_b) _b.onclick = dayToolsEditShift;
+    _b = byId('dtAddSecondShift'); if(_b) _b.onclick = dayToolsAddAdditionalShift;
     _b = byId('dtDeleteShift'); if(_b) _b.onclick = dayToolsDeleteShift;
     _b = byId('dtProposeAway'); if(_b) _b.onclick = dayToolsProposeAway;
     _b = byId('dtPartialAway'); if(_b) _b.onclick = dayToolsPartialAway;
@@ -13534,7 +13634,9 @@ function renderMyShifts(){
     var ds = (App.weeks[weekISO] && App.weeks[weekISO][String(i)]) ? App.weeks[weekISO][String(i)] : {};
     var w=0,b=0,p=0,m=0, dayCum=0, dayOT=0;
 
-    Object.keys(ds).forEach(function(key){
+    Object.keys(ds).sort(function(a,b){
+      return parse12((ds[a]&&ds[a].start)||'') - parse12((ds[b]&&ds[b].start)||'');
+    }).forEach(function(key){
       var sh=ds[key];
       if(sh.staffId===App.currentUser.id){
         if(shiftIsCoveredSource(sh)) return;
@@ -14241,7 +14343,9 @@ sc.appendChild(mini);
     for(var ci=0;ci<colCount();ci++){ var c=document.createElement('div'); c.className='cell'; if(((ci*slotMinutes())%(60))>=30) c.classList.add('alt'); row.appendChild(c); }
 
     var dayShifts=(week[dayKey])||{}; var dayH=0;
-    Object.keys(dayShifts).forEach(function(sid){
+    Object.keys(dayShifts).sort(function(a,b){
+      return parse12((dayShifts[a]&&dayShifts[a].start)||'') - parse12((dayShifts[b]&&dayShifts[b].start)||'');
+    }).forEach(function(sid){
       var sh=dayShifts[sid];
       if(String(sh.staffId)!==String(id)) return;
       var work=hoursBetweenAny(sh.start, sh.end);
@@ -14420,6 +14524,13 @@ function bindShiftModalDraftTracking(){
 function openShiftModal(opts){
   var m=byId('shiftModal'); m.style.display='flex';
   try{ if(window.v5033KeepVisibleModal) window.v5033KeepVisibleModal(m); }catch(e){}
+  var modalTitle = byId('shiftModalTitleText');
+  if(modalTitle){
+    var additionalNumber = parseInt((opts&&opts.additionalShiftNumber)||'0',10);
+    modalTitle.textContent = (opts&&opts.shiftId)
+      ? 'Edit shift'
+      : ((opts&&opts.additionalShift) ? (additionalNumber===2 ? 'Add second shift' : ('Add shift '+(additionalNumber||''))) : 'Add shift');
+  }
   resetShiftModalState({
     openedFromExisting: false,
     originalShiftId: '',
@@ -15151,9 +15262,18 @@ function renderWeekOverview(){
       drawAwayOverlays(cell, iso, id);
       
       var ds=week[String(i)]||{};
-      Object.keys(ds).forEach(function(k){
+      Object.keys(ds).sort(function(a,b){
+        return parse12((ds[a]&&ds[a].start)||'') - parse12((ds[b]&&ds[b].start)||'');
+      }).forEach(function(k){
         var sh=ds[k]; if(sh.staffId!==id) return;
         var chip=document.createElement('div'); chip.className='wo-chip';
+        chip.dataset.shiftKey = String(k);
+        chip.onclick = (function(staffId, dayIndex, shiftKey){
+          return function(ev){
+            if(ev){ ev.preventDefault(); ev.stopPropagation(); }
+            openDayToolsFor(staffId, dayIndex, {shiftKey:shiftKey, allowFocusModes:true});
+          };
+        })(id, i, k);
         if(shiftIsCoveredSource(sh)){
           chip.classList.add('covered-source');
           chip.textContent='AWAY '+shiftDisplayRange(sh);
@@ -15268,6 +15388,94 @@ function updateWeekOverviewHours(){
 // ---------- Week Overview Day Tools ----------
 var DayToolsCtx = {staffId:null, dayIndex:null, iso:null, weekStartISO:null, shiftKey:null};
 
+function dayToolsShiftEntriesFor(staffId, dayIndex){
+  try{
+    staffId = String(staffId || '');
+    dayIndex = parseInt(dayIndex||0, 10);
+    var weekIso = (DayToolsCtx && DayToolsCtx.weekStartISO) ? String(DayToolsCtx.weekStartISO) : Planner.weekStartISO;
+    var week = (App.weeks && App.weeks[weekIso]) ? App.weeks[weekIso] : {};
+    var bucket = week[String(dayIndex)] || {};
+    return Object.keys(bucket).map(function(key){ return {id:String(key), shift:bucket[key]}; }).filter(function(entry){
+      return !!(entry.shift && String(entry.shift.staffId||'')===staffId && !shiftIsCoveredSource(entry.shift));
+    }).sort(function(a,b){
+      var aStart = parse12((a.shift&&a.shift.start)||'');
+      var bStart = parse12((b.shift&&b.shift.start)||'');
+      if(isNaN(aStart)) aStart = 99999;
+      if(isNaN(bStart)) bStart = 99999;
+      return aStart - bStart || String(a.id).localeCompare(String(b.id));
+    });
+  }catch(e){
+    return [];
+  }
+}
+
+function dayToolsSuggestedAdditionalShift(entries){
+  entries = Array.isArray(entries) ? entries : [];
+  function toShiftTime(mins){
+    mins = ((parseInt(mins,10)%1440)+1440)%1440;
+    return to12hStr(pad(Math.floor(mins/60))+':'+pad(mins%60));
+  }
+  function span(startValue, endValue){
+    var start = parse12(startValue||'');
+    var end = parse12(endValue||'');
+    if(isNaN(start) || isNaN(end)) return null;
+    if(end<=start) end += 1440;
+    return {start:start, end:end};
+  }
+  function overlapsExisting(candidate){
+    return entries.some(function(entry){
+      var current = span(entry.shift&&entry.shift.start, entry.shift&&entry.shift.end);
+      return !!(current && candidate.start < current.end && candidate.end > current.start);
+    });
+  }
+
+  var preferred = span((App.settings&&App.settings.nightShiftStart)||'5:00 PM', (App.settings&&App.settings.nightShiftEnd)||'11:00 PM');
+  if(preferred && !overlapsExisting(preferred)){
+    return {start:toShiftTime(preferred.start), end:toShiftTime(preferred.end)};
+  }
+
+  var latestEnd = 9*60;
+  entries.forEach(function(entry){
+    var current = span(entry.shift&&entry.shift.start, entry.shift&&entry.shift.end);
+    if(current && current.end > latestEnd) latestEnd = current.end;
+  });
+  return {start:toShiftTime(latestEnd), end:toShiftTime(latestEnd + (4*60))};
+}
+
+function renderDayToolsShiftSummary(entries, staffId, dayIndex){
+  var host = byId('dayToolsShiftSummary');
+  if(!host) return;
+  host.innerHTML = '';
+  entries = Array.isArray(entries) ? entries : [];
+  if(!entries.length){
+    host.classList.add('empty');
+    host.textContent = 'No rostered shift for this staff member yet.';
+    return;
+  }
+  host.classList.remove('empty');
+  var heading = document.createElement('div');
+  heading.className = 'daytools-shift-summary-label';
+  heading.textContent = entries.length===1 ? '1 shift rostered' : (entries.length+' shifts rostered');
+  host.appendChild(heading);
+  var list = document.createElement('div');
+  list.className = 'daytools-shift-list';
+  var selectedKey = dayToolsResolveShiftKey(staffId, dayIndex);
+  entries.forEach(function(entry, index){
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'daytools-shift-choice';
+    if(String(entry.id)===String(selectedKey||'')) btn.classList.add('active');
+    btn.textContent = 'Shift '+(index+1)+': '+shiftDisplayRange(entry.shift);
+    btn.setAttribute('aria-label', 'Select shift '+(index+1)+', '+shiftDisplayRange(entry.shift));
+    btn.onclick = function(ev){
+      if(ev){ ev.preventDefault(); ev.stopPropagation(); }
+      openDayToolsFor(staffId, dayIndex, {shiftKey:entry.id, allowFocusModes:true});
+    };
+    list.appendChild(btn);
+  });
+  host.appendChild(list);
+}
+
 function openDayToolsFor(staffId, dayIndex, opts){
   opts = opts || {};
   staffId = String(staffId);
@@ -15306,6 +15514,8 @@ function openDayToolsFor(staffId, dayIndex, opts){
       subEl.textContent = name;
     }
   }
+  var shiftEntries = dayToolsShiftEntriesFor(staffId, dayIndex);
+  renderDayToolsShiftSummary(shiftEntries, staffId, dayIndex);
   var canAwayActions = canManageAwayForStaff(staffId);
   var btnProposeAway = byId('dtProposeAway'); if(btnProposeAway) btnProposeAway.style.display = canAwayActions ? '' : 'none';
   var btnPartialAway = byId('dtPartialAway'); if(btnPartialAway) btnPartialAway.style.display = canAwayActions ? '' : 'none';
@@ -15323,7 +15533,15 @@ function openDayToolsFor(staffId, dayIndex, opts){
   }
   var btnClearAway = byId('dtClearAway'); if(btnClearAway) btnClearAway.style.display = canModerateAbsences() ? '' : 'none';
   var btnEditShift = byId('dtEditShift');
-  if(btnEditShift) btnEditShift.style.display = canEdit() ? '' : 'none';
+  if(btnEditShift){
+    btnEditShift.style.display = canEdit() ? '' : 'none';
+    btnEditShift.textContent = shiftEntries.length ? 'Edit selected shift' : 'Add shift';
+  }
+  var btnAddSecondShift = byId('dtAddSecondShift');
+  if(btnAddSecondShift){
+    btnAddSecondShift.style.display = (canEdit() && shiftEntries.length) ? '' : 'none';
+    btnAddSecondShift.textContent = shiftEntries.length===1 ? 'Add second shift' : 'Add another shift';
+  }
   var btnDeleteShift = byId('dtDeleteShift');
   if(btnDeleteShift) btnDeleteShift.style.display = (canEdit() && !!dayToolsResolveShiftKey(staffId, dayIndex)) ? '' : 'none';
   modal.style.display = 'flex';
@@ -15410,6 +15628,31 @@ function dayToolsEditShift(){
   } else {
     openShiftModal({staffId:staffId, dayIndex:dayIndex});
   }
+}
+
+function dayToolsAddAdditionalShift(){
+  if(!canEdit()) return alert('Manager/Admin only.');
+  if(!DayToolsCtx || DayToolsCtx.staffId==null) return;
+  var staffId = String(DayToolsCtx.staffId||'');
+  var dayIndex = parseInt(DayToolsCtx.dayIndex||0, 10);
+  if(DayToolsCtx.weekStartISO) Planner.weekStartISO = String(DayToolsCtx.weekStartISO);
+  Planner.activeDayIndex = dayIndex;
+  var entries = dayToolsShiftEntriesFor(staffId, dayIndex);
+  if(!entries.length){
+    closeDayTools();
+    openShiftModal({staffId:staffId, dayIndex:dayIndex});
+    return;
+  }
+  var suggested = dayToolsSuggestedAdditionalShift(entries);
+  closeDayTools();
+  openShiftModal({
+    staffId:staffId,
+    dayIndex:dayIndex,
+    start:suggested.start,
+    end:suggested.end,
+    additionalShift:true,
+    additionalShiftNumber:entries.length+1
+  });
 }
 
 function dayToolsDeleteShift(){
@@ -20748,7 +20991,9 @@ function renderPayroll(){
       var ds=(App.weeks[Planner.weekStartISO] && App.weeks[Planner.weekStartISO][String(j)]) ? App.weeks[Planner.weekStartISO][String(j)] : {};
       var dayCum=0;
 
-      Object.keys(ds).forEach(function(k){
+      Object.keys(ds).sort(function(a,b){
+        return parse12((ds[a]&&ds[a].start)||'') - parse12((ds[b]&&ds[b].start)||'');
+      }).forEach(function(k){
         var sh=ds[k];
         if(!sh || String(sh.staffId)!==String(id) || shiftIsCoveredSource(sh)) return;
 
@@ -26137,13 +26382,25 @@ function applyRosterTemplateToWeek(key, targetWeekISO, mode){
   }else{
     // Merge: only add shifts when that staff has no shift on that day in target
     var target = App.weeks[targetWeekISO] || {};
+    var occupiedAtMergeStart = {};
+    Object.keys(cloned).forEach(function(dk){
+      occupiedAtMergeStart[dk] = {};
+      var existingDay = target[dk] || {};
+      Object.keys(existingDay).forEach(function(existingId){
+        var existingShift = existingDay[existingId];
+        if(!existingShift) return;
+        if(existingShift.staffId!=null) occupiedAtMergeStart[dk][String(existingShift.staffId)] = true;
+        var existingBase = shiftBaseStaffId(existingShift);
+        if(existingBase) occupiedAtMergeStart[dk][String(existingBase)] = true;
+      });
+    });
     Object.keys(cloned).forEach(function(dk){
       if(!target[dk]) target[dk] = {};
       var srcDay = cloned[dk] || {};
       Object.keys(srcDay).forEach(function(shiftId){
         var sh = srcDay[shiftId];
         if(!sh) return;
-        if(__tplHasShiftForStaffOnDay(targetWeekISO, parseInt(dk,10), sh.staffId)) return;
+        if(occupiedAtMergeStart[dk] && occupiedAtMergeStart[dk][String(sh.staffId)]) return;
         target[dk][shiftId] = sh;
       });
     });
@@ -27007,7 +27264,7 @@ try{
 (function(){
   'use strict';
   var APP_NAME = 'Aspire Workforce Command';
-  var APP_VERSION = 'V5.0.64';
+  var APP_VERSION = 'V5.0.66';
   var OLD_TITLE = 'M&C-ATRD-scheduler --=Aspire Group=--';
 
   var NAVS = [
@@ -28351,21 +28608,44 @@ try{
   function clampScale(v){
     v = parseFloat(v);
     if(!isFinite(v)) v = 100;
-    return Math.max(80, Math.min(150, v));
+    return Math.max(60, Math.min(150, Math.round(v / 5) * 5));
+  }
+  function scaleDescription(scale){
+    if(scale < 100) return 'Smaller interface';
+    if(scale > 100) return 'Larger interface';
+    return 'Original size';
+  }
+  function syncScaleControls(scale, status){
+    scale = clampScale(scale);
+    var input = byId('appScalePercentInput');
+    var range = byId('appScaleRange');
+    var value = byId('appScaleValue');
+    var state = byId('appScaleStatus');
+    if(input && document.activeElement !== input) input.value = String(scale);
+    if(range && document.activeElement !== range) range.value = String(scale);
+    if(value) value.textContent = scale + '%';
+    if(state) state.textContent = status || scaleDescription(scale);
+  }
+  function applyScaleValue(value, status){
+    var scale = clampScale(value);
+    if(window.App && App.settings) App.settings.appScalePercent = scale;
+    try{ localStorage.setItem('aspire_app_scale_percent', String(scale)); }catch(e){}
+    syncScaleControls(scale, status);
+    if(typeof window.applyDesktopViewportScale === 'function') window.applyDesktopViewportScale();
+    return scale;
   }
   function applyScaleFromInput(){
     try{
       var input = byId('appScalePercentInput');
       if(!input) return;
-      var scale = clampScale(input.value);
-      if(window.App && App.settings) App.settings.appScalePercent = scale;
-      try{ localStorage.setItem('aspire_app_scale_percent', String(scale)); }catch(e){}
+      var scale = applyScaleValue(input.value, 'Preview applied');
       input.value = String(scale);
-      if(typeof window.applyDesktopViewportScale === 'function') window.applyDesktopViewportScale();
     }catch(e){}
   }
   function bindScaleInput(){
     var input = byId('appScalePercentInput');
+    var range = byId('appScaleRange');
+    var reset = byId('btnResetAppScale');
     if(!input || input.dataset.v5020Bound) return;
     input.dataset.v5020Bound = '1';
     input.addEventListener('change', applyScaleFromInput);
@@ -28373,6 +28653,26 @@ try{
       clearTimeout(input._v5020ScaleTimer);
       input._v5020ScaleTimer = setTimeout(applyScaleFromInput, 180);
     });
+    if(range){
+      range.addEventListener('input', function(){
+        var scale = applyScaleValue(range.value, 'Preview applied');
+        input.value = String(scale);
+      });
+      range.addEventListener('change', function(){
+        var scale = applyScaleValue(range.value, 'Preview applied');
+        input.value = String(scale);
+      });
+    }
+    if(reset){
+      reset.addEventListener('click', function(){
+        input.value = '100';
+        if(range) range.value = '100';
+        applyScaleValue(100, 'Reset to original size');
+      });
+    }
+    var initial = (window.App && App.settings) ? App.settings.appScalePercent : null;
+    if(initial == null && typeof window.getAspireAppScalePercent === 'function') initial = window.getAspireAppScalePercent();
+    syncScaleControls(initial == null ? 100 : initial);
   }
 
   function placeRequestUpdatesModal(){
@@ -28425,7 +28725,14 @@ try{
     }
   }catch(e){}
   setInterval(tick, 1000);
+  window.addEventListener('storage', function(event){
+    if(event && event.key === 'aspire_app_scale_percent'){
+      applyScaleValue(event.newValue || 100, 'Updated from another tab');
+    }
+  });
+  window.applyAspireAppScale = applyScaleValue;
 })();
+
 </script>
 <script id="v5016StaffMobileActionsPatch">
 (function(){
@@ -31197,6 +31504,196 @@ try{
   .message-stats-actions button {
     width: 100%;
   }
+}
+
+</style>
+<style id="v5065AppScaleCss">
+/* V5.0.65 functional interface scale controls */
+.app-scale-setting {
+  margin-top: 12px;
+  padding: 14px 0;
+  display: grid;
+  gap: 9px;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.app-scale-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.app-scale-heading label {
+  margin: 0;
+}
+
+.app-scale-heading output {
+  min-width: 58px;
+  padding: 5px 8px;
+  border: 1px solid rgba(14, 165, 233, .42);
+  border-radius: 6px;
+  background: rgba(14, 165, 233, .08);
+  color: var(--fg);
+  font-size: 13px;
+  font-weight: 900;
+  text-align: center;
+}
+
+.app-scale-range {
+  width: 100%;
+  min-height: 26px;
+  margin: 0;
+  padding: 0;
+  accent-color: #0ea5e9;
+  cursor: pointer;
+}
+
+.app-scale-markers {
+  display: flex;
+  justify-content: space-between;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.app-scale-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.app-scale-number {
+  width: 112px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 6px;
+}
+
+.app-scale-number input {
+  min-width: 0;
+}
+
+.app-scale-number span {
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.app-scale-icon-button {
+  width: 42px;
+  min-width: 42px;
+  padding-left: 0;
+  padding-right: 0;
+  font-size: 18px;
+}
+
+#appScaleStatus {
+  margin-left: auto;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+html.app-scale-transform-fallback body {
+  will-change: transform;
+}
+
+@media (max-width: 760px) {
+  .app-scale-actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 42px;
+  }
+
+  .app-scale-number {
+    width: 100%;
+  }
+
+  #btnApplyAppScale,
+  #appScaleStatus {
+    grid-column: 1 / -1;
+  }
+
+  #btnApplyAppScale {
+    width: 100%;
+  }
+
+  #appScaleStatus {
+    margin-left: 0;
+  }
+}
+
+</style>
+<style id="v5066SplitShiftCss">
+/* V5.0.66 split-shift controls */
+.daytools-shift-summary{
+  margin:0 0 12px;
+  padding:10px 0 12px;
+  border-top:1px solid rgba(148,163,184,.2);
+  border-bottom:1px solid rgba(148,163,184,.2);
+}
+.daytools-shift-summary.empty{
+  color:var(--muted,#94a3b8);
+  font-size:12px;
+  font-weight:700;
+}
+.daytools-shift-summary-label{
+  margin-bottom:7px;
+  color:var(--muted,#94a3b8);
+  font-size:11px;
+  font-weight:900;
+  text-transform:uppercase;
+}
+.daytools-shift-list{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:7px;
+}
+.daytools-shift-choice{
+  min-width:0;
+  min-height:40px;
+  padding:8px 10px;
+  border:1px solid rgba(148,163,184,.28);
+  border-radius:6px;
+  background:rgba(15,23,42,.42);
+  color:inherit;
+  font:inherit;
+  font-size:12px;
+  font-weight:850;
+  text-align:left;
+  white-space:normal;
+  cursor:pointer;
+}
+.daytools-shift-choice:hover,
+.daytools-shift-choice:focus-visible{
+  border-color:#22d3ee;
+  outline:2px solid rgba(34,211,238,.22);
+  outline-offset:1px;
+}
+.daytools-shift-choice.active{
+  border-color:#22d3ee;
+  background:rgba(8,145,178,.2);
+  box-shadow:inset 3px 0 0 #22d3ee;
+}
+#dtAddSecondShift.dt-additional-shift{
+  border-color:rgba(52,211,153,.65);
+  background:rgba(16,185,129,.12);
+  color:#a7f3d0;
+  font-weight:900;
+}
+#dtAddSecondShift.dt-additional-shift:hover,
+#dtAddSecondShift.dt-additional-shift:focus-visible{
+  border-color:#34d399;
+  background:rgba(16,185,129,.2);
+}
+body.light #dtAddSecondShift.dt-additional-shift,
+body.theme-light #dtAddSecondShift.dt-additional-shift{
+  color:#047857;
+}
+@media (max-width:760px){
+  .daytools-shift-list{grid-template-columns:1fr;}
+  .daytools-shift-choice{min-height:44px;font-size:13px;}
 }
 
 </style>
