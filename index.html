@@ -303,7 +303,7 @@
   
 </style>
 
-<title>Aspire Workforce Command (V5.0.67 Modular Build)</title>
+<title>Aspire Workforce Command (V5.0.68 Modular Build)</title>
   <meta name="theme-color" content="#22c55e"/>
 
   <style>
@@ -5114,7 +5114,7 @@
       <div id="appLogoBox"></div>
       <div class="titlewrap">
         <div class="title" id="appTitle">Aspire Workforce Command</div>
-        <div class="version-pill" id="appVersion">V5.0.67</div>
+        <div class="version-pill" id="appVersion">V5.0.68</div>
         <div class="sync-pill syncing" id="syncStatusChip" title="Sync status">Starting…</div>
       </div>
     </div>
@@ -5156,7 +5156,7 @@
         <header class="login-brand">
           <div class="login-brand-row">
             <span class="login-eyebrow">Workforce operations</span>
-            <span class="login-version" aria-label="Application version V5.0.67">V5.0.67</span>
+            <span class="login-version" aria-label="Application version V5.0.68">V5.0.68</span>
           </div>
           <h1>Aspire Workforce Command</h1>
           <p>Open your roster, requests and workforce tools from one secure workspace.</p>
@@ -5275,13 +5275,14 @@
             <table class="table" id="myWageTable">
               <thead>
                 <tr>
-                  <th>Day</th><th>Hours</th><th>Break</th><th>Payable</th><th>OT</th><th>Pay</th>
+                  <th>Day</th><th>Deductions</th><th>Hours</th><th>Break</th><th>Payable</th><th>OT</th><th>Pay</th>
                 </tr>
               </thead>
               <tbody></tbody>
               <tfoot>
                 <tr>
                   <td><b>Total</b></td>
+                  <td id="myTotalDeductions" class="my-wage-deduction-total">$0.00</td>
                   <td id="myTotalWork">0</td>
                   <td id="myTotalBreak">0</td>
                   <td id="myTotalPayable">0</td>
@@ -5292,7 +5293,7 @@
             </table>
             <div class="muted" style="margin-top:4px;">
               Break time is not counted towards pay. Overnight shifts count toward the day they start.
-              Auto-break: 0m &lt;5h, 30m 5–9:59h, 60m ≥10h (unless overridden).
+              Auto-break: 0m &lt;5h, 30m 5–9:59h, 60m ≥10h (unless overridden). Dated payroll deductions appear in red on the day recorded by payroll.
             </div>
 
             <div id="myWithheldInfoWrap" style="margin-top:10px;">
@@ -5897,6 +5898,10 @@
               <div>
                 <label>Deductions details</label>
                 <input id="payrollWeekOtherDeductionNote" type="text" placeholder="Example: Salary sacrifice, union fee">
+              </div>
+              <div>
+                <label>Deduction date</label>
+                <input id="payrollWeekOtherDeductionDate" type="date">
               </div>
             </div>
             <div class="grid-2">
@@ -7556,8 +7561,8 @@ var DAY = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 var App = {
   // IMPORTANT: Increment App.version *and* App.buildId whenever making functional changes to this file.
   // SAFETY NET: This build performs an automatic runtime check against the file name; if mismatched, it shows a blocking warning so it can't be overlooked.
-  version: 'V5.0.67',
-    buildId: '2026-11-01.01',
+  version: 'V5.0.68',
+    buildId: '2026-11-01.02',
 settings: {
     dbUrl:'https://mnc-atrd-default-rtdb.asia-southeast1.firebasedatabase.app/', workspace:'mnc-atrd', authToken:'',
     theme:'light', themeName:'light-pastel-sky', recentColors:[], appTitle:'Aspire Workforce Command', logoUrl:'',
@@ -13664,11 +13669,13 @@ function staffPaySummaryForWeek(weekISO, staffId, rosterPay){
     rosterPay:rosterPay,
     adjustment:adjustment,
     adjustmentComment:String(adjRec.comment || '').trim(),
+    adjustmentDate:String(adjRec.deductionDate || '').trim(),
     positiveAdjustment:positiveAdjustment,
     negativeAdjustment:negativeAdjustment,
     paygWithheld:paygWithheld,
     otherDeductions:otherDeductions,
     otherDeductionDetails:String(weekData.otherDeductionDetails || '').trim(),
+    otherDeductionDate:String(weekData.otherDeductionDate || '').trim(),
     withheldThisWeek:withheldThisWeek,
     withheldBalance:withheldBalance,
     savingsBalance:savingsBalance,
@@ -13677,6 +13684,59 @@ function staffPaySummaryForWeek(weekISO, staffId, rosterPay){
     grossPay:grossPay,
     netPay:netPay
   };
+}
+
+function staffPayrollDateLabel(iso){
+  iso = String(iso || '').trim();
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(iso)) return 'Date not recorded';
+  try{
+    var d = fromISO(iso);
+    if(!(d instanceof Date) || isNaN(d)) return 'Date not recorded';
+    var weekdayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    var parts = iso.split('-');
+    return weekdayNames[d.getDay()] + ' ' + parts[2] + '/' + parts[1] + '/' + parts[0];
+  }catch(e){ return 'Date not recorded'; }
+}
+
+function staffDatedDeductionsForWeek(weekISO, staffId){
+  weekISO = String(weekISO || '');
+  staffId = String(staffId || '');
+  var items = [];
+  var adjRec = ((((App.payrollAdjustments||{})[weekISO]||{})[staffId])) || {};
+  var adjAmount = parseFloat(adjRec.amount || 0);
+  if(isFinite(adjAmount) && adjAmount < -0.0001){
+    items.push({
+      label:'Pay deduction',
+      amount:Math.abs(adjAmount),
+      reason:String(adjRec.comment || '').trim() || 'No reason was recorded.',
+      date:String(adjRec.deductionDate || '').trim()
+    });
+  }
+  var weekData = {};
+  try{
+    if(typeof getPayrollWeekDataRec === 'function') weekData = getPayrollWeekDataRec(weekISO, staffId, false) || {};
+    else weekData = ((((App.payrollWeekData||{})[weekISO]||{})[staffId])) || {};
+  }catch(e){ weekData = {}; }
+  var otherAmount = parseFloat(weekData.otherDeductions || 0);
+  if(isFinite(otherAmount) && otherAmount > 0.0001){
+    items.push({
+      label:'Other deduction',
+      amount:otherAmount,
+      reason:String(weekData.otherDeductionDetails || '').trim() || 'No reason was recorded.',
+      date:String(weekData.otherDeductionDate || '').trim()
+    });
+  }
+  return items;
+}
+
+function staffDeductionCellHtml(items){
+  if(!items || !items.length) return '<span class="muted">—</span>';
+  return items.map(function(item){
+    return '<div class="my-wage-deduction-line">'
+      + '<div>-'+escapeHtml(fmtMoney(item.amount))+'</div>'
+      + '<div class="my-wage-deduction-reason">'+escapeHtml(item.label+': '+item.reason)+'</div>'
+      + '</div>';
+  }).join('');
 }
 
 function renderMyShifts(){
@@ -13695,6 +13755,8 @@ function renderMyShifts(){
   var tw=0,tb=0,tp=0,py=0,totOT=0;
   var weekCum=0;
   var tbdy=byId('myWageTable').querySelector('tbody'); tbdy.innerHTML='';
+  var datedDeductions = staffDatedDeductionsForWeek(weekISO, String(App.currentUser.id||''));
+  var totalDatedDeductions = datedDeductions.reduce(function(sum,item){ return sum + (parseFloat(item.amount)||0); }, 0);
 
   for(var i=0;i<7;i++){
     var dayISO = toISO(days[i]);
@@ -13745,18 +13807,27 @@ function renderMyShifts(){
       }
     });
 
-    if(w>0||b>0){
+    var dayDeductions = datedDeductions.filter(function(item){ return String(item.date||'') === dayISO; });
+    if(w>0||b>0||dayDeductions.length){
       var tr=document.createElement('tr');
-      tr.innerHTML='<td>'+days[i].toLocaleDateString(undefined,{weekday:'short'})+'</td><td>'+w.toFixed(2)+'</td><td>'+b.toFixed(2)+'</td><td>'+p.toFixed(2)+'</td><td>'+dayOT.toFixed(2)+'</td><td>'+fmtMoney(m)+'</td>';
+      tr.innerHTML='<td>'+days[i].toLocaleDateString(undefined,{weekday:'short'})+'</td><td class="my-wage-deduction-cell">'+staffDeductionCellHtml(dayDeductions)+'</td><td>'+w.toFixed(2)+'</td><td>'+b.toFixed(2)+'</td><td>'+p.toFixed(2)+'</td><td>'+dayOT.toFixed(2)+'</td><td>'+fmtMoney(m)+'</td>';
       tbdy.appendChild(tr);
     }
     tw+=w; tb+=b; tp+=p; py+=m; totOT+=dayOT;
+  }
+  var undatedDeductions = datedDeductions.filter(function(item){ return !/^\d{4}-\d{2}-\d{2}$/.test(String(item.date||'')); });
+  if(undatedDeductions.length){
+    var undatedRow = document.createElement('tr');
+    undatedRow.innerHTML='<td>Date not recorded</td><td class="my-wage-deduction-cell">'+staffDeductionCellHtml(undatedDeductions)+'</td><td>0.00</td><td>0.00</td><td>0.00</td><td>0.00</td><td>'+fmtMoney(0)+'</td>';
+    tbdy.appendChild(undatedRow);
   }
   byId('myTotalWork').textContent=tw.toFixed(2);
   byId('myTotalBreak').textContent=tb.toFixed(2);
   byId('myTotalPayable').textContent=tp.toFixed(2);
   byId('myTotalOT').textContent=totOT.toFixed(2);
   byId('myTotalPay').textContent=fmtMoney(py);
+  var totalDeductionEl = byId('myTotalDeductions');
+  if(totalDeductionEl) totalDeductionEl.textContent = totalDatedDeductions > 0.0001 ? ('-'+fmtMoney(totalDatedDeductions)) : fmtMoney(0);
   byId('myHours').textContent='Week of '+fmtDMY(start)+' – '+fmtDMY(endLbl)+': '+tp.toFixed(2)+' payable hours — '+fmtMoney(py);
 
   // Staff-only pay summary, including adjustments and deduction reasons.
@@ -13817,18 +13888,18 @@ function renderMyShifts(){
     var deductionNotice = byId('myPayDeductionNotice');
     if(deductionNotice){
       deductionNotice.innerHTML = '';
-      var deductionItems = [];
-      if(paySummary.negativeAdjustment > 0.0001){
-        deductionItems.push({label:'Pay deduction', amount:paySummary.negativeAdjustment, reason:paySummary.adjustmentComment || 'No reason was recorded.'});
-      }
-      if(paySummary.otherDeductions > 0.0001){
-        deductionItems.push({label:'Other deduction', amount:paySummary.otherDeductions, reason:paySummary.otherDeductionDetails || 'No reason was recorded.'});
-      }
+      var deductionItems = staffDatedDeductionsForWeek(weekISO, sid);
       if(deductionItems.length){
         deductionNotice.style.display = '';
         var noticeTitle = document.createElement('div');
         noticeTitle.className = 'my-pay-deduction-title';
-        noticeTitle.textContent = deductionItems.length === 1 ? 'A deduction applies to this pay week' : 'Deductions apply to this pay week';
+        var dateLabels = [];
+        deductionItems.forEach(function(item){
+          var dateLabel = staffPayrollDateLabel(item.date);
+          if(dateLabels.indexOf(dateLabel) < 0) dateLabels.push(dateLabel);
+        });
+        var titleBase = deductionItems.length === 1 ? 'A deduction applies to this pay week' : 'Deductions apply to this pay week';
+        noticeTitle.textContent = titleBase + ' — ' + (dateLabels.length === 1 ? dateLabels[0] : 'multiple dates');
         deductionNotice.appendChild(noticeTitle);
         deductionItems.forEach(function(item){
           var itemEl = document.createElement('div');
@@ -13839,11 +13910,15 @@ function renderMyShifts(){
           var amountEl = document.createElement('div');
           amountEl.className = 'my-pay-deduction-amount';
           amountEl.textContent = '-'+fmtMoney(item.amount);
+          var dateEl = document.createElement('div');
+          dateEl.className = 'my-pay-deduction-date';
+          dateEl.textContent = 'Date: '+staffPayrollDateLabel(item.date);
           var reasonEl = document.createElement('div');
           reasonEl.className = 'my-pay-deduction-reason';
           reasonEl.textContent = 'Reason: '+item.reason;
           itemEl.appendChild(labelEl);
           itemEl.appendChild(amountEl);
+          itemEl.appendChild(dateEl);
           itemEl.appendChild(reasonEl);
           deductionNotice.appendChild(itemEl);
         });
@@ -13891,7 +13966,7 @@ function renderMyShifts(){
 
 try{
   if(String(location.search || '').indexOf('staff-deduction-test=1') >= 0){
-    window.v5067RenderMyShiftsTest = renderMyShifts;
+    window.v5068RenderMyShiftsTest = renderMyShifts;
   }
 }catch(e){}
 
@@ -19861,6 +19936,24 @@ function readPayrollStaffProfileInputs(){
     bankMasked:(byId('payrollEmployeeBankMasked') && byId('payrollEmployeeBankMasked').value || '').trim()
   };
 }
+function payrollDeductionDateInWeek(weekIso, dateIso){
+  weekIso = String(weekIso || '').trim();
+  dateIso = String(dateIso || '').trim();
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(weekIso) || !/^\d{4}-\d{2}-\d{2}$/.test(dateIso)) return false;
+  try{
+    var end = fromISO(weekIso);
+    if(!(end instanceof Date) || isNaN(end)) return false;
+    end.setDate(end.getDate()+6);
+    var endIso = toISO(end);
+    return dateIso >= weekIso && dateIso <= endIso;
+  }catch(e){ return false; }
+}
+function payrollDefaultDeductionDateForWeek(weekIso){
+  weekIso = String(weekIso || '').trim();
+  var today = '';
+  try{ today = toISO(new Date()); }catch(e){}
+  return payrollDeductionDateInWeek(weekIso, today) ? today : weekIso;
+}
 function readPayrollWeekInputs(){
   return {
     payDate:(byId('payrollDocPayDate') && byId('payrollDocPayDate').value || '').trim(),
@@ -19868,13 +19961,14 @@ function readPayrollWeekInputs(){
     superAmount:(function(){ var v = byId('payrollWeekSuper') && byId('payrollWeekSuper').value; return v==null || v==='' ? '' : round2(v); })(),
     otherDeductions:numOr0(byId('payrollWeekOtherDeduction') && byId('payrollWeekOtherDeduction').value || 0),
     otherDeductionDetails:(byId('payrollWeekOtherDeductionNote') && byId('payrollWeekOtherDeductionNote').value || '').trim(),
+    otherDeductionDate:(byId('payrollWeekOtherDeductionDate') && byId('payrollWeekOtherDeductionDate').value || '').trim(),
     leaveAnnual:(byId('payrollWeekLeaveAnnual') && byId('payrollWeekLeaveAnnual').value || '').trim(),
     leaveSick:(byId('payrollWeekLeaveSick') && byId('payrollWeekLeaveSick').value || '').trim(),
     leaveLong:(byId('payrollWeekLeaveLong') && byId('payrollWeekLeaveLong').value || '').trim(),
     note:(byId('payrollWeekNote') && byId('payrollWeekNote').value || '').trim()
   };
 }
-function validatePayrollWeekInputs(rec){
+function validatePayrollWeekInputs(rec, weekIso){
   rec = rec || {};
   var checks = [
     ['PAYG withheld', rec.paygWithheld],
@@ -19886,6 +19980,8 @@ function validatePayrollWeekInputs(rec){
     if(!isFinite(n) || n < 0) return checks[i][0] + ' must be a positive number or zero.';
   }
   if(Number(rec.otherDeductions || 0) > 0.0001 && !String(rec.otherDeductionDetails || '').trim()) return 'Enter deductions details so the staff member can see the reason for the deduction.';
+  if(Number(rec.otherDeductions || 0) > 0.0001 && !/^\d{4}-\d{2}-\d{2}$/.test(String(rec.otherDeductionDate || ''))) return 'Choose the date the deduction occurred.';
+  if(Number(rec.otherDeductions || 0) > 0.0001 && weekIso && !payrollDeductionDateInWeek(weekIso, rec.otherDeductionDate)) return 'The deduction date must be inside the selected pay week.';
   var notes = [rec.otherDeductionDetails || '', rec.leaveAnnual || '', rec.leaveSick || '', rec.leaveLong || '', rec.note || ''];
   for(var j=0;j<notes.length;j++){
     if(String(notes[j]).length > 280) return 'Payroll notes and leave fields must be 280 characters or fewer.';
@@ -19933,7 +20029,7 @@ function savePayrollWeekData(quiet){
   if(!staffId) return alert('Choose a staff member.');
   var weekIso = payrollSelectedWeekIso();
   var rec = readPayrollWeekInputs();
-  var validationError = validatePayrollWeekInputs(rec);
+  var validationError = validatePayrollWeekInputs(rec, weekIso);
   if(validationError) return alert(validationError);
   if(!App.payrollWeekData[weekIso]) App.payrollWeekData[weekIso] = {};
   App.payrollWeekData[weekIso][staffId] = rec;
@@ -19948,7 +20044,7 @@ function savePayrollWeekData(quiet){
       staffId:staffId,
       amount:-(payg + other),
       balance:null,
-      note:'PAYG '+fmtMoney(payg)+' | Other deductions '+fmtMoney(other)+(rec.otherDeductionDetails ? (' | '+rec.otherDeductionDetails) : '')
+      note:'PAYG '+fmtMoney(payg)+' | Other deductions '+fmtMoney(other)+(rec.otherDeductionDetails ? (' | '+rec.otherDeductionDetails) : '')+(other > 0.0001 && rec.otherDeductionDate ? (' | Date '+rec.otherDeductionDate) : '')
     });
   }catch(e){}
   saveLocal();
@@ -20008,6 +20104,13 @@ function syncPayrollWeekInputsFromApp(){
   setInputValueIfIdle('payrollWeekSuper', rec.superAmount != null ? rec.superAmount : '');
   setInputValueIfIdle('payrollWeekOtherDeduction', rec.otherDeductions != null ? rec.otherDeductions : 0);
   setInputValueIfIdle('payrollWeekOtherDeductionNote', rec.otherDeductionDetails || '');
+  var deductionDateInput = byId('payrollWeekOtherDeductionDate');
+  if(deductionDateInput){
+    var weekEnd = fromISO(weekIso); weekEnd.setDate(weekEnd.getDate()+6);
+    deductionDateInput.min = weekIso;
+    deductionDateInput.max = toISO(weekEnd);
+  }
+  setInputValueIfIdle('payrollWeekOtherDeductionDate', rec.otherDeductionDate || payrollDefaultDeductionDateForWeek(weekIso));
   setInputValueIfIdle('payrollWeekLeaveAnnual', rec.leaveAnnual || '');
   setInputValueIfIdle('payrollWeekLeaveSick', rec.leaveSick || '');
   setInputValueIfIdle('payrollWeekLeaveLong', rec.leaveLong || '');
@@ -22360,7 +22463,8 @@ function v5041CarryPaidDeltaToNextWeek(weekIso, staffId){
     action:'Paid delta carried forward',
     amount:payDelta,
     sourceWeek:weekIso,
-    note:note
+    note:note,
+    deductionDate:existing.deductionDate || payrollDefaultDeductionDateForWeek(targetWeek)
   });
   v5041StorePaidSnapshot(weekIso, staffId);
   v5041SyncPayrollPaidState(weekIso);
@@ -22377,6 +22481,7 @@ function setPayrollAdjustment(weekIso, staffId, amount, comment, logOptions){
   if(!isFinite(parsedAmount)) return false;
   amount = round2(parsedAmount);
   if(!weekIso || !staffId) return false;
+  logOptions = logOptions || {};
   comment = String(comment || '').trim();
   if(amount < -0.0001 && !comment){
     try{ alert('Enter a reason / comment for the deduction. The staff member will see this reason in My Shifts & Wages.'); }catch(e){}
@@ -22384,13 +22489,22 @@ function setPayrollAdjustment(weekIso, staffId, amount, comment, logOptions){
   }
   if(!App.payrollAdjustments[weekIso]) App.payrollAdjustments[weekIso] = {};
   var prev = App.payrollAdjustments[weekIso][staffId] || {amount:0, comment:''};
+  var deductionDate = amount < -0.0001 ? String(logOptions.deductionDate || prev.deductionDate || '').trim() : '';
+  if(amount < -0.0001 && !/^\d{4}-\d{2}-\d{2}$/.test(deductionDate)){
+    try{ alert('Choose the date the deduction occurred.'); }catch(e){}
+    return false;
+  }
+  if(amount < -0.0001 && !payrollDeductionDateInWeek(weekIso, deductionDate)){
+    try{ alert('The deduction date must be inside the selected pay week.'); }catch(e){}
+    return false;
+  }
   var prevAmt = payrollLogNumber(prev.amount, 0) || 0;
   var prevComment = String(prev.comment||'');
-  App.payrollAdjustments[weekIso][staffId] = {amount:amount, comment:comment};
+  var prevDeductionDate = String(prev.deductionDate || '');
+  App.payrollAdjustments[weekIso][staffId] = {amount:amount, comment:comment, deductionDate:deductionDate};
   try{
-    logOptions = logOptions || {};
     var logAmount = (logOptions.amount == null) ? round2(amount - prevAmt) : payrollLogNumber(logOptions.amount, 0);
-    if(Math.abs(logAmount) > 0.0001 || prevComment !== String(comment||'')){
+    if(Math.abs(logAmount) > 0.0001 || prevComment !== String(comment||'') || prevDeductionDate !== deductionDate){
       recordPayrollTransaction({
         category:'adjustment',
         type:logOptions.type || 'payAdjustment',
@@ -22399,7 +22513,7 @@ function setPayrollAdjustment(weekIso, staffId, amount, comment, logOptions){
         staffId:staffId,
         amount:logAmount,
         balance:amount,
-        note:logOptions.note || comment || '',
+        note:(logOptions.note || comment || '') + (deductionDate ? (' | Deduction date '+deductionDate) : ''),
         sourceWeek:logOptions.sourceWeek || ''
       });
     }
@@ -22468,7 +22582,15 @@ function openPayrollAdjustmentPrompt(staffId){
   if(commentPrompt === null) return;
   var comment = String(commentPrompt || '').trim();
   if(amt < -0.0001 && !comment){ alert('Enter a reason / comment for the deduction. The staff member will see it in My Shifts & Wages.'); return; }
-  var ok = setPayrollAdjustment(weekIso, staffId, amt, comment);
+  var deductionDate = '';
+  if(amt < -0.0001){
+    var datePrompt = prompt('Date the deduction occurred (YYYY-MM-DD). It must be inside the selected pay week:', rec.deductionDate || payrollDefaultDeductionDateForWeek(weekIso));
+    if(datePrompt === null) return;
+    deductionDate = String(datePrompt || '').trim();
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(deductionDate)){ alert('Enter the deduction date as YYYY-MM-DD.'); return; }
+    if(!payrollDeductionDateInWeek(weekIso, deductionDate)){ alert('The deduction date must be inside the selected pay week.'); return; }
+  }
+  var ok = setPayrollAdjustment(weekIso, staffId, amt, comment, {deductionDate:deductionDate});
   if(ok === false) return;
   renderPayroll();
   try{ showToast('Payroll adjustment saved', staffDisplayNameForId(staffId, 'staff '+staffId)+' '+v5041SignedMoney(amt), 'success', 3000); }catch(e){}
@@ -27386,7 +27508,7 @@ try{
 (function(){
   'use strict';
   var APP_NAME = 'Aspire Workforce Command';
-  var APP_VERSION = 'V5.0.67';
+  var APP_VERSION = 'V5.0.68';
   var OLD_TITLE = 'M&C-ATRD-scheduler --=Aspire Group=--';
 
   var NAVS = [
@@ -31875,6 +31997,53 @@ body.theme-light #dtAddSecondShift.dt-additional-shift{
   .my-pay-deduction-item{ grid-template-columns:1fr; gap:3px; }
   .my-pay-deduction-amount{ grid-column:1; }
   .my-pay-deduction-reason{ grid-column:1; }
+}
+
+</style>
+<style id="v5068DailyDeductionCss">
+/* V5.0.68 dated deductions in the staff wage breakdown */
+#mySection > .card > .grid-2{
+  width:100%;
+  grid-template-columns:minmax(220px,.65fr) minmax(620px,1.35fr);
+}
+#myWageTable .my-wage-deduction-cell,
+#myWageTable .my-wage-deduction-total{
+  color:#f87171;
+  font-weight:900;
+  font-variant-numeric:tabular-nums;
+  vertical-align:top;
+}
+#myWageTable .my-wage-deduction-line + .my-wage-deduction-line{
+  margin-top:6px;
+  padding-top:6px;
+  border-top:1px solid rgba(248,113,113,.24);
+}
+#myWageTable .my-wage-deduction-reason{
+  margin-top:2px;
+  color:#fca5a5;
+  font-size:12px;
+  line-height:1.25;
+  font-weight:700;
+  white-space:normal;
+  overflow-wrap:anywhere;
+}
+.my-pay-deduction-date{
+  grid-column:1 / -1;
+  color:#fca5a5;
+  font-size:12px;
+  font-weight:800;
+}
+[data-theme="light"] #myWageTable .my-wage-deduction-cell,
+[data-theme="light"] #myWageTable .my-wage-deduction-total,
+[data-theme="light"] .my-pay-deduction-date{ color:#b91c1c; }
+[data-theme="light"] #myWageTable .my-wage-deduction-reason{ color:#dc2626; }
+@media (max-width:560px){
+  #mySection > .card > .grid-2{
+    width:calc(100vw - 48px);
+    grid-template-columns:minmax(0,1fr);
+  }
+  #myWageTable .my-wage-deduction-reason{ font-size:11px; }
+  .my-pay-deduction-date{ grid-column:1; }
 }
 
 </style>
