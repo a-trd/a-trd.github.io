@@ -303,7 +303,7 @@
   
 </style>
 
-<title>Aspire Workforce Command (V5.0.66 Modular Build)</title>
+<title>Aspire Workforce Command (V5.0.67 Modular Build)</title>
   <meta name="theme-color" content="#22c55e"/>
 
   <style>
@@ -5114,7 +5114,7 @@
       <div id="appLogoBox"></div>
       <div class="titlewrap">
         <div class="title" id="appTitle">Aspire Workforce Command</div>
-        <div class="version-pill" id="appVersion">V5.0.66</div>
+        <div class="version-pill" id="appVersion">V5.0.67</div>
         <div class="sync-pill syncing" id="syncStatusChip" title="Sync status">Starting…</div>
       </div>
     </div>
@@ -5156,7 +5156,7 @@
         <header class="login-brand">
           <div class="login-brand-row">
             <span class="login-eyebrow">Workforce operations</span>
-            <span class="login-version" aria-label="Application version V5.0.66">V5.0.66</span>
+            <span class="login-version" aria-label="Application version V5.0.67">V5.0.67</span>
           </div>
           <h1>Aspire Workforce Command</h1>
           <p>Open your roster, requests and workforce tools from one secure workspace.</p>
@@ -5296,11 +5296,16 @@
             </div>
 
             <div id="myWithheldInfoWrap" style="margin-top:10px;">
-              <label>Withheld pay / savings / pay advance</label>
-              <div id="myWithheldNone" class="muted small" style="margin-top:4px;">No withheld pay, savings, or pay-advance balance is currently recorded.</div>
+              <label>My pay summary</label>
+              <div id="myPayDeductionNotice" class="my-pay-deduction-notice" style="display:none;" aria-live="polite"></div>
+              <div id="myWithheldNone" class="muted small" style="margin-top:4px;">No adjustments, deductions, withheld pay, savings, or pay-advance balance is currently recorded.</div>
               <div class="table-wrapper kv-wrapper" style="margin-top:6px;">
                 <table class="table kv-table" id="myWithheldTable">
                   <tbody>
+                    <tr><td><b>Roster earnings</b></td><td id="myRosterEarnings">$0.00</td></tr>
+                    <tr><td><b>Pay adjustment</b></td><td id="myPayAdjustment">$0.00</td></tr>
+                    <tr><td><b>PAYG withheld</b></td><td id="myPaygWithheld">$0.00</td></tr>
+                    <tr><td><b>Other deductions</b></td><td id="myOtherDeductions">$0.00</td></tr>
                     <tr><td><b>Withheld (shown week)</b></td><td id="myWithheldThisWeek">$0.00</td></tr>
                     <tr><td><b>Withheld balance</b></td><td id="myWithheldBalance">$0.00</td></tr>
                     <tr><td><b>Savings balance</b></td><td id="mySavingsBalance">$0.00</td></tr>
@@ -5310,7 +5315,7 @@
                   </tbody>
                 </table>
               </div>
-              <div class="muted small" style="margin-top:4px;">Withheld pay reduces the shown week. Savings is separate. A pay advance appears as a negative amount owed and earned pay recovers it until the balance reaches $0.00.</div>
+              <div class="muted small" style="margin-top:4px;">Negative pay adjustments and other deductions include the reason recorded by payroll. Withheld pay reduces the shown week. Savings is separate. A pay advance appears as a negative amount owed and earned pay recovers it until the balance reaches $0.00.</div>
               <div id="mySavingsLogWrap" style="margin-top:10px;display:none;">
                 <label>Savings activity</label>
                 <div id="mySavingsLogNone" class="muted small" style="margin-top:4px;">No savings activity recorded yet.</div>
@@ -7551,8 +7556,8 @@ var DAY = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 var App = {
   // IMPORTANT: Increment App.version *and* App.buildId whenever making functional changes to this file.
   // SAFETY NET: This build performs an automatic runtime check against the file name; if mismatched, it shows a blocking warning so it can't be overlooked.
-  version: 'V5.0.66',
-    buildId: '2026-10-20.02',
+  version: 'V5.0.67',
+    buildId: '2026-11-01.01',
 settings: {
     dbUrl:'https://mnc-atrd-default-rtdb.asia-southeast1.firebasedatabase.app/', workspace:'mnc-atrd', authToken:'',
     theme:'light', themeName:'light-pastel-sky', recentColors:[], appTitle:'Aspire Workforce Command', logoUrl:'',
@@ -13612,6 +13617,68 @@ function setMyWeek(iso){
   renderMyShifts();
 }
 
+function staffPaySummaryForWeek(weekISO, staffId, rosterPay){
+  weekISO = String(weekISO || '');
+  staffId = String(staffId || '');
+  rosterPay = parseFloat(rosterPay || 0);
+  if(!isFinite(rosterPay)) rosterPay = 0;
+
+  var adjRec = ((((App.payrollAdjustments||{})[weekISO]||{})[staffId])) || {amount:0, comment:''};
+  var adjustment = parseFloat(adjRec.amount || 0);
+  if(!isFinite(adjustment)) adjustment = 0;
+  var positiveAdjustment = adjustment > 0 ? adjustment : 0;
+  var negativeAdjustment = adjustment < 0 ? Math.abs(adjustment) : 0;
+
+  var weekData = {};
+  try{
+    if(typeof getPayrollWeekDataRec === 'function') weekData = getPayrollWeekDataRec(weekISO, staffId, false) || {};
+    else weekData = ((((App.payrollWeekData||{})[weekISO]||{})[staffId])) || {};
+  }catch(e){ weekData = {}; }
+  var paygWithheld = parseFloat(weekData.paygWithheld || 0);
+  var otherDeductions = parseFloat(weekData.otherDeductions || 0);
+  if(!isFinite(paygWithheld) || paygWithheld < 0) paygWithheld = 0;
+  if(!isFinite(otherDeductions) || otherDeductions < 0) otherDeductions = 0;
+
+  var withheldThisWeek = 0, withheldBalance = 0, savingsBalance = 0, advanceBalance = 0;
+  try{ if(typeof getWithheldForWeek === 'function') withheldThisWeek = parseFloat(getWithheldForWeek(weekISO, staffId)||0) || 0; }catch(e){}
+  try{ if(typeof getWithheldBalance === 'function') withheldBalance = parseFloat(getWithheldBalance(staffId)||0) || 0; }catch(e){}
+  try{ if(typeof getSavingsBalance === 'function') savingsBalance = parseFloat(getSavingsBalance(staffId)||0) || 0; }catch(e){}
+  try{ if(typeof getPayAdvanceBalance === 'function') advanceBalance = parseFloat(getPayAdvanceBalance(staffId)||0) || 0; }catch(e){}
+  if(!isFinite(withheldThisWeek) || withheldThisWeek < 0) withheldThisWeek = 0;
+  if(!isFinite(withheldBalance) || withheldBalance < 0) withheldBalance = 0;
+  if(!isFinite(savingsBalance) || savingsBalance < 0) savingsBalance = 0;
+  if(!isFinite(advanceBalance) || advanceBalance < 0) advanceBalance = 0;
+
+  var grossPay = rosterPay + positiveAdjustment;
+  var beforeAdvance = grossPay - negativeAdjustment - paygWithheld - otherDeductions - withheldThisWeek;
+  if(!isFinite(beforeAdvance) || beforeAdvance < 0) beforeAdvance = 0;
+  var advanceRecovery = 0;
+  try{
+    if(typeof getAdvanceRecoveryForWeek === 'function') advanceRecovery = parseFloat(getAdvanceRecoveryForWeek(weekISO, staffId, beforeAdvance, true)||0) || 0;
+  }catch(e){}
+  if(!isFinite(advanceRecovery) || advanceRecovery < 0) advanceRecovery = 0;
+  var netPay = beforeAdvance - advanceRecovery;
+  if(!isFinite(netPay) || netPay < 0) netPay = 0;
+
+  return {
+    rosterPay:rosterPay,
+    adjustment:adjustment,
+    adjustmentComment:String(adjRec.comment || '').trim(),
+    positiveAdjustment:positiveAdjustment,
+    negativeAdjustment:negativeAdjustment,
+    paygWithheld:paygWithheld,
+    otherDeductions:otherDeductions,
+    otherDeductionDetails:String(weekData.otherDeductionDetails || '').trim(),
+    withheldThisWeek:withheldThisWeek,
+    withheldBalance:withheldBalance,
+    savingsBalance:savingsBalance,
+    advanceBalance:advanceBalance,
+    advanceRecovery:advanceRecovery,
+    grossPay:grossPay,
+    netPay:netPay
+  };
+}
+
 function renderMyShifts(){
   if(!App.currentUser) return;
   var weekISO = (MyView && MyView.weekStartISO) ? String(MyView.weekStartISO) : toISO(weekStart(new Date()));
@@ -13692,34 +13759,24 @@ function renderMyShifts(){
   byId('myTotalPay').textContent=fmtMoney(py);
   byId('myHours').textContent='Week of '+fmtDMY(start)+' – '+fmtDMY(endLbl)+': '+tp.toFixed(2)+' payable hours — '+fmtMoney(py);
 
-  // Withheld pay (staff view)
+  // Staff-only pay summary, including adjustments and deduction reasons.
   try{
     var sid = String(App.currentUser.id||'');
-    var wWeek = 0, wBal = 0, sBal = 0, aBal = 0, aRecovery = 0;
-    if(sid){
-      if(typeof getWithheldForWeek === 'function') wWeek = parseFloat(getWithheldForWeek(weekISO, sid)||0) || 0;
-      if(typeof getWithheldBalance === 'function') wBal = parseFloat(getWithheldBalance(sid)||0) || 0;
-      if(typeof getSavingsBalance === 'function') sBal = parseFloat(getSavingsBalance(sid)||0) || 0;
-      if(typeof getPayAdvanceBalance === 'function') aBal = parseFloat(getPayAdvanceBalance(sid)||0) || 0;
-    }
-    if(!isFinite(wWeek)) wWeek = 0;
-    if(!isFinite(wBal)) wBal = 0;
-    if(!isFinite(sBal)) sBal = 0;
-    if(!isFinite(aBal)) aBal = 0;
-
-    var beforeAdvance = py - wWeek;
-    if(!isFinite(beforeAdvance) || beforeAdvance < 0) beforeAdvance = 0;
-    if(typeof getAdvanceRecoveryForWeek === 'function') aRecovery = parseFloat(getAdvanceRecoveryForWeek(weekISO, sid, beforeAdvance, true)||0) || 0;
-    if(!isFinite(aRecovery) || aRecovery < 0) aRecovery = 0;
-    var net = beforeAdvance - aRecovery;
-    if(!isFinite(net)) net = py;
-    if(net < 0) net = 0;
+    var paySummary = staffPaySummaryForWeek(weekISO, sid, py);
+    var wWeek = paySummary.withheldThisWeek;
+    var wBal = paySummary.withheldBalance;
+    var sBal = paySummary.savingsBalance;
+    var aBal = paySummary.advanceBalance;
+    var aRecovery = paySummary.advanceRecovery;
+    var net = paySummary.netPay;
 
     var pill = byId('myWithheldPill');
     if(pill){
-      if(wBal > 0.0001 || sBal > 0.0001 || aBal > 0.0001 || aRecovery > 0.0001){
+      if(paySummary.negativeAdjustment > 0.0001 || paySummary.otherDeductions > 0.0001 || wBal > 0.0001 || sBal > 0.0001 || aBal > 0.0001 || aRecovery > 0.0001){
         pill.style.display='';
         var pillParts=[];
+        if(paySummary.negativeAdjustment > 0.0001) pillParts.push('Pay deduction: -'+fmtMoney(paySummary.negativeAdjustment));
+        if(paySummary.otherDeductions > 0.0001) pillParts.push('Other deduction: -'+fmtMoney(paySummary.otherDeductions));
         if(wBal > 0.0001) pillParts.push('Withheld: '+fmtMoney(wBal));
         if(sBal > 0.0001) pillParts.push('Savings: '+fmtMoney(sBal));
         if(aBal > 0.0001) pillParts.push('Advance owed: -'+fmtMoney(aBal));
@@ -13732,18 +13789,68 @@ function renderMyShifts(){
     }
 
     var noneEl = byId('myWithheldNone');
+    var rosterEl = byId('myRosterEarnings');
+    var adjustmentEl = byId('myPayAdjustment');
+    var paygEl = byId('myPaygWithheld');
+    var otherDeductionEl = byId('myOtherDeductions');
     var twEl = byId('myWithheldThisWeek');
     var balEl = byId('myWithheldBalance');
     var savEl = byId('mySavingsBalance');
     var advanceBalEl = byId('myAdvanceBalance');
     var advanceRecoveryEl = byId('myAdvanceRecovery');
     var netEl = byId('myWithheldNetPay');
+    if(rosterEl) rosterEl.textContent = fmtMoney(paySummary.rosterPay);
+    if(adjustmentEl){
+      adjustmentEl.textContent = Math.abs(paySummary.adjustment) > 0.0001 ? ((paySummary.adjustment > 0 ? '+' : '-') + fmtMoney(Math.abs(paySummary.adjustment))) : fmtMoney(0);
+      adjustmentEl.classList.toggle('my-pay-value-negative', paySummary.adjustment < -0.0001);
+      adjustmentEl.classList.toggle('my-pay-value-positive', paySummary.adjustment > 0.0001);
+    }
+    if(paygEl) paygEl.textContent = paySummary.paygWithheld > 0.0001 ? ('-'+fmtMoney(paySummary.paygWithheld)) : fmtMoney(0);
+    if(otherDeductionEl) otherDeductionEl.textContent = paySummary.otherDeductions > 0.0001 ? ('-'+fmtMoney(paySummary.otherDeductions)) : fmtMoney(0);
     if(twEl) twEl.textContent = (wWeek > 0.0001 ? ('-'+fmtMoney(wWeek)) : fmtMoney(0));
     if(balEl) balEl.textContent = fmtMoney(wBal);
     if(savEl) savEl.textContent = fmtMoney(sBal);
     if(advanceBalEl) advanceBalEl.textContent = aBal > 0.0001 ? ('-'+fmtMoney(aBal)) : fmtMoney(0);
     if(advanceRecoveryEl) advanceRecoveryEl.textContent = aRecovery > 0.0001 ? ('-'+fmtMoney(aRecovery)) : fmtMoney(0);
     if(netEl) netEl.textContent = fmtMoney(net);
+
+    var deductionNotice = byId('myPayDeductionNotice');
+    if(deductionNotice){
+      deductionNotice.innerHTML = '';
+      var deductionItems = [];
+      if(paySummary.negativeAdjustment > 0.0001){
+        deductionItems.push({label:'Pay deduction', amount:paySummary.negativeAdjustment, reason:paySummary.adjustmentComment || 'No reason was recorded.'});
+      }
+      if(paySummary.otherDeductions > 0.0001){
+        deductionItems.push({label:'Other deduction', amount:paySummary.otherDeductions, reason:paySummary.otherDeductionDetails || 'No reason was recorded.'});
+      }
+      if(deductionItems.length){
+        deductionNotice.style.display = '';
+        var noticeTitle = document.createElement('div');
+        noticeTitle.className = 'my-pay-deduction-title';
+        noticeTitle.textContent = deductionItems.length === 1 ? 'A deduction applies to this pay week' : 'Deductions apply to this pay week';
+        deductionNotice.appendChild(noticeTitle);
+        deductionItems.forEach(function(item){
+          var itemEl = document.createElement('div');
+          itemEl.className = 'my-pay-deduction-item';
+          var labelEl = document.createElement('div');
+          labelEl.className = 'my-pay-deduction-label';
+          labelEl.textContent = item.label;
+          var amountEl = document.createElement('div');
+          amountEl.className = 'my-pay-deduction-amount';
+          amountEl.textContent = '-'+fmtMoney(item.amount);
+          var reasonEl = document.createElement('div');
+          reasonEl.className = 'my-pay-deduction-reason';
+          reasonEl.textContent = 'Reason: '+item.reason;
+          itemEl.appendChild(labelEl);
+          itemEl.appendChild(amountEl);
+          itemEl.appendChild(reasonEl);
+          deductionNotice.appendChild(itemEl);
+        });
+      }else{
+        deductionNotice.style.display = 'none';
+      }
+    }
 
     var savingsRows = [];
     if(sid && Array.isArray(App.paySavingsLog)){
@@ -13777,10 +13884,16 @@ function renderMyShifts(){
     if(savTable) savTable.style.display = savingsRows.length ? '' : 'none';
 
     if(noneEl){
-      noneEl.style.display = (wWeek > 0.0001 || wBal > 0.0001 || sBal > 0.0001 || aBal > 0.0001 || aRecovery > 0.0001 || savingsRows.length) ? 'none' : '';
+      noneEl.style.display = (Math.abs(paySummary.adjustment) > 0.0001 || paySummary.paygWithheld > 0.0001 || paySummary.otherDeductions > 0.0001 || wWeek > 0.0001 || wBal > 0.0001 || sBal > 0.0001 || aBal > 0.0001 || aRecovery > 0.0001 || savingsRows.length) ? 'none' : '';
     }
   }catch(e){}
 }
+
+try{
+  if(String(location.search || '').indexOf('staff-deduction-test=1') >= 0){
+    window.v5067RenderMyShiftsTest = renderMyShifts;
+  }
+}catch(e){}
 
 
 
@@ -19772,6 +19885,7 @@ function validatePayrollWeekInputs(rec){
     var n = Number(checks[i][1]);
     if(!isFinite(n) || n < 0) return checks[i][0] + ' must be a positive number or zero.';
   }
+  if(Number(rec.otherDeductions || 0) > 0.0001 && !String(rec.otherDeductionDetails || '').trim()) return 'Enter deductions details so the staff member can see the reason for the deduction.';
   var notes = [rec.otherDeductionDetails || '', rec.leaveAnnual || '', rec.leaveSick || '', rec.leaveLong || '', rec.note || ''];
   for(var j=0;j<notes.length;j++){
     if(String(notes[j]).length > 280) return 'Payroll notes and leave fields must be 280 characters or fewer.';
@@ -22263,11 +22377,16 @@ function setPayrollAdjustment(weekIso, staffId, amount, comment, logOptions){
   if(!isFinite(parsedAmount)) return false;
   amount = round2(parsedAmount);
   if(!weekIso || !staffId) return false;
+  comment = String(comment || '').trim();
+  if(amount < -0.0001 && !comment){
+    try{ alert('Enter a reason / comment for the deduction. The staff member will see this reason in My Shifts & Wages.'); }catch(e){}
+    return false;
+  }
   if(!App.payrollAdjustments[weekIso]) App.payrollAdjustments[weekIso] = {};
   var prev = App.payrollAdjustments[weekIso][staffId] || {amount:0, comment:''};
   var prevAmt = payrollLogNumber(prev.amount, 0) || 0;
   var prevComment = String(prev.comment||'');
-  App.payrollAdjustments[weekIso][staffId] = {amount:amount, comment:comment||''};
+  App.payrollAdjustments[weekIso][staffId] = {amount:amount, comment:comment};
   try{
     logOptions = logOptions || {};
     var logAmount = (logOptions.amount == null) ? round2(amount - prevAmt) : payrollLogNumber(logOptions.amount, 0);
@@ -22345,7 +22464,10 @@ function openPayrollAdjustmentPrompt(staffId){
   var parsedAmt = parseMoneyInput(amtStr);
   if(!isFinite(parsedAmt)){ alert('Enter a valid amount. You can use 2000, 2,000, $2,000, or -2,000.'); return; }
   var amt = round2(parsedAmt);
-  var comment = prompt('Comment / note for this adjustment:', rec.comment||'') || '';
+  var commentPrompt = prompt(amt < -0.0001 ? 'Reason / comment for this deduction (required and visible to the staff member):' : 'Comment / note for this adjustment:', rec.comment||'');
+  if(commentPrompt === null) return;
+  var comment = String(commentPrompt || '').trim();
+  if(amt < -0.0001 && !comment){ alert('Enter a reason / comment for the deduction. The staff member will see it in My Shifts & Wages.'); return; }
   var ok = setPayrollAdjustment(weekIso, staffId, amt, comment);
   if(ok === false) return;
   renderPayroll();
@@ -27264,7 +27386,7 @@ try{
 (function(){
   'use strict';
   var APP_NAME = 'Aspire Workforce Command';
-  var APP_VERSION = 'V5.0.66';
+  var APP_VERSION = 'V5.0.67';
   var OLD_TITLE = 'M&C-ATRD-scheduler --=Aspire Group=--';
 
   var NAVS = [
@@ -31694,6 +31816,65 @@ body.theme-light #dtAddSecondShift.dt-additional-shift{
 @media (max-width:760px){
   .daytools-shift-list{grid-template-columns:1fr;}
   .daytools-shift-choice{min-height:44px;font-size:13px;}
+}
+
+</style>
+<style id="v5067StaffDeductionVisibilityCss">
+/* V5.0.67 staff-visible payroll deductions */
+.my-pay-deduction-notice{
+  margin:8px 0 10px;
+  border-left:4px solid #ef4444;
+  background:rgba(239,68,68,.12);
+  color:var(--text);
+  padding:10px 12px;
+  border-radius:6px;
+}
+.my-pay-deduction-title{
+  color:#f87171;
+  font-weight:900;
+  margin-bottom:6px;
+}
+.my-pay-deduction-item{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:4px 12px;
+  padding:7px 0;
+  border-top:1px solid rgba(239,68,68,.24);
+}
+.my-pay-deduction-item:first-of-type{ border-top:0; }
+.my-pay-deduction-label{ font-weight:800; }
+.my-pay-deduction-amount{
+  color:#fca5a5;
+  font-weight:900;
+  white-space:nowrap;
+  font-variant-numeric:tabular-nums;
+}
+.my-pay-deduction-reason{
+  grid-column:1 / -1;
+  color:var(--muted);
+  overflow-wrap:anywhere;
+}
+.my-pay-value-negative{ color:#f87171 !important; font-weight:900 !important; }
+.my-pay-value-positive{ color:#34d399 !important; font-weight:900 !important; }
+[data-theme="light"] .my-pay-value-negative{ color:#b91c1c !important; }
+[data-theme="light"] .my-pay-value-positive{ color:#047857 !important; }
+[data-theme="light"] .my-pay-deduction-notice{
+  background:#fff1f2;
+  border-left-color:#dc2626;
+}
+[data-theme="light"] .my-pay-deduction-title,
+[data-theme="light"] .my-pay-deduction-amount{ color:#b91c1c; }
+@media (max-width:560px){
+  #myWithheldInfoWrap{
+    width:calc(100vw - 48px);
+    max-width:100%;
+  }
+  #myWithheldInfoWrap .kv-wrapper,
+  #myWithheldInfoWrap .kv-table{ width:100% !important; }
+  .my-pay-deduction-notice{ padding:9px 10px; }
+  .my-pay-deduction-item{ grid-template-columns:1fr; gap:3px; }
+  .my-pay-deduction-amount{ grid-column:1; }
+  .my-pay-deduction-reason{ grid-column:1; }
 }
 
 </style>
