@@ -303,7 +303,7 @@
   
 </style>
 
-<title>Aspire Workforce Command (V5.0.68 Modular Build)</title>
+<title>Aspire Workforce Command (V5.0.70 Modular Build)</title>
   <meta name="theme-color" content="#22c55e"/>
 
   <style>
@@ -5114,7 +5114,7 @@
       <div id="appLogoBox"></div>
       <div class="titlewrap">
         <div class="title" id="appTitle">Aspire Workforce Command</div>
-        <div class="version-pill" id="appVersion">V5.0.68</div>
+        <div class="version-pill" id="appVersion">V5.0.70</div>
         <div class="sync-pill syncing" id="syncStatusChip" title="Sync status">Starting…</div>
       </div>
     </div>
@@ -5156,7 +5156,7 @@
         <header class="login-brand">
           <div class="login-brand-row">
             <span class="login-eyebrow">Workforce operations</span>
-            <span class="login-version" aria-label="Application version V5.0.68">V5.0.68</span>
+            <span class="login-version" aria-label="Application version V5.0.70">V5.0.70</span>
           </div>
           <h1>Aspire Workforce Command</h1>
           <p>Open your roster, requests and workforce tools from one secure workspace.</p>
@@ -7116,9 +7116,10 @@
         <button id="savingsManageAdd" class="btn-primary">Add savings</button>
         <button id="savingsManagePayOut" class="btn-outline">Pay out savings</button>
         <button id="advanceManageAdd" class="btn-primary">Record pay advance</button>
+        <button id="advanceManageRepay" class="btn-good">Set weekly advance repayment</button>
         <button id="advanceManageCorrect" class="btn-outline">Set / clear advance balance</button>
       </div>
-      <div class="muted small" style="margin-top:6px;">Use withheld for pay held back from a week. Savings is held separately. Use pay advance when staff were intentionally overpaid and will repay it through future earned pay.</div>
+      <div class="muted small" style="margin-top:6px;">A pay advance is an agreed amount given before it is earned. Set the amount to deduct from the shown week's wages; no repayment is deducted in another week unless you set one for that week. Payroll overpayments remain separate.</div>
 
       <div style="margin-top:14px;">
         <label>Withheld log (shown week)</label>
@@ -7137,7 +7138,7 @@
       </div>
 
       <div style="margin-top:14px;">
-        <label>Pay advance / recovery log</label>
+        <label>Pay advance transactions</label>
         <div id="advanceManageList" style="margin-top:8px;"></div>
       </div>
 
@@ -7561,8 +7562,8 @@ var DAY = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 var App = {
   // IMPORTANT: Increment App.version *and* App.buildId whenever making functional changes to this file.
   // SAFETY NET: This build performs an automatic runtime check against the file name; if mismatched, it shows a blocking warning so it can't be overlooked.
-  version: 'V5.0.68',
-    buildId: '2026-11-01.02',
+  version: 'V5.0.70',
+    buildId: '2026-11-07.02',
 settings: {
     dbUrl:'https://mnc-atrd-default-rtdb.asia-southeast1.firebasedatabase.app/', workspace:'mnc-atrd', authToken:'',
     theme:'light', themeName:'light-pastel-sky', recentColors:[], appTitle:'Aspire Workforce Command', logoUrl:'',
@@ -7608,7 +7609,7 @@ publishedWeeks: {}
   },
   staff:{}, availability:{}, weeks:{}, absenceRequests:{}, absenceHistory:{}, shiftChangeRequests:{}, shiftChangeHistory:{}, payrollAdjustments:{}, payrollPaid:{}, payrollPaidSnapshots:{},
   payWithheld:{}, payWithheldByWeek:{}, payWithheldLog:[], paySavings:{}, paySavingsLog:[],
-  payAdvanceBalances:{}, payAdvanceRecoveries:{}, payAdvanceIssues:{}, payAdvanceLog:[],
+  payAdvanceBalances:{}, payAdvanceRecoveryPlans:{}, payAdvanceRecoveries:{}, payAdvanceIssues:{}, payAdvanceLog:[],
   payrollLog:[], payrollLogBackfilled:false, payrollAuditLogBackfilled:false,
   payrollProfiles:{business:{}, staff:{}},
   payrollWeekData:{},
@@ -7860,6 +7861,7 @@ function normalizeCoreState(){
     if(!App.paySavings || typeof App.paySavings !== 'object') App.paySavings = {};
     if(!Array.isArray(App.paySavingsLog)) App.paySavingsLog = [];
     if(!App.payAdvanceBalances || typeof App.payAdvanceBalances !== 'object') App.payAdvanceBalances = {};
+    if(!App.payAdvanceRecoveryPlans || typeof App.payAdvanceRecoveryPlans !== 'object') App.payAdvanceRecoveryPlans = {};
     if(!App.payAdvanceRecoveries || typeof App.payAdvanceRecoveries !== 'object') App.payAdvanceRecoveries = {};
     if(!App.payAdvanceIssues || typeof App.payAdvanceIssues !== 'object') App.payAdvanceIssues = {};
     if(!Array.isArray(App.payAdvanceLog)) App.payAdvanceLog = [];
@@ -7903,6 +7905,7 @@ function buildAppExportData(){
     paySavings:App.paySavings||{},
     paySavingsLog:App.paySavingsLog||[],
     payAdvanceBalances:App.payAdvanceBalances||{},
+    payAdvanceRecoveryPlans:App.payAdvanceRecoveryPlans||{},
     payAdvanceRecoveries:App.payAdvanceRecoveries||{},
     payAdvanceIssues:App.payAdvanceIssues||{},
     payAdvanceLog:App.payAdvanceLog||[],
@@ -7948,6 +7951,7 @@ function applyExportDataToApp(d){
   App.paySavings = d.paySavings || App.paySavings || {};
   App.paySavingsLog = d.paySavingsLog || App.paySavingsLog || [];
   App.payAdvanceBalances = d.payAdvanceBalances || App.payAdvanceBalances || {};
+  App.payAdvanceRecoveryPlans = d.payAdvanceRecoveryPlans || App.payAdvanceRecoveryPlans || {};
   App.payAdvanceRecoveries = d.payAdvanceRecoveries || App.payAdvanceRecoveries || {};
   App.payAdvanceIssues = d.payAdvanceIssues || App.payAdvanceIssues || {};
   App.payAdvanceLog = d.payAdvanceLog || App.payAdvanceLog || [];
@@ -9393,6 +9397,7 @@ function historySnapshotObj(){
     paySavings: App.paySavings,
     paySavingsLog: App.paySavingsLog,
     payAdvanceBalances: App.payAdvanceBalances,
+    payAdvanceRecoveryPlans: App.payAdvanceRecoveryPlans,
     payAdvanceRecoveries: App.payAdvanceRecoveries,
     payAdvanceIssues: App.payAdvanceIssues,
     payAdvanceLog: App.payAdvanceLog,
@@ -9574,6 +9579,7 @@ function historyApplySnapshotString(s){
     if(d.paySavings) App.paySavings = d.paySavings;
     if(d.paySavingsLog) App.paySavingsLog = d.paySavingsLog;
     if(d.payAdvanceBalances) App.payAdvanceBalances = d.payAdvanceBalances;
+    if(d.payAdvanceRecoveryPlans) App.payAdvanceRecoveryPlans = d.payAdvanceRecoveryPlans;
     if(d.payAdvanceRecoveries) App.payAdvanceRecoveries = d.payAdvanceRecoveries;
     if(d.payAdvanceIssues) App.payAdvanceIssues = d.payAdvanceIssues;
     if(d.payAdvanceLog) App.payAdvanceLog = d.payAdvanceLog;
@@ -11138,7 +11144,7 @@ function v413ExportAuditCsv(){
 // Import validation and preview.
 function v413ValidateImportPayload(d){
   var payload = v413FindExportPayload(d);
-  var known = ['settings','staff','availability','weeks','absenceRequests','absenceHistory','shiftChangeRequests','shiftChangeHistory','payrollAdjustments','payrollPaid','payrollPaidSnapshots','payWithheld','payWithheldByWeek','payWithheldLog','paySavings','paySavingsLog','payAdvanceBalances','payAdvanceRecoveries','payAdvanceIssues','payAdvanceLog','payrollLog','payrollLogBackfilled','payrollAuditLogBackfilled','payrollProfiles','payrollWeekData','payslipRecords','businessAnalytics','dailyOps','recurringUnavailability','recurringUnavailabilityExceptions','editRequests','rosterTemplates','messages','messageRecipientGroups','auditLog','payRunStatus','syncMeta','version','buildId'];
+  var known = ['settings','staff','availability','weeks','absenceRequests','absenceHistory','shiftChangeRequests','shiftChangeHistory','payrollAdjustments','payrollPaid','payrollPaidSnapshots','payWithheld','payWithheldByWeek','payWithheldLog','paySavings','paySavingsLog','payAdvanceBalances','payAdvanceRecoveryPlans','payAdvanceRecoveries','payAdvanceIssues','payAdvanceLog','payrollLog','payrollLogBackfilled','payrollAuditLogBackfilled','payrollProfiles','payrollWeekData','payslipRecords','businessAnalytics','dailyOps','recurringUnavailability','recurringUnavailabilityExceptions','editRequests','rosterTemplates','messages','messageRecipientGroups','auditLog','payRunStatus','syncMeta','version','buildId'];
   var stats = [];
   var warnings = [];
   function cntObj(k){ return payload && payload[k] && typeof payload[k]==='object' ? Object.keys(payload[k]).length : 0; }
@@ -18806,12 +18812,100 @@ function openSavingsPayoutPrompt(staffId){
 
 // ---------- Pay advance / recovery helpers ----------
 // Balances are stored as a positive amount owed, but displayed as a negative staff balance.
-// Recovery is committed only when a later week is marked paid, and reversed if that week is reopened.
+// Only an explicitly selected weekly repayment is deducted. It is committed when that week is marked paid.
+function payAdvanceWeekFromTimestamp(ts){
+  try{
+    var d = new Date(ts||'');
+    if(!isNaN(d)) return toISO(weekStart(d));
+  }catch(e){}
+  try{ return String(Planner.weekStartISO||''); }catch(e2){}
+  return '';
+}
 function ensurePayAdvanceStores(){
   if(!App.payAdvanceBalances || typeof App.payAdvanceBalances !== 'object') App.payAdvanceBalances = {};
+  if(!App.payAdvanceRecoveryPlans || typeof App.payAdvanceRecoveryPlans !== 'object') App.payAdvanceRecoveryPlans = {};
   if(!App.payAdvanceRecoveries || typeof App.payAdvanceRecoveries !== 'object') App.payAdvanceRecoveries = {};
   if(!App.payAdvanceIssues || typeof App.payAdvanceIssues !== 'object') App.payAdvanceIssues = {};
   if(!Array.isArray(App.payAdvanceLog)) App.payAdvanceLog = [];
+  // V5.0.69 recorded a repayment as a direct balance reduction. The latest such entry for a
+  // staff member is the intended weekly amount. Earlier retries are superseded, not added.
+  var migratedV5070 = false;
+  var legacyByStaff = {};
+  App.payAdvanceLog.forEach(function(rec, index){
+    if(!rec) return;
+    var isLegacyPayment = rec.type==='advancePayment' || (rec.repaymentPlanMigratedV5070===true && rec.repaymentPlanNormalizedV5070!==true);
+    if(!isLegacyPayment) return;
+    var staffId = String(rec.staffId||'');
+    var amount = Math.abs(numFromAnyWithheld(rec.amount));
+    var weekIso = String(rec.weekIso||'') || payAdvanceWeekFromTimestamp(rec.ts);
+    if(!staffId || !weekIso || !isFinite(amount) || amount<=0) return;
+    if(!legacyByStaff[staffId]) legacyByStaff[staffId] = [];
+    legacyByStaff[staffId].push({rec:rec, index:index, amount:round2(amount), weekIso:weekIso, time:(new Date(rec.ts||0)).getTime()||0});
+  });
+  var selectedLegacyByStaff = {};
+  Object.keys(legacyByStaff).forEach(function(staffId){
+    var rows = legacyByStaff[staffId].sort(function(a,b){ return a.time===b.time ? a.index-b.index : a.time-b.time; });
+    var latest = rows[rows.length-1];
+    var laterBalanceEntry = false;
+    var lastBalanceBeforeLatest = null;
+    App.payAdvanceLog.forEach(function(rec, index){
+      if(!rec || String(rec.staffId||'')!==staffId || index===latest.index) return;
+      var t = (new Date(rec.ts||0)).getTime()||0;
+      var affectsBalance = rec.type==='advanceAdded' || rec.type==='advanceCorrection' || rec.type==='recoveryApplied' || rec.type==='recoveryReversed';
+      if(!affectsBalance) return;
+      if(t > latest.time || (t===latest.time && index>latest.index)) laterBalanceEntry = true;
+      else if(!lastBalanceBeforeLatest || t>lastBalanceBeforeLatest.time || (t===lastBalanceBeforeLatest.time && index>lastBalanceBeforeLatest.index)) lastBalanceBeforeLatest = {time:t,index:index};
+    });
+    rows.forEach(function(row){
+      if(App.payAdvanceRecoveryPlans[row.weekIso]){
+        delete App.payAdvanceRecoveryPlans[row.weekIso][staffId];
+        if(Object.keys(App.payAdvanceRecoveryPlans[row.weekIso]).length===0) delete App.payAdvanceRecoveryPlans[row.weekIso];
+      }
+      row.rec.weekIso = row.weekIso;
+      row.rec.repaymentPlanMigratedV5070 = true;
+      row.rec.repaymentPlanNormalizedV5070 = true;
+      row.rec.type = 'recoveryPlanSuperseded';
+      migratedV5070 = true;
+    });
+    if(laterBalanceEntry) return;
+    var activeRows = rows.filter(function(row){
+      if(!lastBalanceBeforeLatest) return true;
+      return row.time>lastBalanceBeforeLatest.time || (row.time===lastBalanceBeforeLatest.time && row.index>lastBalanceBeforeLatest.index);
+    });
+    if(!activeRows.length) return;
+    var earliestActive = activeRows[0];
+    var latestActive = activeRows[activeRows.length-1];
+    var firstProjectedBalance = numFromAnyWithheld(earliestActive.rec.balance);
+    App.payAdvanceBalances[staffId] = round2(Math.max(0, firstProjectedBalance + earliestActive.amount));
+    if(!App.payAdvanceRecoveryPlans[latestActive.weekIso]) App.payAdvanceRecoveryPlans[latestActive.weekIso] = {};
+    App.payAdvanceRecoveryPlans[latestActive.weekIso][staffId] = latestActive.amount;
+    latestActive.rec.type = 'recoveryPlanned';
+    selectedLegacyByStaff[staffId] = latestActive;
+  });
+  if(migratedV5070 && Array.isArray(App.payrollLog)){
+    App.payrollLog.forEach(function(rec){
+      if(!rec || rec.category!=='advance') return;
+      var converted = String(rec.note||'').indexOf('Converted to shown-week wage repayment in V5.0.70')>=0;
+      if(rec.type!=='advancePayment' && !converted) return;
+      var staffId = String(rec.staffId||'');
+      var selected = selectedLegacyByStaff[staffId];
+      var isSelected = !!(selected && String(rec.ts||'')===String(selected.rec.ts||''));
+      rec.type = isSelected ? 'recoveryPlanned' : 'recoveryPlanSuperseded';
+      rec.action = isSelected ? 'Weekly advance repayment set' : 'Earlier weekly repayment superseded';
+      rec.weekIso = String(rec.weekIso||'') || payAdvanceWeekFromTimestamp(rec.ts);
+      if(!converted) rec.note = String(rec.note||'') + (rec.note ? ' | ' : '') + 'Converted to shown-week wage repayment in V5.0.70';
+    });
+  }
+  if(migratedV5070 && App._payAdvanceMigrationSaveQueuedV5070!==true){
+    App._payAdvanceMigrationSaveQueuedV5070 = true;
+    setTimeout(function(){
+      try{ saveLocal(true, {silentSyncState:true}); }catch(e){}
+      try{ dbPatch('/payAdvanceBalances', App.payAdvanceBalances||{}).catch(function(){}); }catch(e2){}
+      try{ dbPatch('/payAdvanceRecoveryPlans', App.payAdvanceRecoveryPlans||{}).catch(function(){}); }catch(e3){}
+      try{ dbPatch('/payAdvanceLog', App.payAdvanceLog||[]).catch(function(){}); }catch(e4){}
+      try{ dbPatch('/payrollLog', App.payrollLog||[]).catch(function(){}); }catch(e5){}
+    }, 0);
+  }
   // Backfill issue-week protection for advances saved by V5.0.54/V5.0.55.
   if(Array.isArray(App.payrollLog)){
     var legacyIssues = {};
@@ -18845,6 +18939,13 @@ function getCommittedAdvanceRecovery(weekIso, staffId){
   if(!isFinite(amount) || amount < 0) amount = 0;
   return round2(amount);
 }
+function getPlannedAdvanceRecovery(weekIso, staffId){
+  ensurePayAdvanceStores();
+  var bucket = App.payAdvanceRecoveryPlans[String(weekIso||'')] || {};
+  var amount = numFromAnyWithheld(bucket[String(staffId||'')]);
+  if(!isFinite(amount) || amount < 0) amount = 0;
+  return round2(amount);
+}
 function getPayAdvanceIssuedForWeek(weekIso, staffId){
   ensurePayAdvanceStores();
   var bucket = App.payAdvanceIssues[String(weekIso||'')] || {};
@@ -18864,11 +18965,11 @@ function getPayAdvanceRecoverableBalance(weekIso, staffId){
 function getAdvanceRecoveryForWeek(weekIso, staffId, availablePay, allowPreview){
   var committed = getCommittedAdvanceRecovery(weekIso, staffId);
   if(committed > 0.0001) return committed;
-  var shownWeek = (typeof Planner !== 'undefined' && Planner) ? String(Planner.weekStartISO||'') : '';
-  if(!allowPreview && String(weekIso||'') !== shownWeek) return 0;
+  var planned = getPlannedAdvanceRecovery(weekIso, staffId);
+  if(planned <= 0.0001) return 0;
   var available = parseMoneyInput(availablePay);
   if(!isFinite(available) || available <= 0) return 0;
-  return round2(Math.min(getPayAdvanceRecoverableBalance(weekIso, staffId), available));
+  return round2(Math.min(planned, getPayAdvanceBalance(staffId), available));
 }
 function syncPayAdvanceStores(staffId, weekIso){
   ensurePayAdvanceStores();
@@ -18877,6 +18978,7 @@ function syncPayAdvanceStores(staffId, weekIso){
   try{
     if(staffId){ var p1={}; p1[staffId]=App.payAdvanceBalances[staffId]||0; dbPatch('/payAdvanceBalances', p1).catch(function(){}); }
     if(weekIso){ var p2={}; p2[weekIso]=App.payAdvanceRecoveries[weekIso]||{}; dbPatch('/payAdvanceRecoveries', p2).catch(function(){}); }
+    if(weekIso){ var p3={}; p3[weekIso]=App.payAdvanceRecoveryPlans[weekIso]||null; dbPatch('/payAdvanceRecoveryPlans', p3).catch(function(){}); }
     dbPatch('/payAdvanceIssues', App.payAdvanceIssues||{}).catch(function(){});
     dbPatch('/payAdvanceLog', App.payAdvanceLog||[]).catch(function(){});
   }catch(e){}
@@ -18921,15 +19023,78 @@ function openPayAdvancePrompt(staffId){
   if(!staffId) return;
   var name = staffDisplayNameForId(staffId, 'staff '+staffId);
   var issueWeek = String((typeof Planner!=='undefined' && Planner) ? (Planner.weekStartISO||'') : '');
-  var value = prompt('Pay advance / intentional overpayment for '+name+'. It will not be recovered from this pay week; recovery starts from a later week:', '');
+  var value = prompt('Pay advance for '+name+'. This is separate from a payroll overpayment. It will not be recovered from this pay week; recovery starts from a later week:', '');
   if(value===null) return;
   var amount = parseMoneyInput(value);
   if(!isFinite(amount) || amount<=0) return alert('Enter a positive advance amount.');
-  var note = prompt('Advance note (recommended):', 'Intentional overpayment / pay advance') || '';
+  var note = prompt('Advance note (recommended):', 'Pay advance issued') || '';
   if(adjustPayAdvanceBalance(staffId, Math.abs(amount), note, {recordIssue:true, issueWeek:issueWeek})){
     renderPayroll(); renderMyShifts();
     try{ if(byId('withholdManageModal') && byId('withholdManageModal').style.display==='flex') openWithholdManageModal(staffId); }catch(e){}
     try{ showToast('Pay advance recorded', name+' owes '+fmtMoney(getPayAdvanceBalance(staffId))+'. Recovery starts after '+issueWeek+'.', 'success', 4000); }catch(e){}
+  }
+}
+function setPayAdvanceRecoveryPlan(weekIso, staffId, amount, note){
+  if(!isAdmin()) return alert('Admin only.');
+  ensurePayAdvanceStores();
+  try{ ensurePayrollStores(); }catch(e){}
+  weekIso = String(weekIso||'');
+  staffId = String(staffId||'');
+  amount = parseMoneyInput(amount);
+  if(!weekIso || !staffId || !isFinite(amount) || amount < 0) return false;
+  amount = round2(amount);
+  if(App.payrollPaid && App.payrollPaid[weekIso] && App.payrollPaid[weekIso][staffId]) return false;
+  var current = getPayAdvanceBalance(staffId);
+  if(current <= 0.0001 && amount > 0.0001) return false;
+  if(amount > current + 0.0001) return false;
+  if(!App.payAdvanceRecoveryPlans[weekIso]) App.payAdvanceRecoveryPlans[weekIso] = {};
+  var previous = getPlannedAdvanceRecovery(weekIso, staffId);
+  if(amount <= 0.0001) delete App.payAdvanceRecoveryPlans[weekIso][staffId];
+  else App.payAdvanceRecoveryPlans[weekIso][staffId] = amount;
+  if(Object.keys(App.payAdvanceRecoveryPlans[weekIso]).length===0) delete App.payAdvanceRecoveryPlans[weekIso];
+  var projectedBalance = round2(Math.max(0, current - amount));
+  var ts = new Date().toISOString();
+  note = String(note||'').trim();
+  var type = amount > 0.0001 ? 'recoveryPlanned' : 'recoveryPlanCleared';
+  var action = amount > 0.0001 ? 'Weekly advance repayment set' : 'Weekly advance repayment cleared';
+  App.payAdvanceLog.push({ts:ts, type:type, weekIso:weekIso, staffId:staffId, amount:-amount, previousPlan:previous, balance:projectedBalance, note:note});
+  try{
+    recordPayrollTransaction({
+      category:'advance', type:type, action:action, weekIso:weekIso, staffId:staffId,
+      amount:-amount, balance:-projectedBalance, note:note
+    });
+  }catch(e){}
+  try{ v413AddAudit(action, staffDisplayNameForId(staffId, staffId)+' '+weekIso+' '+fmtMoney(amount), 'payroll'); }catch(e){}
+  saveLocal();
+  syncPayAdvanceStores(staffId, weekIso);
+  return true;
+}
+function recordPayAdvancePayment(staffId, amount, note){
+  var weekIso = String((typeof Planner!=='undefined' && Planner) ? (Planner.weekStartISO||'') : '');
+  return setPayAdvanceRecoveryPlan(weekIso, staffId, amount, note);
+}
+function openPayAdvancePaymentPrompt(staffId){
+  staffId = String(staffId||'');
+  if(!staffId) return;
+  var weekIso = String((typeof Planner!=='undefined' && Planner) ? (Planner.weekStartISO||'') : '');
+  var balance = getPayAdvanceBalance(staffId);
+  var name = staffDisplayNameForId(staffId, 'staff '+staffId);
+  if(balance <= 0.0001) return alert(name+' has no pay-advance balance owing.');
+  if(App.payrollPaid && App.payrollPaid[weekIso] && App.payrollPaid[weekIso][staffId]) return alert('This staff member is already marked paid for the shown week. Reopen the week before changing the advance repayment.');
+  var currentPlan = getPlannedAdvanceRecovery(weekIso, staffId);
+  var value = prompt('Amount to deduct from '+name+'\'s wages for the shown week ('+weekIso+'). Enter 0 to clear the weekly repayment. Current advance owed: '+fmtMoney(balance), String(currentPlan||''));
+  if(value===null) return;
+  var amount = parseMoneyInput(value);
+  if(!isFinite(amount) || amount<0) return alert('Enter 0 or a positive repayment amount.');
+  amount = round2(amount);
+  if(amount > balance + 0.0001) return alert('The payment cannot exceed the current pay-advance balance of '+fmtMoney(balance)+'.');
+  var notePrompt = prompt('Weekly repayment note (recommended):', amount > 0.0001 ? 'Deduct from this week\'s wages' : 'Clear weekly advance repayment');
+  if(notePrompt===null) return;
+  var note = String(notePrompt||'').trim();
+  if(setPayAdvanceRecoveryPlan(weekIso, staffId, amount, note)){
+    renderPayroll(); renderMyShifts();
+    try{ if(byId('withholdManageModal') && byId('withholdManageModal').style.display==='flex') openWithholdManageModal(staffId); }catch(e){}
+    try{ showToast(amount > 0.0001 ? 'Weekly repayment set' : 'Weekly repayment cleared', amount > 0.0001 ? (fmtMoney(amount)+' will be deducted from '+name+'\'s wages for '+weekIso+'.') : ('No advance repayment will be deducted for '+weekIso+'.'), 'success', 4000); }catch(e){}
   }
 }
 function openPayAdvanceCorrectionPrompt(staffId){
@@ -18960,8 +19125,8 @@ function commitPayAdvanceRecovery(weekIso, staffId, availablePay){
   var available = parseMoneyInput(availablePay);
   if(!isFinite(available) || available <= 0) return 0;
   var current = getPayAdvanceBalance(staffId);
-  var recoverable = getPayAdvanceRecoverableBalance(weekIso, staffId);
-  var applied = round2(Math.min(recoverable, available));
+  var planned = getPlannedAdvanceRecovery(weekIso, staffId);
+  var applied = round2(Math.min(planned, current, available));
   if(applied <= 0.0001) return 0;
   if(!App.payAdvanceRecoveries[weekIso]) App.payAdvanceRecoveries[weekIso] = {};
   App.payAdvanceRecoveries[weekIso][staffId] = applied;
@@ -19442,15 +19607,25 @@ function openWithholdManageModal(staffId){
   var sBal = getSavingsBalance(staffId);
   var aBal = getPayAdvanceBalance(staffId);
   var aIssued = getPayAdvanceIssuedForWeek(weekIso, staffId);
+  var aPlanned = getPlannedAdvanceRecovery(weekIso, staffId);
   var aCommitted = getCommittedAdvanceRecovery(weekIso, staffId);
+  var aPreview = aCommitted;
+  if(aPreview <= 0.0001 && aPlanned > 0.0001){
+    var availablePay = 0;
+    try{ if(typeof v5054AdvanceRecoveryAvailablePay === 'function') availablePay = v5054AdvanceRecoveryAvailablePay(weekIso, staffId); }catch(e){}
+    aPreview = getAdvanceRecoveryForWeek(weekIso, staffId, availablePay, true);
+  }
+  var aBalanceAfterWeek = aCommitted > 0.0001 ? aBal : round2(Math.max(0, aBal - aPreview));
 
   byId('withholdManageSummary').innerHTML = ''
     + '<div class="muted small">Withheld (shown week): <b>'+escapeHtml(fmtMoney(wWeek))+'</b></div>'
     + '<div class="muted small">Withheld balance: <b>'+escapeHtml(fmtMoney(wBal))+'</b></div>'
     + '<div class="muted small">Savings balance: <b>'+escapeHtml(fmtMoney(sBal))+'</b> <span class="muted">(not deducted from weekly pay)</span></div>'
-    + '<div class="muted small">Pay advance owed: <b>-'+escapeHtml(fmtMoney(aBal))+'</b></div>'
+    + '<div class="muted small">Pay advance balance owed: <b>-'+escapeHtml(fmtMoney(aBal))+'</b></div>'
     + (aIssued>0.0001 ? '<div class="muted small">Advance issued in shown week: <b>+'+escapeHtml(fmtMoney(aIssued))+'</b> <span class="muted">(recovery starts in a later week)</span></div>' : '')
-    + (aCommitted>0.0001 ? '<div class="muted small">Recovery committed for shown week: <b>-'+escapeHtml(fmtMoney(aCommitted))+'</b></div>' : '');
+    + (aPlanned>0.0001 ? '<div class="muted small">Weekly repayment set: <b>-'+escapeHtml(fmtMoney(aPlanned))+'</b></div>' : '')
+    + (aCommitted>0.0001 ? '<div class="muted small">Repayment committed when paid: <b>-'+escapeHtml(fmtMoney(aCommitted))+'</b></div>' : '')
+    + ((aPlanned>0.0001 || aCommitted>0.0001) ? '<div class="muted small">Balance after shown week: <b>-'+escapeHtml(fmtMoney(aBalanceAfterWeek))+'</b></div>' : '');
 
   var rows = [];
   for(var i=(App.payWithheldLog||[]).length-1; i>=0; i--){
@@ -19579,7 +19754,15 @@ function openWithholdManageModal(staffId){
         + '<thead><tr><th style="width:160px;">When</th><th style="width:170px;">Week</th><th>Type</th><th style="width:120px;">Change</th><th style="width:120px;">Balance owed</th><th>Note</th></tr></thead><tbody>';
       advanceRows.forEach(function(pr){
         var when=''; try{ when=new Date(pr.ts||'').toLocaleString(); }catch(e){ when=String(pr.ts||''); }
-        var label = pr.type==='advanceAdded' ? 'Advance issued' : (pr.type==='advanceCorrection' ? 'Advance balance corrected' : (pr.type==='recoveryApplied' ? 'Recovered from pay' : (pr.type==='recoveryReversed' ? 'Recovery reversed' : String(pr.type||'Entry'))));
+        var label = String(pr.type||'Entry');
+        if(pr.type==='advanceAdded') label = 'Advance issued';
+        else if(pr.type==='recoveryPlanned') label = 'Weekly repayment set';
+        else if(pr.type==='recoveryPlanSuperseded') label = 'Earlier repayment superseded';
+        else if(pr.type==='recoveryPlanCleared') label = 'Weekly repayment cleared';
+        else if(pr.type==='advancePayment') label = 'Legacy repayment entry';
+        else if(pr.type==='advanceCorrection') label = 'Advance balance corrected';
+        else if(pr.type==='recoveryApplied') label = 'Recovered from wages';
+        else if(pr.type==='recoveryReversed') label = 'Wage recovery reversed';
         var change = numFromAnyWithheld(pr.amount);
         advanceHtml += '<tr><td>'+escapeHtml(when)+'</td><td>'+escapeHtml(withholdLogWeekText(pr.weekIso))+'</td><td>'+escapeHtml(label)+'</td>'
           + '<td style="white-space:nowrap;font-weight:800;">'+escapeHtml(v5041SignedMoney(change))+'</td>'
@@ -19665,6 +19848,12 @@ function closeWithholdManageModal(){
     openPayAdvancePrompt(_withholdManageCtx.staffId);
   };
 
+  var advanceRepayBtn = byId('advanceManageRepay');
+  if(advanceRepayBtn) advanceRepayBtn.onclick = function(){
+    if(!_withholdManageCtx.staffId) return;
+    openPayAdvancePaymentPrompt(_withholdManageCtx.staffId);
+  };
+
   var advanceCorrectBtn = byId('advanceManageCorrect');
   if(advanceCorrectBtn) advanceCorrectBtn.onclick = function(){
     if(!_withholdManageCtx.staffId) return;
@@ -19682,6 +19871,15 @@ document.addEventListener('click', function(ev){
     removeWithheldLogEntry(idx);
   }
 });
+
+if(String(location.search || '').indexOf('pay-advance-test=1') >= 0){
+  window.v5069OpenPayAdvanceTest = function(staffId, weekIso){
+    if(weekIso) Planner.weekStartISO = String(weekIso);
+    renderPayroll();
+    renderMyShifts();
+    openWithholdManageModal(staffId);
+  };
+}
 
 
 // ---------- Payroll documents ----------
@@ -22418,7 +22616,10 @@ function v5041PaidDeltaHtml(weekIso, staffId, current){
   if(Math.abs(payDelta) < 0.005 && Math.abs(hrsDelta) < 0.005) return '<div class="muted small payroll-paid-delta neutral">Paid delta: no change</div>';
   var cls = payDelta > 0 ? 'more' : 'less';
   var targetWeek = v5041NextWeekIso(weekIso);
-  return '<div class="muted small payroll-paid-delta '+cls+'"><span>Paid delta: '+v5041SignedMoney(payDelta)+' ('+v5041SignedHours(hrsDelta)+' payable hrs)</span><button type="button" class="payroll-carry-delta-btn" data-week="'+escapeHtml(weekIso)+'" data-staff="'+escapeHtml(staffId)+'" title="Add this paid delta to the next pay cycle">Add to next week</button>'+(targetWeek?'<span class="payroll-delta-target">to '+escapeHtml(targetWeek)+'</span>':'')+'</div>';
+  var deltaLabel = payDelta < 0 ? 'Overpayment from paid week' : 'Extra payable from paid week';
+  var buttonLabel = payDelta < 0 ? 'Deduct next week' : 'Add next week';
+  var buttonTitle = payDelta < 0 ? 'Carry this payroll overpayment into the next pay cycle as a deduction' : 'Carry this extra payable amount into the next pay cycle';
+  return '<div class="muted small payroll-paid-delta '+cls+'"><span>'+deltaLabel+': '+v5041SignedMoney(payDelta)+' ('+v5041SignedHours(hrsDelta)+' payable hrs)</span><button type="button" class="payroll-carry-delta-btn" data-week="'+escapeHtml(weekIso)+'" data-staff="'+escapeHtml(staffId)+'" title="'+buttonTitle+'">'+buttonLabel+'</button>'+(targetWeek?'<span class="payroll-delta-target">to '+escapeHtml(targetWeek)+'</span>':'')+'</div>';
 }
 function v5041CarryPaidDeltaToNextWeek(weekIso, staffId){
   ensurePayrollStores();
@@ -22457,7 +22658,7 @@ function v5041CarryPaidDeltaToNextWeek(weekIso, staffId){
   var existing = targetBucket[staffId] || {amount:0, comment:''};
   var existingAmt = parseFloat(existing.amount||0);
   if(!isFinite(existingAmt)) existingAmt = 0;
-  var note = 'Carry-forward from paid week ' + weekIso + ': ' + v5041SignedMoney(payDelta) + ' (' + v5041SignedHours(hrsDelta) + ' payable hrs)';
+  var note = (payDelta < 0 ? 'Payroll overpayment carried forward from paid week ' : 'Extra payable carried forward from paid week ') + weekIso + ': ' + v5041SignedMoney(payDelta) + ' (' + v5041SignedHours(hrsDelta) + ' payable hrs)';
   var nextComment = existing.comment ? (String(existing.comment) + ' | ' + note) : note;
   setPayrollAdjustment(targetWeek, staffId, existingAmt + payDelta, nextComment, {
     action:'Paid delta carried forward',
@@ -26425,7 +26626,7 @@ try{
     App.payrollPaidSnapshots=data.payrollPaidSnapshots||App.payrollPaidSnapshots||{};
     App.payWithheld=data.payWithheld||App.payWithheld||{};
     App.payWithheldByWeek=data.payWithheldByWeek||App.payWithheldByWeek||{};
-    App.payWithheldLog=data.payWithheldLog||App.payWithheldLog||[]; App.paySavings=data.paySavings||App.paySavings||{}; App.paySavingsLog=data.paySavingsLog||App.paySavingsLog||[]; App.payAdvanceBalances=data.payAdvanceBalances||App.payAdvanceBalances||{}; App.payAdvanceRecoveries=data.payAdvanceRecoveries||App.payAdvanceRecoveries||{}; App.payAdvanceIssues=data.payAdvanceIssues||App.payAdvanceIssues||{}; App.payAdvanceLog=data.payAdvanceLog||App.payAdvanceLog||[]; App.payrollLog=data.payrollLog||App.payrollLog||[]; App.payrollLogBackfilled=(data.payrollLogBackfilled===true || App.payrollLogBackfilled===true); App.payrollProfiles=data.payrollProfiles||App.payrollProfiles||{business:{},staff:{}}; App.payrollWeekData=data.payrollWeekData||App.payrollWeekData||{}; App.payslipRecords=data.payslipRecords||App.payslipRecords||[]; App.businessAnalytics=data.businessAnalytics||App.businessAnalytics||{daily:{}, recurringCosts:{}}; App.dailyOps=data.dailyOps||App.dailyOps||{};
+    App.payWithheldLog=data.payWithheldLog||App.payWithheldLog||[]; App.paySavings=data.paySavings||App.paySavings||{}; App.paySavingsLog=data.paySavingsLog||App.paySavingsLog||[]; App.payAdvanceBalances=data.payAdvanceBalances||App.payAdvanceBalances||{}; App.payAdvanceRecoveryPlans=data.payAdvanceRecoveryPlans||App.payAdvanceRecoveryPlans||{}; App.payAdvanceRecoveries=data.payAdvanceRecoveries||App.payAdvanceRecoveries||{}; App.payAdvanceIssues=data.payAdvanceIssues||App.payAdvanceIssues||{}; App.payAdvanceLog=data.payAdvanceLog||App.payAdvanceLog||[]; App.payrollLog=data.payrollLog||App.payrollLog||[]; App.payrollLogBackfilled=(data.payrollLogBackfilled===true || App.payrollLogBackfilled===true); App.payrollProfiles=data.payrollProfiles||App.payrollProfiles||{business:{},staff:{}}; App.payrollWeekData=data.payrollWeekData||App.payrollWeekData||{}; App.payslipRecords=data.payslipRecords||App.payslipRecords||[]; App.businessAnalytics=data.businessAnalytics||App.businessAnalytics||{daily:{}, recurringCosts:{}}; App.dailyOps=data.dailyOps||App.dailyOps||{};
     App.payrollAuditLogBackfilled=(data.payrollAuditLogBackfilled===true || App.payrollAuditLogBackfilled===true);
     if(data.settings){
       for(var k in data.settings){
@@ -26793,6 +26994,7 @@ async function pushPlannerData(){
     paySavings:App.paySavings||{},
     paySavingsLog:App.paySavingsLog||[],
     payAdvanceBalances:App.payAdvanceBalances||{},
+    payAdvanceRecoveryPlans:App.payAdvanceRecoveryPlans||{},
     payAdvanceRecoveries:App.payAdvanceRecoveries||{},
     payAdvanceIssues:App.payAdvanceIssues||{},
     payAdvanceLog:App.payAdvanceLog||[],
@@ -26835,6 +27037,7 @@ async function pushPlannerAndSettingsAdmin(){
     paySavings:App.paySavings||{},
     paySavingsLog:App.paySavingsLog||[],
     payAdvanceBalances:App.payAdvanceBalances||{},
+    payAdvanceRecoveryPlans:App.payAdvanceRecoveryPlans||{},
     payAdvanceRecoveries:App.payAdvanceRecoveries||{},
     payAdvanceIssues:App.payAdvanceIssues||{},
     payAdvanceLog:App.payAdvanceLog||[],
@@ -27508,7 +27711,7 @@ try{
 (function(){
   'use strict';
   var APP_NAME = 'Aspire Workforce Command';
-  var APP_VERSION = 'V5.0.68';
+  var APP_VERSION = 'V5.0.70';
   var OLD_TITLE = 'M&C-ATRD-scheduler --=Aspire Group=--';
 
   var NAVS = [
