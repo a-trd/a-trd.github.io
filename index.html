@@ -303,7 +303,7 @@
   
 </style>
 
-<title>Aspire Workforce Command (V5.0.70 Modular Build)</title>
+<title>Aspire Workforce Command (V5.0.71 Modular Build)</title>
   <meta name="theme-color" content="#22c55e"/>
 
   <style>
@@ -5114,7 +5114,7 @@
       <div id="appLogoBox"></div>
       <div class="titlewrap">
         <div class="title" id="appTitle">Aspire Workforce Command</div>
-        <div class="version-pill" id="appVersion">V5.0.70</div>
+        <div class="version-pill" id="appVersion">V5.0.71</div>
         <div class="sync-pill syncing" id="syncStatusChip" title="Sync status">Starting…</div>
       </div>
     </div>
@@ -5156,7 +5156,7 @@
         <header class="login-brand">
           <div class="login-brand-row">
             <span class="login-eyebrow">Workforce operations</span>
-            <span class="login-version" aria-label="Application version V5.0.70">V5.0.70</span>
+            <span class="login-version" aria-label="Application version V5.0.71">V5.0.71</span>
           </div>
           <h1>Aspire Workforce Command</h1>
           <p>Open your roster, requests and workforce tools from one secure workspace.</p>
@@ -5510,7 +5510,10 @@
       <div class="card staff-requests-shortcut-card">
         <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:space-between;">
           <h3 style="margin:0;">Staff / Requests</h3>
-          <span class="pill">Admin shortcut</span>
+          <div class="staff-requests-heading-actions">
+            <span class="pill">Admin shortcut</span>
+            <button id="btnRecentRequests" class="btn-outline" type="button">View recent requests</button>
+          </div>
         </div>
         <div class="muted" style="margin-top:8px;">This page mirrors the Staff / Requests Analytics and Requests log from Business Analytics for faster access.</div>
       </div>
@@ -7333,8 +7336,28 @@
       <h3>Pending Requests</h3>
       <div id="requestsList" class="muted" style="margin:8px 0 12px;"></div>
       <div style="display:flex;gap:8px;justify-content:flex-end;">
+        <button id="btnViewRecentRequests" class="btn-outline" type="button">View recent requests</button>
         <button id="btnCloseRequests" class="btn-outline">Close</button>
       </div>
+    </div>
+  </div>
+
+  <!-- Weekly request history -->
+  <div id="recentRequestsModal" class="modal" style="z-index:2050;" role="dialog" aria-modal="true" aria-labelledby="recentRequestsTitle">
+    <div class="panel recent-requests-panel">
+      <div class="recent-requests-head">
+        <div>
+          <h3 id="recentRequestsTitle">Recent requests</h3>
+          <div id="recentRequestsSubtitle" class="muted"></div>
+        </div>
+        <button id="btnCloseRecentRequests" class="btn-outline" type="button" aria-label="Close recent requests">Close</button>
+      </div>
+      <div class="recent-requests-legend" aria-label="Request status key">
+        <span class="recent-request-status pending">Pending</span>
+        <span class="recent-request-status approved">Approved</span>
+        <span class="recent-request-status rejected">Rejected</span>
+      </div>
+      <div id="recentRequestsList" class="recent-requests-list" aria-live="polite"></div>
     </div>
   </div>
 
@@ -7562,8 +7585,8 @@ var DAY = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 var App = {
   // IMPORTANT: Increment App.version *and* App.buildId whenever making functional changes to this file.
   // SAFETY NET: This build performs an automatic runtime check against the file name; if mismatched, it shows a blocking warning so it can't be overlooked.
-  version: 'V5.0.70',
-    buildId: '2026-11-07.02',
+  version: 'V5.0.71',
+    buildId: '2026-11-07.03',
 settings: {
     dbUrl:'https://mnc-atrd-default-rtdb.asia-southeast1.firebasedatabase.app/', workspace:'mnc-atrd', authToken:'',
     theme:'light', themeName:'light-pastel-sky', recentColors:[], appTitle:'Aspire Workforce Command', logoUrl:'',
@@ -17552,6 +17575,296 @@ function rejectEditRequest(editId){
     showToast('Edit request rejected', '', 'warn', 4500);
   }catch(e){ console.error('rejectEditRequest error', e); }
 }
+
+function v5071RequestDateIso(req, fallbackIso){
+  try{
+    if(req && req.weekStartISO!=null && req.dayIndex!=null){
+      var d = fromISO(String(req.weekStartISO));
+      d.setDate(d.getDate() + (parseInt(req.dayIndex, 10) || 0));
+      return toISO(d);
+    }
+    if(req && /^\d{4}-\d{2}-\d{2}$/.test(String(req.iso||''))) return String(req.iso);
+  }catch(e){}
+  return String(fallbackIso||'');
+}
+
+function v5071WeekEndIso(weekIso){
+  try{
+    var d = fromISO(String(weekIso||''));
+    d.setDate(d.getDate() + 6);
+    return toISO(d);
+  }catch(e){ return String(weekIso||''); }
+}
+
+function v5071RequestStatus(value, fallback){
+  var status = String(value || fallback || 'pending').toLowerCase();
+  return status === 'approved' || status === 'rejected' ? status : 'pending';
+}
+
+function v5071CollectRecentRequests(weekIso){
+  weekIso = String(weekIso || (Planner && Planner.weekStartISO) || '');
+  var weekEndIso = v5071WeekEndIso(weekIso);
+  var items = [];
+  function inWeek(iso){ return !!iso && iso >= weekIso && iso <= weekEndIso; }
+  function addAbsenceStore(store, fallbackStatus, sourceName){
+    Object.keys(store||{}).forEach(function(iso){
+      if(!inWeek(String(iso))) return;
+      var bucket = store[iso] || {};
+      Object.keys(bucket).forEach(function(staffId){
+        var req = bucket[staffId];
+        if(!req) return;
+        var base = {
+          dateISO:String(iso), staffId:String(staffId), req:req,
+          status:v5071RequestStatus(req.status, fallbackStatus),
+          requestedAt:req.createdAt || req.requestedAt || req.ts || req.submittedAt || '',
+          resolvedAt:req.resolvedAt || '', source:sourceName
+        };
+        if(Array.isArray(req.blocks) && req.blocks.length){
+          req.blocks.forEach(function(block, index){
+            if(!block) return;
+            items.push(Object.assign({}, base, {kind:'awayPartial', block:block, key:sourceName+'|'+iso+'|'+staffId+'|'+index}));
+          });
+        }else{
+          items.push(Object.assign({}, base, {kind:'awayFull', key:sourceName+'|'+iso+'|'+staffId}));
+        }
+      });
+    });
+  }
+  function addShiftStore(store, fallbackStatus, sourceName){
+    Object.keys(store||{}).forEach(function(iso){
+      var bucket = store[iso] || {};
+      Object.keys(bucket).forEach(function(key){
+        var req = bucket[key];
+        if(!req) return;
+        var dateISO = v5071RequestDateIso(req, iso);
+        if(!inWeek(dateISO)) return;
+        items.push({
+          key:sourceName+'|'+iso+'|'+key,
+          dateISO:dateISO,
+          staffId:String(req.staffId==null ? '' : req.staffId),
+          req:req,
+          kind:isShiftProposalRequest(req) ? 'shiftProposal' : 'shiftEdit',
+          status:v5071RequestStatus(req.status, fallbackStatus),
+          requestedAt:req.createdAt || req.requestedAt || req.ts || req.submittedAt || '',
+          resolvedAt:req.resolvedAt || '',
+          source:sourceName
+        });
+      });
+    });
+  }
+
+  addAbsenceStore(App.absenceRequests, 'pending', 'absence-pending');
+  addAbsenceStore(App.absenceHistory, 'approved', 'absence-history');
+  addShiftStore(App.shiftChangeRequests, 'pending', 'shift-pending');
+  addShiftStore(App.shiftChangeHistory, 'approved', 'shift-history');
+
+  Object.keys(App.editRequests||{}).forEach(function(key){
+    var req = App.editRequests[key];
+    if(!req) return;
+    var dateISO = v5071RequestDateIso(req, req.iso);
+    if(!inWeek(dateISO)) return;
+    var kind = 'editRequest';
+    if(req.type === 'away') kind = req.mode === 'partial' ? 'awayEditPartial' : 'awayEditFull';
+    items.push({
+      key:'edit|'+key, dateISO:dateISO,
+      staffId:String(req.staffId==null ? '' : req.staffId),
+      req:req, kind:kind,
+      status:v5071RequestStatus(req.status, 'pending'),
+      requestedAt:req.createdAt || req.requestedAt || req.ts || req.submittedAt || '',
+      resolvedAt:req.resolvedAt || '', source:'edit'
+    });
+  });
+
+  items.sort(function(a,b){
+    if(a.dateISO !== b.dateISO) return a.dateISO < b.dateISO ? -1 : 1;
+    var ta = Date.parse(a.requestedAt||'') || 0;
+    var tb = Date.parse(b.requestedAt||'') || 0;
+    if(ta !== tb) return ta - tb;
+    return staffDisplayNameForId(a.staffId, a.staffId).localeCompare(staffDisplayNameForId(b.staffId, b.staffId));
+  });
+  return items;
+}
+
+function v5071RequestDayLabel(iso){
+  try{
+    var d = fromISO(String(iso||''));
+    return d.toLocaleDateString(undefined, {weekday:'long'}) + ' ' + fmtDMY(d);
+  }catch(e){ return String(iso||''); }
+}
+
+function v5071RequestTime(value){
+  return value ? displayTime12(value, String(value)) : '';
+}
+
+function v5071RequestTimePhrase(start, end){
+  var startLabel = v5071RequestTime(start);
+  var endLabel = v5071RequestTime(end);
+  if(startLabel && endLabel) return 'from ' + startLabel + ' to ' + endLabel;
+  if(startLabel) return 'with a start time of ' + startLabel;
+  if(endLabel) return 'with an end time of ' + endLabel;
+  return '';
+}
+
+function v5071ShiftFinalRange(req){
+  var start = req && (req.newStart || req.appliedStart) || '';
+  var end = req && (req.newEnd || req.appliedEnd) || '';
+  try{
+    if(req && req.weekStartISO!=null && req.dayIndex!=null){
+      var day = (((App.weeks||{})[String(req.weekStartISO)]||{})[String(req.dayIndex)]) || {};
+      var shift = day[String(req.shiftId || req.appliedShiftId || '')];
+      if(shift){
+        if(!start) start = shift.start || '';
+        if(!end) end = shift.end || '';
+      }
+    }
+  }catch(e){}
+  return {start:start, end:end};
+}
+
+function v5071RecentRequestKindLabel(kind){
+  var labels = {
+    awayFull:'Full-day away', awayPartial:'Partial away',
+    shiftEdit:'Shift change', shiftProposal:'New shift',
+    awayEditFull:'Full-day away edit', awayEditPartial:'Partial away edit',
+    editRequest:'Edit request'
+  };
+  return labels[kind] || 'Request';
+}
+
+function v5071RecentRequestSentence(item){
+  var req = item.req || {};
+  var who = staffDisplayNameForId(item.staffId, item.staffId || 'A staff member');
+  var lead = 'On ' + v5071RequestDayLabel(item.dateISO) + ', ' + who + ' ';
+  var sentence = '';
+  var reason = '';
+  if(item.kind === 'shiftEdit' || item.kind === 'shiftProposal'){
+    var range = v5071ShiftFinalRange(req);
+    var phrase = v5071RequestTimePhrase(range.start, range.end);
+    sentence = lead + (item.kind === 'shiftProposal' ? 'requests a new shift' : 'requests a shift change') + (phrase ? (' ' + phrase) : '') + '.';
+    reason = req.reason || '';
+  }else if(item.kind === 'awayPartial'){
+    var block = item.block || {};
+    var awayPhrase = v5071RequestTimePhrase(block.start, block.end);
+    sentence = lead + 'requests time away' + (awayPhrase ? (' ' + awayPhrase) : '') + '.';
+    reason = block.reason || req.reason || '';
+  }else if(item.kind === 'awayFull'){
+    sentence = lead + 'requests the full day away.';
+    reason = req.reason || '';
+  }else if(item.kind === 'awayEditPartial'){
+    var proposed = req.proposed || {};
+    var editPhrase = v5071RequestTimePhrase(proposed.start, proposed.end);
+    sentence = lead + 'requests a change to their away time' + (editPhrase ? (' ' + editPhrase) : '') + '.';
+    reason = proposed.reason || req.reason || '';
+  }else if(item.kind === 'awayEditFull'){
+    sentence = lead + 'requests a change to their full-day away entry.';
+    reason = (req.proposed && req.proposed.reason) || req.reason || '';
+  }else{
+    sentence = lead + 'requests an edit.';
+    reason = req.reason || (req.proposed && req.proposed.reason) || '';
+  }
+  if(reason) sentence += ' Reason: ' + String(reason).trim() + '.';
+  return sentence;
+}
+
+function v5071RequestTimestamp(value){
+  if(!value) return '';
+  try{
+    var d = new Date(value);
+    if(isNaN(d.getTime())) return '';
+    return d.toLocaleString(undefined, {day:'2-digit', month:'2-digit', year:'numeric', hour:'numeric', minute:'2-digit'});
+  }catch(e){ return ''; }
+}
+
+function openRecentRequestsModal(){
+  if(!canModerateAbsences()) return alert('Manager/Admin only.');
+  var modal = byId('recentRequestsModal');
+  var list = byId('recentRequestsList');
+  var subtitle = byId('recentRequestsSubtitle');
+  if(!modal || !list) return;
+  var weekIso = String((Planner && Planner.weekStartISO) || toISO(weekStart(new Date())));
+  var weekEndIso = v5071WeekEndIso(weekIso);
+  var items = v5071CollectRecentRequests(weekIso);
+  list.innerHTML = '';
+  if(subtitle){
+    subtitle.textContent = v5071RequestDayLabel(weekIso) + ' to ' + v5071RequestDayLabel(weekEndIso) + ' - ' + items.length + (items.length === 1 ? ' request' : ' requests');
+  }
+  if(!items.length){
+    var empty = document.createElement('div');
+    empty.className = 'recent-requests-empty';
+    empty.textContent = 'No requests were recorded for this week.';
+    list.appendChild(empty);
+  }else{
+    items.forEach(function(item){
+      var row = document.createElement('article');
+      row.className = 'recent-request-row';
+      var head = document.createElement('div');
+      head.className = 'recent-request-row-head';
+      var status = document.createElement('span');
+      status.className = 'recent-request-status ' + item.status;
+      status.textContent = item.status.charAt(0).toUpperCase() + item.status.slice(1);
+      var kind = document.createElement('span');
+      kind.className = 'recent-request-kind';
+      kind.textContent = v5071RecentRequestKindLabel(item.kind);
+      head.appendChild(status);
+      head.appendChild(kind);
+      try{
+        var shopLabel = typeof adminRecordShopLabel === 'function' ? adminRecordShopLabel(item.req, false) : '';
+        if(shopLabel){
+          var shop = document.createElement('span');
+          shop.className = 'recent-request-shop';
+          shop.textContent = shopLabel;
+          head.appendChild(shop);
+        }
+      }catch(e){}
+      var summary = document.createElement('div');
+      summary.className = 'recent-request-summary';
+      summary.textContent = v5071RecentRequestSentence(item);
+      var meta = document.createElement('div');
+      meta.className = 'recent-request-meta';
+      var submitted = v5071RequestTimestamp(item.requestedAt);
+      var resolved = v5071RequestTimestamp(item.resolvedAt);
+      var metaParts = [];
+      if(submitted) metaParts.push('Submitted ' + submitted);
+      if(resolved) metaParts.push((item.status === 'approved' ? 'Approved ' : 'Rejected ') + resolved);
+      meta.textContent = metaParts.join(' | ');
+      row.appendChild(head);
+      row.appendChild(summary);
+      if(metaParts.length) row.appendChild(meta);
+      list.appendChild(row);
+    });
+  }
+  modal.style.display = 'flex';
+  var close = byId('btnCloseRecentRequests');
+  if(close) close.onclick = function(){ modal.style.display = 'none'; };
+  if(!modal.__v5071BackdropBound){
+    modal.addEventListener('click', function(ev){ if(ev.target === modal) modal.style.display = 'none'; });
+    modal.__v5071BackdropBound = true;
+  }
+}
+
+try{
+  if(String(location.search||'').indexOf('recent-requests-test=1') >= 0){
+    window.v5071ShowRecentRequestsTest = function(seed){
+      seed = seed || {};
+      ['staff','weeks','absenceRequests','absenceHistory','shiftChangeRequests','shiftChangeHistory','editRequests'].forEach(function(key){
+        if(seed[key]) App[key] = seed[key];
+      });
+      App.currentUser = seed.currentUser || {id:'admin', role:'admin'};
+      if(seed.weekStartISO) Planner.weekStartISO = String(seed.weekStartISO);
+      openRecentRequestsModal();
+      return v5071CollectRecentRequests(Planner.weekStartISO).length;
+    };
+  }
+}catch(e){}
+
+document.addEventListener('click', function(ev){
+  var target = ev && ev.target;
+  if(!target || !target.closest) return;
+  var button = target.closest('#btnRecentRequests, #btnViewRecentRequests');
+  if(!button) return;
+  ev.preventDefault();
+  openRecentRequestsModal();
+});
 
 
 function openRequestsModal(){
@@ -27711,7 +28024,7 @@ try{
 (function(){
   'use strict';
   var APP_NAME = 'Aspire Workforce Command';
-  var APP_VERSION = 'V5.0.70';
+  var APP_VERSION = 'V5.0.71';
   var OLD_TITLE = 'M&C-ATRD-scheduler --=Aspire Group=--';
 
   var NAVS = [
@@ -32247,6 +32560,180 @@ body.theme-light #dtAddSecondShift.dt-additional-shift{
   }
   #myWageTable .my-wage-deduction-reason{ font-size:11px; }
   .my-pay-deduction-date{ grid-column:1; }
+}
+
+</style>
+<style id="v5071RecentRequestsCss">
+.modal#recentRequestsModal {
+  z-index: 5600 !important;
+}
+
+.staff-requests-heading-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.recent-requests-panel {
+  width: min(760px, calc(100vw - 28px));
+  max-height: min(86vh, 820px);
+  padding: 0 !important;
+  overflow: hidden !important;
+  display: flex;
+  flex-direction: column;
+}
+
+.recent-requests-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 18px 20px 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.recent-requests-head h3 {
+  margin: 0 0 5px;
+  font-size: 19px;
+  line-height: 1.2;
+}
+
+.recent-requests-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  padding: 10px 20px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(148, 163, 184, .07);
+}
+
+.recent-request-status,
+.recent-request-kind,
+.recent-request-shop {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 3px 8px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 900;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.recent-request-status.pending {
+  color: #92400e;
+  background: #fef3c7;
+  border-color: #f59e0b;
+}
+
+.recent-request-status.approved {
+  color: #166534;
+  background: #dcfce7;
+  border-color: #22c55e;
+}
+
+.recent-request-status.rejected {
+  color: #991b1b;
+  background: #fee2e2;
+  border-color: #ef4444;
+}
+
+.recent-request-kind {
+  color: #075985;
+  background: #e0f2fe;
+  border-color: #38bdf8;
+}
+
+.recent-request-shop {
+  color: var(--muted);
+  border-color: var(--border);
+  background: rgba(148, 163, 184, .1);
+}
+
+.recent-requests-list {
+  min-height: 120px;
+  padding: 14px 20px 20px;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+.recent-request-row {
+  padding: 13px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.recent-request-row:first-child {
+  padding-top: 2px;
+}
+
+.recent-request-row:last-child {
+  padding-bottom: 2px;
+  border-bottom: 0;
+}
+
+.recent-request-row-head {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-wrap: wrap;
+  margin-bottom: 7px;
+}
+
+.recent-request-summary {
+  color: var(--fg);
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.5;
+}
+
+.recent-request-meta {
+  margin-top: 5px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.recent-requests-empty {
+  padding: 24px 12px;
+  color: var(--muted);
+  text-align: center;
+  font-weight: 800;
+}
+
+@media (max-width: 560px) {
+  .staff-requests-heading-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .recent-requests-panel {
+    width: calc(100vw - 16px);
+    max-height: calc(100dvh - 16px);
+  }
+
+  .recent-requests-head {
+    align-items: center;
+    padding: 14px;
+  }
+
+  .recent-requests-head h3 {
+    font-size: 17px;
+  }
+
+  .recent-requests-legend,
+  .recent-requests-list {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  .recent-request-summary {
+    font-size: 13px;
+  }
 }
 
 </style>
